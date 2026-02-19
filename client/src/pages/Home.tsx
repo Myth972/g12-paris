@@ -1,0 +1,116 @@
+import { trpc } from "@/lib/trpc";
+import ArticleCard from "@/components/ArticleCard";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Newspaper, ChevronRight } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Helmet } from "react-helmet-async";
+
+export default function Home() {
+  const [page, setPage] = useState(0);
+  const limit = 12;
+  const offset = useMemo(() => page * limit, [page]);
+
+  const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset });
+
+  const articles = data?.items ?? [];
+  const total = data?.total ?? 0;
+  const hasMore = offset + limit < total;
+
+  return (
+    <div className="min-h-screen">
+      <Helmet>
+        <title>G12 Paris Infos Médias - Actualités Chrétiennes</title>
+        <meta name="description" content="Restez informé avec les dernières nouvelles de Paris et d'ailleurs. Articles, reportages et vidéos au quotidien sur G12 Paris Infos Médias." />
+      </Helmet>
+      {/* Hero section */}
+      <section className="relative bg-gradient-to-b from-primary/[0.03] to-transparent py-12 md:py-16">
+        <div className="container">
+          <div className="max-w-2xl">
+            <div className="flex items-center gap-2 mb-4">
+              <div className="w-8 h-0.5 bg-primary rounded-full" />
+              <span className="text-xs font-semibold uppercase tracking-[0.15em] text-primary font-sans">
+                Dernières nouvelles
+              </span>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight">
+              L'actualité qui compte,<br />
+              <span className="text-primary/80">racontée avec rigueur.</span>
+            </h2>
+            <p className="mt-4 text-muted-foreground text-base leading-relaxed max-w-lg">
+              Restez informé avec les dernières nouvelles de Paris et d'ailleurs. Articles, reportages et vidéos au quotidien.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Articles grid */}
+      <section className="container pb-16">
+        {isLoading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded-xl overflow-hidden border border-border/50">
+                <Skeleton className="aspect-[16/10] w-full" />
+                <div className="p-4 space-y-3">
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-3 w-1/3" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : articles.length === 0 ? (
+          <div className="text-center py-20">
+            <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
+              <Newspaper className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <h3 className="text-lg font-serif font-semibold text-foreground mb-2">
+              Aucun article pour le moment
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Les articles apparaîtront ici dès leur publication.
+            </p>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {articles.map((article, index) => (
+                <ArticleCard
+                  key={article.id}
+                  article={article}
+                  featured={index === 0 && page === 0}
+                />
+              ))}
+            </div>
+
+            {/* Pagination */}
+            {total > limit && (
+              <div className="flex items-center justify-center gap-3 mt-10">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={page === 0}
+                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                >
+                  Précédent
+                </Button>
+                <span className="text-sm text-muted-foreground px-3">
+                  Page {page + 1} sur {Math.ceil(total / limit)}
+                </span>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={!hasMore}
+                  onClick={() => setPage((p) => p + 1)}
+                >
+                  Suivant
+                  <ChevronRight className="w-4 h-4 ml-1" />
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+      </section>
+    </div>
+  );
+}
