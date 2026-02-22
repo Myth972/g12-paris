@@ -949,12 +949,17 @@ function PagesTab({ enabled }: { enabled: boolean }) {
 export default function Admin() {
   const { user, loading: authLoading } = useAuth({ redirectOnUnauthenticated: true });
   const [location, setLocation] = useLocation();
+  const [activeTab, setActiveTabState] = useState("articles");
 
-  // Use URL search params for tab selection
-  const searchParams = new URLSearchParams(window.location.search);
-  const activeTab = searchParams.get("tab") || "articles";
+  // Sync activeTab with URL on mount and when URL changes
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const tabFromUrl = searchParams.get("tab") || "articles";
+    setActiveTabState(tabFromUrl);
+  }, [location]);
 
   const setActiveTab = (tab: string) => {
+    setActiveTabState(tab);
     setLocation(`/admin?tab=${tab}`);
   };
 
