@@ -1,51 +1,37 @@
 import { trpc } from "@/lib/trpc";
-import PublicationCarousel from "@/components/PublicationCarousel";
 import { Link } from "wouter";
 import { Calendar, Clock, ChevronRight, Image as ImageIcon } from "lucide-react";
+import { Helmet } from "react-helmet-async";
 
-export default function Home() {
+export default function Actualites() {
   const { data, isLoading, error } = trpc.articles.list.useQuery({
-    limit: 9,
+    limit: 20,
+    category: "actualité",
   });
-  
-  const articles = data?.items;
+
+  const articles = data?.items || [];
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Section Hero - Publication du jour */}
-      <section className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-serif font-bold mb-2 text-foreground">
-            Publication du jour
-          </h2>
-          <p className="text-muted-foreground">
-            Découvrez nos dernières publications et actualités
+      <Helmet>
+        <title>Actualités - G12 Paris</title>
+        <meta name="description" content="Restez informé des dernières actualités et nouvelles de notre communauté G12 Paris." />
+      </Helmet>
+
+      {/* Hero Section */}
+      <section className="bg-gradient-to-br from-blue-600 to-blue-800 text-white py-16">
+        <div className="container mx-auto px-4 text-center">
+          <h1 className="text-4xl md:text-5xl font-serif font-bold mb-4">
+            Actualités
+          </h1>
+          <p className="text-xl text-blue-100 max-w-2xl mx-auto">
+            Restez informé des dernières nouvelles et événements
           </p>
         </div>
-        
-        <PublicationCarousel />
       </section>
 
-      {/* Section Dernières Actualités */}
-      <section className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h2 className="text-3xl font-serif font-bold text-foreground">
-              Dernières actualités
-            </h2>
-            <p className="text-muted-foreground mt-1">
-              Restez informé de l'actualité parisienne
-            </p>
-          </div>
-          <Link 
-            href="/actualites"
-            className="flex items-center gap-2 text-primary hover:text-primary/80 transition-colors font-medium"
-          >
-            Voir tout
-            <ChevronRight className="w-4 h-4" />
-          </Link>
-        </div>
-
+      {/* Main Content */}
+      <section className="container mx-auto px-4 py-12">
         {isLoading ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -67,7 +53,7 @@ export default function Home() {
               Veuillez réessayer ultérieurement
             </p>
           </div>
-        ) : articles && articles.length > 0 ? (
+        ) : articles.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {articles.map((article: any, index: number) => (
               <article
@@ -148,39 +134,12 @@ export default function Home() {
         ) : (
           <div className="text-center py-12 bg-card border border-border rounded-lg">
             <ImageIcon className="w-16 h-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-            <p className="text-lg font-medium text-foreground">Aucun article pour le moment</p>
+            <p className="text-lg font-medium text-foreground">Aucune actualité pour le moment</p>
             <p className="text-muted-foreground text-sm mt-2">
               Revenez bientôt pour découvrir nos nouvelles actualités
             </p>
           </div>
         )}
-      </section>
-
-      {/* Section Categories Rapides */}
-      <section className="container mx-auto px-4 py-8">
-        <h2 className="text-2xl font-serif font-bold mb-6 text-foreground">
-          Explorer par catégorie
-        </h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          {[
-            { name: 'Actualité', href: '/actualites', color: 'bg-blue-500' },
-            { name: 'Publication du jour', href: '/publications', color: 'bg-green-500' },
-            { name: 'Culte en ligne', href: '/culte-en-ligne', color: 'bg-purple-500' },
-            { name: 'Bibliothèque', href: '/bibliotheque', color: 'bg-orange-500' },
-          ].map((category) => (
-            <Link
-              key={category.name}
-              href={category.href}
-              className="group relative overflow-hidden rounded-lg bg-card border border-border p-6 hover:shadow-lg transition-all duration-300"
-            >
-              <div className={`absolute top-0 left-0 w-1 h-full ${category.color}`} />
-              <h3 className="font-medium text-foreground group-hover:text-primary transition-colors">
-                {category.name}
-              </h3>
-              <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-hover:translate-x-1 transition-transform" />
-            </Link>
-          ))}
-        </div>
       </section>
 
       <style>{`

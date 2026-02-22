@@ -3,8 +3,9 @@ import YouTubeEmbed from "@/components/YouTubeEmbed";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Calendar, User, Share2 } from "lucide-react";
-import { useLocation, useParams } from "wouter";
+import { ArrowLeft, Calendar, User, Share2, Settings } from "lucide-react";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { useLocation, useParams, Link } from "wouter";
 import { Streamdown } from "streamdown";
 import { toast } from "sonner";
 
@@ -16,7 +17,10 @@ function formatDate(date: Date): string {
   });
 }
 
+import { Helmet } from "react-helmet-async";
+
 export default function ArticleDetail() {
+  const { user } = useAuth();
   const params = useParams<{ slug: string }>();
   const [, setLocation] = useLocation();
 
@@ -62,8 +66,42 @@ export default function ArticleDetail() {
     );
   }
 
+  const config = (() => {
+    try {
+      return article.config ? JSON.parse(article.config) : { imagePosition: "top", videoPosition: "top" };
+    } catch (e) {
+      return { imagePosition: "top", videoPosition: "top" };
+    }
+  })();
+
+  const renderImage = () => article.coverImageUrl && config.imagePosition !== "hidden" && (
+    <div className="container max-w-5xl mx-auto mb-8">
+      <div className="rounded-xl overflow-hidden shadow-lg">
+        <img
+          src={article.coverImageUrl}
+          alt={article.title}
+          className="w-full max-h-[500px] object-cover"
+        />
+      </div>
+    </div>
+  );
+
+  const renderVideo = () => article.youtubeUrl && config.videoPosition !== "hidden" && (
+    <div className="container max-w-4xl mx-auto mb-8">
+      <YouTubeEmbed url={article.youtubeUrl} />
+    </div>
+  );
+
   return (
     <article className="pb-16">
+      <Helmet>
+        <title>{article.title} - G12 Paris</title>
+        <meta name="description" content={article.excerpt || "Découvrez cet article sur G12 Paris infos médias."} />
+        <meta property="og:title" content={article.title} />
+        <meta property="og:description" content={article.excerpt || "Découvrez cet article sur G12 Paris infos médias."} />
+        {article.coverImageUrl && <meta property="og:image" content={article.coverImageUrl} />}
+        <meta property="og:type" content="article" />
+      </Helmet>
       {/* Back button */}
       <div className="container max-w-4xl mx-auto pt-6">
         <Button
@@ -104,32 +142,26 @@ export default function ArticleDetail() {
             <Calendar className="w-4 h-4" />
             {formatDate(article.createdAt)}
           </span>
-          <Button variant="ghost" size="sm" onClick={handleShare} className="ml-auto">
-            <Share2 className="w-4 h-4 mr-1" />
-            Partager
-          </Button>
+          <div className="ml-auto flex items-center gap-2">
+            <Button variant="ghost" size="sm" onClick={handleShare}>
+              <Share2 className="w-4 h-4 mr-1" />
+              Partager
+            </Button>
+            {user?.role === "admin" && (
+              <Button size="sm" variant="outline" className="gap-2 border-primary/20 text-primary hover:bg-primary/5" asChild>
+                <Link href={`/admin/article/${article.id}`}>
+                  <Settings className="w-4 h-4" />
+                  Modifier l'article
+                </Link>
+              </Button>
+            )}
+          </div>
         </div>
       </header>
 
-      {/* Cover image */}
-      {article.coverImageUrl && (
-        <div className="container max-w-5xl mx-auto mb-8">
-          <div className="rounded-xl overflow-hidden shadow-lg">
-            <img
-              src={article.coverImageUrl}
-              alt={article.title}
-              className="w-full max-h-[500px] object-cover"
-            />
-          </div>
-        </div>
-      )}
-
-      {/* YouTube video */}
-      {article.youtubeUrl && (
-        <div className="container max-w-4xl mx-auto mb-8">
-          <YouTubeEmbed url={article.youtubeUrl} />
-        </div>
-      )}
+      {/* Media Top */}
+      {config.imagePosition === "top" && renderImage()}
+      {config.videoPosition === "top" && renderVideo()}
 
       {/* Content */}
       <div className="container max-w-3xl mx-auto">
@@ -137,6 +169,10 @@ export default function ArticleDetail() {
           <Streamdown>{article.content}</Streamdown>
         </div>
       </div>
+
+      {/* Media Bottom */}
+      {config.imagePosition === "bottom" && renderImage()}
+      {config.videoPosition === "bottom" && renderVideo()}
 
       {/* Separator */}
       <div className="container max-w-3xl mx-auto mt-12">

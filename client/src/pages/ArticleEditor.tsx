@@ -53,6 +53,8 @@ export default function ArticleEditor() {
   const [published, setPublished] = useState(false);
   const [coverImageUrl, setCoverImageUrl] = useState("");
   const [coverImageKey, setCoverImageKey] = useState("");
+  const [weight, setWeight] = useState(0);
+  const [config, setConfig] = useState({ imagePosition: "top", videoPosition: "top" });
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -75,6 +77,14 @@ export default function ArticleEditor() {
       setPublished(existingArticle.published);
       setCoverImageUrl(existingArticle.coverImageUrl ?? "");
       setCoverImageKey(existingArticle.coverImageKey ?? "");
+      setWeight(existingArticle.weight || 0);
+      try {
+        if (existingArticle.config) {
+          setConfig(JSON.parse(existingArticle.config));
+        }
+      } catch (e) {
+        console.error("Failed to parse config", e);
+      }
     }
   }, [existingArticle]);
 
@@ -152,6 +162,8 @@ export default function ArticleEditor() {
         coverImageUrl: coverImageUrl || undefined,
         coverImageKey: coverImageKey || undefined,
         published,
+        weight,
+        config: JSON.stringify(config),
       };
 
       if (isNew) {
@@ -233,6 +245,62 @@ export default function ArticleEditor() {
                 )}
                 Enregistrer
               </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Admin Quick Settings Bar */}
+      <div className="bg-primary/5 border-b border-border">
+        <div className="container py-3">
+          <div className="flex flex-wrap items-center gap-6">
+            <div className="flex items-center gap-2">
+              <Label htmlFor="weight" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Importance (Poids)
+              </Label>
+              <Input
+                id="weight"
+                type="number"
+                value={weight}
+                onChange={(e) => setWeight(parseInt(e.target.value) || 0)}
+                className="w-20 h-8 text-sm"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Position Image
+              </Label>
+              <Select
+                value={config.imagePosition}
+                onValueChange={(v) => setConfig({ ...config, imagePosition: v })}
+              >
+                <SelectTrigger className="h-8 w-32 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="top">Haut</SelectItem>
+                  <SelectItem value="bottom">Bas</SelectItem>
+                  <SelectItem value="hidden">Masquée</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                Position Vidéo
+              </Label>
+              <Select
+                value={config.videoPosition}
+                onValueChange={(v) => setConfig({ ...config, videoPosition: v })}
+              >
+                <SelectTrigger className="h-8 w-32 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="top">Haut</SelectItem>
+                  <SelectItem value="bottom">Bas</SelectItem>
+                  <SelectItem value="hidden">Masquée</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </div>

@@ -7,7 +7,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getLoginUrl } from "@/const";
 import {
   Menu,
   X,
@@ -22,11 +21,11 @@ import NotificationBell from "./NotificationBell";
 
 const NAV_LINKS = [
   { href: "/", label: "Accueil" },
-  { href: "/categorie/actualité", label: "Actualités" },
+  { href: "/actualites", label: "Actualités" },
   { href: "/publications", label: "Publication du jour" },
   { href: "/galeries", label: "Galeries" },
-  { href: "/categorie/culte en ligne", label: "Culte en ligne" },
-  { href: "/categorie/bibliothèque", label: "Bibliothèque" },
+  { href: "/culte-en-ligne", label: "Culte en ligne" },
+  { href: "/bibliotheque", label: "Bibliothèque" },
 ];
 
 export default function SiteHeader() {
@@ -126,10 +125,10 @@ export default function SiteHeader() {
             ) : (
               <Button
                 size="sm"
-                onClick={() => (window.location.href = getLoginUrl())}
+                asChild
                 className="font-medium"
               >
-                Connexion
+                <Link href="/login">Connexion</Link>
               </Button>
             )}
 

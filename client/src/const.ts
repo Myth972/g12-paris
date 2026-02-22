@@ -5,7 +5,9 @@ export const getLoginUrl = () => {
   const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL;
 
   if (!oauthPortalUrl) {
-    console.warn("OAUTH_SERVER_URL is not configured.");
+    if (!import.meta.env.DEV) {
+      console.warn("OAUTH_SERVER_URL is not configured.");
+    }
     return window.location.origin;
   }
 

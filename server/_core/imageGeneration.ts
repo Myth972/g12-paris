@@ -34,6 +34,13 @@ export type GenerateImageResponse = {
 export async function generateImage(
   options: GenerateImageOptions
 ): Promise<GenerateImageResponse> {
+  if ((!ENV.forgeApiUrl || !ENV.forgeApiKey) && process.env.NODE_ENV === "development") {
+    console.log("[DevMode] Mocking Image generation because API key/URL is missing.");
+    return {
+      url: "https://placehold.co/1024x1024?text=AI+Image+Mock+DevMode",
+    };
+  }
+
   if (!ENV.forgeApiUrl) {
     throw new Error("BUILT_IN_FORGE_API_URL is not configured");
   }

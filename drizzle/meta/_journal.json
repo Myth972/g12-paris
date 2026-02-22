@@ -8,6 +8,20 @@
       "when": 1771449496953,
       "tag": "0000_wooden_spacker_dave",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1771627331951,
+      "tag": "0001_last_santa_claus",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1771628595183,
+      "tag": "0002_salty_bloodaxe",
+      "breakpoints": true
     }
   ]
 }

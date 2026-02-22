@@ -1,7 +1,7 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { publicProcedure, protectedProcedure, adminProcedure, router } from "./_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
@@ -22,19 +22,22 @@ import {
   countUnreadNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
+  listGalleries,
+  createGalleryItem,
+  deleteGalleryItem,
+  listPublications,
+  createPublicationItem,
+  deletePublicationItem,
+  listPages,
+  getPageBySlug,
+  upsertPage,
 } from "./db";
 import { storagePut } from "./storage";
 import { nanoid } from "nanoid";
 import { invokeLLM, Role } from "./_core/llm";
 import { generateImage } from "./_core/imageGeneration";
 
-// Admin-only procedure
-const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (ctx.user.role !== "admin") {
-    throw new TRPCError({ code: "FORBIDDEN", message: "Accès réservé aux administrateurs" });
-  }
-  return next({ ctx });
-});
+
 
 function generateSlug(title: string): string {
   return title
@@ -127,6 +130,8 @@ export const appRouter = router({
           youtubeUrl: z.string().optional(),
           category: z.string().max(100).default("actualité"),
           published: z.boolean().default(false),
+          weight: z.number().default(0),
+          config: z.string().optional(),
         })
       )
       .mutation(async ({ ctx, input }) => {
@@ -151,6 +156,8 @@ export const appRouter = router({
           youtubeUrl: z.string().nullable().optional(),
           category: z.string().max(100).optional(),
           published: z.boolean().optional(),
+          weight: z.number().optional(),
+          config: z.string().optional(),
         })
       )
       .mutation(async ({ input }) => {
@@ -267,6 +274,43 @@ export const appRouter = router({
       }),
   }),
 
+  galleries: router({
+    list: publicProcedure.query(async () => {
+      return listGalleries();
+    }),
+    create: adminProcedure
+      .input(z.object({ src: z.string(), alt: z.string().optional(), weight: z.number().default(0) }))
+      .mutation(async ({ input }) => {
+        return createGalleryItem(input);
+      }),
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        return deleteGalleryItem(input.id);
+      }),
+  }),
+
+  publications: router({
+    list: publicProcedure.query(async () => {
+      return listPublications();
+    }),
+    create: adminProcedure
+      .input(z.object({
+        type: z.string(),
+        content: z.string(),
+        title: z.string().optional(),
+        weight: z.number().default(0)
+      }))
+      .mutation(async ({ input }) => {
+        return createPublicationItem(input);
+      }),
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        return deletePublicationItem(input.id);
+      }),
+  }),
+
   ai: router({
     generateText: adminProcedure
       .input(z.object({
@@ -279,16 +323,16 @@ export const appRouter = router({
 
         switch (input.type) {
           case "summary":
-            systemPrompt += " Ton but est de générer un résumé concis et accrocheur (chapô) de l'article fourni.";
+            systemPrompt += " Ton but est de générer un résumé captivant et professionnel (chapô) de l'article. Le ton doit être journalistique, informatif mais engageant. Limite-toi à 2-3 phrases maximum.";
             break;
           case "title":
-            systemPrompt += " Ton but est de générer 5 propositions de titres accrocheurs pour l'article fourni.";
+            systemPrompt += " Ton but est de suggérer 5 titres percutants et variés (informatif, intrigant, narratif, etc.) qui donneront envie de cliquer. Évite le sensationnalisme excessif.";
             break;
           case "correction":
-            systemPrompt += " Ton but est de corriger l'orthographe, la grammaire et le style du texte fourni, sans en changer le sens.";
+            systemPrompt += " Ton but est d'agir comme un correcteur professionnel. Améliore la fluidité, corrige toutes les fautes, et assure un niveau de langue soutenu mais accessible. Conserve la voix de l'auteur.";
             break;
           case "content":
-            systemPrompt += " Ton but est de rédiger ou compléter le contenu d'un article sur le sujet donné.";
+            systemPrompt += " Ton but est de rédiger un contenu riche, structuré avec des paragraphes clairs, et informatif. Utilise un ton bienveillant et professionnel adapté à un média d'inspiration chrétienne.";
             break;
         }
 
@@ -310,6 +354,48 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         const { url } = await generateImage({ prompt: input.prompt });
         const key = url?.split("storage/")[1] ?? "";
+        return { url, key };
+      }),
+  }),
+
+  pages: router({
+    list: adminProcedure.query(async () => {
+      return listPages();
+    }),
+    getBySlug: publicProcedure
+      .input(z.object({ slug: z.string() }))
+      .query(async ({ input }) => {
+        return getPageBySlug(input.slug);
+      }),
+    upsert: adminProcedure
+      .input(
+        z.object({
+          slug: z.string(),
+          title: z.string(),
+          description: z.string().optional(),
+          config: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        return upsertPage(input);
+      }),
+  }),
+
+  media: router({
+    upload: adminProcedure
+      .input(
+        z.object({
+          base64: z.string(),
+          filename: z.string(),
+          contentType: z.string(),
+          prefix: z.string().default("media"),
+        })
+      )
+      .mutation(async ({ ctx, input }) => {
+        const buffer = Buffer.from(input.base64, "base64");
+        const ext = input.filename.split(".").pop() || "jpg";
+        const key = `${input.prefix}/${ctx.user.id}/${nanoid(12)}.${ext}`;
+        const { url } = await storagePut(key, buffer, input.contentType);
         return { url, key };
       }),
   }),

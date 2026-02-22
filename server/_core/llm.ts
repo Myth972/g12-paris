@@ -19,7 +19,7 @@ export type FileContent = {
   type: "file_url";
   file_url: {
     url: string;
-    mime_type?: "audio/mpeg" | "audio/wav" | "application/pdf" | "audio/mp4" | "video/mp4" ;
+    mime_type?: "audio/mpeg" | "audio/wav" | "application/pdf" | "audio/mp4" | "video/mp4";
   };
 };
 
@@ -215,8 +215,8 @@ const resolveApiUrl = () =>
     : "https://forge.manus.im/v1/chat/completions";
 
 const assertApiKey = () => {
-  if (!ENV.forgeApiKey) {
-    throw new Error("OPENAI_API_KEY is not configured");
+  if (!ENV.forgeApiKey && !ENV.googleApiKey && process.env.NODE_ENV !== "development") {
+    throw new Error("AI API Key (Forge or Google) is not configured");
   }
 };
 
@@ -268,6 +268,30 @@ const normalizeResponseFormat = ({
 export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
   assertApiKey();
 
+  if (!ENV.forgeApiKey && !ENV.googleApiKey && !ENV.groqApiKey && process.env.NODE_ENV === "development") {
+    console.log("[DevMode] Mocking LLM response because all API keys are missing.");
+    return {
+      id: `mock-${Date.now()}`,
+      created: Math.floor(Date.now() / 1000),
+      model: "mock-ai-dev",
+      choices: [
+        {
+          index: 0,
+          message: {
+            role: "assistant",
+            content: "Ceci est une réponse simulée (MOCK) du mode développement. Pour utiliser un vrai assistant IA, configurez GOOGLE_API_KEY ou GROQ_API_KEY dans le fichier .env.",
+          },
+          finish_reason: "stop",
+        },
+      ],
+      usage: {
+        prompt_tokens: 0,
+        completion_tokens: 0,
+        total_tokens: 0,
+      },
+    };
+  }
+
   const {
     messages,
     tools,
@@ -280,9 +304,33 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
   } = params;
 
   const payload: Record<string, unknown> = {
-    model: "gemini-2.5-flash",
     messages: messages.map(normalizeMessage),
   };
+
+  // Determine provider logic
+  const canUseGoogle = !!ENV.googleApiKey;
+  const canUseGroq = !!ENV.groqApiKey;
+
+  let provider = ENV.preferredAiProvider as "google" | "groq" | "forge";
+
+  // Fallback logic if preferred is missing
+  if (provider === "google" && !canUseGoogle) {
+    if (canUseGroq) provider = "groq";
+    else if (ENV.forgeApiKey) provider = "forge";
+  } else if (provider === "groq" && !canUseGroq) {
+    if (canUseGoogle) provider = "google";
+    else if (ENV.forgeApiKey) provider = "forge";
+  }
+
+  console.log(`[LLM] Using provider: ${provider}`);
+
+  if (provider === "google") {
+    payload.model = "gemini-2.0-flash";
+  } else if (provider === "groq") {
+    payload.model = "llama-3.3-70b-versatile";
+  } else {
+    payload.model = "gemini-2.0-flash";
+  }
 
   if (tools && tools.length > 0) {
     payload.tools = tools;
@@ -296,10 +344,7 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     payload.tool_choice = normalizedToolChoice;
   }
 
-  payload.max_tokens = 32768
-  payload.thinking = {
-    "budget_tokens": 128
-  }
+  payload.max_tokens = 32768;
 
   const normalizedResponseFormat = normalizeResponseFormat({
     responseFormat,
@@ -312,12 +357,24 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     payload.response_format = normalizedResponseFormat;
   }
 
-  const response = await fetch(resolveApiUrl(), {
+  let endpointUrl: string;
+  const headers: Record<string, string> = {
+    "content-type": "application/json",
+  };
+
+  if (provider === "google") {
+    endpointUrl = `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions?key=${ENV.googleApiKey}`;
+  } else if (provider === "groq") {
+    endpointUrl = "https://api.groq.com/openai/v1/chat/completions";
+    headers["authorization"] = `Bearer ${ENV.groqApiKey}`;
+  } else {
+    endpointUrl = resolveApiUrl();
+    headers["authorization"] = `Bearer ${ENV.forgeApiKey}`;
+  }
+
+  const response = await fetch(endpointUrl, {
     method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${ENV.forgeApiKey}`,
-    },
+    headers,
     body: JSON.stringify(payload),
   });
 

@@ -1,7 +1,7 @@
 import { eq, desc, and, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/libsql";
 import { createClient } from "@libsql/client";
-import { InsertUser, users, articles, type InsertArticle, notifications, notificationReads, type InsertNotification } from "../drizzle/schema";
+import { InsertUser, users, articles, type InsertArticle, notifications, notificationReads, type InsertNotification, galleries, publications, type InsertGallery, type InsertPublication, pages, type InsertPage } from "../drizzle/schema";
 import { notInArray, inArray } from "drizzle-orm";
 import { ENV } from './_core/env';
 
@@ -40,25 +40,28 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     return;
   }
 
-  // Determine role
-  const role = user.role ?? (user.openId === ENV.ownerOpenId ? "admin" : "user");
+  // Determine role: use provided role, or fallback to owner check only if it's a new user
+  // (though technically the upsert will handle both cases, we want to be careful)
+  const role = user.role ?? (user.openId === ENV.ownerOpenId ? "admin" : undefined);
   const lastSignedIn = user.lastSignedIn ?? new Date();
 
   try {
-    await db.insert(users).values({
+    const values: any = {
       openId: user.openId,
       name: user.name ?? null,
       email: user.email ?? null,
       loginMethod: user.loginMethod ?? null,
-      role,
       lastSignedIn,
-    }).onConflictDoUpdate({
+    };
+    if (role) values.role = role;
+
+    await db.insert(users).values(values).onConflictDoUpdate({
       target: users.openId,
       set: {
         name: user.name ?? sql`excluded.name`,
         email: user.email ?? sql`excluded.email`,
         loginMethod: user.loginMethod ?? sql`excluded.loginMethod`,
-        role: sql`excluded.role`,
+        role: role ? sql`excluded.role` : users.role,
         lastSignedIn: sql`excluded.lastSignedIn`,
       },
     });
@@ -72,12 +75,12 @@ export async function getUserByOpenId(openId: string) {
   const db = await getDb();
   if (!db) {
     console.warn("[Database] Cannot get user: database not available");
-    return undefined;
+    return null;
   }
 
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
 
-  return result.length > 0 ? result[0] : undefined;
+  return result.length > 0 ? result[0] : null;
 }
 
 // ─── Article helpers ────────────────────────────────────────────
@@ -87,7 +90,7 @@ export async function createArticle(data: Omit<InsertArticle, "id" | "createdAt"
   if (!db) throw new Error("Database not available");
 
   const result = await db.insert(articles).values(data).returning();
-  return result[0];
+  return result[0] ?? null;
 }
 
 export async function updateArticle(id: number, data: Partial<Omit<InsertArticle, "id" | "createdAt" | "updatedAt">>) {
@@ -95,7 +98,7 @@ export async function updateArticle(id: number, data: Partial<Omit<InsertArticle
   if (!db) throw new Error("Database not available");
 
   const result = await db.update(articles).set(data).where(eq(articles.id, id)).returning();
-  return result[0];
+  return result[0] ?? null;
 }
 
 export async function deleteArticle(id: number) {
@@ -159,7 +162,7 @@ export async function listPublishedArticles(limit = 20, offset = 0, category?: s
     .from(articles)
     .leftJoin(users, eq(articles.authorId, users.id))
     .where(and(...conditions))
-    .orderBy(desc(articles.createdAt))
+    .orderBy(desc(articles.weight), desc(articles.createdAt))
     .limit(limit)
     .offset(offset);
 
@@ -194,7 +197,7 @@ export async function listAllArticles(limit = 50, offset = 0) {
     })
     .from(articles)
     .leftJoin(users, eq(articles.authorId, users.id))
-    .orderBy(desc(articles.createdAt))
+    .orderBy(desc(articles.weight), desc(articles.createdAt))
     .limit(limit)
     .offset(offset);
 
@@ -216,7 +219,7 @@ export async function createNotification(data: Omit<InsertNotification, "id" | "
   if (!db) throw new Error("Database not available");
 
   const result = await db.insert(notifications).values(data).returning();
-  return result[0];
+  return result[0] ?? null;
 }
 
 export async function deleteNotification(id: number) {
@@ -288,26 +291,19 @@ export async function countUnreadNotifications(userId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  const readRows = await db
-    .select({ notificationId: notificationReads.notificationId })
-    .from(notificationReads)
-    .where(eq(notificationReads.userId, userId));
+  const rows = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(notifications)
+    .leftJoin(
+      notificationReads,
+      and(
+        eq(notificationReads.notificationId, notifications.id),
+        eq(notificationReads.userId, userId)
+      )
+    )
+    .where(sql`${notificationReads.readAt} IS NULL`);
 
-  const readIds = readRows.map(r => r.notificationId);
-
-  let countRows;
-  if (readIds.length > 0) {
-    countRows = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(notifications)
-      .where(notInArray(notifications.id, readIds));
-  } else {
-    countRows = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(notifications);
-  }
-
-  return countRows[0]?.count ?? 0;
+  return rows[0]?.count ?? 0;
 }
 
 export async function markNotificationAsRead(notificationId: number, userId: number) {
@@ -367,4 +363,85 @@ export async function markAllNotificationsAsRead(userId: number) {
   );
 
   return { success: true, count: unreadIds.length };
+}
+
+// ─── Gallery helpers ───────────────────────────────────────────
+
+export async function listGalleries() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  return await db.select().from(galleries).orderBy(desc(galleries.weight), desc(galleries.createdAt));
+}
+
+export async function createGalleryItem(data: Omit<InsertGallery, "id" | "createdAt">) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(galleries).values(data).returning();
+  return result[0] ?? null;
+}
+
+export async function deleteGalleryItem(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(galleries).where(eq(galleries.id, id));
+  return { success: true };
+}
+
+// ─── Publication helpers ───────────────────────────────────────
+
+export async function listPublications() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  return await db.select().from(publications).orderBy(desc(publications.weight), desc(publications.createdAt));
+}
+
+export async function createPublicationItem(data: Omit<InsertPublication, "id" | "createdAt">) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.insert(publications).values(data).returning();
+  return result[0] ?? null;
+}
+
+export async function deletePublicationItem(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  await db.delete(publications).where(eq(publications.id, id));
+  return { success: true };
+}
+
+// ─── Pages helpers ─────────────────────────────────────────────
+
+export async function getPageBySlug(slug: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const result = await db.select().from(pages).where(eq(pages.slug, slug));
+  return result[0] ?? null;
+}
+
+export async function upsertPage(data: InsertPage) {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const existing = await getPageBySlug(data.slug);
+  if (existing) {
+    const result = await db.update(pages).set(data).where(eq(pages.slug, data.slug)).returning();
+    return result[0] ?? null;
+  } else {
+    const result = await db.insert(pages).values(data).returning();
+    return result[0] ?? null;
+  }
+}
+
+export async function listPages() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  return await db.select().from(pages).orderBy(desc(pages.updatedAt));
 }

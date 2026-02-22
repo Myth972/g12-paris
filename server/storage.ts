@@ -2,17 +2,17 @@
 // Uses the Biz-provided storage proxy (Authorization: Bearer <token>)
 
 import { ENV } from './_core/env';
+import fs from 'fs/promises';
+import path from 'path';
 
 type StorageConfig = { baseUrl: string; apiKey: string };
 
-function getStorageConfig(): StorageConfig {
+function getStorageConfig(): StorageConfig | null {
   const baseUrl = ENV.forgeApiUrl;
   const apiKey = ENV.forgeApiKey;
 
   if (!baseUrl || !apiKey) {
-    throw new Error(
-      "Storage proxy credentials missing: set BUILT_IN_FORGE_API_URL and BUILT_IN_FORGE_API_KEY"
-    );
+    return null;
   }
 
   return { baseUrl: baseUrl.replace(/\/+$/, ""), apiKey };
@@ -72,8 +72,29 @@ export async function storagePut(
   data: Buffer | Uint8Array | string,
   contentType = "application/octet-stream"
 ): Promise<{ key: string; url: string }> {
-  const { baseUrl, apiKey } = getStorageConfig();
+  const config = getStorageConfig();
   const key = normalizeKey(relKey);
+
+  if (!config) {
+    // Local storage fallback
+    const uploadsDir = path.join(process.cwd(), "uploads");
+    const filePath = path.join(uploadsDir, key);
+
+    // Ensure parent directory exists
+    await fs.mkdir(path.dirname(filePath), { recursive: true });
+
+    // Write file
+    if (typeof data === "string") {
+      await fs.writeFile(filePath, data);
+    } else {
+      await fs.writeFile(filePath, Buffer.from(data as any));
+    }
+
+    // Return local URL
+    return { key, url: `/uploads/${key}` };
+  }
+
+  const { baseUrl, apiKey } = config;
   const uploadUrl = buildUploadUrl(baseUrl, key);
   const formData = toFormData(data, contentType, key.split("/").pop() ?? key);
   const response = await fetch(uploadUrl, {
@@ -93,8 +114,14 @@ export async function storagePut(
 }
 
 export async function storageGet(relKey: string): Promise<{ key: string; url: string; }> {
-  const { baseUrl, apiKey } = getStorageConfig();
+  const config = getStorageConfig();
   const key = normalizeKey(relKey);
+
+  if (!config) {
+    return { key, url: `/uploads/${key}` };
+  }
+
+  const { baseUrl, apiKey } = config;
   return {
     key,
     url: await buildDownloadUrl(baseUrl, key, apiKey),

@@ -1,0 +1,46 @@
+# ==========================================
+# G12 Paris Infos Médias - Configuration
+# ==========================================
+
+# ------------------------------------------
+# Base de données Turso (libSQL)
+# ------------------------------------------
+TURSO_DATABASE_URL=libsql://your-database-name-your-username.aws-eu-west-1.turso.io
+TURSO_AUTH_TOKEN=your-turso-auth-token-here
+
+# ------------------------------------------
+# Sécurité JWT
+# ------------------------------------------
+JWT_SECRET=your-super-secret-jwt-key-minimum-32-characters
+
+# ------------------------------------------
+# OAuth / Authentification
+# ------------------------------------------
+VITE_OAUTH_PORTAL_URL=https://your-oauth-provider.com
+VITE_APP_ID=your-app-id-here
+
+# ------------------------------------------
+# API Configuration
+# ------------------------------------------
+VITE_API_URL=http://localhost:3000/api
+
+# ------------------------------------------
+# AI Providers (Google Gemini / Groq)
+# ------------------------------------------
+GOOGLE_API_KEY=your-google-api-key-here
+GROQ_API_KEY=your-groq-api-key-here
+PREFERRED_AI_PROVIDER=google
+
+# ------------------------------------------
+# AWS S3 (Upload d'images)
+# ------------------------------------------
+AWS_ACCESS_KEY_ID=your-aws-access-key
+AWS_SECRET_ACCESS_KEY=your-aws-secret-key
+AWS_REGION=eu-west-1
+AWS_S3_BUCKET=your-bucket-name
+
+# ------------------------------------------
+# Développement
+# ------------------------------------------
+DEV=true
+NODE_ENV=development
