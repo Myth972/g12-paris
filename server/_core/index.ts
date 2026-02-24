@@ -3,12 +3,14 @@ import express from "express";
 import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
+import { TRPCError } from "@trpc/server";
 import { registerOAuthRoutes } from "./oauth";
 import { devRouter } from "../devRouter";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import path from "path";
+import { logger } from "../logger";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -26,7 +28,10 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
       return port;
     }
   }
-  throw new Error(`No available port found starting from ${startPort}`);
+  throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: `No available port found starting from ${startPort}`
+  });
 }
 
 export async function startServer() {
@@ -64,10 +69,10 @@ export async function startServer() {
   const port = await findAvailablePort(preferredPort);
 
   if (port !== preferredPort) {
-    console.log(`Port ${preferredPort} is busy, using port ${port} instead`);
+    logger.warn("Server", `Port ${preferredPort} is busy, using port ${port} instead`);
   }
 
   server.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}/`);
+    logger.info("Server", `Server running on http://localhost:${port}/`);
   });
 }

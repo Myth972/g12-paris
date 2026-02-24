@@ -36,6 +36,9 @@ import { storagePut } from "./storage";
 import { nanoid } from "nanoid";
 import { invokeLLM, Role } from "./_core/llm";
 import { generateImage } from "./_core/imageGeneration";
+import personalizationRouter from "./personalization.router";
+import { handleError, AppErrorCode, createAppError } from "./errors";
+import { logger } from "./logger";
 
 
 
@@ -59,6 +62,8 @@ export const appRouter = router({
       return { success: true } as const;
     }),
   }),
+
+  personalization: personalizationRouter,
 
   articles: router({
     // Public: list published articles
@@ -360,24 +365,100 @@ export const appRouter = router({
 
   pages: router({
     list: adminProcedure.query(async () => {
-      return listPages();
+      try {
+        return await listPages();
+      } catch (error) {
+        const appError = handleError("Pages", error, "Failed to list pages");
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: appError.userMessage,
+        });
+      }
     }),
     getBySlug: publicProcedure
       .input(z.object({ slug: z.string() }))
       .query(async ({ input }) => {
-        return getPageBySlug(input.slug);
+        try {
+          const page = await getPageBySlug(input.slug);
+          if (!page) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: "Page not found",
+            });
+          }
+          return page;
+        } catch (error) {
+          if (error instanceof TRPCError) throw error;
+          const appError = handleError("Pages", error, "Failed to fetch page");
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: appError.userMessage,
+          });
+        }
       }),
     upsert: adminProcedure
       .input(
         z.object({
-          slug: z.string(),
-          title: z.string(),
+          slug: z.string().min(1, "Slug is required"),
+          title: z.string().min(1, "Title is required"),
           description: z.string().optional(),
           config: z.string().optional(),
         })
       )
       .mutation(async ({ input }) => {
-        return upsertPage(input);
+        try {
+          return await upsertPage(input);
+        } catch (error) {
+          const appError = handleError("Pages", error, "Failed to save page");
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: appError.userMessage,
+          });
+        }
+      }),
+    updateContent: adminProcedure
+      .input(
+        z.object({
+          pageId: z.string().min(1, "Page ID is required"),
+          fieldName: z.string().min(1, "Field name is required"),
+          content: z.string(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        try {
+          const { pageId, fieldName, content } = input;
+          const { updatePageContent } = await import('./db');
+          await updatePageContent(pageId, fieldName, content);
+          logger.info("Pages", "Content updated", { pageId, fieldName });
+          return { success: true };
+        } catch (error) {
+          const appError = handleError("Pages", error, "Failed to update page content");
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: appError.userMessage,
+          });
+        }
+      }),
+    getContent: publicProcedure
+      .input(
+        z.object({
+          pageId: z.string().min(1, "Page ID is required"),
+          fieldName: z.string().min(1, "Field name is required"),
+        })
+      )
+      .query(async ({ input }) => {
+        try {
+          const { pageId, fieldName } = input;
+          const { getPageContent } = await import('./db');
+          const content = await getPageContent(pageId, fieldName);
+          return { content: content || null };
+        } catch (error) {
+          const appError = handleError("Pages", error, "Failed to fetch page content");
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: appError.userMessage,
+          });
+        }
       }),
   }),
 

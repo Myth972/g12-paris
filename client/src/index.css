@@ -79,6 +79,17 @@
   --sidebar-accent-foreground: oklch(0.18 0.02 250);
   --sidebar-border: oklch(0.90 0.005 80);
   --sidebar-ring: oklch(0.45 0.10 250);
+  
+  /* Typography defaults */
+  --font-size-base: 16px;
+  --line-height: 1.6;
+  --heading-scale: 1.25;
+  --font-size-h6: calc(var(--font-size-base) * var(--heading-scale));
+  --font-size-h5: calc(var(--font-size-h6) * var(--heading-scale));
+  --font-size-h4: calc(var(--font-size-h5) * var(--heading-scale));
+  --font-size-h3: calc(var(--font-size-h4) * var(--heading-scale));
+  --font-size-h2: calc(var(--font-size-h3) * var(--heading-scale));
+  --font-size-h1: calc(var(--font-size-h2) * var(--heading-scale));
 }
 
 @layer base {

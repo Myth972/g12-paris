@@ -2,6 +2,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { AdminBreadcrumb } from "@/components/AdminNav";
 import {
   Table,
   TableBody,
@@ -1045,6 +1046,22 @@ export default function Admin() {
 
       {/* Tabs */}
       <div className="container py-6">
+        {/* Breadcrumb Navigation */}
+        <AdminBreadcrumb
+          items={[
+            {
+              label: activeTab === "articles" ? "Articles" : 
+                     activeTab === "gallery" ? "Galerie" :
+                     activeTab === "publications" ? "Publications" :
+                     activeTab === "pages" ? "Pages" :
+                     activeTab === "notifications" ? "Notifications" :
+                     activeTab === "theme" ? "Thème" :
+                     activeTab === "typography" ? "Typographie" : "Tableau de bord",
+              active: true,
+            },
+          ]}
+        />
+
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="mb-6">
             <TabsTrigger value="articles" className="gap-2">
@@ -1067,6 +1084,14 @@ export default function Admin() {
               <Bell className="w-4 h-4" />
               Notifications
             </TabsTrigger>
+            <TabsTrigger value="theme" className="gap-2">
+              <Settings className="w-4 h-4" />
+              Thème
+            </TabsTrigger>
+            <TabsTrigger value="typography" className="gap-2">
+              <Type className="w-4 h-4" />
+              Typographie
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="articles">
             <ArticlesTab enabled={activeTab === "articles"} />
@@ -1082,6 +1107,38 @@ export default function Admin() {
           </TabsContent>
           <TabsContent value="notifications">
             <NotificationsTab enabled={activeTab === "notifications"} />
+          </TabsContent>
+          <TabsContent value="theme">
+            <Card>
+              <CardHeader>
+                <CardTitle>Personnalisation du thème</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">Accédez à la page de personnalisation du thème pour modifier les couleurs et le mode sombre/clair.</p>
+                <Button asChild>
+                  <Link href="/theme">
+                    <Settings className="w-4 h-4 mr-2" />
+                    Ouvrir le personnalisateur de thème
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="typography">
+            <Card>
+              <CardHeader>
+                <CardTitle>Personnalisation de la typographie</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">Personnalisez les polices, les tailles et les espacements du texte.</p>
+                <Button asChild>
+                  <Link href="/typography">
+                    <Type className="w-4 h-4 mr-2" />
+                    Ouvrir le personnalisateur de typographie
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
           </TabsContent>
         </Tabs>
       </div>

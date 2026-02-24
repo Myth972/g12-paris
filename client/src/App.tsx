@@ -22,6 +22,11 @@ const Bibliotheque = lazy(() => import("./pages/Bibliotheque"));
 const Actualites = lazy(() => import("./pages/Actualites"));
 const Login = lazy(() => import("./pages/Login"));
 const DevLogin = lazy(() => import("./pages/DevLogin"));
+const Personalization = lazy(() => import("./pages/PersonalizationPage"));
+const PersonalizationSimple = lazy(() => import("./pages/PersonalizationPageSimple"));
+const TestEditableText = lazy(() => import("./pages/TestEditableText"));
+const ThemeCustomization = lazy(() => import("./pages/ThemeCustomization"));
+const TypographyCustomization = lazy(() => import("./pages/TypographyCustomization"));
 
 function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -46,6 +51,11 @@ function Router() {
       <Route path="/galeries" component={Galeries} />
       <Route path="/culte-en-ligne" component={CulteEnLigne} />
       <Route path="/bibliotheque" component={Bibliotheque} />
+      <Route path="/personalization" component={Personalization} />
+      <Route path="/personalization-simple" component={PersonalizationSimple} />
+      <Route path="/test-editable" component={TestEditableText} />
+      <Route path="/theme" component={ThemeCustomization} />
+      <Route path="/typography" component={TypographyCustomization} />
 
       {/* Auth routes */}
       <Route path="/login" component={Login} />

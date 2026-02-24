@@ -141,3 +141,45 @@ export const pages = sqliteTable("pages", {
 
 export type Page = typeof pages.$inferSelect;
 export type InsertPage = typeof pages.$inferInsert;
+
+/**
+ * Page contents table for storing editable text content.
+ */
+export const pageContents = sqliteTable("page_contents", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  pageId: text("pageId").notNull(),
+  fieldName: text("fieldName").notNull(),
+  content: text("content").notNull(),
+  updatedAt: integer("updatedAt", { mode: "timestamp" }).default(sql`(strftime('%s', 'now'))`).notNull(),
+}, (table) => ({
+  pageFieldIdx: uniqueIndex("page_contents_page_field_unique").on(table.pageId, table.fieldName),
+  pageIdIdx: index("page_contents_page_id_idx").on(table.pageId),
+}));
+
+export type PageContent = typeof pageContents.$inferSelect;
+export type InsertPageContent = typeof pageContents.$inferInsert;
+
+// Re-export personalization schemas
+export {
+  userProfiles,
+  type UserProfile,
+  type InsertUserProfile,
+  userActivities,
+  type UserActivity,
+  type InsertUserActivity,
+  categoryInterests,
+  type CategoryInterest,
+  type InsertCategoryInterest,
+  recommendationsCache,
+  type RecommendationsCache,
+  type InsertRecommendationsCache,
+  userLayouts,
+  type UserLayout,
+  type InsertUserLayout,
+  layoutTemplates,
+  type LayoutTemplate,
+  type InsertLayoutTemplate,
+  layoutChanges,
+  type LayoutChange,
+  type InsertLayoutChange,
+} from "./personalization.schema";

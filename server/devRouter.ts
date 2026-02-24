@@ -3,6 +3,7 @@ import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import * as db from "./db";
 import { SignJWT } from "jose";
+import { logger } from "./logger";
 
 export const devRouter = Router();
 
@@ -51,7 +52,7 @@ devRouter.post("/login", async (req, res) => {
 
     res.json({ success: true });
   } catch (error) {
-    console.error("[DevLogin] Error:", error);
+    logger.error("DevLogin", "Error during dev login", error);
     res.status(500).json({ error: "Failed to create dev session", details: String(error) });
   }
 });

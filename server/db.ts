@@ -1,9 +1,85 @@
 import { eq, desc, and, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/libsql";
 import { createClient } from "@libsql/client";
-import { InsertUser, users, articles, type InsertArticle, notifications, notificationReads, type InsertNotification, galleries, publications, type InsertGallery, type InsertPublication, pages, type InsertPage } from "../drizzle/schema";
+import { InsertUser, users, articles, type InsertArticle, notifications, notificationReads, type InsertNotification, galleries, publications, type InsertGallery, type InsertPublication, pages, pageContents, type InsertPage, type InsertPageContent } from "../drizzle/schema";
 import { notInArray, inArray } from "drizzle-orm";
 import { ENV } from './_core/env';
+import { logger } from './logger';
+import { TRPCError } from "@trpc/server";
+
+// ─── Page Content Storage (SQLite) ───────────────────────────────
+
+export async function updatePageContent(
+  pageId: string,
+  fieldName: string,
+  content: string
+): Promise<void> {
+  const db = await getDb();
+  if (!db) {
+    logger.error("PageContent", "Database not initialized");
+    return;
+  }
+
+  try {
+    // Try to update existing record
+    const existing = await db
+      .select()
+      .from(pageContents)
+      .where(and(
+        eq(pageContents.pageId, pageId),
+        eq(pageContents.fieldName, fieldName)
+      ))
+      .limit(1);
+
+    if (existing.length > 0) {
+      await db
+        .update(pageContents)
+        .set({ content, updatedAt: new Date() })
+        .where(and(
+          eq(pageContents.pageId, pageId),
+          eq(pageContents.fieldName, fieldName)
+        ));
+    } else {
+      // Insert new record
+      await db.insert(pageContents).values({
+        pageId,
+        fieldName,
+        content,
+        updatedAt: new Date(),
+      } as InsertPageContent);
+    }
+    logger.info("PageContent", "Updated content", { pageId, fieldName });
+  } catch (error) {
+    logger.error("PageContent", "Error updating content", error);
+  }
+}
+
+export async function getPageContent(
+  pageId: string,
+  fieldName: string
+): Promise<string | null> {
+  const db = await getDb();
+  if (!db) {
+    logger.error("PageContent", "Database not initialized");
+    return null;
+  }
+
+  try {
+    const result = await db
+      .select()
+      .from(pageContents)
+      .where(and(
+        eq(pageContents.pageId, pageId),
+        eq(pageContents.fieldName, fieldName)
+      ))
+      .limit(1);
+
+    return result.length > 0 ? result[0].content : null;
+  } catch (error) {
+    logger.error("PageContent", "Error fetching content", error);
+    return null;
+  }
+}
 
 // Use Turso (libsql) for production, or a local file for development
 const DATABASE_URL = process.env.TURSO_DATABASE_URL || process.env.DATABASE_URL || "file:sqlite.db";
@@ -31,7 +107,10 @@ export async function getDb() {
 
 export async function upsertUser(user: InsertUser): Promise<void> {
   if (!user.openId) {
-    throw new Error("User openId is required for upsert");
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "User openId is required for upsert"
+    });
   }
 
   const db = await getDb();
@@ -87,7 +166,10 @@ export async function getUserByOpenId(openId: string) {
 
 export async function createArticle(data: Omit<InsertArticle, "id" | "createdAt" | "updatedAt">) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  if (!db) throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Database not available"
+  });
 
   const result = await db.insert(articles).values(data).returning();
   return result[0] ?? null;
@@ -95,7 +177,10 @@ export async function createArticle(data: Omit<InsertArticle, "id" | "createdAt"
 
 export async function updateArticle(id: number, data: Partial<Omit<InsertArticle, "id" | "createdAt" | "updatedAt">>) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  if (!db) throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Database not available"
+  });
 
   const result = await db.update(articles).set(data).where(eq(articles.id, id)).returning();
   return result[0] ?? null;
@@ -103,7 +188,10 @@ export async function updateArticle(id: number, data: Partial<Omit<InsertArticle
 
 export async function deleteArticle(id: number) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  if (!db) throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Database not available"
+  });
 
   await db.delete(articles).where(eq(articles.id, id));
   return { success: true };
@@ -111,7 +199,10 @@ export async function deleteArticle(id: number) {
 
 export async function getArticleById(id: number) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  if (!db) throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Database not available"
+  });
 
   const rows = await db
     .select({
@@ -129,7 +220,10 @@ export async function getArticleById(id: number) {
 
 export async function getArticleBySlug(slug: string) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  if (!db) throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Database not available"
+  });
 
   const rows = await db
     .select({
@@ -147,7 +241,10 @@ export async function getArticleBySlug(slug: string) {
 
 export async function listPublishedArticles(limit = 20, offset = 0, category?: string) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  if (!db) throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Database not available"
+  });
 
   const conditions = [eq(articles.published, true)];
   if (category && category !== "all") {
@@ -171,7 +268,10 @@ export async function listPublishedArticles(limit = 20, offset = 0, category?: s
 
 export async function countPublishedArticles(category?: string) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  if (!db) throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Database not available"
+  });
 
   const conditions = [eq(articles.published, true)];
   if (category && category !== "all") {
@@ -188,7 +288,10 @@ export async function countPublishedArticles(category?: string) {
 
 export async function listAllArticles(limit = 50, offset = 0) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  if (!db) throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Database not available"
+  });
 
   const rows = await db
     .select({
@@ -206,7 +309,10 @@ export async function listAllArticles(limit = 50, offset = 0) {
 
 export async function countAllArticles() {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  if (!db) throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Database not available"
+  });
 
   const rows = await db.select({ count: sql<number>`count(*)` }).from(articles);
   return rows[0]?.count ?? 0;
@@ -216,7 +322,10 @@ export async function countAllArticles() {
 
 export async function createNotification(data: Omit<InsertNotification, "id" | "createdAt">) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  if (!db) throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Database not available"
+  });
 
   const result = await db.insert(notifications).values(data).returning();
   return result[0] ?? null;
@@ -224,7 +333,10 @@ export async function createNotification(data: Omit<InsertNotification, "id" | "
 
 export async function deleteNotification(id: number) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  if (!db) throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Database not available"
+  });
 
   await db.delete(notificationReads).where(eq(notificationReads.notificationId, id));
   await db.delete(notifications).where(eq(notifications.id, id));
@@ -233,7 +345,10 @@ export async function deleteNotification(id: number) {
 
 export async function listNotifications(limit = 50, offset = 0) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  if (!db) throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Database not available"
+  });
 
   const rows = await db
     .select({
@@ -251,7 +366,10 @@ export async function listNotifications(limit = 50, offset = 0) {
 
 export async function countNotifications() {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  if (!db) throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Database not available"
+  });
 
   const rows = await db.select({ count: sql<number>`count(*)` }).from(notifications);
   return rows[0]?.count ?? 0;
@@ -259,7 +377,10 @@ export async function countNotifications() {
 
 export async function getUserNotifications(userId: number, limit = 20) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  if (!db) throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Database not available"
+  });
 
   const rows = await db
     .select({
@@ -289,7 +410,10 @@ export async function getUserNotifications(userId: number, limit = 20) {
 
 export async function countUnreadNotifications(userId: number) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  if (!db) throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Database not available"
+  });
 
   const rows = await db
     .select({ count: sql<number>`count(*)` })
@@ -308,7 +432,10 @@ export async function countUnreadNotifications(userId: number) {
 
 export async function markNotificationAsRead(notificationId: number, userId: number) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  if (!db) throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Database not available"
+  });
 
   const existing = await db
     .select()
@@ -333,7 +460,10 @@ export async function markNotificationAsRead(notificationId: number, userId: num
 
 export async function markAllNotificationsAsRead(userId: number) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  if (!db) throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Database not available"
+  });
 
   const allNotifs = await db.select({ id: notifications.id }).from(notifications);
   const allIds = allNotifs.map(n => n.id);
@@ -369,14 +499,20 @@ export async function markAllNotificationsAsRead(userId: number) {
 
 export async function listGalleries() {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  if (!db) throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Database not available"
+  });
 
   return await db.select().from(galleries).orderBy(desc(galleries.weight), desc(galleries.createdAt));
 }
 
 export async function createGalleryItem(data: Omit<InsertGallery, "id" | "createdAt">) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  if (!db) throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Database not available"
+  });
 
   const result = await db.insert(galleries).values(data).returning();
   return result[0] ?? null;
@@ -384,7 +520,10 @@ export async function createGalleryItem(data: Omit<InsertGallery, "id" | "create
 
 export async function deleteGalleryItem(id: number) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  if (!db) throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Database not available"
+  });
 
   await db.delete(galleries).where(eq(galleries.id, id));
   return { success: true };
@@ -394,14 +533,20 @@ export async function deleteGalleryItem(id: number) {
 
 export async function listPublications() {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  if (!db) throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Database not available"
+  });
 
   return await db.select().from(publications).orderBy(desc(publications.weight), desc(publications.createdAt));
 }
 
 export async function createPublicationItem(data: Omit<InsertPublication, "id" | "createdAt">) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  if (!db) throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Database not available"
+  });
 
   const result = await db.insert(publications).values(data).returning();
   return result[0] ?? null;
@@ -409,7 +554,10 @@ export async function createPublicationItem(data: Omit<InsertPublication, "id" |
 
 export async function deletePublicationItem(id: number) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  if (!db) throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Database not available"
+  });
 
   await db.delete(publications).where(eq(publications.id, id));
   return { success: true };
@@ -419,7 +567,10 @@ export async function deletePublicationItem(id: number) {
 
 export async function getPageBySlug(slug: string) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  if (!db) throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Database not available"
+  });
 
   const result = await db.select().from(pages).where(eq(pages.slug, slug));
   return result[0] ?? null;
@@ -427,7 +578,10 @@ export async function getPageBySlug(slug: string) {
 
 export async function upsertPage(data: InsertPage) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  if (!db) throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Database not available"
+  });
 
   const existing = await getPageBySlug(data.slug);
   if (existing) {
@@ -441,7 +595,10 @@ export async function upsertPage(data: InsertPage) {
 
 export async function listPages() {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  if (!db) throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: "Database not available"
+  });
 
   return await db.select().from(pages).orderBy(desc(pages.updatedAt));
 }

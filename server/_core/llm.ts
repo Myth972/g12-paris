@@ -1,4 +1,5 @@
 import { ENV } from "./env";
+import { TRPCError } from "@trpc/server";
 
 export type Role = "system" | "user" | "assistant" | "tool" | "function";
 
@@ -133,7 +134,10 @@ const normalizeContentPart = (
     return part;
   }
 
-  throw new Error("Unsupported message content part");
+  throw new TRPCError({
+    code: "BAD_REQUEST",
+    message: "Unsupported message content part"
+  });
 };
 
 const normalizeMessage = (message: Message) => {
@@ -182,15 +186,17 @@ const normalizeToolChoice = (
 
   if (toolChoice === "required") {
     if (!tools || tools.length === 0) {
-      throw new Error(
-        "tool_choice 'required' was provided but no tools were configured"
-      );
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "tool_choice 'required' was provided but no tools were configured"
+      });
     }
 
     if (tools.length > 1) {
-      throw new Error(
-        "tool_choice 'required' needs a single tool or specify the tool name explicitly"
-      );
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "tool_choice 'required' needs a single tool or specify the tool name explicitly"
+      });
     }
 
     return {
@@ -216,7 +222,10 @@ const resolveApiUrl = () =>
 
 const assertApiKey = () => {
   if (!ENV.forgeApiKey && !ENV.googleApiKey && process.env.NODE_ENV !== "development") {
-    throw new Error("AI API Key (Forge or Google) is not configured");
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "AI API Key (Forge or Google) is not configured"
+    });
   }
 };
 
@@ -241,9 +250,10 @@ const normalizeResponseFormat = ({
       explicitFormat.type === "json_schema" &&
       !explicitFormat.json_schema?.schema
     ) {
-      throw new Error(
-        "responseFormat json_schema requires a defined schema object"
-      );
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "responseFormat json_schema requires a defined schema object"
+      });
     }
     return explicitFormat;
   }
@@ -252,7 +262,10 @@ const normalizeResponseFormat = ({
   if (!schema) return undefined;
 
   if (!schema.name || !schema.schema) {
-    throw new Error("outputSchema requires both name and schema");
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "outputSchema requires both name and schema"
+    });
   }
 
   return {
@@ -380,9 +393,10 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(
-      `LLM invoke failed: ${response.status} ${response.statusText} – ${errorText}`
-    );
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: `LLM invoke failed: ${response.status} ${response.statusText} – ${errorText}`
+    });
   }
 
   return (await response.json()) as InvokeResult;

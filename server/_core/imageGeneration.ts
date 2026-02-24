@@ -17,6 +17,7 @@
  */
 import { storagePut } from "server/storage";
 import { ENV } from "./env";
+import { TRPCError } from "@trpc/server";
 
 export type GenerateImageOptions = {
   prompt: string;
@@ -42,10 +43,16 @@ export async function generateImage(
   }
 
   if (!ENV.forgeApiUrl) {
-    throw new Error("BUILT_IN_FORGE_API_URL is not configured");
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "BUILT_IN_FORGE_API_URL is not configured"
+    });
   }
   if (!ENV.forgeApiKey) {
-    throw new Error("BUILT_IN_FORGE_API_KEY is not configured");
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "BUILT_IN_FORGE_API_KEY is not configured"
+    });
   }
 
   // Build the full URL by appending the service path to the base URL
@@ -73,9 +80,10 @@ export async function generateImage(
 
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
-    throw new Error(
-      `Image generation request failed (${response.status} ${response.statusText})${detail ? `: ${detail}` : ""}`
-    );
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: `Image generation request failed (${response.status} ${response.statusText})${detail ? `: ${detail}` : ""}`
+    });
   }
 
   const result = (await response.json()) as {
