@@ -17,6 +17,7 @@
  */
 import { storagePut } from "server/storage";
 import { ENV } from "./env";
+import { logger } from "../logger";
 import { TRPCError } from "@trpc/server";
 
 export type GenerateImageOptions = {
@@ -36,7 +37,7 @@ export async function generateImage(
   options: GenerateImageOptions
 ): Promise<GenerateImageResponse> {
   if ((!ENV.forgeApiUrl || !ENV.forgeApiKey) && process.env.NODE_ENV === "development") {
-    console.log("[DevMode] Mocking Image generation because API key/URL is missing.");
+    logger.debug("ImageGeneration", "Using mock mode - API key/URL not configured");
     return {
       url: "https://placehold.co/1024x1024?text=AI+Image+Mock+DevMode",
     };

@@ -1,4 +1,5 @@
 import { ENV } from "./env";
+import { logger } from "../logger";
 import { TRPCError } from "@trpc/server";
 
 export type Role = "system" | "user" | "assistant" | "tool" | "function";
@@ -282,7 +283,7 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
   assertApiKey();
 
   if (!ENV.forgeApiKey && !ENV.googleApiKey && !ENV.groqApiKey && process.env.NODE_ENV === "development") {
-    console.log("[DevMode] Mocking LLM response because all API keys are missing.");
+    logger.debug("LLM", "Using mock mode - API keys not configured");
     return {
       id: `mock-${Date.now()}`,
       created: Math.floor(Date.now() / 1000),
@@ -335,7 +336,7 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     else if (ENV.forgeApiKey) provider = "forge";
   }
 
-  console.log(`[LLM] Using provider: ${provider}`);
+  logger.debug("LLM", `Using provider: ${provider}`);
 
   if (provider === "google") {
     payload.model = "gemini-2.0-flash";

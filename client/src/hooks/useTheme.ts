@@ -74,7 +74,7 @@ export function useTheme() {
       try {
         setConfig(JSON.parse(saved));
       } catch (e) {
-        console.error("Failed to load theme config:", e);
+        // Failed to parse theme config - use default
       }
     }
     setMounted(true);

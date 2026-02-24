@@ -96,7 +96,7 @@ export async function getDb() {
       });
       _db = drizzle(client);
     } catch (error) {
-      console.warn("[Database] Failed to connect:", error);
+      logger.warn("Database", "Failed to connect", { error });
       _db = null;
     }
   }
@@ -115,7 +115,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
 
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot upsert user: database not available");
+    logger.warn("Database", "Cannot upsert user: database not available");
     return;
   }
 
@@ -145,7 +145,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       },
     });
   } catch (error) {
-    console.error("[Database] Failed to upsert user:", error);
+    logger.error("Database", "Failed to upsert user", { error });
     throw error;
   }
 }
@@ -153,7 +153,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
 export async function getUserByOpenId(openId: string) {
   const db = await getDb();
   if (!db) {
-    console.warn("[Database] Cannot get user: database not available");
+    logger.warn("Database", "Cannot get user: database not available");
     return null;
   }
 

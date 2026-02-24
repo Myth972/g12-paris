@@ -83,7 +83,7 @@ export default function ArticleEditor() {
           setConfig(JSON.parse(existingArticle.config));
         }
       } catch (e) {
-        console.error("Failed to parse config", e);
+        // Failed to parse config - use default
       }
     }
   }, [existingArticle]);

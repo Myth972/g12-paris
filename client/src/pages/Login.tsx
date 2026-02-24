@@ -33,7 +33,6 @@ export default function Login() {
             window.location.href = role === "admin" ? "/admin" : "/";
         } catch (error) {
             toast.error("Erreur de connexion de test");
-            console.error(error);
             setDevLoading(null);
         }
     };

@@ -26,7 +26,6 @@ export default function DevLogin() {
             window.location.href = role === "admin" ? "/admin" : "/";
         } catch (error) {
             toast.error("Erreur de connexion");
-            console.error(error);
             setLoading(null);
         }
     };

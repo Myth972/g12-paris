@@ -61,7 +61,7 @@ export function useTypography() {
       try {
         setConfig(JSON.parse(saved));
       } catch (e) {
-        console.error("Failed to load typography config:", e);
+        // Failed to parse config - use default
       }
     }
     setMounted(true);

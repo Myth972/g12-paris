@@ -91,7 +91,6 @@ export function EditableText({
       onSave?.(editValue);
     } catch (error) {
       toast.error("Erreur lors de la sauvegarde");
-      console.error(error);
       setEditValue(value || '');
     } finally {
       setIsSaving(false);

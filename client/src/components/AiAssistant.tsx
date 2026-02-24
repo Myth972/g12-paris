@@ -69,7 +69,6 @@ export default function AiAssistant({ onApply, currentContent, currentTitle }: A
             }
         } catch (error) {
             toast.error("Erreur de génération");
-            console.error(error);
         }
     };
 

@@ -67,9 +67,8 @@ export function useAuth(options?: UseAuthOptions) {
     if (typeof window === "undefined") return;
     if (window.location.pathname === redirectPath) return;
 
-    // Skip auto-redirect in DEV if OAUTH is not configured (indicated by redirectPath being origin)
+    // Skip auto-redirect in DEV if OAUTH is not configured
     if (import.meta.env.DEV && (redirectPath === window.location.origin || redirectPath === `${window.location.origin}/`)) {
-      console.log("[DevMode] Authentication required, but auto-redirect skipped for local development.");
       return;
     }
 

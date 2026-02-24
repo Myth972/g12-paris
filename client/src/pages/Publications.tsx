@@ -108,7 +108,6 @@ export default function Publications() {
       reader.readAsDataURL(selectedFile);
     } catch (error) {
       toast.error("Erreur lors de la création de la publication");
-      console.error(error);
     } finally {
       setIsUploading(false);
     }

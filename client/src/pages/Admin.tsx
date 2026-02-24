@@ -1005,7 +1005,6 @@ export default function Admin() {
                   window.location.reload();
                 } catch (err) {
                   toast.error("Erreur bypass dev", { id: loadingToast });
-                  console.error(err);
                 }
               }}
             >
