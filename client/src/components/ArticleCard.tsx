@@ -29,8 +29,9 @@ export default function ArticleCard({ article, featured = false }: ArticleCardPr
   return (
     <Link href={`/article/${article.slug}`}>
       <article
-        className={`group relative bg-card rounded-xl overflow-hidden border border-border/50 hover:border-border hover:shadow-lg transition-all duration-300 ${featured ? "md:col-span-2 md:row-span-2" : ""
-          }`}
+        className={`group relative bg-card rounded-xl overflow-hidden border border-border/50 hover:border-border hover:shadow-lg transition-all duration-300 ${
+          featured ? "md:col-span-2 md:row-span-2" : ""
+        }`}
       >
         {/* Image */}
         <div className={`relative overflow-hidden bg-muted ${featured ? "aspect-[16/9]" : "aspect-[16/10]"}`}>
@@ -38,7 +39,6 @@ export default function ArticleCard({ article, featured = false }: ArticleCardPr
             <img
               src={article.coverImageUrl}
               alt={article.title}
-              loading="lazy"
               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             />
           ) : (
@@ -65,8 +65,9 @@ export default function ArticleCard({ article, featured = false }: ArticleCardPr
         {/* Content */}
         <div className={`p-4 ${featured ? "p-6" : ""}`}>
           <h3
-            className={`font-serif font-bold leading-snug text-card-foreground group-hover:text-primary transition-colors line-clamp-2 ${featured ? "text-xl md:text-2xl" : "text-base"
-              }`}
+            className={`font-serif font-bold leading-snug text-card-foreground group-hover:text-primary transition-colors line-clamp-2 ${
+              featured ? "text-xl md:text-2xl" : "text-base"
+            }`}
           >
             {article.title}
           </h3>

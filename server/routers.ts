@@ -1,7 +1,7 @@
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, protectedProcedure, adminProcedure, router } from "./_core/trpc";
+import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
@@ -22,25 +22,32 @@ import {
   countUnreadNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
-  listGalleries,
+  getFeaturedGalleryItems,
+  getAllGalleryItems,
   createGalleryItem,
   deleteGalleryItem,
-  listPublications,
-  createPublicationItem,
-  deletePublicationItem,
-  listPages,
-  getPageBySlug,
-  upsertPage,
+  createBiblicalVerse,
+  getBiblicalVerseById,
+  deleteBiblicalVerse,
+  listBiblicalVerses,
+  getLatestBiblicalVerse,
+  getPageContent,
+  createPageContent,
+  updatePageContent,
+  deletePageContent,
+  listPageContent,
+  countPageContent,
 } from "./db";
 import { storagePut } from "./storage";
 import { nanoid } from "nanoid";
-import { invokeLLM, Role } from "./_core/llm";
-import { generateImage } from "./_core/imageGeneration";
-import personalizationRouter from "./personalization.router";
-import { handleError, AppErrorCode, createAppError } from "./errors";
-import { logger } from "./logger";
 
-
+// Admin-only procedure
+const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (ctx.user.role !== "admin") {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Accès réservé aux administrateurs" });
+  }
+  return next({ ctx });
+});
 
 function generateSlug(title: string): string {
   return title
@@ -56,14 +63,43 @@ export const appRouter = router({
   system: systemRouter,
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
+    login: publicProcedure
+      .input(z.object({ password: z.string() }))
+      .mutation(async ({ input, ctx }) => {
+        const { ENV } = await import("./_core/env");
+        if (input.password !== ENV.adminPassword) {
+          throw new TRPCError({ code: "UNAUTHORIZED", message: "Mot de passe incorrect" });
+        }
+
+        const openId = "admin-local";
+        const { upsertUser } = await import("./db");
+        await upsertUser({
+          openId,
+          name: "Administrateur",
+          role: "admin",
+          lastSignedIn: new Date(),
+        });
+
+        const { sdk } = await import("./_core/sdk");
+        const sessionToken = await sdk.createSessionToken(openId, { name: "Administrateur" });
+
+        const { getSessionCookieOptions } = await import("./_core/cookies");
+        const { ONE_YEAR_MS, COOKIE_NAME } = await import("@shared/const");
+        const cookieOptions = getSessionCookieOptions(ctx.req);
+        
+        ctx.res.cookie(COOKIE_NAME, sessionToken, { 
+          ...cookieOptions, 
+          maxAge: ONE_YEAR_MS 
+        });
+
+        return { success: true };
+      }),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
       ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
     }),
   }),
-
-  personalization: personalizationRouter,
 
   articles: router({
     // Public: list published articles
@@ -135,8 +171,6 @@ export const appRouter = router({
           youtubeUrl: z.string().optional(),
           category: z.string().max(100).default("actualité"),
           published: z.boolean().default(false),
-          weight: z.number().default(0),
-          config: z.string().optional(),
         })
       )
       .mutation(async ({ ctx, input }) => {
@@ -161,8 +195,6 @@ export const appRouter = router({
           youtubeUrl: z.string().nullable().optional(),
           category: z.string().max(100).optional(),
           published: z.boolean().optional(),
-          weight: z.number().optional(),
-          config: z.string().optional(),
         })
       )
       .mutation(async ({ input }) => {
@@ -279,205 +311,285 @@ export const appRouter = router({
       }),
   }),
 
-  galleries: router({
-    list: publicProcedure.query(async () => {
-      return listGalleries();
+  gallery: router({
+    // Public: get featured gallery items (Publication du jour)
+    featured: publicProcedure.query(async () => {
+      return getFeaturedGalleryItems();
     }),
+
+    // Public: get all gallery items with pagination
+    list: publicProcedure
+      .input(
+        z.object({
+          limit: z.number().min(1).max(100).default(20),
+          offset: z.number().min(0).default(0),
+        }).optional()
+      )
+      .query(async ({ input }) => {
+        const { limit = 20, offset = 0 } = input ?? {};
+        const items = await getAllGalleryItems(limit, offset);
+        return { items };
+      }),
+
+    // Admin: create gallery item
     create: adminProcedure
-      .input(z.object({ src: z.string(), alt: z.string().optional(), weight: z.number().default(0) }))
+      .input(
+        z.object({
+          title: z.string().min(1).max(300),
+          type: z.enum(["image", "video"]),
+          mediaUrl: z.string().min(1),
+          mediaKey: z.string().optional(),
+          youtubeUrl: z.string().optional(),
+          verseId: z.number().optional(),
+          displayOrder: z.number().default(0),
+          featured: z.boolean().default(false),
+          loop: z.boolean().optional().default(false),
+        })
+      )
       .mutation(async ({ input }) => {
         return createGalleryItem(input);
       }),
+
+    // Admin: delete gallery item
     delete: adminProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         return deleteGalleryItem(input.id);
       }),
-  }),
 
-  publications: router({
-    list: publicProcedure.query(async () => {
-      return listPublications();
-    }),
-    create: adminProcedure
-      .input(z.object({
-        type: z.string(),
-        content: z.string(),
-        title: z.string().optional(),
-        weight: z.number().default(0)
-      }))
-      .mutation(async ({ input }) => {
-        return createPublicationItem(input);
-      }),
-    delete: adminProcedure
-      .input(z.object({ id: z.number() }))
-      .mutation(async ({ input }) => {
-        return deletePublicationItem(input.id);
-      }),
-  }),
-
-  ai: router({
-    generateText: adminProcedure
-      .input(z.object({
-        prompt: z.string(),
-        context: z.string().optional(),
-        type: z.enum(["summary", "title", "correction", "content"]),
-      }))
-      .mutation(async ({ input }) => {
-        let systemPrompt = "Tu es un assistant éditorial expert pour un site d'actualités.";
-
-        switch (input.type) {
-          case "summary":
-            systemPrompt += " Ton but est de générer un résumé captivant et professionnel (chapô) de l'article. Le ton doit être journalistique, informatif mais engageant. Limite-toi à 2-3 phrases maximum.";
-            break;
-          case "title":
-            systemPrompt += " Ton but est de suggérer 5 titres percutants et variés (informatif, intrigant, narratif, etc.) qui donneront envie de cliquer. Évite le sensationnalisme excessif.";
-            break;
-          case "correction":
-            systemPrompt += " Ton but est d'agir comme un correcteur professionnel. Améliore la fluidité, corrige toutes les fautes, et assure un niveau de langue soutenu mais accessible. Conserve la voix de l'auteur.";
-            break;
-          case "content":
-            systemPrompt += " Ton but est de rédiger un contenu riche, structuré avec des paragraphes clairs, et informatif. Utilise un ton bienveillant et professionnel adapté à un média d'inspiration chrétienne.";
-            break;
-        }
-
-        const response = await invokeLLM({
-          messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: input.prompt }
-          ],
-          max_tokens: 1000,
-        });
-
-        const content = response.choices[0]?.message?.content;
-        if (typeof content === "string") return content;
-        return "Erreur de génération";
-      }),
-
-    generateImage: adminProcedure
-      .input(z.object({ prompt: z.string() }))
-      .mutation(async ({ input }) => {
-        const { url } = await generateImage({ prompt: input.prompt });
-        const key = url?.split("storage/")[1] ?? "";
-        return { url, key };
-      }),
-  }),
-
-  pages: router({
-    list: adminProcedure.query(async () => {
-      try {
-        return await listPages();
-      } catch (error) {
-        const appError = handleError("Pages", error, "Failed to list pages");
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: appError.userMessage,
-        });
-      }
-    }),
-    getBySlug: publicProcedure
-      .input(z.object({ slug: z.string() }))
-      .query(async ({ input }) => {
-        try {
-          const page = await getPageBySlug(input.slug);
-          if (!page) {
-            throw new TRPCError({
-              code: "NOT_FOUND",
-              message: "Page not found",
-            });
-          }
-          return page;
-        } catch (error) {
-          if (error instanceof TRPCError) throw error;
-          const appError = handleError("Pages", error, "Failed to fetch page");
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: appError.userMessage,
-          });
-        }
-      }),
-    upsert: adminProcedure
-      .input(
-        z.object({
-          slug: z.string().min(1, "Slug is required"),
-          title: z.string().min(1, "Title is required"),
-          description: z.string().optional(),
-          config: z.string().optional(),
-        })
-      )
-      .mutation(async ({ input }) => {
-        try {
-          return await upsertPage(input);
-        } catch (error) {
-          const appError = handleError("Pages", error, "Failed to save page");
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: appError.userMessage,
-          });
-        }
-      }),
-    updateContent: adminProcedure
-      .input(
-        z.object({
-          pageId: z.string().min(1, "Page ID is required"),
-          fieldName: z.string().min(1, "Field name is required"),
-          content: z.string(),
-        })
-      )
-      .mutation(async ({ input }) => {
-        try {
-          const { pageId, fieldName, content } = input;
-          const { updatePageContent } = await import('./db');
-          await updatePageContent(pageId, fieldName, content);
-          logger.info("Pages", "Content updated", { pageId, fieldName });
-          return { success: true };
-        } catch (error) {
-          const appError = handleError("Pages", error, "Failed to update page content");
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: appError.userMessage,
-          });
-        }
-      }),
-    getContent: publicProcedure
-      .input(
-        z.object({
-          pageId: z.string().min(1, "Page ID is required"),
-          fieldName: z.string().min(1, "Field name is required"),
-        })
-      )
-      .query(async ({ input }) => {
-        try {
-          const { pageId, fieldName } = input;
-          const { getPageContent } = await import('./db');
-          const content = await getPageContent(pageId, fieldName);
-          return { content: content || null };
-        } catch (error) {
-          const appError = handleError("Pages", error, "Failed to fetch page content");
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: appError.userMessage,
-          });
-        }
-      }),
-  }),
-
-  media: router({
-    upload: adminProcedure
+    // Admin: upload image
+    uploadImage: adminProcedure
       .input(
         z.object({
           base64: z.string(),
           filename: z.string(),
           contentType: z.string(),
-          prefix: z.string().default("media"),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const buffer = Buffer.from(input.base64, "base64");
+        const fileKey = `gallery/${Date.now()}-${nanoid()}.${input.filename.split(".").pop()}`;
+        const { url, key } = await storagePut(fileKey, buffer, input.contentType);
+        return { url, key };
+      }),
+  }),
+
+  verses: router({
+    // Public: get latest verse
+    latest: publicProcedure.query(async () => {
+      const items = await getLatestBiblicalVerse();
+      return items;
+    }),
+
+    // Admin: create biblical verse
+    create: adminProcedure
+      .input(
+        z.object({
+          reference: z.string().min(1).max(100),
+          text: z.string().min(1),
+          summary: z.string().min(1),
+        })
+      )
+      .mutation(async ({ input }) => {
+        return createBiblicalVerse(input);
+      }),
+
+    // Public: get verse by ID
+    byId: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        return getBiblicalVerseById(input.id);
+      }),
+
+    // Admin: list all verses
+    adminList: adminProcedure.query(async () => {
+      const items = await listBiblicalVerses();
+      return { items };
+    }),
+
+    // Admin: delete verse
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        return deleteBiblicalVerse(input.id);
+      }),
+  }),
+
+  pageContent: router({
+    // Public: get page content
+    byPage: publicProcedure
+      .input(z.object({ pageId: z.string() }))
+      .query(async ({ input }) => {
+        return getPageContent(input.pageId);
+      }),
+
+    // Admin: list all page content for a page
+    adminList: adminProcedure
+      .input(
+        z.object({
+          pageId: z.string(),
+          limit: z.number().min(1).max(100).default(50),
+          offset: z.number().min(0).default(0),
+        })
+      )
+      .query(async ({ input }) => {
+        const { pageId, limit, offset } = input;
+        const [items, total] = await Promise.all([
+          listPageContent(pageId, limit, offset),
+          countPageContent(pageId),
+        ]);
+        return { items, total };
+      }),
+
+    // Admin: create page content
+    create: adminProcedure
+      .input(
+        z.object({
+          pageId: z.string(),
+          contentType: z.enum(["image", "youtube_video", "mp4_video"]),
+          title: z.string().min(1).max(300),
+          mediaUrl: z.string().min(1),
+          mediaKey: z.string().optional(),
+          youtubeUrl: z.string().optional(),
+          displayOrder: z.number().default(0),
+          visible: z.boolean().default(true),
+          loop: z.boolean().optional().default(false),
+          description: z.string().optional(),
         })
       )
       .mutation(async ({ ctx, input }) => {
+        return createPageContent({
+          ...input,
+          authorId: ctx.user.id,
+        });
+      }),
+
+    // Admin: update page content
+    update: adminProcedure
+      .input(
+        z.object({
+          id: z.number(),
+          title: z.string().optional(),
+          mediaUrl: z.string().optional(),
+          youtubeUrl: z.string().optional(),
+          displayOrder: z.number().optional(),
+          visible: z.boolean().optional(),
+          loop: z.boolean().optional(),
+          description: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        return updatePageContent(id, data);
+      }),
+
+    // Admin: delete page content
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        return deletePageContent(input.id);
+      }),
+
+    // Admin: upload media
+    uploadMedia: adminProcedure
+      .input(
+        z.object({
+          base64: z.string(),
+          filename: z.string(),
+          contentType: z.string(),
+        })
+      )
+      .mutation(async ({ input }) => {
         const buffer = Buffer.from(input.base64, "base64");
-        const ext = input.filename.split(".").pop() || "jpg";
-        const key = `${input.prefix}/${ctx.user.id}/${nanoid(12)}.${ext}`;
-        const { url } = await storagePut(key, buffer, input.contentType);
+        const fileKey = `page-content/${Date.now()}-${nanoid()}.${input.filename.split(".").pop()}`;
+        const { url, key } = await storagePut(fileKey, buffer, input.contentType);
         return { url, key };
+      }),
+  }),
+  ai: router({
+    chat: adminProcedure
+      .input(
+        z.object({
+          messages: z.array(
+            z.object({
+              role: z.enum(["system", "user", "assistant"]),
+              content: z.string(),
+            })
+          ),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { invokeLLM } = await import("./_core/llm");
+        const response = await invokeLLM({
+          messages: input.messages as any,
+        });
+        return response.choices[0].message.content as string;
+      }),
+
+    generateDescription: adminProcedure
+      .input(
+        z.object({
+          title: z.string(),
+          contentType: z.string(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { invokeLLM } = await import("./_core/llm");
+        const prompt = `Rédige une description courte (2-3 phrases) et percutante pour un contenu de type "${input.contentType}" intitulé "${input.title}". Le ton doit être inspirant et spirituel.`;
+        
+        const response = await invokeLLM({
+          messages: [
+            { role: "system", content: "Tu es un assistant éditorial pour un site d'informations chrétien." },
+            { role: "user", content: prompt }
+          ],
+        });
+        return response.choices[0].message.content as string;
+      }),
+
+    generateVerse: adminProcedure
+      .input(
+        z.object({
+          reference: z.string().optional(),
+          topic: z.string().optional(),
+        }).optional()
+      )
+      .mutation(async ({ input }) => {
+        const { invokeLLM } = await import("./_core/llm");
+        
+        let prompt = "Génère un verset biblique inspirant (qui n'est pas déjà trop connu si possible). ";
+        if (input?.reference) {
+          prompt = `Génère le texte et un résumé inspirant pour le verset biblique suivant : ${input.reference}. `;
+        } else if (input?.topic) {
+          prompt += `Le thème doit être : ${input.topic}. `;
+        }
+        
+        prompt += `Ton format de réponse DOIT ÊTRE UNIQUEMENT un objet JSON valide avec la structure suivante :
+        {
+          "reference": "Livre Chapitre:Verset",
+          "text": "Le texte du verset...",
+          "summary": "Un résumé court (2-3 phrases) et spirituellement inspirant de ce verset."
+        }
+        Ne rajoute AUCUN texte avant ou après le JSON.`;
+        
+        const response = await invokeLLM({
+          messages: [
+            { role: "system", content: "Tu es un érudit biblique et assistant éditorial. Tu réponds strictement en JSON." },
+            { role: "user", content: prompt }
+          ],
+        });
+        
+        const content = response.choices[0].message.content as string;
+        try {
+          // Clean up potential markdown wrapper from the response
+          const jsonStr = content.replace(/```json/g, "").replace(/```/g, "").trim();
+          return JSON.parse(jsonStr) as { reference: string; text: string; summary: string };
+        } catch (e) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Groq a renvoyé un format invalide. Réessayez.",
+            cause: e,
+          });
+        }
       }),
   }),
 });

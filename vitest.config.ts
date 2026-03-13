@@ -1,19 +1,25 @@
+import path from "node:path";
 import { defineConfig } from "vitest/config";
-import path from "path";
 
-const templateRoot = path.resolve(import.meta.dirname);
-
+// Pure vitest config without inheriting from vite.config.ts
 export default defineConfig({
-  root: templateRoot,
-  resolve: {
-    alias: {
-      "@": path.resolve(templateRoot, "client", "src"),
-      "@shared": path.resolve(templateRoot, "shared"),
-      "@assets": path.resolve(templateRoot, "attached_assets"),
-    },
-  },
   test: {
     environment: "node",
-    include: ["server/**/*.test.ts", "server/**/*.spec.ts"],
+    include: ["server/**/*.test.ts"],
+    globals: true,
+    setupFiles: ["./vitest.setup.ts"],
   },
+  resolve: {
+    alias: {
+      "@": path.resolve(import.meta.dirname, "client", "src"),
+      "@shared": path.resolve(import.meta.dirname, "shared"),
+      "@assets": path.resolve(import.meta.dirname, "attached_assets"),
+    },
+  },
+  define: {
+    __vite_ssr_exportName__: "(name, value) => value",
+  },
+}, {
+  // Override so vitest doesn't merge with vite.config.ts
+  ssr: false,
 });

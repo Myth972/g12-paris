@@ -1,6 +1,5 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
-import AiAssistant from "@/components/AiAssistant";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -23,6 +22,7 @@ import {
   Image as ImageIcon,
   Shield,
   Loader2,
+  Sparkles,
 } from "lucide-react";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useParams } from "wouter";
@@ -53,8 +53,6 @@ export default function ArticleEditor() {
   const [published, setPublished] = useState(false);
   const [coverImageUrl, setCoverImageUrl] = useState("");
   const [coverImageKey, setCoverImageKey] = useState("");
-  const [weight, setWeight] = useState(0);
-  const [config, setConfig] = useState({ imagePosition: "top", videoPosition: "top" });
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -77,14 +75,6 @@ export default function ArticleEditor() {
       setPublished(existingArticle.published);
       setCoverImageUrl(existingArticle.coverImageUrl ?? "");
       setCoverImageKey(existingArticle.coverImageKey ?? "");
-      setWeight(existingArticle.weight || 0);
-      try {
-        if (existingArticle.config) {
-          setConfig(JSON.parse(existingArticle.config));
-        }
-      } catch (e) {
-        // Failed to parse config - use default
-      }
     }
   }, [existingArticle]);
 
@@ -109,6 +99,14 @@ export default function ArticleEditor() {
   });
 
   const uploadMutation = trpc.articles.uploadImage.useMutation();
+
+  const generateExcerptMutation = trpc.ai.generateDescription.useMutation({
+    onSuccess: (generated) => {
+      setExcerpt(generated);
+      toast.success("Résumé généré avec succès");
+    },
+    onError: (err) => toast.error(err.message || "Erreur lors de la génération"),
+  });
 
   const handleImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -162,8 +160,6 @@ export default function ArticleEditor() {
         coverImageUrl: coverImageUrl || undefined,
         coverImageKey: coverImageKey || undefined,
         published,
-        weight,
-        config: JSON.stringify(config),
       };
 
       if (isNew) {
@@ -224,19 +220,6 @@ export default function ArticleEditor() {
                   {published ? "Publié" : "Brouillon"}
                 </Label>
               </div>
-              <AiAssistant
-                currentContent={content}
-                currentTitle={title}
-                onApply={(text, type) => {
-                  if (type === "title") setTitle(text);
-                  if (type === "summary") setExcerpt(text);
-                  if (type === "content" || type === "correction") setContent(text);
-                  if (type === "image") {
-                    setCoverImageUrl(text);
-                    // Note: key is not passed here for simplicity, but could be handled if needed
-                  }
-                }}
-              />
               <Button onClick={handleSave} disabled={saving}>
                 {saving ? (
                   <Loader2 className="w-4 h-4 mr-1 animate-spin" />
@@ -245,62 +228,6 @@ export default function ArticleEditor() {
                 )}
                 Enregistrer
               </Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Admin Quick Settings Bar */}
-      <div className="bg-primary/5 border-b border-border">
-        <div className="container py-3">
-          <div className="flex flex-wrap items-center gap-6">
-            <div className="flex items-center gap-2">
-              <Label htmlFor="weight" className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Importance (Poids)
-              </Label>
-              <Input
-                id="weight"
-                type="number"
-                value={weight}
-                onChange={(e) => setWeight(parseInt(e.target.value) || 0)}
-                className="w-20 h-8 text-sm"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Position Image
-              </Label>
-              <Select
-                value={config.imagePosition}
-                onValueChange={(v) => setConfig({ ...config, imagePosition: v })}
-              >
-                <SelectTrigger className="h-8 w-32 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="top">Haut</SelectItem>
-                  <SelectItem value="bottom">Bas</SelectItem>
-                  <SelectItem value="hidden">Masquée</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center gap-2">
-              <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                Position Vidéo
-              </Label>
-              <Select
-                value={config.videoPosition}
-                onValueChange={(v) => setConfig({ ...config, videoPosition: v })}
-              >
-                <SelectTrigger className="h-8 w-32 text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="top">Haut</SelectItem>
-                  <SelectItem value="bottom">Bas</SelectItem>
-                  <SelectItem value="hidden">Masquée</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
         </div>
@@ -324,14 +251,34 @@ export default function ArticleEditor() {
 
           {/* Excerpt */}
           <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
-            <Label className="text-sm font-semibold text-foreground mb-2 block">
-              Résumé / Chapô
-            </Label>
+            <div className="flex items-center justify-between mb-2">
+              <Label className="text-sm font-semibold text-foreground">
+                Résumé / Chapô
+              </Label>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-[10px] gap-1.5 text-primary hover:text-primary hover:bg-primary/10"
+                disabled={generateExcerptMutation.isPending || !title}
+                onClick={() => generateExcerptMutation.mutate({
+                  title,
+                  contentType: "article"
+                })}
+              >
+                {generateExcerptMutation.isPending ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  <Sparkles className="w-3 h-3" />
+                )}
+                Rédiger avec Groq
+              </Button>
+            </div>
             <Textarea
               value={excerpt}
               onChange={(e) => setExcerpt(e.target.value)}
               placeholder="Un court résumé de l'article (optionnel)..."
               rows={2}
+              className="resize-none"
             />
           </div>
 

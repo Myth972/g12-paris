@@ -18,6 +18,7 @@ echo [6] Run Tests
 echo [7] Format Code
 echo [8] Exit
 echo.
+set choice=1
 set /p choice="Enter choice (1-8) [Default: 1]: "
 
 if "%choice%"=="8" (
@@ -31,14 +32,14 @@ if "%choice%"=="3" (
     echo ==========================================
     echo.
     echo Checking TypeScript...
-    call pnpm check || call npm run check
+    call npm run check
     echo.
     if errorlevel 1 (
         echo ❌ TypeScript Errors Found!
         pause
     ) else (
         echo ✅ TypeScript OK - Building...
-        call pnpm build || call npm run build
+        call npm run build
         if errorlevel 1 (
             echo ❌ Build Failed!
         ) else (
@@ -65,7 +66,7 @@ if "%choice%"=="4" (
 if "%choice%"=="5" (
     echo.
     echo Installing dependencies...
-    call pnpm install || call npm install
+    call npm install
     echo.
     echo Dependencies installed!
     pause
@@ -78,7 +79,7 @@ if "%choice%"=="6" (
     echo    Running Tests
     echo ==========================================
     echo.
-    call pnpm test || call npm run test
+    call npm test
     echo.
     pause
     goto menu
@@ -90,7 +91,7 @@ if "%choice%"=="7" (
     echo    Formatting Code
     echo ==========================================
     echo.
-    call pnpm format || call npm run format
+    call npm run format
     echo.
     echo Code formatted!
     pause
@@ -104,11 +105,11 @@ if "%choice%"=="2" (
     echo ==========================================
     echo.
     echo Building the project...
-    call pnpm build || call npm run build
+    call npm run build
     echo.
     echo Starting server...
-    call pnpm start || call npm start
-) else (
+    call npm start
+) else if "%choice%"=="1" (
     echo.
     echo ==========================================
     echo    Starting Development Mode
@@ -122,7 +123,11 @@ if "%choice%"=="2" (
     echo.
     echo Press Ctrl+C to stop the server
     echo.
-    call pnpm dev || call npm run dev
+    call npm run dev
+) else (
+    echo Invalid choice.
+    pause
+    goto menu
 )
 
 echo.

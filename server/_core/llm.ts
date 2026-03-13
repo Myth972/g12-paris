@@ -1,6 +1,4 @@
 import { ENV } from "./env";
-import { logger } from "../logger";
-import { TRPCError } from "@trpc/server";
 
 export type Role = "system" | "user" | "assistant" | "tool" | "function";
 
@@ -21,7 +19,7 @@ export type FileContent = {
   type: "file_url";
   file_url: {
     url: string;
-    mime_type?: "audio/mpeg" | "audio/wav" | "application/pdf" | "audio/mp4" | "video/mp4";
+    mime_type?: "audio/mpeg" | "audio/wav" | "application/pdf" | "audio/mp4" | "video/mp4" ;
   };
 };
 
@@ -135,10 +133,7 @@ const normalizeContentPart = (
     return part;
   }
 
-  throw new TRPCError({
-    code: "BAD_REQUEST",
-    message: "Unsupported message content part"
-  });
+  throw new Error("Unsupported message content part");
 };
 
 const normalizeMessage = (message: Message) => {
@@ -187,17 +182,15 @@ const normalizeToolChoice = (
 
   if (toolChoice === "required") {
     if (!tools || tools.length === 0) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "tool_choice 'required' was provided but no tools were configured"
-      });
+      throw new Error(
+        "tool_choice 'required' was provided but no tools were configured"
+      );
     }
 
     if (tools.length > 1) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "tool_choice 'required' needs a single tool or specify the tool name explicitly"
-      });
+      throw new Error(
+        "tool_choice 'required' needs a single tool or specify the tool name explicitly"
+      );
     }
 
     return {
@@ -214,20 +207,6 @@ const normalizeToolChoice = (
   }
 
   return toolChoice;
-};
-
-const resolveApiUrl = () =>
-  ENV.forgeApiUrl && ENV.forgeApiUrl.trim().length > 0
-    ? `${ENV.forgeApiUrl.replace(/\/$/, "")}/v1/chat/completions`
-    : "https://forge.manus.im/v1/chat/completions";
-
-const assertApiKey = () => {
-  if (!ENV.forgeApiKey && !ENV.googleApiKey && process.env.NODE_ENV !== "development") {
-    throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: "AI API Key (Forge or Google) is not configured"
-    });
-  }
 };
 
 const normalizeResponseFormat = ({
@@ -251,10 +230,9 @@ const normalizeResponseFormat = ({
       explicitFormat.type === "json_schema" &&
       !explicitFormat.json_schema?.schema
     ) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "responseFormat json_schema requires a defined schema object"
-      });
+      throw new Error(
+        "responseFormat json_schema requires a defined schema object"
+      );
     }
     return explicitFormat;
   }
@@ -263,10 +241,7 @@ const normalizeResponseFormat = ({
   if (!schema) return undefined;
 
   if (!schema.name || !schema.schema) {
-    throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "outputSchema requires both name and schema"
-    });
+    throw new Error("outputSchema requires both name and schema");
   }
 
   return {
@@ -280,32 +255,6 @@ const normalizeResponseFormat = ({
 };
 
 export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
-  assertApiKey();
-
-  if (!ENV.forgeApiKey && !ENV.googleApiKey && !ENV.groqApiKey && process.env.NODE_ENV === "development") {
-    logger.debug("LLM", "Using mock mode - API keys not configured");
-    return {
-      id: `mock-${Date.now()}`,
-      created: Math.floor(Date.now() / 1000),
-      model: "mock-ai-dev",
-      choices: [
-        {
-          index: 0,
-          message: {
-            role: "assistant",
-            content: "Ceci est une réponse simulée (MOCK) du mode développement. Pour utiliser un vrai assistant IA, configurez GOOGLE_API_KEY ou GROQ_API_KEY dans le fichier .env.",
-          },
-          finish_reason: "stop",
-        },
-      ],
-      usage: {
-        prompt_tokens: 0,
-        completion_tokens: 0,
-        total_tokens: 0,
-      },
-    };
-  }
-
   const {
     messages,
     tools,
@@ -317,34 +266,30 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     response_format,
   } = params;
 
+  const provider = ENV.preferredAiProvider || "google";
+  let apiUrl = "";
+  let apiKey = "";
+  let model = "";
+
+  if (provider === "groq") {
+    apiUrl = "https://api.groq.com/openai/v1/chat/completions";
+    apiKey = ENV.groqApiKey;
+    model = "llama-3.3-70b-versatile";
+    if (!apiKey) throw new Error("GROQ_API_KEY is not configured");
+  } else {
+    // Default to Google (Gemini via Forge or similar)
+    apiUrl = "https://forge.manus.im/v1/chat/completions";
+    apiKey = (ENV as any).forgeApiKey || ENV.googleApiKey; // Fallback if forgeApiKey is missing
+    model = "gemini-2.0-flash-exp"; 
+    // Note: If you want to use the user's provided Forge URL, you can put it back here
+    if (!apiKey && (ENV as any).googleApiKey) apiKey = (ENV as any).googleApiKey;
+    if (!apiKey) throw new Error("AI API Key is not configured (GOOGLE_API_KEY or GROQ_API_KEY)");
+  }
+
   const payload: Record<string, unknown> = {
+    model,
     messages: messages.map(normalizeMessage),
   };
-
-  // Determine provider logic
-  const canUseGoogle = !!ENV.googleApiKey;
-  const canUseGroq = !!ENV.groqApiKey;
-
-  let provider = ENV.preferredAiProvider as "google" | "groq" | "forge";
-
-  // Fallback logic if preferred is missing
-  if (provider === "google" && !canUseGoogle) {
-    if (canUseGroq) provider = "groq";
-    else if (ENV.forgeApiKey) provider = "forge";
-  } else if (provider === "groq" && !canUseGroq) {
-    if (canUseGoogle) provider = "google";
-    else if (ENV.forgeApiKey) provider = "forge";
-  }
-
-  logger.debug("LLM", `Using provider: ${provider}`);
-
-  if (provider === "google") {
-    payload.model = "gemini-2.0-flash";
-  } else if (provider === "groq") {
-    payload.model = "llama-3.3-70b-versatile";
-  } else {
-    payload.model = "gemini-2.0-flash";
-  }
 
   if (tools && tools.length > 0) {
     payload.tools = tools;
@@ -358,7 +303,13 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     payload.tool_choice = normalizedToolChoice;
   }
 
-  payload.max_tokens = 32768;
+  // Provider specific adjustments
+  if (provider === "google") {
+    payload.max_tokens = 32768;
+    payload.thinking = {
+      "budget_tokens": 128
+    };
+  }
 
   const normalizedResponseFormat = normalizeResponseFormat({
     responseFormat,
@@ -371,33 +322,20 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     payload.response_format = normalizedResponseFormat;
   }
 
-  let endpointUrl: string;
-  const headers: Record<string, string> = {
-    "content-type": "application/json",
-  };
-
-  if (provider === "google") {
-    endpointUrl = `https://generativelanguage.googleapis.com/v1beta/openai/chat/completions?key=${ENV.googleApiKey}`;
-  } else if (provider === "groq") {
-    endpointUrl = "https://api.groq.com/openai/v1/chat/completions";
-    headers["authorization"] = `Bearer ${ENV.groqApiKey}`;
-  } else {
-    endpointUrl = resolveApiUrl();
-    headers["authorization"] = `Bearer ${ENV.forgeApiKey}`;
-  }
-
-  const response = await fetch(endpointUrl, {
+  const response = await fetch(apiUrl, {
     method: "POST",
-    headers,
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${apiKey}`,
+    },
     body: JSON.stringify(payload),
   });
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: `LLM invoke failed: ${response.status} ${response.statusText} – ${errorText}`
-    });
+    throw new Error(
+      `LLM invoke failed (${provider}): ${response.status} ${response.statusText} – ${errorText}`
+    );
   }
 
   return (await response.json()) as InvokeResult;

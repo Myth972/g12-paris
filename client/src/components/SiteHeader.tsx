@@ -7,6 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { getLoginUrl } from "@/const";
 import {
   Menu,
   X,
@@ -21,8 +22,7 @@ import NotificationBell from "./NotificationBell";
 
 const NAV_LINKS = [
   { href: "/", label: "Accueil" },
-  { href: "/actualites", label: "Actualités" },
-  { href: "/publications", label: "Publication du jour" },
+  { href: "/publication-du-jour", label: "Publication du jour" },
   { href: "/galeries", label: "Galeries" },
   { href: "/culte-en-ligne", label: "Culte en ligne" },
   { href: "/bibliotheque", label: "Bibliothèque" },
@@ -65,10 +65,11 @@ export default function SiteHeader() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${isActive
-                    ? "text-primary bg-primary/5"
-                    : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                    }`}
+                  className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                    isActive
+                      ? "text-primary bg-primary/5"
+                      : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  }`}
                 >
                   {link.label}
                 </Link>
@@ -79,16 +80,6 @@ export default function SiteHeader() {
           {/* Right side actions */}
           <div className="flex items-center gap-2">
             {isAuthenticated && <NotificationBell />}
-            {/* Dev Login Link */}
-            {import.meta.env.DEV && !isAuthenticated && (
-              <Link href="/dev-login">
-                <Button variant="ghost" size="sm" className="hidden sm:inline-flex">
-                  <Shield className="w-4 h-4 mr-2" />
-                  Dev
-                </Button>
-              </Link>
-            )}
-
             {isAuthenticated ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -125,10 +116,10 @@ export default function SiteHeader() {
             ) : (
               <Button
                 size="sm"
-                asChild
+                onClick={() => (window.location.href = getLoginUrl())}
                 className="font-medium"
               >
-                <Link href="/login">Connexion</Link>
+                Connexion
               </Button>
             )}
 
@@ -154,10 +145,11 @@ export default function SiteHeader() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileOpen(false)}
-                  className={`block px-3 py-2.5 text-sm font-medium rounded-md transition-colors ${isActive
-                    ? "text-primary bg-primary/5"
-                    : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                    }`}
+                  className={`block px-3 py-2.5 text-sm font-medium rounded-md transition-colors ${
+                    isActive
+                      ? "text-primary bg-primary/5"
+                      : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  }`}
                 >
                   {link.label}
                 </Link>
@@ -179,4 +171,3 @@ export default function SiteHeader() {
     </header>
   );
 }
-

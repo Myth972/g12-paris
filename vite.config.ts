@@ -8,11 +8,13 @@ import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
 
 // =============================================================================
 // Manus Debug Collector - Vite Plugin
+// Writes browser logs directly to files, trimmed when exceeding size limit
 // =============================================================================
+
 const PROJECT_ROOT = import.meta.dirname;
 const LOG_DIR = path.join(PROJECT_ROOT, ".manus-logs");
-const MAX_LOG_SIZE_BYTES = 1 * 1024 * 1024;
-const TRIM_TARGET_BYTES = Math.floor(MAX_LOG_SIZE_BYTES * 0.6);
+const MAX_LOG_SIZE_BYTES = 1 * 1024 * 1024; // 1MB per log file
+const TRIM_TARGET_BYTES = Math.floor(MAX_LOG_SIZE_BYTES * 0.6); // Trim to 60% to avoid constant re-trimming
 
 type LogSource = "browserConsole" | "networkRequests" | "sessionReplay";
 
@@ -27,9 +29,12 @@ function trimLogFile(logPath: string, maxSize: number) {
     if (!fs.existsSync(logPath) || fs.statSync(logPath).size <= maxSize) {
       return;
     }
+
     const lines = fs.readFileSync(logPath, "utf-8").split("\n");
     const keptLines: string[] = [];
     let keptBytes = 0;
+
+    // Keep newest lines (from end) that fit within 60% of maxSize
     const targetSize = TRIM_TARGET_BYTES;
     for (let i = lines.length - 1; i >= 0; i--) {
       const lineBytes = Buffer.byteLength(`${lines[i]}\n`, "utf-8");
@@ -37,6 +42,7 @@ function trimLogFile(logPath: string, maxSize: number) {
       keptLines.unshift(lines[i]);
       keptBytes += lineBytes;
     }
+
     fs.writeFileSync(logPath, keptLines.join("\n"), "utf-8");
   } catch {
     /* ignore trim errors */
@@ -45,19 +51,33 @@ function trimLogFile(logPath: string, maxSize: number) {
 
 function writeToLogFile(source: LogSource, entries: unknown[]) {
   if (entries.length === 0) return;
+
   ensureLogDir();
   const logPath = path.join(LOG_DIR, `${source}.log`);
+
+  // Format entries with timestamps
   const lines = entries.map((entry) => {
     const ts = new Date().toISOString();
     return `[${ts}] ${JSON.stringify(entry)}`;
   });
+
+  // Append to log file
   fs.appendFileSync(logPath, `${lines.join("\n")}\n`, "utf-8");
+
+  // Trim if exceeds max size
   trimLogFile(logPath, MAX_LOG_SIZE_BYTES);
 }
 
+/**
+ * Vite plugin to collect browser debug logs
+ * - POST /__manus__/logs: Browser sends logs, written directly to files
+ * - Files: browserConsole.log, networkRequests.log, sessionReplay.log
+ * - Auto-trimmed when exceeding 1MB (keeps newest entries)
+ */
 function vitePluginManusDebugCollector(): Plugin {
   return {
     name: "manus-debug-collector",
+
     transformIndexHtml(html) {
       if (process.env.NODE_ENV === "production") {
         return html;
@@ -68,7 +88,7 @@ function vitePluginManusDebugCollector(): Plugin {
           {
             tag: "script",
             attrs: {
-              src: "/manus/debug-collector.js",
+              src: "/__manus__/debug-collector.js",
               defer: true,
             },
             injectTo: "head",
@@ -76,12 +96,16 @@ function vitePluginManusDebugCollector(): Plugin {
         ],
       };
     },
+
     configureServer(server: ViteDevServer) {
-      server.middlewares.use("/manus/logs", (req, res, next) => {
+      // POST /__manus__/logs: Browser sends logs (written directly to files)
+      server.middlewares.use("/__manus__/logs", (req, res, next) => {
         if (req.method !== "POST") {
           return next();
         }
+
         const handlePayload = (payload: any) => {
+          // Write logs directly to files
           if (payload.consoleLogs?.length > 0) {
             writeToLogFile("browserConsole", payload.consoleLogs);
           }
@@ -91,9 +115,11 @@ function vitePluginManusDebugCollector(): Plugin {
           if (payload.sessionEvents?.length > 0) {
             writeToLogFile("sessionReplay", payload.sessionEvents);
           }
+
           res.writeHead(200, { "Content-Type": "application/json" });
           res.end(JSON.stringify({ success: true }));
         };
+
         const reqBody = (req as { body?: unknown }).body;
         if (reqBody && typeof reqBody === "object") {
           try {
@@ -104,10 +130,12 @@ function vitePluginManusDebugCollector(): Plugin {
           }
           return;
         }
+
         let body = "";
         req.on("data", (chunk) => {
           body += chunk.toString();
         });
+
         req.on("end", () => {
           try {
             const payload = JSON.parse(body);
@@ -122,37 +150,7 @@ function vitePluginManusDebugCollector(): Plugin {
   };
 }
 
-import { VitePWA } from "vite-plugin-pwa";
-
-const plugins = [
-  react(),
-  tailwindcss(),
-  jsxLocPlugin(),
-  vitePluginManusRuntime(),
-  // vitePluginManusDebugCollector(), // Disabled because it causes 404 on script load
-  VitePWA({
-    registerType: 'autoUpdate',
-    includeAssets: ['favicon.svg', 'apple-touch-icon.png', 'mask-icon.svg'],
-    manifest: {
-      name: 'G12 Paris Infos Médias',
-      short_name: 'G12 Paris',
-      description: 'Site d\'information et de médias G12 Paris',
-      theme_color: '#ffffff',
-      icons: [
-        {
-          src: 'pwa-192x192.svg',
-          sizes: '192x192',
-          type: 'image/svg+xml'
-        },
-        {
-          src: 'pwa-512x512.svg',
-          sizes: '512x512',
-          type: 'image/svg+xml'
-        }
-      ]
-    }
-  })
-];
+const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector()];
 
 export default defineConfig({
   plugins,
@@ -167,9 +165,8 @@ export default defineConfig({
   root: path.resolve(import.meta.dirname, "client"),
   publicDir: path.resolve(import.meta.dirname, "client", "public"),
   build: {
-    outDir: path.resolve(import.meta.dirname, "dist"),
+    outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
-    chunkSizeWarningLimit: 1000,
   },
   server: {
     host: true,
@@ -185,12 +182,6 @@ export default defineConfig({
     fs: {
       strict: true,
       deny: ["**/.*"],
-    },
-    proxy: {
-      '/api': {
-        target: 'http://localhost:3000',
-        changeOrigin: true,
-      },
     },
   },
 });

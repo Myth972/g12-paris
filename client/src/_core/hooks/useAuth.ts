@@ -67,11 +67,6 @@ export function useAuth(options?: UseAuthOptions) {
     if (typeof window === "undefined") return;
     if (window.location.pathname === redirectPath) return;
 
-    // Skip auto-redirect in DEV if OAUTH is not configured
-    if (import.meta.env.DEV && (redirectPath === window.location.origin || redirectPath === `${window.location.origin}/`)) {
-      return;
-    }
-
     window.location.href = redirectPath
   }, [
     redirectOnUnauthenticated,

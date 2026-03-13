@@ -8,7 +8,6 @@
  */
 
 import { ENV } from "./env";
-import { TRPCError } from "@trpc/server";
 
 // ============================================================================
 // Configuration
@@ -24,10 +23,9 @@ function getMapsConfig(): MapsConfig {
   const apiKey = ENV.forgeApiKey;
 
   if (!baseUrl || !apiKey) {
-    throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: "Google Maps proxy credentials missing: set BUILT_IN_FORGE_API_URL and BUILT_IN_FORGE_API_KEY"
-    });
+    throw new Error(
+      "Google Maps proxy credentials missing: set BUILT_IN_FORGE_API_URL and BUILT_IN_FORGE_API_KEY"
+    );
   }
 
   return {
@@ -83,10 +81,9 @@ export async function makeRequest<T = unknown>(
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: `Google Maps API request failed (${response.status} ${response.statusText}): ${errorText}`
-    });
+    throw new Error(
+      `Google Maps API request failed (${response.status} ${response.statusText}): ${errorText}`
+    );
   }
 
   return (await response.json()) as T;

@@ -4,7 +4,6 @@ import { type Server } from "http";
 import { nanoid } from "nanoid";
 import path from "path";
 import { createServer as createViteServer } from "vite";
-import { logger } from "../logger";
 import viteConfig from "../../vite.config";
 
 export async function setupVite(app: Express, server: Server) {
@@ -54,7 +53,9 @@ export function serveStatic(app: Express) {
       ? path.resolve(import.meta.dirname, "../..", "dist", "public")
       : path.resolve(import.meta.dirname, "public");
   if (!fs.existsSync(distPath)) {
-    logger.error("Vite", `Build directory not found: ${distPath}. Make sure to build the client first.`);
+    console.error(
+      `Could not find the build directory: ${distPath}, make sure to build the client first`
+    );
   }
 
   app.use(express.static(distPath));

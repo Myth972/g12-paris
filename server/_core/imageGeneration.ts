@@ -17,8 +17,6 @@
  */
 import { storagePut } from "server/storage";
 import { ENV } from "./env";
-import { logger } from "../logger";
-import { TRPCError } from "@trpc/server";
 
 export type GenerateImageOptions = {
   prompt: string;
@@ -36,24 +34,11 @@ export type GenerateImageResponse = {
 export async function generateImage(
   options: GenerateImageOptions
 ): Promise<GenerateImageResponse> {
-  if ((!ENV.forgeApiUrl || !ENV.forgeApiKey) && process.env.NODE_ENV === "development") {
-    logger.debug("ImageGeneration", "Using mock mode - API key/URL not configured");
-    return {
-      url: "https://placehold.co/1024x1024?text=AI+Image+Mock+DevMode",
-    };
-  }
-
   if (!ENV.forgeApiUrl) {
-    throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: "BUILT_IN_FORGE_API_URL is not configured"
-    });
+    throw new Error("BUILT_IN_FORGE_API_URL is not configured");
   }
   if (!ENV.forgeApiKey) {
-    throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: "BUILT_IN_FORGE_API_KEY is not configured"
-    });
+    throw new Error("BUILT_IN_FORGE_API_KEY is not configured");
   }
 
   // Build the full URL by appending the service path to the base URL
@@ -81,10 +66,9 @@ export async function generateImage(
 
   if (!response.ok) {
     const detail = await response.text().catch(() => "");
-    throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: `Image generation request failed (${response.status} ${response.statusText})${detail ? `: ${detail}` : ""}`
-    });
+    throw new Error(
+      `Image generation request failed (${response.status} ${response.statusText})${detail ? `: ${detail}` : ""}`
+    );
   }
 
   const result = (await response.json()) as {

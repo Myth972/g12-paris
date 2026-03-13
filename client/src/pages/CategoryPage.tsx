@@ -1,5 +1,6 @@
 import { trpc } from "@/lib/trpc";
 import ArticleCard from "@/components/ArticleCard";
+import PageContentDisplay from "@/components/PageContentDisplay";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Newspaper, ChevronRight } from "lucide-react";
@@ -45,8 +46,17 @@ export default function CategoryPage() {
         </div>
       </section>
 
+      {/* Custom content section */}
+      <section className="container py-16 border-t border-border/30">
+        <div className="mb-8">
+          <h3 className="text-2xl font-serif font-bold text-foreground mb-2">Contenu en vedette</h3>
+          <p className="text-muted-foreground">Images, vidéos et contenus spéciaux</p>
+        </div>
+        <PageContentDisplay pageId={category} />
+      </section>
+
       {/* Articles grid */}
-      <section className="container pb-16">
+      <section className="container pb-16 border-t border-border/30 pt-16">
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
