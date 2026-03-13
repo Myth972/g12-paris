@@ -155,7 +155,7 @@ function ArticlesTab() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {articles.map((article) => (
+              {articles.map((article: any) => (
                 <TableRow key={article.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
@@ -325,7 +325,7 @@ function NotificationsTab() {
           </div>
         ) : (
           <div className="divide-y divide-border">
-            {notifs.map((notif) => {
+            {notifs.map((notif: any) => {
               const config = NOTIF_TYPE_CONFIG[notif.type as keyof typeof NOTIF_TYPE_CONFIG] ?? NOTIF_TYPE_CONFIG.info;
               const Icon = config.icon;
 
