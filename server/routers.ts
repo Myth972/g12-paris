@@ -1,7 +1,7 @@
 import { COOKIE_NAME } from "../shared/const.js";
-import { getSessionCookieOptions } from "./_core/cookies.ts";
-import { systemRouter } from "./_core/systemRouter.ts";
-import { publicProcedure, protectedProcedure, router } from "./_core/trpc.ts";
+import { getSessionCookieOptions } from "./_core/cookies.js";
+import { systemRouter } from "./_core/systemRouter.js";
+import { publicProcedure, protectedProcedure, router } from "./_core/trpc.js";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
@@ -37,8 +37,8 @@ import {
   deletePageContent,
   listPageContent,
   countPageContent,
-} from "./db.ts";
-import { storagePut } from "./storage.ts";
+} from "./db.js";
+import { storagePut } from "./storage.js";
 import { nanoid } from "nanoid";
 
 // Admin-only procedure
@@ -73,7 +73,7 @@ export const appRouter = router({
     login: publicProcedure
       .input(z.object({ password: z.string() }))
       .mutation(async ({ input, ctx }) => {
-        const { ENV } = await import("./_core/env");
+        const { ENV } = await import("./_core/env.js");
         if (input.password !== ENV.adminPassword) {
           throw new TRPCError({
             code: "UNAUTHORIZED",
@@ -82,7 +82,7 @@ export const appRouter = router({
         }
 
         const openId = "admin-local";
-        const { upsertUser } = await import("./db");
+        const { upsertUser } = await import("./db.js");
         await upsertUser({
           openId,
           name: "Administrateur",
@@ -90,12 +90,12 @@ export const appRouter = router({
           lastSignedIn: new Date(),
         });
 
-        const { sdk } = await import("./_core/sdk");
+        const { sdk } = await import("./_core/sdk.js");
         const sessionToken = await sdk.createSessionToken(openId, {
           name: "Administrateur",
         });
 
-        const { getSessionCookieOptions } = await import("./_core/cookies");
+        const { getSessionCookieOptions } = await import("./_core/cookies.js");
         const { ONE_YEAR_MS, COOKIE_NAME } = await import("../shared/const.js");
         const cookieOptions = getSessionCookieOptions(ctx.req);
 
@@ -560,7 +560,7 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ input }) => {
-        const { invokeLLM } = await import("./_core/llm");
+        const { invokeLLM } = await import("./_core/llm.js");
         const response = await invokeLLM({
           messages: input.messages as any,
         });
@@ -575,7 +575,7 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ input }) => {
-        const { invokeLLM } = await import("./_core/llm");
+        const { invokeLLM } = await import("./_core/llm.js");
         const prompt = `Rédige une description courte (2-3 phrases) et percutante pour un contenu de type "${input.contentType}" intitulé "${input.title}". Le ton doit être inspirant et spirituel.`;
 
         const response = await invokeLLM({
@@ -601,7 +601,7 @@ export const appRouter = router({
           .optional()
       )
       .mutation(async ({ input }) => {
-        const { invokeLLM } = await import("./_core/llm");
+        const { invokeLLM } = await import("./_core/llm.js");
 
         let prompt =
           "Génère un verset biblique inspirant (qui n'est pas déjà trop connu si possible). ";
