@@ -1,7 +1,7 @@
 import { COOKIE_NAME } from "@shared/const";
-import { getSessionCookieOptions } from "./_core/cookies";
-import { systemRouter } from "./_core/systemRouter";
-import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
+import { getSessionCookieOptions } from "./_core/cookies.ts";
+import { systemRouter } from "./_core/systemRouter.ts";
+import { publicProcedure, protectedProcedure, router } from "./_core/trpc.ts";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import {
@@ -37,8 +37,8 @@ import {
   deletePageContent,
   listPageContent,
   countPageContent,
-} from "./db";
-import { storagePut } from "./storage";
+} from "./db.ts";
+import { storagePut } from "./storage.ts";
 import { nanoid } from "nanoid";
 
 // Admin-only procedure

@@ -9,9 +9,9 @@ import {
   notifications,
   notificationReads,
   type InsertNotification,
-} from "../drizzle/schema";
+} from "../drizzle/schema.ts";
 import { notInArray, inArray } from "drizzle-orm";
-import { ENV } from "./_core/env";
+import { ENV } from "./_core/env.ts";
 
 let _db: any = null;
 
