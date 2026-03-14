@@ -1,4 +1,4 @@
-import { COOKIE_NAME } from "@shared/const";
+import { COOKIE_NAME } from "../shared/const.js";
 import { getSessionCookieOptions } from "./_core/cookies.ts";
 import { systemRouter } from "./_core/systemRouter.ts";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc.ts";
@@ -96,7 +96,7 @@ export const appRouter = router({
         });
 
         const { getSessionCookieOptions } = await import("./_core/cookies");
-        const { ONE_YEAR_MS, COOKIE_NAME } = await import("@shared/const");
+        const { ONE_YEAR_MS, COOKIE_NAME } = await import("../shared/const.js");
         const cookieOptions = getSessionCookieOptions(ctx.req);
 
         ctx.res.cookie(COOKIE_NAME, sessionToken, {
