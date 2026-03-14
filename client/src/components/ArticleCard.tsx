@@ -25,7 +25,10 @@ function formatDate(date: Date): string {
   });
 }
 
-export default function ArticleCard({ article, featured = false }: ArticleCardProps) {
+export default function ArticleCard({
+  article,
+  featured = false,
+}: ArticleCardProps) {
   return (
     <Link href={`/article/${article.slug}`}>
       <article
@@ -34,7 +37,9 @@ export default function ArticleCard({ article, featured = false }: ArticleCardPr
         }`}
       >
         {/* Image */}
-        <div className={`relative overflow-hidden bg-muted ${featured ? "aspect-[16/9]" : "aspect-[16/10]"}`}>
+        <div
+          className={`relative overflow-hidden bg-muted ${featured ? "aspect-[16/9]" : "aspect-[16/10]"}`}
+        >
           {article.coverImageUrl ? (
             <img
               src={article.coverImageUrl}
@@ -43,7 +48,9 @@ export default function ArticleCard({ article, featured = false }: ArticleCardPr
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-secondary">
-              <span className="text-4xl font-serif text-muted-foreground/30">G12</span>
+              <span className="text-4xl font-serif text-muted-foreground/30">
+                G12
+              </span>
             </div>
           )}
 
@@ -56,7 +63,10 @@ export default function ArticleCard({ article, featured = false }: ArticleCardPr
 
           {/* Category badge */}
           <div className="absolute top-3 left-3">
-            <Badge variant="secondary" className="bg-white/90 backdrop-blur-sm text-foreground font-medium text-xs shadow-sm">
+            <Badge
+              variant="secondary"
+              className="bg-white/90 backdrop-blur-sm text-foreground font-medium text-xs shadow-sm"
+            >
               {article.category}
             </Badge>
           </div>
@@ -73,7 +83,9 @@ export default function ArticleCard({ article, featured = false }: ArticleCardPr
           </h3>
 
           {article.excerpt && (
-            <p className={`mt-2 text-muted-foreground leading-relaxed line-clamp-2 ${featured ? "text-sm" : "text-xs"}`}>
+            <p
+              className={`mt-2 text-muted-foreground leading-relaxed line-clamp-2 ${featured ? "text-sm" : "text-xs"}`}
+            >
               {article.excerpt}
             </p>
           )}

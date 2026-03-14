@@ -27,11 +27,13 @@ export default function GalleriesPage() {
               </span>
             </div>
             <h2 className="text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight">
-              Galerie d'Images<br />
+              Galerie d'Images
+              <br />
               <span className="text-primary/80">et Vidéos</span>
             </h2>
             <p className="mt-4 text-muted-foreground text-base leading-relaxed max-w-lg">
-              Explorez notre collection complète d'images inspirantes et de vidéos édifiantes avec leurs versets bibliques associés.
+              Explorez notre collection complète d'images inspirantes et de
+              vidéos édifiantes avec leurs versets bibliques associés.
             </p>
           </div>
         </div>
@@ -39,7 +41,9 @@ export default function GalleriesPage() {
 
       {/* Custom content section */}
       <section className="container py-10 border-t border-border/30">
-        <h3 className="text-xl font-serif font-bold text-foreground mb-6">Contenus en vedette</h3>
+        <h3 className="text-xl font-serif font-bold text-foreground mb-6">
+          Contenus en vedette
+        </h3>
         <PageContentDisplay pageId="galeries" mode="grid" />
       </section>
 
@@ -48,7 +52,10 @@ export default function GalleriesPage() {
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="rounded-xl overflow-hidden border border-border/50">
+              <div
+                key={i}
+                className="rounded-xl overflow-hidden border border-border/50"
+              >
                 <Skeleton className="aspect-[16/10] w-full" />
                 <div className="p-4 space-y-3">
                   <Skeleton className="h-5 w-3/4" />
@@ -99,7 +106,9 @@ export default function GalleriesPage() {
                     {/* Verse preview */}
                     {item.verse && (
                       <div className="space-y-2 pt-3 border-t border-border/50">
-                        <p className="text-xs font-semibold text-primary">Verset associé</p>
+                        <p className="text-xs font-semibold text-primary">
+                          Verset associé
+                        </p>
                         <p className="text-xs text-muted-foreground line-clamp-2 italic">
                           "{item.verse.text}"
                         </p>
@@ -120,7 +129,7 @@ export default function GalleriesPage() {
                   variant="outline"
                   size="sm"
                   disabled={page === 0}
-                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  onClick={() => setPage(p => Math.max(0, p - 1))}
                 >
                   Précédent
                 </Button>
@@ -130,7 +139,7 @@ export default function GalleriesPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setPage((p) => p + 1)}
+                  onClick={() => setPage(p => p + 1)}
                 >
                   Suivant
                   <ChevronRight className="w-4 h-4 ml-1" />

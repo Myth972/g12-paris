@@ -8,14 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getLoginUrl } from "@/const";
-import {
-  Menu,
-  X,
-  User,
-  LogOut,
-  Shield,
-  Newspaper,
-} from "lucide-react";
+import { Menu, X, User, LogOut, Shield, Newspaper } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import NotificationBell from "./NotificationBell";
@@ -59,8 +52,10 @@ export default function SiteHeader() {
 
           {/* Desktop nav */}
           <nav className="hidden lg:flex items-center gap-1">
-            {NAV_LINKS.map((link) => {
-              const isActive = location === link.href || (link.href !== "/" && location.startsWith(link.href));
+            {NAV_LINKS.map(link => {
+              const isActive =
+                location === link.href ||
+                (link.href !== "/" && location.startsWith(link.href));
               return (
                 <Link
                   key={link.href}
@@ -96,7 +91,10 @@ export default function SiteHeader() {
                   {isAdmin && (
                     <>
                       <DropdownMenuItem asChild>
-                        <Link href="/admin" className="flex items-center gap-2 w-full">
+                        <Link
+                          href="/admin"
+                          className="flex items-center gap-2 w-full"
+                        >
                           <Shield className="w-4 h-4" />
                           Administration
                         </Link>
@@ -130,7 +128,11 @@ export default function SiteHeader() {
               className="lg:hidden"
               onClick={() => setMobileOpen(!mobileOpen)}
             >
-              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              {mobileOpen ? (
+                <X className="w-5 h-5" />
+              ) : (
+                <Menu className="w-5 h-5" />
+              )}
             </Button>
           </div>
         </div>
@@ -138,8 +140,10 @@ export default function SiteHeader() {
         {/* Mobile nav */}
         {mobileOpen && (
           <nav className="lg:hidden pb-4 border-t border-border/40 pt-3 space-y-1">
-            {NAV_LINKS.map((link) => {
-              const isActive = location === link.href || (link.href !== "/" && location.startsWith(link.href));
+            {NAV_LINKS.map(link => {
+              const isActive =
+                location === link.href ||
+                (link.href !== "/" && location.startsWith(link.href));
               return (
                 <Link
                   key={link.href}

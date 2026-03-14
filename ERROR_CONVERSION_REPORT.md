@@ -11,13 +11,14 @@ Convert all `throw new Error()` statements to `TRPCError` with appropriate error
 **Total Errors Converted:** 73  
 **Files Modified:** 11  
 **TypeScript Validation:** ✅ PASSED  
-**Remaining `throw new Error()`: 0
+\*\*Remaining `throw new Error()`: 0
 
 ---
 
 ## Conversion Details by File
 
 ### 1. **server/db.ts** (27 errors)
+
 - **Added import:** `import { TRPCError } from "@trpc/server";`
 - **Error types converted:**
   - `"User openId is required for upsert"` → `BAD_REQUEST`
@@ -28,6 +29,7 @@ Convert all `throw new Error()` statements to `TRPCError` with appropriate error
 ---
 
 ### 2. **server/personalization.router.ts** (11 errors)
+
 - **Added import:** `import { TRPCError } from "@trpc/server";`
 - **Error types converted:**
   - `"User ID not found"` (10 instances) → `UNAUTHORIZED`
@@ -37,7 +39,8 @@ Convert all `throw new Error()` statements to `TRPCError` with appropriate error
 
 ---
 
-### 3. **server/_core/personalization/layout-manager.ts** (13 errors)
+### 3. **server/\_core/personalization/layout-manager.ts** (13 errors)
+
 - **Added import:** `import { TRPCError } from "@trpc/server";`
 - **Error types converted:**
   - `"Database not available"` (10 instances) → `INTERNAL_SERVER_ERROR`
@@ -45,23 +48,27 @@ Convert all `throw new Error()` statements to `TRPCError` with appropriate error
   - `"Cannot delete active or default layout"` → `CONFLICT`
 
 **Affected classes:**
+
 - `LayoutManager`: `createLayout()`, `updateLayout()`, `setActiveLayout()`, `setDefaultLayout()`, `getLayout()`, `getUserLayouts()`, `getActiveLayout()`, `deleteLayout()`
 - `LayoutTemplateManager`: `getTemplates()`, `getTemplate()`, `createTemplateFromLayout()`
 
 ---
 
-### 4. **server/_core/personalization/profile-manager.ts** (7 errors)
+### 4. **server/\_core/personalization/profile-manager.ts** (7 errors)
+
 - **Added import:** `import { TRPCError } from "@trpc/server";`
 - **Error types converted:**
   - `"Database not available"` (7 instances) → `INTERNAL_SERVER_ERROR`
 
 **Affected classes:**
+
 - `ProfileManager`: `getOrCreateProfile()`, `updatePreferences()`, `getPreferences()`
 - `ActivityTracker`: `trackActivity()`, `updateCategoryScore()`, `getUserActivities()`, `getCategoryScores()`
 
 ---
 
-### 5. **server/_core/personalization/score-calculator.ts** (1 error)
+### 5. **server/\_core/personalization/score-calculator.ts** (1 error)
+
 - **Added import:** `import { TRPCError } from "@trpc/server";`
 - **Error types converted:**
   - `"Database not available"` → `INTERNAL_SERVER_ERROR`
@@ -70,7 +77,8 @@ Convert all `throw new Error()` statements to `TRPCError` with appropriate error
 
 ---
 
-### 6. **server/_core/llm.ts** (6 errors)
+### 6. **server/\_core/llm.ts** (6 errors)
+
 - **Added import:** `import { TRPCError } from "@trpc/server";`
 - **Error types converted:**
   - `"Unsupported message content part"` → `BAD_REQUEST`
@@ -85,7 +93,8 @@ Convert all `throw new Error()` statements to `TRPCError` with appropriate error
 
 ---
 
-### 7. **server/_core/dataApi.ts** (3 errors)
+### 7. **server/\_core/dataApi.ts** (3 errors)
+
 - **Added import:** `import { TRPCError } from "@trpc/server";`
 - **Error types converted:**
   - `"BUILT_IN_FORGE_API_URL is not configured"` → `INTERNAL_SERVER_ERROR`
@@ -96,7 +105,8 @@ Convert all `throw new Error()` statements to `TRPCError` with appropriate error
 
 ---
 
-### 8. **server/_core/imageGeneration.ts** (3 errors)
+### 8. **server/\_core/imageGeneration.ts** (3 errors)
+
 - **Added import:** `import { TRPCError } from "@trpc/server";`
 - **Error types converted:**
   - `"BUILT_IN_FORGE_API_URL is not configured"` → `INTERNAL_SERVER_ERROR`
@@ -107,7 +117,8 @@ Convert all `throw new Error()` statements to `TRPCError` with appropriate error
 
 ---
 
-### 9. **server/_core/map.ts** (2 errors)
+### 9. **server/\_core/map.ts** (2 errors)
+
 - **Added import:** `import { TRPCError } from "@trpc/server";`
 - **Error types converted:**
   - `"Google Maps proxy credentials missing"` → `INTERNAL_SERVER_ERROR`
@@ -117,7 +128,8 @@ Convert all `throw new Error()` statements to `TRPCError` with appropriate error
 
 ---
 
-### 10. **server/_core/index.ts** (1 error)
+### 10. **server/\_core/index.ts** (1 error)
+
 - **Added import:** `import { TRPCError } from "@trpc/server";`
 - **Error types converted:**
   - `"No available port found starting from ${startPort}"` → `INTERNAL_SERVER_ERROR`
@@ -127,6 +139,7 @@ Convert all `throw new Error()` statements to `TRPCError` with appropriate error
 ---
 
 ### 11. **server/storage.ts** (1 error)
+
 - **Added import:** `import { TRPCError } from "@trpc/server";`
 - **Error types converted:**
   - `"Storage upload failed"` → `INTERNAL_SERVER_ERROR`
@@ -137,14 +150,14 @@ Convert all `throw new Error()` statements to `TRPCError` with appropriate error
 
 ## Error Code Mapping
 
-| Code | Usage | Count |
-|------|-------|-------|
-| **UNAUTHORIZED** | Missing authentication (User ID not found) | 10 |
-| **NOT_FOUND** | Resource not found (Template, Layout) | 3 |
-| **CONFLICT** | State conflict (Cannot delete active layout) | 1 |
-| **BAD_REQUEST** | Invalid input/validation (Unsupported content, schema errors) | 6 |
-| **INTERNAL_SERVER_ERROR** | Database, API, Config errors | 53 |
-| **Total** | | **73** |
+| Code                      | Usage                                                         | Count  |
+| ------------------------- | ------------------------------------------------------------- | ------ |
+| **UNAUTHORIZED**          | Missing authentication (User ID not found)                    | 10     |
+| **NOT_FOUND**             | Resource not found (Template, Layout)                         | 3      |
+| **CONFLICT**              | State conflict (Cannot delete active layout)                  | 1      |
+| **BAD_REQUEST**           | Invalid input/validation (Unsupported content, schema errors) | 6      |
+| **INTERNAL_SERVER_ERROR** | Database, API, Config errors                                  | 53     |
+| **Total**                 |                                                               | **73** |
 
 ---
 

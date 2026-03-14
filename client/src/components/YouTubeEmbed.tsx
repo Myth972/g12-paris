@@ -20,7 +20,11 @@ function extractYouTubeId(url: string): string | null {
   return null;
 }
 
-export default function YouTubeEmbed({ url, loop = false, className = "" }: YouTubeEmbedProps) {
+export default function YouTubeEmbed({
+  url,
+  loop = false,
+  className = "",
+}: YouTubeEmbedProps) {
   const videoId = useMemo(() => extractYouTubeId(url), [url]);
 
   if (!videoId) return null;
@@ -30,7 +34,10 @@ export default function YouTubeEmbed({ url, loop = false, className = "" }: YouT
   const embedUrl = baseUrl + loopParams;
 
   return (
-    <div className={`relative w-full overflow-hidden rounded-lg shadow-md ${className}`} style={{ paddingBottom: "56.25%" }}>
+    <div
+      className={`relative w-full overflow-hidden rounded-lg shadow-md ${className}`}
+      style={{ paddingBottom: "56.25%" }}
+    >
       <iframe
         className="absolute inset-0 w-full h-full"
         src={embedUrl}

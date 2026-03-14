@@ -42,7 +42,9 @@ export async function storagePut(
 /**
  * Gets a file URL (local path)
  */
-export async function storageGet(relKey: string): Promise<{ key: string; url: string }> {
+export async function storageGet(
+  relKey: string
+): Promise<{ key: string; url: string }> {
   const key = relKey.replace(/^\/+/, "");
   return {
     key,

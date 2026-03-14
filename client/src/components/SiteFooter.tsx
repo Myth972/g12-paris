@@ -22,7 +22,8 @@ export default function SiteFooter() {
               </div>
             </div>
             <p className="text-sm text-primary-foreground/70 leading-relaxed max-w-xs">
-              Votre source d'information de confiance sur l'actualité parisienne et nationale.
+              Votre source d'information de confiance sur l'actualité parisienne
+              et nationale.
             </p>
           </div>
 
@@ -34,10 +35,14 @@ export default function SiteFooter() {
             <ul className="space-y-2">
               {[
                 { label: "Actualités", href: "/categorie/actualité" },
-                { label: "Publication du jour", href: "/categorie/publication du jour" },
+                {
+                  label: "Publication du jour",
+                  href: "/categorie/publication du jour",
+                },
+                { label: "Galeries", href: "/galeries" },
                 { label: "Culte en ligne", href: "/categorie/culte en ligne" },
                 { label: "Bibliothèque", href: "/categorie/bibliothèque" },
-              ].map((cat) => (
+              ].map(cat => (
                 <li key={cat.href}>
                   <Link
                     href={cat.href}

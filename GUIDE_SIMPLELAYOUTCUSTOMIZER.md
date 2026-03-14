@@ -23,11 +23,13 @@ LayoutEditor (Mode Expert)
 ## 🚀 Accès au SimpleLayoutCustomizer
 
 ### Via le menu utilisateur
+
 1. Cliquez sur votre **profil** (en haut à droite)
 2. Sélectionnez **🎨 Personnalisation**
 3. Vous arrivez sur la page SimpleLayoutCustomizer
 
 ### Lien direct
+
 ```
 http://localhost:3001/personalization-simple
 ```
@@ -41,6 +43,7 @@ http://localhost:3001/personalization-simple
 Donnez un nom descriptif à votre mise en page.
 
 **Exemples:**
+
 - "Ma mise en page quotidienne"
 - "Vue compacte des articles"
 - "Galerie photos"
@@ -57,6 +60,7 @@ Donnez un nom descriptif à votre mise en page.
 Choisissez parmi 4 templates pré-conçus:
 
 #### 🎯 **Grid** (Grille)
+
 - Affiche les articles en **grille de cartes**
 - Idéal pour: articles avec images
 - Vue: 3-4 colonnes par défaut
@@ -70,6 +74,7 @@ Choisissez parmi 4 templates pré-conçus:
 ```
 
 #### 📋 **List** (Listе)
+
 - Affiche les articles en **liste verticale**
 - Idéal pour: articles texte-heavy
 - Vue: titre + description condensée
@@ -83,6 +88,7 @@ Choisissez parmi 4 templates pré-conçus:
 ```
 
 #### 📰 **Magazine** (Magazine)
+
 - Affiche un **grand article principal** + grille d'articles secondaires
 - Idéal pour: faire ressortir une article vedette
 - Vue: 1 gros + plusieurs petits
@@ -98,6 +104,7 @@ Choisissez parmi 4 templates pré-conçus:
 ```
 
 #### 📺 **Timeline** (Chronologie)
+
 - Affiche les articles en **ordre chronologique**
 - Idéal pour: suivre les événements dans le temps
 - Vue: frise chronologique verticale
@@ -118,6 +125,7 @@ Choisissez parmi 4 templates pré-conçus:
 Ajustez 3 paramètres simples:
 
 #### **Mode d'affichage** 🎨
+
 ```
 ○ Cartes   → Affiche chaque article en carte (défaut)
 ○ Liste    → Affiche en liste simple
@@ -125,6 +133,7 @@ Ajustez 3 paramètres simples:
 ```
 
 #### **Nombre de colonnes** 📏
+
 ```
 1 colonne    → Plein écran, articles géants
 2 colonnes   → Vue paire/pair
@@ -133,6 +142,7 @@ Ajustez 3 paramètres simples:
 ```
 
 #### **Articles par page** 📄
+
 ```
 6  articles  → Une page légère
 12 articles  → Vue standard
@@ -164,6 +174,7 @@ Articles/page: 12
 ### Sur la page de Personnalisation
 
 #### **Affichage des Layouts**
+
 Tous vos layouts créés s'affichent sous forme de cartes:
 
 ```
@@ -179,11 +190,13 @@ Tous vos layouts créés s'affichent sous forme de cartes:
 #### **Actions disponibles**
 
 ✅ **Activer** (★)
+
 - Rend ce layout actif pour votre tableau de bord
 - Charge vos paramètres personnalisés
 - Vous voyez le dashboard avec ce layout
 
 ❌ **Supprimer** (🗑)
+
 - Supprime définitivement ce layout
 - ⚠️ Action irréversible
 - Confirmation demandée
@@ -193,6 +206,7 @@ Tous vos layouts créés s'affichent sous forme de cartes:
 ## 🎯 Cas d'Usage & Exemples
 
 ### Cas 1️⃣: Je suis pressé et je veux juste lire les titres
+
 ```
 Template: List
 Mode: Minimaliste
@@ -201,6 +215,7 @@ Articles/page: 6
 ```
 
 ### Cas 2️⃣: Je veux une vue galerie avec beaucoup de visuels
+
 ```
 Template: Grid
 Mode: Cartes
@@ -209,6 +224,7 @@ Articles/page: 24
 ```
 
 ### Cas 3️⃣: Je veux une mise en avant une article importante
+
 ```
 Template: Magazine
 Mode: Cartes
@@ -217,6 +233,7 @@ Articles/page: 12
 ```
 
 ### Cas 4️⃣: Je suis adepte de la chronologie
+
 ```
 Template: Timeline
 Mode: Cartes
@@ -229,21 +246,27 @@ Articles/page: 12
 ## ❓ FAQ
 
 ### Q: Comment puis-je avoir plusieurs layouts?
+
 **R:** Créez autant de layouts que vous voulez! Vous pouvez en avoir 5, 10, ou plus. Cliquez sur "Créer un nouveau layout" chaque fois.
 
 ### Q: Puis-je modifier un layout après l'avoir créé?
+
 **R:** Actuellement, vous devez le supprimer et en créer un nouveau. (Amélioration prévue pour plus tard)
 
 ### Q: Comment activer un layout?
+
 **R:** Cliquez sur le bouton **★ Activer** sur la carte du layout.
 
 ### Q: Quel est le layout par défaut?
+
 **R:** Le dernier layout que vous avez marqué comme "actif". Sinon, Grid 3 colonnes.
 
 ### Q: Puis-je exporter mes layouts?
+
 **R:** Non actuellement, mais c'est prévu! (Feature future)
 
 ### Q: Que se passe-t-il si je supprime tous mes layouts?
+
 **R:** Le système revient au layout par défaut (Grid).
 
 ---
@@ -263,12 +286,14 @@ http://localhost:3001/personalization
 ## 💡 Conseils & Bonnes Pratiques
 
 ### ✅ À faire
+
 - Créez des noms descriptifs pour vos layouts
 - Commencez simple, puis ajustez les paramètres
 - Testez différents templates pour voir lequel vous convient
 - Activez un layout différent selon votre besoin du moment
 
 ### ❌ À éviter
+
 - Ne pas créer 50+ layouts inutiles
 - Ne pas utiliser 24 articles/page si vous avez une petite batterie 🔋
 - Ne pas créer une layout et l'oublier sans l'activer
@@ -278,15 +303,19 @@ http://localhost:3001/personalization
 ## 🐛 Troubleshooting
 
 ### Le bouton "Sauvegarder" ne répond pas
+
 **Solution:** Vérifiez que vous avez rempli **tous les champs** (nom, template, options)
 
 ### Je ne vois pas le layout que j'ai créé
+
 **Solution:** Rechargez la page (F5 ou Ctrl+R)
 
 ### Le layout n'apparaît pas sur le dashboard
+
 **Solution:** Assurez-vous de l'avoir **activé** (bouton ★)
 
 ### Mon layout est trop chargé
+
 **Solution:** Réduisez le nombre d'articles par page ou le nombre de colonnes
 
 ---
@@ -294,6 +323,7 @@ http://localhost:3001/personalization
 ## 📞 Support
 
 Besoin d'aide? Contactez l'équipe développement avec:
+
 - Le nom de votre layout
 - Les paramètres que vous avez choisis
 - Ce que vous essayiez de faire

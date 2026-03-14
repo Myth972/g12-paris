@@ -3,9 +3,11 @@
 ## Quick Start
 
 ### Windows Users
+
 Double-click `launch-server.bat` and select your preferred mode.
 
 ### Mac/Linux Users
+
 ```bash
 npm run dev      # Development mode (hot-reload)
 npm run build    # Build for production
@@ -18,11 +20,13 @@ npm run check    # Type-check with TypeScript
 ## 📍 Access URLs
 
 ### Development Mode
+
 - **Frontend**: http://localhost:3001/
 - **API tRPC**: http://localhost:3001/api/trpc
 - **Hot-reload**: Enabled (auto-refresh on code changes)
 
 ### Production Mode
+
 - **Frontend**: http://localhost:3000/ (or specified PORT)
 - **API tRPC**: http://localhost:3000/api/trpc
 
@@ -31,11 +35,14 @@ npm run check    # Type-check with TypeScript
 ## 🔐 Authentication
 
 ### Dev Login (Development Only)
+
 Access the `/dev-login` page to create test accounts:
+
 - **Admin account**: `role: "admin"`
 - **User account**: `role: "user"`
 
 Example via API:
+
 ```bash
 curl -X POST http://localhost:3001/api/dev/login \
   -H "Content-Type: application/json" \
@@ -47,18 +54,22 @@ curl -X POST http://localhost:3001/api/dev/login \
 ## 🤖 AI Features
 
 ### Provider Configuration
+
 Currently using **Groq** for AI generation (Google API disabled due to invalid key).
 
 **Available Models:**
+
 - Groq: `llama-3.3-70b-versatile`
 
 ### Features Available
+
 1. **Title Generation** - Generate compelling article titles
 2. **Summary Generation** - Create professional summaries
 3. **Text Correction** - Auto-fix spelling and grammar
 4. **Content Generation** - Write structured articles
 
 ### Test AI via API
+
 ```bash
 curl -X POST http://localhost:3001/api/trpc/ai.generateText \
   -H "Content-Type: application/json" \
@@ -76,11 +87,13 @@ curl -X POST http://localhost:3001/api/trpc/ai.generateText \
 ## 📚 API Endpoints
 
 ### Publications
+
 - `GET /api/trpc/publications.list` - List all publications
 - `POST /api/trpc/publications.create` - Create publication (admin)
 - `POST /api/trpc/publications.delete` - Delete publication (admin)
 
 ### Articles
+
 - `GET /api/trpc/articles.list` - List published articles
 - `GET /api/trpc/articles.bySlug` - Get article by slug
 - `POST /api/trpc/articles.create` - Create article (admin)
@@ -88,10 +101,12 @@ curl -X POST http://localhost:3001/api/trpc/ai.generateText \
 - `POST /api/trpc/articles.delete` - Delete article (admin)
 
 ### AI
+
 - `POST /api/trpc/ai.generateText` - Generate text content (admin)
 - `POST /api/trpc/ai.generateImage` - Generate images (admin)
 
 ### Auth
+
 - `GET /api/trpc/auth.me` - Get current user info
 - `POST /api/trpc/auth.logout` - Logout
 
@@ -100,11 +115,13 @@ curl -X POST http://localhost:3001/api/trpc/ai.generateText \
 ## 🗄️ Database
 
 ### Connection
+
 - **Type**: Turso (LibSQL)
 - **URL**: `libsql://g12-paris-myth972.aws-eu-west-1.turso.io`
 - **Status**: Connected ✅
 
 ### Database Commands
+
 ```bash
 # Generate migrations
 npm run db:push
@@ -118,6 +135,7 @@ npm run db:push
 ## 🔧 Environment Variables
 
 Key variables in `.env`:
+
 ```
 # Database
 TURSO_DATABASE_URL=libsql://...
@@ -141,16 +159,19 @@ OWNER_OPEN_ID=... (set for production admin)
 ## 🧪 Testing
 
 ### Type Check
+
 ```bash
 npm run check  # 0 errors expected ✅
 ```
 
 ### Run Tests
+
 ```bash
 npm run test
 ```
 
 ### Build Check
+
 ```bash
 npm run build
 ```
@@ -159,37 +180,42 @@ npm run build
 
 ## 📊 Project Status
 
-| Component | Status | Details |
-|-----------|--------|---------|
-| TypeScript | ✅ | 0 errors |
-| Frontend | ✅ | React 19, Vite |
-| Backend | ✅ | Node.js, Express, tRPC |
-| Database | ✅ | Turso (LibSQL) |
-| AI | ✅ | Groq (llama-3.3-70b) |
-| Auth | ✅ | JWT + OAuth ready |
-| Publications | ✅ | 2 published |
-| Articles | ✅ | 1 published |
+| Component    | Status | Details                |
+| ------------ | ------ | ---------------------- |
+| TypeScript   | ✅     | 0 errors               |
+| Frontend     | ✅     | React 19, Vite         |
+| Backend      | ✅     | Node.js, Express, tRPC |
+| Database     | ✅     | Turso (LibSQL)         |
+| AI           | ✅     | Groq (llama-3.3-70b)   |
+| Auth         | ✅     | JWT + OAuth ready      |
+| Publications | ✅     | 2 published            |
+| Articles     | ✅     | 1 published            |
 
 ---
 
 ## 🐛 Troubleshooting
 
 ### Port Already in Use
+
 The server automatically tries the next available port.
+
 - Default dev: 3000 → 3001 → 3002, etc.
 - Default prod: Check console output
 
 ### Frontend Not Loading
+
 1. Check that port 3001 is accessible
 2. Clear browser cache (Ctrl+Shift+Delete)
 3. Hard refresh (Ctrl+F5)
 
 ### API Errors
+
 1. Ensure dev login session is active
 2. Check browser console for error details
 3. Verify authentication cookie: `app_session_id`
 
 ### AI Not Generating Content
+
 1. Check `GROQ_API_KEY` in `.env`
 2. Verify you're logged in as admin
 3. Check server logs for API errors
@@ -239,6 +265,7 @@ npm run db:push
 ## 📞 Support
 
 For issues or questions:
+
 1. Check server logs in console
 2. Review `.manus-logs/` directory for debug info
 3. Verify environment variables are set correctly

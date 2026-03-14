@@ -19,7 +19,12 @@ export type FileContent = {
   type: "file_url";
   file_url: {
     url: string;
-    mime_type?: "audio/mpeg" | "audio/wav" | "application/pdf" | "audio/mp4" | "video/mp4" ;
+    mime_type?:
+      | "audio/mpeg"
+      | "audio/wav"
+      | "application/pdf"
+      | "audio/mp4"
+      | "video/mp4";
   };
 };
 
@@ -280,10 +285,14 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     // Default to Google (Gemini via Forge or similar)
     apiUrl = "https://forge.manus.im/v1/chat/completions";
     apiKey = (ENV as any).forgeApiKey || ENV.googleApiKey; // Fallback if forgeApiKey is missing
-    model = "gemini-2.0-flash-exp"; 
+    model = "gemini-2.0-flash-exp";
     // Note: If you want to use the user's provided Forge URL, you can put it back here
-    if (!apiKey && (ENV as any).googleApiKey) apiKey = (ENV as any).googleApiKey;
-    if (!apiKey) throw new Error("AI API Key is not configured (GOOGLE_API_KEY or GROQ_API_KEY)");
+    if (!apiKey && (ENV as any).googleApiKey)
+      apiKey = (ENV as any).googleApiKey;
+    if (!apiKey)
+      throw new Error(
+        "AI API Key is not configured (GOOGLE_API_KEY or GROQ_API_KEY)"
+      );
   }
 
   const payload: Record<string, unknown> = {
@@ -307,7 +316,7 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
   if (provider === "google") {
     payload.max_tokens = 32768;
     payload.thinking = {
-      "budget_tokens": 128
+      budget_tokens: 128,
     };
   }
 

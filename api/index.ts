@@ -1,7 +1,7 @@
 import "dotenv/config";
 import express from "express";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { registerOAuthRoutes } from "../server/_core/oauth";
+
 import { appRouter } from "../server/routers";
 import { createContext } from "../server/_core/context";
 
@@ -20,32 +20,35 @@ console.log("[Vercel] Function starting...");
 
 // Health check pour tester si l'API répond
 app.get("/api/health", (req, res) => {
-    // console.log("[Vercel] Health check hit"); // This line was removed in the provided edit
-    res.json({
-        status: "ok",
-        envCheck: !!process.env.TURSO_DATABASE_URL,
-        time: new Date().toISOString()
-    });
+  // console.log("[Vercel] Health check hit"); // This line was removed in the provided edit
+  res.json({
+    status: "ok",
+    envCheck: !!process.env.TURSO_DATABASE_URL,
+    time: new Date().toISOString(),
+  });
 });
 
 try {
-    // console.log("[Vercel] Registering OAuth routes..."); // This line was removed in the provided edit
-    // On n'importe les routes que si la santé passe
-    registerOAuthRoutes(app as any);
+  // console.log("[Vercel] Registering OAuth routes..."); // This line was removed in the provided edit
+  // On n'importe les routes que si la santé passe
 
-    // console.log("[Vercel] Registering tRPC routes..."); // This line was removed in the provided edit
-    // const trpcMiddleware = createExpressMiddleware({ // This variable assignment was removed in the provided edit
-    //     router: appRouter,
-    //     createContext,
-    // });
+  // console.log("[Vercel] Registering tRPC routes..."); // This line was removed in the provided edit
+  // const trpcMiddleware = createExpressMiddleware({ // This variable assignment was removed in the provided edit
+  //     router: appRouter,
+  //     createContext,
+  // });
 
-    app.use("/api/trpc", createExpressMiddleware({
-        router: appRouter,
-        createContext,
-    }));
-    // app.use("/trpc", trpcMiddleware); // This line was removed in the provided edit
-} catch (e) { // Variable name changed from 'error' to 'e'
-    console.error("[Vercel] Startup Error:", e); // Message changed from 'Fatal error during route registration' to 'Startup Error'
+  app.use(
+    "/api/trpc",
+    createExpressMiddleware({
+      router: appRouter,
+      createContext,
+    })
+  );
+  // app.use("/trpc", trpcMiddleware); // This line was removed in the provided edit
+} catch (e) {
+  // Variable name changed from 'error' to 'e'
+  console.error("[Vercel] Startup Error:", e); // Message changed from 'Fatal error during route registration' to 'Startup Error'
 }
 
 // Global error handler // This entire block was removed in the provided edit

@@ -19,7 +19,7 @@ function createAdminContext(): TrpcContext {
   return {
     user,
     req: { protocol: "https", headers: {} } as TrpcContext["req"],
-    res: { clearCookie: () => {} } as TrpcContext["res"],
+    res: { clearCookie: () => {} } as unknown as TrpcContext["res"],
   };
 }
 
@@ -38,7 +38,7 @@ function createUserContext(id = 2): TrpcContext {
   return {
     user,
     req: { protocol: "https", headers: {} } as TrpcContext["req"],
-    res: { clearCookie: () => {} } as TrpcContext["res"],
+    res: { clearCookie: () => {} } as unknown as TrpcContext["res"],
   };
 }
 
@@ -46,7 +46,7 @@ function createPublicContext(): TrpcContext {
   return {
     user: null,
     req: { protocol: "https", headers: {} } as TrpcContext["req"],
-    res: { clearCookie: () => {} } as TrpcContext["res"],
+    res: { clearCookie: () => {} } as unknown as TrpcContext["res"],
   };
 }
 
@@ -120,7 +120,7 @@ describe("notifications API", () => {
       expect(result).toHaveProperty("total");
       expect(result.total).toBeGreaterThanOrEqual(1);
 
-      const found = result.items.find((n) => n.id === createdNotifId);
+      const found = result.items.find((n: any) => n.id === createdNotifId);
       expect(found).toBeDefined();
       expect(found!.title).toBe("Bienvenue sur G12 Paris");
     });
@@ -135,7 +135,7 @@ describe("notifications API", () => {
       expect(result.items.length).toBeGreaterThanOrEqual(1);
       expect(result.unreadCount).toBeGreaterThanOrEqual(1);
 
-      const notif = result.items.find((n) => n.id === createdNotifId);
+      const notif = result.items.find((n: any) => n.id === createdNotifId);
       expect(notif).toBeDefined();
       expect(notif!.isRead).toBe(false);
     });
@@ -172,7 +172,7 @@ describe("notifications API", () => {
       const caller = appRouter.createCaller(ctx);
 
       const result = await caller.notifications.myNotifications({ limit: 20 });
-      const notif = result.items.find((n) => n.id === createdNotifId);
+      const notif = result.items.find((n: any) => n.id === createdNotifId);
       expect(notif).toBeDefined();
       expect(notif!.isRead).toBe(true);
     });

@@ -4,7 +4,8 @@ import YouTubeEmbed from "@/components/YouTubeEmbed";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function PublicationDuJour() {
-  const { data: galleryData, isLoading: galleryLoading } = trpc.gallery.featured.useQuery();
+  const { data: galleryData, isLoading: galleryLoading } =
+    trpc.gallery.featured.useQuery();
   const { data: latestVerse } = trpc.verses.latest.useQuery();
   const items = galleryData ?? [];
 
@@ -13,7 +14,6 @@ export default function PublicationDuJour() {
   const verseItem = items.find((i: any) => i.verse);
   const verse = verseItem?.verse || latestVerse;
   const isLoading = galleryLoading;
-
 
   return (
     <div className="min-h-screen bg-white">
@@ -40,8 +40,11 @@ export default function PublicationDuJour() {
 
           {isLoading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[0, 1].map((i) => (
-                <div key={i} className="rounded-xl overflow-hidden border border-border/40">
+              {[0, 1].map(i => (
+                <div
+                  key={i}
+                  className="rounded-xl overflow-hidden border border-border/40"
+                >
                   <Skeleton className="w-full aspect-[4/3]" />
                   <div className="py-3 px-2 text-center">
                     <Skeleton className="h-4 w-32 mx-auto" />
@@ -116,8 +119,11 @@ export default function PublicationDuJour() {
 
             {isLoading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {[0, 1].map((i) => (
-                  <div key={i} className="rounded-xl overflow-hidden border border-border/40">
+                {[0, 1].map(i => (
+                  <div
+                    key={i}
+                    className="rounded-xl overflow-hidden border border-border/40"
+                  >
                     <div className="px-4 py-3 border-b border-border/40">
                       <Skeleton className="h-4 w-16" />
                     </div>
@@ -142,14 +148,17 @@ export default function PublicationDuJour() {
                       {item.youtubeUrl ? (
                         <YouTubeEmbed url={item.youtubeUrl} />
                       ) : item.mediaUrl ? (
-
-                      <video src={item.mediaUrl} controls className="w-full rounded-lg" />
-                    ) : null}
+                        <video
+                          src={item.mediaUrl}
+                          controls
+                          className="w-full rounded-lg"
+                        />
+                      ) : null}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )}
           </div>
         </section>
       )}

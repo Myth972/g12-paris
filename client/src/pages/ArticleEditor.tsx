@@ -39,7 +39,9 @@ const CATEGORIES = [
 ];
 
 export default function ArticleEditor() {
-  const { user, loading: authLoading } = useAuth({ redirectOnUnauthenticated: true });
+  const { user, loading: authLoading } = useAuth({
+    redirectOnUnauthenticated: true,
+  });
   const params = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
   const isNew = params.id === "new";
@@ -60,10 +62,8 @@ export default function ArticleEditor() {
   const utils = trpc.useUtils();
 
   // Load existing article
-  const { data: existingArticle, isLoading: loadingArticle } = trpc.articles.byId.useQuery(
-    { id: articleId! },
-    { enabled: !!articleId }
-  );
+  const { data: existingArticle, isLoading: loadingArticle } =
+    trpc.articles.byId.useQuery({ id: articleId! }, { enabled: !!articleId });
 
   useEffect(() => {
     if (existingArticle) {
@@ -85,7 +85,7 @@ export default function ArticleEditor() {
       toast.success("Article créé avec succès");
       setLocation("/admin");
     },
-    onError: (err) => toast.error(err.message || "Erreur lors de la création"),
+    onError: err => toast.error(err.message || "Erreur lors de la création"),
   });
 
   const updateMutation = trpc.articles.update.useMutation({
@@ -95,49 +95,52 @@ export default function ArticleEditor() {
       toast.success("Article mis à jour");
       setLocation("/admin");
     },
-    onError: (err) => toast.error(err.message || "Erreur lors de la mise à jour"),
+    onError: err => toast.error(err.message || "Erreur lors de la mise à jour"),
   });
 
   const uploadMutation = trpc.articles.uploadImage.useMutation();
 
   const generateExcerptMutation = trpc.ai.generateDescription.useMutation({
-    onSuccess: (generated) => {
+    onSuccess: generated => {
       setExcerpt(generated);
       toast.success("Résumé généré avec succès");
     },
-    onError: (err) => toast.error(err.message || "Erreur lors de la génération"),
+    onError: err => toast.error(err.message || "Erreur lors de la génération"),
   });
 
-  const handleImageUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleImageUpload = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("L'image ne doit pas dépasser 5 Mo");
-      return;
-    }
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("L'image ne doit pas dépasser 5 Mo");
+        return;
+      }
 
-    setUploading(true);
-    try {
-      const reader = new FileReader();
-      reader.onload = async () => {
-        const base64 = (reader.result as string).split(",")[1];
-        const result = await uploadMutation.mutateAsync({
-          base64,
-          filename: file.name,
-          contentType: file.type,
-        });
-        setCoverImageUrl(result.url);
-        setCoverImageKey(result.key);
-        toast.success("Image téléchargée");
+      setUploading(true);
+      try {
+        const reader = new FileReader();
+        reader.onload = async () => {
+          const base64 = (reader.result as string).split(",")[1];
+          const result = await uploadMutation.mutateAsync({
+            base64,
+            filename: file.name,
+            contentType: file.type,
+          });
+          setCoverImageUrl(result.url);
+          setCoverImageKey(result.key);
+          toast.success("Image téléchargée");
+          setUploading(false);
+        };
+        reader.readAsDataURL(file);
+      } catch {
+        toast.error("Erreur lors du téléchargement de l'image");
         setUploading(false);
-      };
-      reader.readAsDataURL(file);
-    } catch {
-      toast.error("Erreur lors du téléchargement de l'image");
-      setUploading(false);
-    }
-  }, [uploadMutation]);
+      }
+    },
+    [uploadMutation]
+  );
 
   const handleSave = async () => {
     if (!title.trim()) {
@@ -190,7 +193,9 @@ export default function ArticleEditor() {
       <div className="container py-20 text-center">
         <Shield className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
         <h2 className="text-xl font-serif font-bold mb-2">Accès restreint</h2>
-        <p className="text-muted-foreground">Cette page est réservée aux administrateurs.</p>
+        <p className="text-muted-foreground">
+          Cette page est réservée aux administrateurs.
+        </p>
       </div>
     );
   }
@@ -202,7 +207,11 @@ export default function ArticleEditor() {
         <div className="container py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="icon" onClick={() => setLocation("/admin")}>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setLocation("/admin")}
+              >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <h1 className="text-lg font-serif font-bold text-foreground">
@@ -243,7 +252,7 @@ export default function ArticleEditor() {
             </Label>
             <Input
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={e => setTitle(e.target.value)}
               placeholder="Saisissez le titre de l'article..."
               className="text-lg font-serif"
             />
@@ -260,10 +269,12 @@ export default function ArticleEditor() {
                 size="sm"
                 className="h-7 text-[10px] gap-1.5 text-primary hover:text-primary hover:bg-primary/10"
                 disabled={generateExcerptMutation.isPending || !title}
-                onClick={() => generateExcerptMutation.mutate({
-                  title,
-                  contentType: "article"
-                })}
+                onClick={() =>
+                  generateExcerptMutation.mutate({
+                    title,
+                    contentType: "article",
+                  })
+                }
               >
                 {generateExcerptMutation.isPending ? (
                   <Loader2 className="w-3 h-3 animate-spin" />
@@ -275,7 +286,7 @@ export default function ArticleEditor() {
             </div>
             <Textarea
               value={excerpt}
-              onChange={(e) => setExcerpt(e.target.value)}
+              onChange={e => setExcerpt(e.target.value)}
               placeholder="Un court résumé de l'article (optionnel)..."
               rows={2}
               className="resize-none"
@@ -292,7 +303,7 @@ export default function ArticleEditor() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {CATEGORIES.map((cat) => (
+                {CATEGORIES.map(cat => (
                   <SelectItem key={cat.value} value={cat.value}>
                     {cat.label}
                   </SelectItem>
@@ -336,7 +347,9 @@ export default function ArticleEditor() {
                   <ImageIcon className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
                 )}
                 <p className="text-sm text-muted-foreground">
-                  {uploading ? "Téléchargement en cours..." : "Cliquez pour ajouter une image"}
+                  {uploading
+                    ? "Téléchargement en cours..."
+                    : "Cliquez pour ajouter une image"}
                 </p>
                 <p className="text-xs text-muted-foreground/70 mt-1">
                   JPG, PNG ou WebP (max 5 Mo)
@@ -357,7 +370,7 @@ export default function ArticleEditor() {
                 </Label>
                 <Input
                   placeholder="https://exemple.com/image.jpg"
-                  onChange={(e) => setCoverImageUrl(e.target.value)}
+                  onChange={e => setCoverImageUrl(e.target.value)}
                 />
               </div>
             )}
@@ -370,7 +383,7 @@ export default function ArticleEditor() {
             </Label>
             <Input
               value={youtubeUrl}
-              onChange={(e) => setYoutubeUrl(e.target.value)}
+              onChange={e => setYoutubeUrl(e.target.value)}
               placeholder="https://www.youtube.com/watch?v=..."
             />
             {youtubeUrl && (
@@ -387,7 +400,7 @@ export default function ArticleEditor() {
             </Label>
             <Textarea
               value={content}
-              onChange={(e) => setContent(e.target.value)}
+              onChange={e => setContent(e.target.value)}
               placeholder="Rédigez le contenu de votre article ici... Le format Markdown est supporté."
               rows={16}
               className="font-mono text-sm leading-relaxed"

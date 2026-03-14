@@ -106,9 +106,7 @@
       "indexes": {
         "articles_slug_unique": {
           "name": "articles_slug_unique",
-          "columns": [
-            "slug"
-          ],
+          "columns": ["slug"],
           "isUnique": true
         }
       },
@@ -549,9 +547,7 @@
       "indexes": {
         "users_openId_unique": {
           "name": "users_openId_unique",
-          "columns": [
-            "openId"
-          ],
+          "columns": ["openId"],
           "isUnique": true
         }
       },

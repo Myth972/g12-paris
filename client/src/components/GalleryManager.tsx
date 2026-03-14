@@ -28,7 +28,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Trash2, Image as ImageIcon, Video, BookOpen, Crown } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Image as ImageIcon,
+  Video,
+  BookOpen,
+  Crown,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -63,11 +70,11 @@ export default function GalleryManager() {
   const verses = versesData?.items ?? [];
 
   const uploadMutation = trpc.gallery.uploadImage.useMutation({
-    onSuccess: (res) => {
-      setFormData((prev) => ({ ...prev, mediaUrl: res.url }));
+    onSuccess: res => {
+      setFormData(prev => ({ ...prev, mediaUrl: res.url }));
       toast.success("Fichier uploadé avec succès");
     },
-    onError: (err) => toast.error("Erreur d'upload : " + err.message),
+    onError: err => toast.error("Erreur d'upload : " + err.message),
   });
 
   const createMutation = trpc.gallery.create.useMutation({
@@ -78,7 +85,7 @@ export default function GalleryManager() {
       setOpen(false);
       resetForm();
     },
-    onError: (err) => toast.error("Erreur : " + err.message),
+    onError: err => toast.error("Erreur : " + err.message),
   });
 
   const deleteMutation = trpc.gallery.delete.useMutation({
@@ -87,7 +94,7 @@ export default function GalleryManager() {
       utils.gallery.featured.invalidate();
       toast.success("Élément supprimé");
     },
-    onError: (err) => toast.error("Erreur : " + err.message),
+    onError: err => toast.error("Erreur : " + err.message),
   });
 
   const resetForm = () => {
@@ -108,7 +115,7 @@ export default function GalleryManager() {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = async (event) => {
+    reader.onload = async event => {
       const base64 = (event.target?.result as string).split(",")[1];
       uploadMutation.mutate({
         base64,
@@ -145,9 +152,12 @@ export default function GalleryManager() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-foreground">Éléments de la Galerie</h3>
+          <h3 className="text-lg font-semibold text-foreground">
+            Éléments de la Galerie
+          </h3>
           <p className="text-sm text-muted-foreground">
-            Gérez les images et vidéos affichées dans les pages (Publication du Jour, etc.)
+            Gérez les images et vidéos affichées dans les pages (Publication du
+            Jour, etc.)
           </p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
@@ -163,7 +173,11 @@ export default function GalleryManager() {
                 <DialogTitle>Ajouter à la galerie</DialogTitle>
               </DialogHeader>
 
-              <Tabs value={contentType} onValueChange={(v) => setContentType(v as "image" | "video")} className="my-4">
+              <Tabs
+                value={contentType}
+                onValueChange={v => setContentType(v as "image" | "video")}
+                className="my-4"
+              >
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="image">Image</TabsTrigger>
                   <TabsTrigger value="video">Vidéo (MP4 / YouTube)</TabsTrigger>
@@ -172,7 +186,12 @@ export default function GalleryManager() {
                 <TabsContent value="image" className="space-y-4 pt-4">
                   <div className="space-y-2">
                     <Label>Upload d'image</Label>
-                    <Input type="file" accept="image/*" onChange={handleFileUpload} disabled={uploadMutation.isPending} />
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      disabled={uploadMutation.isPending}
+                    />
                   </div>
                 </TabsContent>
 
@@ -182,16 +201,29 @@ export default function GalleryManager() {
                     <Input
                       placeholder="https://youtube.com/watch?v=..."
                       value={formData.youtubeUrl || ""}
-                      onChange={(e) => setFormData({ ...formData, youtubeUrl: e.target.value })}
+                      onChange={e =>
+                        setFormData({ ...formData, youtubeUrl: e.target.value })
+                      }
                     />
                   </div>
                   <div className="relative">
-                    <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
-                    <div className="relative flex justify-center text-xs uppercase"><span className="bg-background px-2 text-muted-foreground">Ou</span></div>
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t" />
+                    </div>
+                    <div className="relative flex justify-center text-xs uppercase">
+                      <span className="bg-background px-2 text-muted-foreground">
+                        Ou
+                      </span>
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label>Upload Vidéo MP4</Label>
-                    <Input type="file" accept="video/mp4" onChange={handleFileUpload} disabled={uploadMutation.isPending} />
+                    <Input
+                      type="file"
+                      accept="video/mp4"
+                      onChange={handleFileUpload}
+                      disabled={uploadMutation.isPending}
+                    />
                   </div>
                 </TabsContent>
               </Tabs>
@@ -201,9 +233,11 @@ export default function GalleryManager() {
                   <Switch
                     id="loop-mode"
                     checked={formData.loop}
-                    onCheckedChange={(c) => setFormData({ ...formData, loop: c })}
+                    onCheckedChange={c => setFormData({ ...formData, loop: c })}
                   />
-                  <Label htmlFor="loop-mode">Lecture en boucle de la vidéo</Label>
+                  <Label htmlFor="loop-mode">
+                    Lecture en boucle de la vidéo
+                  </Label>
                 </div>
               )}
 
@@ -213,7 +247,9 @@ export default function GalleryManager() {
                   <Input
                     placeholder="Titre de l'image ou de la vidéo"
                     value={formData.title}
-                    onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                    onChange={e =>
+                      setFormData({ ...formData, title: e.target.value })
+                    }
                     required
                   />
                 </div>
@@ -221,8 +257,15 @@ export default function GalleryManager() {
                 <div className="space-y-2">
                   <Label>Associer un Verset du Jour (Optionnel)</Label>
                   <Select
-                    value={formData.verseId ? formData.verseId.toString() : "none"}
-                    onValueChange={(v) => setFormData({ ...formData, verseId: v === "none" ? null : parseInt(v) })}
+                    value={
+                      formData.verseId ? formData.verseId.toString() : "none"
+                    }
+                    onValueChange={v =>
+                      setFormData({
+                        ...formData,
+                        verseId: v === "none" ? null : parseInt(v),
+                      })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Aucun verset associé" />
@@ -230,7 +273,9 @@ export default function GalleryManager() {
                     <SelectContent>
                       <SelectItem value="none">Aucun verset</SelectItem>
                       {verses.map((v: any) => (
-                        <SelectItem key={v.id} value={v.id.toString()}>{v.reference}</SelectItem>
+                        <SelectItem key={v.id} value={v.id.toString()}>
+                          {v.reference}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -240,15 +285,30 @@ export default function GalleryManager() {
                   <Switch
                     id="featured-mode"
                     checked={formData.featured}
-                    onCheckedChange={(c) => setFormData({ ...formData, featured: c })}
+                    onCheckedChange={c =>
+                      setFormData({ ...formData, featured: c })
+                    }
                   />
-                  <Label htmlFor="featured-mode">À la une (Afficher dans Publication du Jour)</Label>
+                  <Label htmlFor="featured-mode">
+                    À la une (Afficher dans Publication du Jour)
+                  </Label>
                 </div>
               </div>
 
               <DialogFooter>
-                <Button variant="outline" type="button" onClick={() => setOpen(false)}>Annuler</Button>
-                <Button type="submit" disabled={createMutation.isPending || uploadMutation.isPending}>
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={() => setOpen(false)}
+                >
+                  Annuler
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={
+                    createMutation.isPending || uploadMutation.isPending
+                  }
+                >
                   {createMutation.isPending ? "Création..." : "Ajouter"}
                 </Button>
               </DialogFooter>
@@ -285,22 +345,41 @@ export default function GalleryManager() {
                 <TableRow key={item.id}>
                   <TableCell>
                     {item.type === "image" ? (
-                      <img src={item.mediaUrl} alt={item.title} className="w-16 h-12 object-cover rounded" />
+                      <img
+                        src={item.mediaUrl}
+                        alt={item.title}
+                        className="w-16 h-12 object-cover rounded"
+                      />
                     ) : item.youtubeUrl ? (
-                      <div className="w-16 h-12 bg-muted rounded flex items-center justify-center text-xs">YT</div>
+                      <div className="w-16 h-12 bg-muted rounded flex items-center justify-center text-xs">
+                        YT
+                      </div>
                     ) : (
-                      <video src={item.mediaUrl} className="w-16 h-12 object-cover rounded" />
+                      <video
+                        src={item.mediaUrl}
+                        className="w-16 h-12 object-cover rounded"
+                      />
                     )}
                   </TableCell>
                   <TableCell className="font-medium">{item.title}</TableCell>
                   <TableCell>
-                    {item.type === "image" ? <ImageIcon className="w-4 h-4 text-muted-foreground" /> : <Video className="w-4 h-4 text-muted-foreground" />}
+                    {item.type === "image" ? (
+                      <ImageIcon className="w-4 h-4 text-muted-foreground" />
+                    ) : (
+                      <Video className="w-4 h-4 text-muted-foreground" />
+                    )}
                   </TableCell>
                   <TableCell>
-                    {item.featured && <Crown className="w-4 h-4 text-amber-500" />}
+                    {item.featured && (
+                      <Crown className="w-4 h-4 text-amber-500" />
+                    )}
                   </TableCell>
                   <TableCell>
-                    {item.verseId ? <BookOpen className="w-4 h-4 text-primary" /> : "-"}
+                    {item.verseId ? (
+                      <BookOpen className="w-4 h-4 text-primary" />
+                    ) : (
+                      "-"
+                    )}
                   </TableCell>
                   <TableCell className="text-right">
                     <Button
@@ -308,7 +387,8 @@ export default function GalleryManager() {
                       size="sm"
                       className="text-destructive hover:bg-destructive/10 hover:text-destructive"
                       onClick={() => {
-                        if (confirm("Supprimer ce média ?")) deleteMutation.mutate({ id: item.id });
+                        if (confirm("Supprimer ce média ?"))
+                          deleteMutation.mutate({ id: item.id });
                       }}
                     >
                       <Trash2 className="w-4 h-4" />

@@ -30,11 +30,13 @@ export default function Home() {
               </span>
             </div>
             <h2 className="text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight">
-              L'actualité qui compte,<br />
+              L'actualité qui compte,
+              <br />
               <span className="text-primary/80">racontée avec rigueur.</span>
             </h2>
             <p className="mt-4 text-muted-foreground text-base leading-relaxed max-w-lg">
-              Restez informé avec les dernières nouvelles de Paris et d'ailleurs. Articles, reportages et vidéos au quotidien.
+              Restez informé avec les dernières nouvelles de Paris et
+              d'ailleurs. Articles, reportages et vidéos au quotidien.
             </p>
           </div>
         </div>
@@ -43,8 +45,12 @@ export default function Home() {
       {/* Custom content section */}
       <section className="container py-16 border-t border-border/30">
         <div className="mb-8">
-          <h3 className="text-2xl font-serif font-bold text-foreground mb-2">Contenu en vedette</h3>
-          <p className="text-muted-foreground">Images, vidéos et contenus spéciaux</p>
+          <h3 className="text-2xl font-serif font-bold text-foreground mb-2">
+            Contenu en vedette
+          </h3>
+          <p className="text-muted-foreground">
+            Images, vidéos et contenus spéciaux
+          </p>
         </div>
         <PageContentDisplay pageId="home" />
       </section>
@@ -54,7 +60,10 @@ export default function Home() {
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="rounded-xl overflow-hidden border border-border/50">
+              <div
+                key={i}
+                className="rounded-xl overflow-hidden border border-border/50"
+              >
                 <Skeleton className="aspect-[16/10] w-full" />
                 <div className="p-4 space-y-3">
                   <Skeleton className="h-5 w-3/4" />
@@ -79,7 +88,7 @@ export default function Home() {
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {articles.map((article, index) => (
+              {articles.map((article: any, index: number) => (
                 <ArticleCard
                   key={article.id}
                   article={article}
@@ -95,7 +104,7 @@ export default function Home() {
                   variant="outline"
                   size="sm"
                   disabled={page === 0}
-                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  onClick={() => setPage(p => Math.max(0, p - 1))}
                 >
                   Précédent
                 </Button>
@@ -106,7 +115,7 @@ export default function Home() {
                   variant="outline"
                   size="sm"
                   disabled={!hasMore}
-                  onClick={() => setPage((p) => p + 1)}
+                  onClick={() => setPage(p => p + 1)}
                 >
                   Suivant
                   <ChevronRight className="w-4 h-4 ml-1" />

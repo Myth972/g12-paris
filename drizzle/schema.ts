@@ -1,4 +1,10 @@
-import { sqliteTable, integer, text, index, uniqueIndex } from "drizzle-orm/sqlite-core";
+import {
+  sqliteTable,
+  integer,
+  text,
+  index,
+  uniqueIndex,
+} from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 
 /**
@@ -11,9 +17,15 @@ export const users = sqliteTable("users", {
   email: text("email"),
   loginMethod: text("loginMethod"),
   role: text("role").default("user").notNull(),
-  createdAt: integer("createdAt", { mode: "timestamp" }).default(sql`(strftime('%s', 'now'))`).notNull(),
-  updatedAt: integer("updatedAt", { mode: "timestamp" }).default(sql`(strftime('%s', 'now'))`).notNull(),
-  lastSignedIn: integer("lastSignedIn", { mode: "timestamp" }).default(sql`(strftime('%s', 'now'))`).notNull(),
+  createdAt: integer("createdAt", { mode: "timestamp" })
+    .default(sql`(strftime('%s', 'now'))`)
+    .notNull(),
+  updatedAt: integer("updatedAt", { mode: "timestamp" })
+    .default(sql`(strftime('%s', 'now'))`)
+    .notNull(),
+  lastSignedIn: integer("lastSignedIn", { mode: "timestamp" })
+    .default(sql`(strftime('%s', 'now'))`)
+    .notNull(),
 });
 
 export type User = typeof users.$inferSelect;
@@ -34,8 +46,12 @@ export const articles = sqliteTable("articles", {
   category: text("category").default("actualité").notNull(),
   published: integer("published", { mode: "boolean" }).default(false).notNull(),
   authorId: integer("authorId").notNull(),
-  createdAt: integer("createdAt", { mode: "timestamp" }).default(sql`(strftime('%s', 'now'))`).notNull(),
-  updatedAt: integer("updatedAt", { mode: "timestamp" }).default(sql`(strftime('%s', 'now'))`).notNull(),
+  createdAt: integer("createdAt", { mode: "timestamp" })
+    .default(sql`(strftime('%s', 'now'))`)
+    .notNull(),
+  updatedAt: integer("updatedAt", { mode: "timestamp" })
+    .default(sql`(strftime('%s', 'now'))`)
+    .notNull(),
 });
 
 export type Article = typeof articles.$inferSelect;
@@ -51,7 +67,9 @@ export const notifications = sqliteTable("notifications", {
   type: text("type").default("info").notNull(),
   linkUrl: text("linkUrl"),
   authorId: integer("authorId").notNull(),
-  createdAt: integer("createdAt", { mode: "timestamp" }).default(sql`(strftime('%s', 'now'))`).notNull(),
+  createdAt: integer("createdAt", { mode: "timestamp" })
+    .default(sql`(strftime('%s', 'now'))`)
+    .notNull(),
 });
 
 export type Notification = typeof notifications.$inferSelect;
@@ -64,7 +82,9 @@ export const notificationReads = sqliteTable("notification_reads", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   notificationId: integer("notificationId").notNull(),
   userId: integer("userId").notNull(),
-  readAt: integer("readAt", { mode: "timestamp" }).default(sql`(strftime('%s', 'now'))`).notNull(),
+  readAt: integer("readAt", { mode: "timestamp" })
+    .default(sql`(strftime('%s', 'now'))`)
+    .notNull(),
 });
 
 export type NotificationRead = typeof notificationReads.$inferSelect;
@@ -84,8 +104,12 @@ export const galleryItems = sqliteTable("gallery_items", {
   displayOrder: integer("displayOrder").default(0).notNull(),
   featured: integer("featured", { mode: "boolean" }).default(false).notNull(),
   loop: integer("loop", { mode: "boolean" }).default(false).notNull(),
-  createdAt: integer("createdAt", { mode: "timestamp" }).default(sql`(strftime('%s', 'now'))`).notNull(),
-  updatedAt: integer("updatedAt", { mode: "timestamp" }).default(sql`(strftime('%s', 'now'))`).notNull(),
+  createdAt: integer("createdAt", { mode: "timestamp" })
+    .default(sql`(strftime('%s', 'now'))`)
+    .notNull(),
+  updatedAt: integer("updatedAt", { mode: "timestamp" })
+    .default(sql`(strftime('%s', 'now'))`)
+    .notNull(),
 });
 
 export type GalleryItem = typeof galleryItems.$inferSelect;
@@ -99,7 +123,9 @@ export const biblicalVerses = sqliteTable("biblical_verses", {
   reference: text("reference").notNull(),
   text: text("text").notNull(),
   summary: text("summary").notNull(),
-  createdAt: integer("createdAt", { mode: "timestamp" }).default(sql`(strftime('%s', 'now'))`).notNull(),
+  createdAt: integer("createdAt", { mode: "timestamp" })
+    .default(sql`(strftime('%s', 'now'))`)
+    .notNull(),
 });
 
 export type BiblicalVerse = typeof biblicalVerses.$inferSelect;
@@ -121,10 +147,13 @@ export const pageContent = sqliteTable("page_content", {
   loop: integer("loop", { mode: "boolean" }).default(false).notNull(),
   description: text("description"),
   authorId: integer("authorId").notNull(),
-  createdAt: integer("createdAt", { mode: "timestamp" }).default(sql`(strftime('%s', 'now'))`).notNull(),
-  updatedAt: integer("updatedAt", { mode: "timestamp" }).default(sql`(strftime('%s', 'now'))`).notNull(),
+  createdAt: integer("createdAt", { mode: "timestamp" })
+    .default(sql`(strftime('%s', 'now'))`)
+    .notNull(),
+  updatedAt: integer("updatedAt", { mode: "timestamp" })
+    .default(sql`(strftime('%s', 'now'))`)
+    .notNull(),
 });
 
 export type PageContent = typeof pageContent.$inferSelect;
 export type InsertPageContent = typeof pageContent.$inferInsert;
-

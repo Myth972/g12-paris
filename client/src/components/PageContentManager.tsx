@@ -17,9 +17,28 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trash2, Plus, Edit2, Eye, EyeOff, Film, Image as ImageIcon, Youtube, Video, Music, Sparkles, Loader2 } from "lucide-react";
+import {
+  Trash2,
+  Plus,
+  Edit2,
+  Eye,
+  EyeOff,
+  Film,
+  Image as ImageIcon,
+  Youtube,
+  Video,
+  Music,
+  Sparkles,
+  Loader2,
+} from "lucide-react";
 import { extractYouTubeId } from "./YouTubeEmbed";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
@@ -30,10 +49,15 @@ interface PageContentManagerProps {
   pageName: string;
 }
 
-export default function PageContentManager({ pageId, pageName }: PageContentManagerProps) {
+export default function PageContentManager({
+  pageId,
+  pageName,
+}: PageContentManagerProps) {
   const [open, setOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [contentType, setContentType] = useState<"image" | "youtube_video" | "mp4_video">("image");
+  const [contentType, setContentType] = useState<
+    "image" | "youtube_video" | "mp4_video"
+  >("image");
   const [formData, setFormData] = useState({
     title: "",
     mediaUrl: "",
@@ -54,7 +78,7 @@ export default function PageContentManager({ pageId, pageName }: PageContentMana
       resetForm();
       refetch();
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message || "Erreur lors de la création");
     },
   });
@@ -65,7 +89,7 @@ export default function PageContentManager({ pageId, pageName }: PageContentMana
       resetForm();
       refetch();
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message || "Erreur lors de la mise à jour");
     },
   });
@@ -75,27 +99,27 @@ export default function PageContentManager({ pageId, pageName }: PageContentMana
       toast.success("Contenu supprimé avec succès");
       refetch();
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message || "Erreur lors de la suppression");
     },
   });
 
   const uploadMutation = trpc.pageContent.uploadMedia.useMutation({
-    onSuccess: (result) => {
-      setFormData((prev) => ({ ...prev, mediaUrl: result.url }));
+    onSuccess: result => {
+      setFormData(prev => ({ ...prev, mediaUrl: result.url }));
       toast.success("Fichier uploadé avec succès");
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message || "Erreur lors de l'upload");
     },
   });
 
   const generateDescriptionMutation = trpc.ai.generateDescription.useMutation({
-    onSuccess: (description) => {
-      setFormData((prev) => ({ ...prev, description }));
+    onSuccess: description => {
+      setFormData(prev => ({ ...prev, description }));
       toast.success("Description générée avec succès");
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(error.message || "Erreur lors de la génération");
     },
   });
@@ -116,10 +140,16 @@ export default function PageContentManager({ pageId, pageName }: PageContentMana
 
   const handleSubmit = async () => {
     const isYoutube = contentType === "youtube_video";
-    const mediaUrlToUse = isYoutube ? (formData.mediaUrl || formData.youtubeUrl) : formData.mediaUrl;
+    const mediaUrlToUse = isYoutube
+      ? formData.mediaUrl || formData.youtubeUrl
+      : formData.mediaUrl;
 
     if (!formData.title || !mediaUrlToUse) {
-      toast.error(isYoutube ? "Veuillez saisir une URL YouTube" : "Veuillez remplir les champs obligatoires");
+      toast.error(
+        isYoutube
+          ? "Veuillez saisir une URL YouTube"
+          : "Veuillez remplir les champs obligatoires"
+      );
       return;
     }
 
@@ -147,7 +177,7 @@ export default function PageContentManager({ pageId, pageName }: PageContentMana
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = async (event) => {
+    reader.onload = async event => {
       const base64 = (event.target?.result as string).split(",")[1];
       uploadMutation.mutate({
         base64,
@@ -159,13 +189,18 @@ export default function PageContentManager({ pageId, pageName }: PageContentMana
   };
 
   const items = data?.items ?? [];
-  const isLoading_mutation = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+  const isLoading_mutation =
+    createMutation.isPending ||
+    updateMutation.isPending ||
+    deleteMutation.isPending;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-foreground">Contenu de {pageName}</h3>
+          <h3 className="text-lg font-semibold text-foreground">
+            Contenu de {pageName}
+          </h3>
           <p className="text-sm text-muted-foreground">
             Gérez les images, vidéos YouTube et vidéos MP4 de cette page
           </p>
@@ -184,7 +219,10 @@ export default function PageContentManager({ pageId, pageName }: PageContentMana
               </DialogTitle>
             </DialogHeader>
 
-            <Tabs value={contentType} onValueChange={(v) => setContentType(v as any)}>
+            <Tabs
+              value={contentType}
+              onValueChange={v => setContentType(v as any)}
+            >
               <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="image">Image</TabsTrigger>
                 <TabsTrigger value="youtube_video">YouTube</TabsTrigger>
@@ -209,8 +247,11 @@ export default function PageContentManager({ pageId, pageName }: PageContentMana
                   <Input
                     placeholder="https://www.youtube.com/watch?v=..."
                     value={formData.youtubeUrl}
-                    onChange={(e) =>
-                      setFormData((prev) => ({ ...prev, youtubeUrl: e.target.value }))
+                    onChange={e =>
+                      setFormData(prev => ({
+                        ...prev,
+                        youtubeUrl: e.target.value,
+                      }))
                     }
                   />
                 </div>
@@ -218,7 +259,9 @@ export default function PageContentManager({ pageId, pageName }: PageContentMana
 
               <TabsContent value="mp4_video" className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium">Upload vidéo MP4</label>
+                  <label className="text-sm font-medium">
+                    Upload vidéo MP4
+                  </label>
                   <Input
                     type="file"
                     accept="video/mp4"
@@ -229,14 +272,20 @@ export default function PageContentManager({ pageId, pageName }: PageContentMana
               </TabsContent>
             </Tabs>
 
-            {(contentType === "youtube_video" || contentType === "mp4_video") && (
+            {(contentType === "youtube_video" ||
+              contentType === "mp4_video") && (
               <div className="flex items-center space-x-2 py-2">
                 <Switch
                   id="loop-mode"
                   checked={formData.loop}
-                  onCheckedChange={(checked) => setFormData(prev => ({ ...prev, loop: checked }))}
+                  onCheckedChange={checked =>
+                    setFormData(prev => ({ ...prev, loop: checked }))
+                  }
                 />
-                <Label htmlFor="loop-mode" className="text-sm font-medium cursor-pointer">
+                <Label
+                  htmlFor="loop-mode"
+                  className="text-sm font-medium cursor-pointer"
+                >
                   Lecture en boucle
                 </Label>
               </div>
@@ -248,24 +297,30 @@ export default function PageContentManager({ pageId, pageName }: PageContentMana
                 <Input
                   placeholder="Titre du contenu"
                   value={formData.title}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, title: e.target.value }))
+                  onChange={e =>
+                    setFormData(prev => ({ ...prev, title: e.target.value }))
                   }
                 />
               </div>
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium">Description (optionnel)</label>
+                  <label className="text-sm font-medium">
+                    Description (optionnel)
+                  </label>
                   <Button
                     variant="ghost"
                     size="sm"
                     className="h-7 text-[10px] gap-1.5 text-primary hover:text-primary hover:bg-primary/10"
-                    disabled={generateDescriptionMutation.isPending || !formData.title}
-                    onClick={() => generateDescriptionMutation.mutate({
-                      title: formData.title,
-                      contentType: contentType
-                    })}
+                    disabled={
+                      generateDescriptionMutation.isPending || !formData.title
+                    }
+                    onClick={() =>
+                      generateDescriptionMutation.mutate({
+                        title: formData.title,
+                        contentType: contentType,
+                      })
+                    }
                   >
                     {generateDescriptionMutation.isPending ? (
                       <Loader2 className="w-3 h-3 animate-spin" />
@@ -278,8 +333,11 @@ export default function PageContentManager({ pageId, pageName }: PageContentMana
                 <Textarea
                   placeholder="Description du contenu"
                   value={formData.description}
-                  onChange={(e) =>
-                    setFormData((prev) => ({ ...prev, description: e.target.value }))
+                  onChange={e =>
+                    setFormData(prev => ({
+                      ...prev,
+                      description: e.target.value,
+                    }))
                   }
                   rows={3}
                   className="resize-none"
@@ -291,8 +349,8 @@ export default function PageContentManager({ pageId, pageName }: PageContentMana
                 <Input
                   type="number"
                   value={formData.displayOrder}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
+                  onChange={e =>
+                    setFormData(prev => ({
                       ...prev,
                       displayOrder: parseInt(e.target.value),
                     }))
@@ -302,8 +360,12 @@ export default function PageContentManager({ pageId, pageName }: PageContentMana
 
               {formData.mediaUrl && (
                 <div className="p-3 bg-muted rounded-lg">
-                  <p className="text-xs text-muted-foreground mb-2">URL du média:</p>
-                  <p className="text-xs break-all font-mono">{formData.mediaUrl}</p>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    URL du média:
+                  </p>
+                  <p className="text-xs break-all font-mono">
+                    {formData.mediaUrl}
+                  </p>
                 </div>
               )}
             </div>
@@ -328,18 +390,24 @@ export default function PageContentManager({ pageId, pageName }: PageContentMana
       ) : items.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center">
-            <p className="text-muted-foreground">Aucun contenu pour cette page</p>
+            <p className="text-muted-foreground">
+              Aucun contenu pour cette page
+            </p>
           </CardContent>
         </Card>
       ) : (
         <div className="grid gap-4">
           {items.map((item: any) => {
-            const videoId = item.contentType === "youtube_video" ? extractYouTubeId(item.youtubeUrl || "") : null;
-            const thumbnailUrl = item.contentType === "image" 
-              ? item.mediaUrl 
-              : videoId 
-                ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`
+            const videoId =
+              item.contentType === "youtube_video"
+                ? extractYouTubeId(item.youtubeUrl || "")
                 : null;
+            const thumbnailUrl =
+              item.contentType === "image"
+                ? item.mediaUrl
+                : videoId
+                  ? `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`
+                  : null;
 
             return (
               <Card key={item.id} className="overflow-hidden">
@@ -347,9 +415,9 @@ export default function PageContentManager({ pageId, pageName }: PageContentMana
                   {/* Thumbnail / Icon Section */}
                   <div className="w-full sm:w-48 h-32 bg-muted flex-shrink-0 relative overflow-hidden border-b sm:border-b-0 sm:border-r border-border/50">
                     {thumbnailUrl ? (
-                      <img 
-                        src={thumbnailUrl} 
-                        alt={item.title} 
+                      <img
+                        src={thumbnailUrl}
+                        alt={item.title}
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -362,11 +430,17 @@ export default function PageContentManager({ pageId, pageName }: PageContentMana
                       </div>
                     )}
                     <div className="absolute top-2 left-2">
-                       <div className="bg-black/60 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1">
-                          {item.contentType === "image" && <ImageIcon className="w-3 h-3" />}
-                          {item.contentType === "youtube_video" && <Youtube className="w-3 h-3" />}
-                          {item.contentType === "mp4_video" && <Film className="w-3 h-3" />}
-                       </div>
+                      <div className="bg-black/60 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded-full flex items-center gap-1">
+                        {item.contentType === "image" && (
+                          <ImageIcon className="w-3 h-3" />
+                        )}
+                        {item.contentType === "youtube_video" && (
+                          <Youtube className="w-3 h-3" />
+                        )}
+                        {item.contentType === "mp4_video" && (
+                          <Film className="w-3 h-3" />
+                        )}
+                      </div>
                     </div>
                   </div>
 
@@ -374,16 +448,21 @@ export default function PageContentManager({ pageId, pageName }: PageContentMana
                     <CardHeader className="pb-3 flex-1">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <CardTitle className="text-base line-clamp-1">{item.title}</CardTitle>
+                          <CardTitle className="text-base line-clamp-1">
+                            {item.title}
+                          </CardTitle>
                           <CardDescription className="flex items-center gap-2 mt-1">
                             {item.contentType === "image" && "📷 Image"}
-                            {item.contentType === "youtube_video" && "🎥 Vidéo YouTube"}
+                            {item.contentType === "youtube_video" &&
+                              "🎥 Vidéo YouTube"}
                             {item.contentType === "mp4_video" && "🎬 Vidéo MP4"}
                             <span className="w-1 h-1 rounded-full bg-border" />
                             Ordre: {item.displayOrder}
                           </CardDescription>
                           {item.description && (
-                            <p className="text-sm text-muted-foreground mt-2 line-clamp-2">{item.description}</p>
+                            <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                              {item.description}
+                            </p>
                           )}
                         </div>
                         <div className="flex gap-1 ml-4 pt-1">
@@ -411,7 +490,9 @@ export default function PageContentManager({ pageId, pageName }: PageContentMana
                             variant="ghost"
                             size="sm"
                             className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                            onClick={() => deleteMutation.mutate({ id: item.id })}
+                            onClick={() =>
+                              deleteMutation.mutate({ id: item.id })
+                            }
                           >
                             <Trash2 className="w-4 h-4" />
                           </Button>

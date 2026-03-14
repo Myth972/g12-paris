@@ -5,30 +5,35 @@ Un site web moderne pour publier des actualités, des articles et des publicatio
 ## ✨ Fonctionnalités Principales
 
 ### 📄 Gestion de Contenu
+
 - **Articles** - Créer, éditer et publier des articles journalistiques
 - **Publications** - Partager des images et contenus visuels
 - **Catégories** - Organiser le contenu par catégorie
 - **Slugs** - URLs lisibles et SEO-friendly
 
 ### 🤖 IA Générative (Groq)
+
 - **Génération de titres** - Créer des titres percutants
 - **Génération de résumés** - Écrire des chapôs professionnels
 - **Correction de texte** - Corriger orthographe et grammaire
 - **Génération de contenu** - Rédiger des articles structurés
 
 ### 🔐 Authentification & Autorisation
+
 - **Dev Login** - Compte de développement pour tester
 - **Admin Panel** - Interface d'administration
 - **Contrôle d'accès** - Admin et user roles
 - **JWT Sessions** - Sessions sécurisées
 
 ### 🎨 Frontend Moderne
+
 - **React 19** - Dernière version de React
 - **TailwindCSS** - Design responsive et élégant
 - **Radix UI** - Composants d'interface accessibles
 - **Wouter** - Routeur léger et performant
 
 ### ⚡ Backend Robuste
+
 - **Node.js + Express** - Serveur performant
 - **tRPC** - RPC typé et sécurisé
 - **Turso/LibSQL** - Base de données distribuée
@@ -39,7 +44,8 @@ Un site web moderne pour publier des actualités, des articles et des publicatio
 ## 🚀 Démarrage Rapide
 
 ### Prérequis
-- Node.js 18+ 
+
+- Node.js 18+
 - npm ou pnpm
 - Variables d'environnement configurées (voir `.env`)
 
@@ -57,6 +63,7 @@ npm run dev
 ```
 
 ### Accès
+
 - **Frontend**: http://localhost:3001/
 - **API**: http://localhost:3001/api/trpc
 
@@ -67,6 +74,7 @@ npm run dev
 ### Lancer via le Script Batch (Windows)
 
 Double-cliquez sur `launch-server.bat` et choisissez :
+
 1. **Mode Développement** (hot-reload, debug)
 2. **Mode Production** (build + serveur)
 3. **Vérifier versions Node/npm**
@@ -120,11 +128,12 @@ Configurez `OAUTH_SERVER_URL` et `OWNER_OPEN_ID` dans `.env` pour utiliser OAuth
 ```typescript
 const title = await trpc.ai.generateText.mutate({
   prompt: "Article sur l'impact de la technologie à Paris",
-  type: "title"
+  type: "title",
 });
 ```
 
 ### Types disponibles
+
 - `title` - Générer des titres percutants
 - `summary` - Créer des résumés professionnels
 - `correction` - Corriger le texte
@@ -163,10 +172,12 @@ const title = await trpc.ai.generateText.mutate({
 ## 🗄️ Base de Données
 
 ### Provider
+
 - **Turso** (LibSQL) - Base de données distribuée et performante
 - **Drizzle ORM** - Gestion élégante avec type-safety
 
 ### Tables Principales
+
 - `users` - Utilisateurs et authentification
 - `articles` - Articles et actualités
 - `publications` - Publications et images
@@ -175,6 +186,7 @@ const title = await trpc.ai.generateText.mutate({
 - `pages` - Pages statiques
 
 ### Migration
+
 ```bash
 npm run db:push  # Générer et appliquer les migrations
 ```
@@ -184,11 +196,13 @@ npm run db:push  # Générer et appliquer les migrations
 ## 🧪 Tests
 
 ### Type Checking
+
 ```bash
 npm run check  # Vérifier les types TypeScript (0 erreurs attendues ✅)
 ```
 
 ### Tests
+
 ```bash
 npm run test   # Lancer les tests unitaires
 ```
@@ -205,12 +219,14 @@ npm run test   # Lancer les tests unitaires
 4. Déployez automatiquement
 
 ### Docker
+
 ```bash
 docker build -t g12-paris .
 docker run -p 3000:3000 g12-paris
 ```
 
 ### Autres Hosting
+
 ```bash
 npm run build  # Build
 npm start      # Lancer le serveur
@@ -244,14 +260,17 @@ OWNER_OPEN_ID=...
 ## 🐛 Troubleshooting
 
 ### Erreur: Port déjà utilisé
+
 Le serveur essaie automatiquement le port suivant (3001, 3002, etc.)
 
 ### Frontend ne charge pas
+
 - Vérifier que le port 3001 est accessible
 - Vider le cache (Ctrl+Shift+Delete)
 - Hard refresh (Ctrl+F5)
 
 ### API Erreurs
+
 - Vérifier que vous êtes connecté (dev login)
 - Vérifier les logs du serveur
 - Vérifier que `GROQ_API_KEY` est configuré
@@ -260,23 +279,24 @@ Le serveur essaie automatiquement le port suivant (3001, 3002, etc.)
 
 ## 📊 État du Projet
 
-| Aspect | Status | Notes |
-|--------|--------|-------|
-| TypeScript | ✅ | 0 erreurs |
-| Frontend | ✅ | React 19, Vite |
-| Backend | ✅ | Node.js, Express, tRPC |
-| Database | ✅ | Turso/LibSQL |
-| AI | ✅ | Groq (llama-3.3-70b) |
-| Auth | ✅ | JWT + Dev Login |
-| Publications | ✅ | 2 publiées |
-| Articles | ✅ | 1 publié |
-| Build | ⚠️ | Nécessite index.html dans client/ |
+| Aspect       | Status | Notes                             |
+| ------------ | ------ | --------------------------------- |
+| TypeScript   | ✅     | 0 erreurs                         |
+| Frontend     | ✅     | React 19, Vite                    |
+| Backend      | ✅     | Node.js, Express, tRPC            |
+| Database     | ✅     | Turso/LibSQL                      |
+| AI           | ✅     | Groq (llama-3.3-70b)              |
+| Auth         | ✅     | JWT + Dev Login                   |
+| Publications | ✅     | 2 publiées                        |
+| Articles     | ✅     | 1 publié                          |
+| Build        | ⚠️     | Nécessite index.html dans client/ |
 
 ---
 
 ## 🤝 Contribution
 
 Pour contribuer au projet:
+
 1. Créez une branche `feature/votre-feature`
 2. Faites vos changements
 3. Vérifiez les types: `npm run check`
@@ -294,6 +314,7 @@ MIT - Libre d'utilisation
 ## 📞 Support
 
 Pour des questions ou problèmes:
+
 1. Consultez `SERVER_GUIDE.md`
 2. Vérifiez les logs du serveur
 3. Regardez dans `.manus-logs/` pour les informations de debug

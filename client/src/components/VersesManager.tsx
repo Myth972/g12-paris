@@ -27,7 +27,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function VersesManager() {
   const [isOpen, setIsOpen] = useState(false);
-  const [formData, setFormData] = useState({ reference: "", text: "", summary: "" });
+  const [formData, setFormData] = useState({
+    reference: "",
+    text: "",
+    summary: "",
+  });
   const utils = trpc.useUtils();
 
   const { data, isLoading } = trpc.verses.adminList.useQuery();
@@ -40,7 +44,7 @@ export default function VersesManager() {
       setIsOpen(false);
       setFormData({ reference: "", text: "", summary: "" });
     },
-    onError: (error) => toast.error("Erreur : " + error.message),
+    onError: error => toast.error("Erreur : " + error.message),
   });
 
   const deleteMutation = trpc.verses.delete.useMutation({
@@ -48,7 +52,7 @@ export default function VersesManager() {
       utils.verses.adminList.invalidate();
       toast.success("Verset supprimé");
     },
-    onError: (error) => toast.error("Erreur : " + error.message),
+    onError: error => toast.error("Erreur : " + error.message),
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -57,15 +61,15 @@ export default function VersesManager() {
   };
 
   const generateVerseMutation = trpc.ai.generateVerse.useMutation({
-    onSuccess: (res) => {
+    onSuccess: res => {
       setFormData({
         reference: res.reference,
         text: res.text,
-        summary: res.summary
+        summary: res.summary,
       });
       toast.success("Verset et résumé générés avec succès !");
     },
-    onError: (err) => toast.error(err.message),
+    onError: err => toast.error(err.message),
   });
 
   return (
@@ -101,7 +105,11 @@ export default function VersesManager() {
                   size="sm"
                   type="button"
                   className="gap-2 text-primary border-primary/20 hover:bg-primary/10"
-                  onClick={() => generateVerseMutation.mutate({ reference: formData.reference || undefined })}
+                  onClick={() =>
+                    generateVerseMutation.mutate({
+                      reference: formData.reference || undefined,
+                    })
+                  }
                   disabled={generateVerseMutation.isPending}
                 >
                   {generateVerseMutation.isPending ? (
@@ -109,7 +117,9 @@ export default function VersesManager() {
                   ) : (
                     <Sparkles className="w-4 h-4" />
                   )}
-                  {formData.reference ? "Générer depuis la référence" : "Suggérer un verset aléatoire"}
+                  {formData.reference
+                    ? "Générer depuis la référence"
+                    : "Suggérer un verset aléatoire"}
                 </Button>
               </div>
               <div className="space-y-4 py-2">
@@ -119,7 +129,9 @@ export default function VersesManager() {
                     id="reference"
                     placeholder="Ex: Jérémie 29:11"
                     value={formData.reference}
-                    onChange={(e) => setFormData({ ...formData, reference: e.target.value })}
+                    onChange={e =>
+                      setFormData({ ...formData, reference: e.target.value })
+                    }
                     required
                   />
                 </div>
@@ -129,7 +141,9 @@ export default function VersesManager() {
                     id="text"
                     placeholder="Car je connais les projets que j'ai formés sur vous..."
                     value={formData.text}
-                    onChange={(e) => setFormData({ ...formData, text: e.target.value })}
+                    onChange={e =>
+                      setFormData({ ...formData, text: e.target.value })
+                    }
                     required
                     className="min-h-[80px]"
                   />
@@ -140,14 +154,20 @@ export default function VersesManager() {
                     id="summary"
                     placeholder="Ce verset nous rappelle que Dieu a un plan bienveillant..."
                     value={formData.summary}
-                    onChange={(e) => setFormData({ ...formData, summary: e.target.value })}
+                    onChange={e =>
+                      setFormData({ ...formData, summary: e.target.value })
+                    }
                     required
                     className="min-h-[120px]"
                   />
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="outline" type="button" onClick={() => setIsOpen(false)}>
+                <Button
+                  variant="outline"
+                  type="button"
+                  onClick={() => setIsOpen(false)}
+                >
                   Annuler
                 </Button>
                 <Button type="submit" disabled={createMutation.isPending}>
@@ -170,7 +190,9 @@ export default function VersesManager() {
           <div className="text-center py-12">
             <BookOpen className="w-8 h-8 text-muted-foreground mx-auto mb-3" />
             <p className="text-sm font-medium text-foreground">Aucun verset</p>
-            <p className="text-xs text-muted-foreground">Ajoutez votre premier verset biblique.</p>
+            <p className="text-xs text-muted-foreground">
+              Ajoutez votre premier verset biblique.
+            </p>
           </div>
         ) : (
           <Table>
@@ -184,10 +206,16 @@ export default function VersesManager() {
             <TableBody>
               {verses.map((verse: any) => (
                 <TableRow key={verse.id}>
-                  <TableCell className="font-medium">{verse.reference}</TableCell>
+                  <TableCell className="font-medium">
+                    {verse.reference}
+                  </TableCell>
                   <TableCell className="whitespace-normal min-w-[300px]">
-                    <p className="text-sm line-clamp-1 italic">« {verse.text} »</p>
-                    <p className="text-xs text-muted-foreground line-clamp-1 mt-1">{verse.summary}</p>
+                    <p className="text-sm line-clamp-1 italic">
+                      « {verse.text} »
+                    </p>
+                    <p className="text-xs text-muted-foreground line-clamp-1 mt-1">
+                      {verse.summary}
+                    </p>
                   </TableCell>
                   <TableCell className="text-right">
                     <Button
@@ -195,7 +223,11 @@ export default function VersesManager() {
                       size="sm"
                       className="text-destructive hover:text-destructive hover:bg-destructive/10"
                       onClick={() => {
-                        if (confirm("Supprimer ce verset ? (Il sera dissocié des publications)")) {
+                        if (
+                          confirm(
+                            "Supprimer ce verset ? (Il sera dissocié des publications)"
+                          )
+                        ) {
                           deleteMutation.mutate({ id: verse.id });
                         }
                       }}

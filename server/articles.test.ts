@@ -22,7 +22,7 @@ function createAdminContext(): TrpcContext {
     } as TrpcContext["req"],
     res: {
       clearCookie: () => {},
-    } as TrpcContext["res"],
+    } as unknown as TrpcContext["res"],
   };
 }
 
@@ -46,7 +46,7 @@ function createUserContext(): TrpcContext {
     } as TrpcContext["req"],
     res: {
       clearCookie: () => {},
-    } as TrpcContext["res"],
+    } as unknown as TrpcContext["res"],
   };
 }
 
@@ -60,7 +60,7 @@ function createPublicContext(): TrpcContext {
     } as TrpcContext["req"],
     res: {
       clearCookie: () => {},
-    } as TrpcContext["res"],
+    } as unknown as TrpcContext["res"],
   };
 }
 
@@ -101,9 +101,7 @@ describe("articles API", () => {
       const ctx = createPublicContext();
       const caller = appRouter.createCaller(ctx);
 
-      await expect(
-        caller.articles.byId({ id: 999999 })
-      ).rejects.toThrow();
+      await expect(caller.articles.byId({ id: 999999 })).rejects.toThrow();
     });
   });
 
@@ -149,9 +147,7 @@ describe("articles API", () => {
       const ctx = createUserContext();
       const caller = appRouter.createCaller(ctx);
 
-      await expect(
-        caller.articles.delete({ id: 1 })
-      ).rejects.toThrow();
+      await expect(caller.articles.delete({ id: 1 })).rejects.toThrow();
     });
   });
 
@@ -209,7 +205,7 @@ describe("articles API", () => {
       const publicCaller = appRouter.createCaller(publicCtx);
       const list = await publicCaller.articles.list({ limit: 50, offset: 0 });
 
-      const found = list.items.find((a) => a.id === createdArticleId);
+      const found = list.items.find((a: any) => a.id === createdArticleId);
       expect(found).toBeDefined();
     });
 

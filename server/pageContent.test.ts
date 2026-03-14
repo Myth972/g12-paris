@@ -23,7 +23,7 @@ function createAdminContext(): TrpcContext {
       protocol: "https",
       headers: {},
     } as TrpcContext["req"],
-    res: {} as TrpcContext["res"],
+    res: {} as unknown as TrpcContext["res"],
   };
 }
 
@@ -34,7 +34,7 @@ function createPublicContext(): TrpcContext {
       protocol: "https",
       headers: {},
     } as TrpcContext["req"],
-    res: {} as TrpcContext["res"],
+    res: {} as unknown as TrpcContext["res"],
   };
 }
 
@@ -160,7 +160,9 @@ describe("pageContent API", () => {
 
       expect(result).toBeDefined();
       expect(result.contentType).toBe("youtube_video");
-      expect(result.youtubeUrl).toBe("https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+      expect(result.youtubeUrl).toBe(
+        "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+      );
     });
 
     it("admin can create mp4 video content", async () => {

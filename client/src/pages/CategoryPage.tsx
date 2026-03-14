@@ -8,22 +8,28 @@ import { useState, useMemo } from "react";
 import { useParams } from "wouter";
 
 const CATEGORY_LABELS: Record<string, string> = {
-  "actualité": "Actualités",
+  actualité: "Actualités",
   "publication du jour": "Publication du jour",
   "culte en ligne": "Culte en ligne",
-  "bibliothèque": "Bibliothèque",
+  bibliothèque: "Bibliothèque",
 };
 
 export default function CategoryPage() {
   const params = useParams<{ category: string }>();
   const category = params.category ?? "actualité";
-  const categoryLabel = CATEGORY_LABELS[category] ?? category.charAt(0).toUpperCase() + category.slice(1);
+  const categoryLabel =
+    CATEGORY_LABELS[category] ??
+    category.charAt(0).toUpperCase() + category.slice(1);
 
   const [page, setPage] = useState(0);
   const limit = 12;
   const offset = useMemo(() => page * limit, [page]);
 
-  const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, category });
+  const { data, isLoading } = trpc.articles.list.useQuery({
+    limit,
+    offset,
+    category,
+  });
 
   const articles = data?.items ?? [];
   const total = data?.total ?? 0;
@@ -49,8 +55,12 @@ export default function CategoryPage() {
       {/* Custom content section */}
       <section className="container py-16 border-t border-border/30">
         <div className="mb-8">
-          <h3 className="text-2xl font-serif font-bold text-foreground mb-2">Contenu en vedette</h3>
-          <p className="text-muted-foreground">Images, vidéos et contenus spéciaux</p>
+          <h3 className="text-2xl font-serif font-bold text-foreground mb-2">
+            Contenu en vedette
+          </h3>
+          <p className="text-muted-foreground">
+            Images, vidéos et contenus spéciaux
+          </p>
         </div>
         <PageContentDisplay pageId={category} />
       </section>
@@ -60,7 +70,10 @@ export default function CategoryPage() {
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="rounded-xl overflow-hidden border border-border/50">
+              <div
+                key={i}
+                className="rounded-xl overflow-hidden border border-border/50"
+              >
                 <Skeleton className="aspect-[16/10] w-full" />
                 <div className="p-4 space-y-3">
                   <Skeleton className="h-5 w-3/4" />
@@ -85,7 +98,7 @@ export default function CategoryPage() {
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {articles.map((article) => (
+              {articles.map((article: any) => (
                 <ArticleCard key={article.id} article={article} />
               ))}
             </div>
@@ -96,7 +109,7 @@ export default function CategoryPage() {
                   variant="outline"
                   size="sm"
                   disabled={page === 0}
-                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  onClick={() => setPage(p => Math.max(0, p - 1))}
                 >
                   Précédent
                 </Button>
@@ -107,7 +120,7 @@ export default function CategoryPage() {
                   variant="outline"
                   size="sm"
                   disabled={!hasMore}
-                  onClick={() => setPage((p) => p + 1)}
+                  onClick={() => setPage(p => p + 1)}
                 >
                   Suivant
                   <ChevronRight className="w-4 h-4 ml-1" />

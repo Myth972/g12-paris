@@ -44,19 +44,26 @@ import { nanoid } from "nanoid";
 // Admin-only procedure
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "admin") {
-    throw new TRPCError({ code: "FORBIDDEN", message: "Accès réservé aux administrateurs" });
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Accès réservé aux administrateurs",
+    });
   }
   return next({ ctx });
 });
 
 function generateSlug(title: string): string {
-  return title
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "")
-    .slice(0, 200) + "-" + nanoid(6);
+  return (
+    title
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-|-$/g, "")
+      .slice(0, 200) +
+    "-" +
+    nanoid(6)
+  );
 }
 
 export const appRouter = router({
@@ -68,7 +75,10 @@ export const appRouter = router({
       .mutation(async ({ input, ctx }) => {
         const { ENV } = await import("./_core/env");
         if (input.password !== ENV.adminPassword) {
-          throw new TRPCError({ code: "UNAUTHORIZED", message: "Mot de passe incorrect" });
+          throw new TRPCError({
+            code: "UNAUTHORIZED",
+            message: "Mot de passe incorrect",
+          });
         }
 
         const openId = "admin-local";
@@ -81,15 +91,17 @@ export const appRouter = router({
         });
 
         const { sdk } = await import("./_core/sdk");
-        const sessionToken = await sdk.createSessionToken(openId, { name: "Administrateur" });
+        const sessionToken = await sdk.createSessionToken(openId, {
+          name: "Administrateur",
+        });
 
         const { getSessionCookieOptions } = await import("./_core/cookies");
         const { ONE_YEAR_MS, COOKIE_NAME } = await import("@shared/const");
         const cookieOptions = getSessionCookieOptions(ctx.req);
-        
-        ctx.res.cookie(COOKIE_NAME, sessionToken, { 
-          ...cookieOptions, 
-          maxAge: ONE_YEAR_MS 
+
+        ctx.res.cookie(COOKIE_NAME, sessionToken, {
+          ...cookieOptions,
+          maxAge: ONE_YEAR_MS,
         });
 
         return { success: true };
@@ -105,11 +117,13 @@ export const appRouter = router({
     // Public: list published articles
     list: publicProcedure
       .input(
-        z.object({
-          limit: z.number().min(1).max(50).default(12),
-          offset: z.number().min(0).default(0),
-          category: z.string().optional(),
-        }).optional()
+        z
+          .object({
+            limit: z.number().min(1).max(50).default(12),
+            offset: z.number().min(0).default(0),
+            category: z.string().optional(),
+          })
+          .optional()
       )
       .query(async ({ input }) => {
         const { limit = 12, offset = 0, category } = input ?? {};
@@ -126,7 +140,10 @@ export const appRouter = router({
       .query(async ({ input }) => {
         const article = await getArticleBySlug(input.slug);
         if (!article || !article.published) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Article introuvable" });
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Article introuvable",
+          });
         }
         return article;
       }),
@@ -137,7 +154,10 @@ export const appRouter = router({
       .query(async ({ input }) => {
         const article = await getArticleById(input.id);
         if (!article) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Article introuvable" });
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Article introuvable",
+          });
         }
         return article;
       }),
@@ -145,10 +165,12 @@ export const appRouter = router({
     // Admin: list all articles (including drafts)
     adminList: adminProcedure
       .input(
-        z.object({
-          limit: z.number().min(1).max(100).default(50),
-          offset: z.number().min(0).default(0),
-        }).optional()
+        z
+          .object({
+            limit: z.number().min(1).max(100).default(50),
+            offset: z.number().min(0).default(0),
+          })
+          .optional()
       )
       .query(async ({ input }) => {
         const { limit = 50, offset = 0 } = input ?? {};
@@ -201,7 +223,10 @@ export const appRouter = router({
         const { id, ...data } = input;
         const existing = await getArticleById(id);
         if (!existing) {
-          throw new TRPCError({ code: "NOT_FOUND", message: "Article introuvable" });
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Article introuvable",
+          });
         }
         const updateData: Record<string, unknown> = { ...data };
         if (data.title && data.title !== existing.title) {
@@ -239,9 +264,11 @@ export const appRouter = router({
     // User: get own notifications with read status
     myNotifications: protectedProcedure
       .input(
-        z.object({
-          limit: z.number().min(1).max(50).default(20),
-        }).optional()
+        z
+          .object({
+            limit: z.number().min(1).max(50).default(20),
+          })
+          .optional()
       )
       .query(async ({ ctx, input }) => {
         const limit = input?.limit ?? 20;
@@ -272,10 +299,12 @@ export const appRouter = router({
     // Admin: list all notifications
     adminList: adminProcedure
       .input(
-        z.object({
-          limit: z.number().min(1).max(100).default(50),
-          offset: z.number().min(0).default(0),
-        }).optional()
+        z
+          .object({
+            limit: z.number().min(1).max(100).default(50),
+            offset: z.number().min(0).default(0),
+          })
+          .optional()
       )
       .query(async ({ input }) => {
         const { limit = 50, offset = 0 } = input ?? {};
@@ -292,7 +321,9 @@ export const appRouter = router({
         z.object({
           title: z.string().min(1).max(300),
           message: z.string().min(1),
-          type: z.enum(["info", "alerte", "nouveauté", "important"]).default("info"),
+          type: z
+            .enum(["info", "alerte", "nouveauté", "important"])
+            .default("info"),
           linkUrl: z.string().optional(),
         })
       )
@@ -320,10 +351,12 @@ export const appRouter = router({
     // Public: get all gallery items with pagination
     list: publicProcedure
       .input(
-        z.object({
-          limit: z.number().min(1).max(100).default(20),
-          offset: z.number().min(0).default(0),
-        }).optional()
+        z
+          .object({
+            limit: z.number().min(1).max(100).default(20),
+            offset: z.number().min(0).default(0),
+          })
+          .optional()
       )
       .query(async ({ input }) => {
         const { limit = 20, offset = 0 } = input ?? {};
@@ -369,7 +402,11 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         const buffer = Buffer.from(input.base64, "base64");
         const fileKey = `gallery/${Date.now()}-${nanoid()}.${input.filename.split(".").pop()}`;
-        const { url, key } = await storagePut(fileKey, buffer, input.contentType);
+        const { url, key } = await storagePut(
+          fileKey,
+          buffer,
+          input.contentType
+        );
         return { url, key };
       }),
   }),
@@ -502,7 +539,11 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         const buffer = Buffer.from(input.base64, "base64");
         const fileKey = `page-content/${Date.now()}-${nanoid()}.${input.filename.split(".").pop()}`;
-        const { url, key } = await storagePut(fileKey, buffer, input.contentType);
+        const { url, key } = await storagePut(
+          fileKey,
+          buffer,
+          input.contentType
+        );
         return { url, key };
       }),
   }),
@@ -536,11 +577,15 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         const { invokeLLM } = await import("./_core/llm");
         const prompt = `Rédige une description courte (2-3 phrases) et percutante pour un contenu de type "${input.contentType}" intitulé "${input.title}". Le ton doit être inspirant et spirituel.`;
-        
+
         const response = await invokeLLM({
           messages: [
-            { role: "system", content: "Tu es un assistant éditorial pour un site d'informations chrétien." },
-            { role: "user", content: prompt }
+            {
+              role: "system",
+              content:
+                "Tu es un assistant éditorial pour un site d'informations chrétien.",
+            },
+            { role: "user", content: prompt },
           ],
         });
         return response.choices[0].message.content as string;
@@ -548,21 +593,24 @@ export const appRouter = router({
 
     generateVerse: adminProcedure
       .input(
-        z.object({
-          reference: z.string().optional(),
-          topic: z.string().optional(),
-        }).optional()
+        z
+          .object({
+            reference: z.string().optional(),
+            topic: z.string().optional(),
+          })
+          .optional()
       )
       .mutation(async ({ input }) => {
         const { invokeLLM } = await import("./_core/llm");
-        
-        let prompt = "Génère un verset biblique inspirant (qui n'est pas déjà trop connu si possible). ";
+
+        let prompt =
+          "Génère un verset biblique inspirant (qui n'est pas déjà trop connu si possible). ";
         if (input?.reference) {
           prompt = `Génère le texte et un résumé inspirant pour le verset biblique suivant : ${input.reference}. `;
         } else if (input?.topic) {
           prompt += `Le thème doit être : ${input.topic}. `;
         }
-        
+
         prompt += `Ton format de réponse DOIT ÊTRE UNIQUEMENT un objet JSON valide avec la structure suivante :
         {
           "reference": "Livre Chapitre:Verset",
@@ -570,19 +618,30 @@ export const appRouter = router({
           "summary": "Un résumé court (2-3 phrases) et spirituellement inspirant de ce verset."
         }
         Ne rajoute AUCUN texte avant ou après le JSON.`;
-        
+
         const response = await invokeLLM({
           messages: [
-            { role: "system", content: "Tu es un érudit biblique et assistant éditorial. Tu réponds strictement en JSON." },
-            { role: "user", content: prompt }
+            {
+              role: "system",
+              content:
+                "Tu es un érudit biblique et assistant éditorial. Tu réponds strictement en JSON.",
+            },
+            { role: "user", content: prompt },
           ],
         });
-        
+
         const content = response.choices[0].message.content as string;
         try {
           // Clean up potential markdown wrapper from the response
-          const jsonStr = content.replace(/```json/g, "").replace(/```/g, "").trim();
-          return JSON.parse(jsonStr) as { reference: string; text: string; summary: string };
+          const jsonStr = content
+            .replace(/```json/g, "")
+            .replace(/```/g, "")
+            .trim();
+          return JSON.parse(jsonStr) as {
+            reference: string;
+            text: string;
+            summary: string;
+          };
         } catch (e) {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",

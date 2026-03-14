@@ -18,19 +18,26 @@ interface PageContentItem {
   loop: boolean;
 }
 
-export default function PageContentDisplay({ pageId, mode = "cards" }: PageContentDisplayProps) {
+export default function PageContentDisplay({
+  pageId,
+  mode = "cards",
+}: PageContentDisplayProps) {
   const { data, isLoading } = trpc.pageContent.byPage.useQuery({ pageId });
   const items = data ?? [];
 
-  const cols = mode === "grid"
-    ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
-    : "grid grid-cols-1 md:grid-cols-2 gap-6";
+  const cols =
+    mode === "grid"
+      ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+      : "grid grid-cols-1 md:grid-cols-2 gap-6";
 
   if (isLoading) {
     return (
       <div className={cols}>
         {Array.from({ length: mode === "grid" ? 3 : 2 }).map((_, i) => (
-          <div key={i} className="rounded-xl overflow-hidden border border-border/40">
+          <div
+            key={i}
+            className="rounded-xl overflow-hidden border border-border/40"
+          >
             <Skeleton className="w-full aspect-video" />
             <div className="py-3 px-4 text-center space-y-2">
               <Skeleton className="h-4 w-40 mx-auto" />

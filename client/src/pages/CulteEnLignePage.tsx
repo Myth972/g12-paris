@@ -14,11 +14,13 @@ export default function CulteEnLignePage() {
               </span>
             </div>
             <h1 className="text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight">
-              Culte en ligne<br />
+              Culte en ligne
+              <br />
               <span className="text-primary/80">Adorez depuis chez vous</span>
             </h1>
             <p className="mt-4 text-muted-foreground text-base leading-relaxed max-w-lg">
-              Participez à nos services de culte en ligne et vivez une expérience spirituelle depuis n'importe où.
+              Participez à nos services de culte en ligne et vivez une
+              expérience spirituelle depuis n'importe où.
             </p>
           </div>
         </div>

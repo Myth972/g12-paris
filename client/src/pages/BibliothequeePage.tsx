@@ -15,11 +15,13 @@ export default function BibliothequeePage() {
               </span>
             </div>
             <h1 className="text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight">
-              Bibliothèque<br />
+              Bibliothèque
+              <br />
               <span className="text-primary/80">Médias & Ressources</span>
             </h1>
             <p className="mt-4 text-muted-foreground text-base leading-relaxed max-w-lg">
-              Retrouvez ici nos ressources éducatives et spirituelles : vidéos, images et contenus pour approfondir votre foi.
+              Retrouvez ici nos ressources éducatives et spirituelles : vidéos,
+              images et contenus pour approfondir votre foi.
             </p>
           </div>
         </div>
@@ -27,7 +29,9 @@ export default function BibliothequeePage() {
 
       {/* Content section */}
       <section className="container py-10">
-        <h3 className="text-xl font-serif font-bold text-foreground mb-6">Ressources disponibles</h3>
+        <h3 className="text-xl font-serif font-bold text-foreground mb-6">
+          Ressources disponibles
+        </h3>
         <PageContentDisplay pageId="bibliotheque" mode="grid" />
       </section>
     </div>

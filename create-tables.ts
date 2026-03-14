@@ -13,7 +13,7 @@ const client = createClient({ url, authToken });
 
 async function main() {
   console.log("Creating tables...");
-  
+
   try {
     await client.execute(`
       CREATE TABLE IF NOT EXISTS biblical_verses (
@@ -61,7 +61,6 @@ async function main() {
       )
     `);
     console.log("Created page_content");
-
   } catch (e) {
     console.error("Error creating tables:", e);
   } finally {

@@ -20,7 +20,11 @@ export default function ArticleDetail() {
   const params = useParams<{ slug: string }>();
   const [, setLocation] = useLocation();
 
-  const { data: article, isLoading, error } = trpc.articles.bySlug.useQuery(
+  const {
+    data: article,
+    isLoading,
+    error,
+  } = trpc.articles.bySlug.useQuery(
     { slug: params.slug ?? "" },
     { enabled: !!params.slug }
   );
@@ -52,8 +56,12 @@ export default function ArticleDetail() {
   if (error || !article) {
     return (
       <div className="container max-w-4xl mx-auto py-20 text-center">
-        <h2 className="text-2xl font-serif font-bold text-foreground mb-3">Article introuvable</h2>
-        <p className="text-muted-foreground mb-6">Cet article n'existe pas ou a été supprimé.</p>
+        <h2 className="text-2xl font-serif font-bold text-foreground mb-3">
+          Article introuvable
+        </h2>
+        <p className="text-muted-foreground mb-6">
+          Cet article n'existe pas ou a été supprimé.
+        </p>
         <Button variant="outline" onClick={() => setLocation("/")}>
           <ArrowLeft className="w-4 h-4 mr-2" />
           Retour à l'accueil
@@ -104,7 +112,12 @@ export default function ArticleDetail() {
             <Calendar className="w-4 h-4" />
             {formatDate(article.createdAt)}
           </span>
-          <Button variant="ghost" size="sm" onClick={handleShare} className="ml-auto">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleShare}
+            className="ml-auto"
+          >
             <Share2 className="w-4 h-4 mr-1" />
             Partager
           </Button>
