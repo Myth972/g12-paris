@@ -509,6 +509,21 @@ export async function deleteGalleryItem(id: number) {
   return { success: true };
 }
 
+export async function getFeaturedHomeContent() {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+
+  const { pageContent } = await import("../drizzle/schema.js");
+
+  const rows = await db
+    .select()
+    .from(pageContent)
+    .where(and(eq(pageContent.featuredHome, true), eq(pageContent.visible, true)))
+    .orderBy(desc(pageContent.createdAt));
+
+  return rows;
+}
+
 // ─── Biblical Verse helpers ─────────────────────────────────────
 
 export async function createBiblicalVerse(data: any) {

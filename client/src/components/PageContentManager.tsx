@@ -65,6 +65,7 @@ export default function PageContentManager({
     displayOrder: 0,
     description: "",
     loop: false,
+    featuredHome: false,
   });
 
   const { data, isLoading, refetch } = trpc.pageContent.adminList.useQuery({
@@ -132,6 +133,7 @@ export default function PageContentManager({
       displayOrder: 0,
       description: "",
       loop: false,
+      featuredHome: false,
     });
     setEditingId(null);
     setOpen(false);
@@ -271,7 +273,6 @@ export default function PageContentManager({
                 </div>
               </TabsContent>
             </Tabs>
-
             {(contentType === "youtube_video" ||
               contentType === "mp4_video") && (
               <div className="flex items-center space-x-2 py-2">
@@ -290,6 +291,22 @@ export default function PageContentManager({
                 </Label>
               </div>
             )}
+
+            <div className="flex items-center space-x-2 py-2">
+              <Switch
+                id="featured-home"
+                checked={formData.featuredHome}
+                onCheckedChange={checked =>
+                  setFormData(prev => ({ ...prev, featuredHome: checked }))
+                }
+              />
+              <Label
+                htmlFor="featured-home"
+                className="text-sm font-medium cursor-pointer"
+              >
+                Publication à l'accueil
+              </Label>
+            </div>
 
             <div className="space-y-4">
               <div>
@@ -458,6 +475,12 @@ export default function PageContentManager({
                             {item.contentType === "mp4_video" && "🎬 Vidéo MP4"}
                             <span className="w-1 h-1 rounded-full bg-border" />
                             Ordre: {item.displayOrder}
+                            {item.featuredHome && (
+                              <>
+                                <span className="w-1 h-1 rounded-full bg-border" />
+                                <span className="text-primary font-bold">🏠 Accueil</span>
+                              </>
+                            )}
                           </CardDescription>
                           {item.description && (
                             <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
@@ -478,6 +501,7 @@ export default function PageContentManager({
                                 displayOrder: item.displayOrder,
                                 description: item.description || "",
                                 loop: item.loop || false,
+                                featuredHome: item.featuredHome || false,
                               });
                               setEditingId(item.id);
                               setContentType(item.contentType as any);

@@ -37,6 +37,7 @@ import {
   deletePageContent,
   listPageContent,
   countPageContent,
+  getFeaturedHomeContent,
 } from "./db.js";
 import { storagePut } from "./storage.js";
 import { nanoid } from "nanoid";
@@ -460,6 +461,11 @@ export const appRouter = router({
         return getPageContent(input.pageId);
       }),
 
+    // Public: get featured home content
+    featuredHome: publicProcedure.query(async () => {
+      return getFeaturedHomeContent();
+    }),
+
     // Admin: list all page content for a page
     adminList: adminProcedure
       .input(
@@ -491,6 +497,7 @@ export const appRouter = router({
           displayOrder: z.number().default(0),
           visible: z.boolean().default(true),
           loop: z.boolean().optional().default(false),
+          featuredHome: z.boolean().optional().default(false),
           description: z.string().optional(),
         })
       )
@@ -512,6 +519,7 @@ export const appRouter = router({
           displayOrder: z.number().optional(),
           visible: z.boolean().optional(),
           loop: z.boolean().optional(),
+          featuredHome: z.boolean().optional(),
           description: z.string().optional(),
         })
       )

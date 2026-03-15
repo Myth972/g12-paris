@@ -2,6 +2,27 @@ import { trpc } from "@/lib/trpc";
 import PageContentDisplay from "@/components/PageContentDisplay";
 import YouTubeEmbed from "@/components/YouTubeEmbed";
 import { Skeleton } from "@/components/ui/skeleton";
+import { motion } from "framer-motion";
+import { Quote } from "lucide-react";
+
+const containerVars = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.15,
+    },
+  },
+};
+
+const sectionVars: any = {
+  hidden: { y: 30, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] },
+  },
+};
 
 export default function PublicationDuJour() {
   const { data: galleryData, isLoading: galleryLoading } =
@@ -16,152 +37,170 @@ export default function PublicationDuJour() {
   const isLoading = galleryLoading;
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Title */}
-      <section className="py-10 text-center border-b border-border/30">
+    <div className="min-h-screen bg-slate-50/30">
+      {/* Title with modern fade-in */}
+      <motion.section
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="py-12 md:py-20 text-center"
+      >
         <div className="container">
-          <h1 className="text-3xl md:text-4xl font-bold font-serif text-foreground">
+          <h1 className="text-4xl md:text-5xl font-bold font-serif text-foreground tracking-tight">
             Publications du Jour
           </h1>
+          <div className="w-24 h-1 bg-primary mx-auto mt-6 rounded-full opacity-60" />
         </div>
-      </section>
+      </motion.section>
 
-      {/* Admin-managed page content (images, videos from Contenu des pages) */}
-      <section className="container py-10">
-        <PageContentDisplay pageId="publication-du-jour" mode="cards" />
-      </section>
+      <motion.div
+        variants={containerVars}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+      >
+        {/* Admin-managed page content */}
+        <motion.section variants={sectionVars} className="container pb-16">
+          <PageContentDisplay pageId="publication-du-jour" mode="cards" />
+        </motion.section>
 
-      {/* Images du Jour (from gallery table) */}
-      {(isLoading || imageItems.length > 0) && (
-        <section className="container pb-10">
-          <h2 className="text-xl font-serif font-bold text-foreground mb-6">
-            Images du Jour
-          </h2>
+        {/* Verset du Jour - Redesigned for Premium glassmorphism feel */}
+        {verse && (
+          <motion.section variants={sectionVars} className="container pb-16">
+            <div className="relative overflow-hidden bg-white/40 backdrop-blur-xl border border-white/60 rounded-3xl p-8 md:p-12 max-w-4xl mx-auto shadow-xl shadow-primary/5">
+              {/* Decorative elements */}
+              <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
+              <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-accent/20 rounded-full blur-3xl pointer-events-none" />
 
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[0, 1].map(i => (
-                <div
-                  key={i}
-                  className="rounded-xl overflow-hidden border border-border/40"
-                >
-                  <Skeleton className="w-full aspect-[4/3]" />
-                  <div className="py-3 px-2 text-center">
-                    <Skeleton className="h-4 w-32 mx-auto" />
-                  </div>
+              <div className="relative flex flex-col items-center text-center z-10">
+                <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+                  <Quote className="w-6 h-6 text-primary" />
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {imageItems.map((item: any, idx: number) => (
-                <div
-                  key={item.id}
-                  className="rounded-xl overflow-hidden border border-border/40 hover:shadow-md transition-shadow bg-card"
-                >
-                  <div className="overflow-hidden">
-                    <img
-                      src={item.mediaUrl}
-                      alt={item.title}
-                      className="w-full object-cover hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
-                  <p className="text-center text-sm text-primary py-3 px-4">
-                    {item.title || `Légende de l'image ${idx + 1}`}
-                  </p>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-      )}
 
-      {/* Verset du Jour + Résumé Biblique */}
-      {verse && (
-        <section className="container pb-10">
-          <div className="bg-muted/50 border border-border/40 rounded-2xl px-8 py-10 max-w-4xl mx-auto flex flex-col items-center text-center">
-            <h3 className="text-lg font-serif font-bold text-foreground mb-4">
-              Verset du Jour
-            </h3>
-            <p className="text-lg italic text-muted-foreground leading-relaxed mb-4 max-w-2xl">
-              « {verse.text} »
-            </p>
-            <p className="text-base font-semibold text-foreground mb-8">
-              — {verse.reference}
-            </p>
+                <h3 className="text-xl md:text-2xl font-serif font-bold text-foreground mb-6">
+                  Verset du Jour
+                </h3>
 
-            {verse.summary && (
-              <div className="text-left w-full max-w-2xl">
-                <h4 className="text-base font-bold text-foreground mb-3">
-                  Résumé Biblique
-                </h4>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {verse.summary}
+                <p className="text-xl md:text-2xl italic text-foreground/80 font-serif leading-relaxed mb-6 max-w-3xl">
+                  « {verse.text} »
                 </p>
-              </div>
-            )}
-          </div>
-        </section>
-      )}
 
-      {/* Vidéos à la Une (from gallery table) */}
-      {(isLoading || videoItems.length > 0) && (
-        <section className="container pb-16">
-          <div className="max-w-4xl mx-auto">
-            {/* Section heading with red accent dots matching the image */}
-            <div className="flex items-center gap-2 mb-4">
-              <span className="w-2 h-2 rounded-full bg-primary inline-block" />
-              <span className="w-1.5 h-1.5 rounded-full bg-primary/40 inline-block" />
+                <p className="text-sm md:text-base font-bold text-primary tracking-wider uppercase mb-10">
+                  {verse.reference}
+                </p>
+
+                {verse.summary && (
+                  <div className="text-left w-full max-w-2xl pt-8 border-t border-primary/10">
+                    <h4 className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-4">
+                      Résumé Biblique
+                    </h4>
+                    <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+                      {verse.summary}
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
-            <h2 className="text-xl font-serif font-bold text-foreground mb-6">
-              Vidéos à la Une
-            </h2>
+          </motion.section>
+        )}
 
-            {isLoading ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {[0, 1].map(i => (
-                  <div
-                    key={i}
-                    className="rounded-xl overflow-hidden border border-border/40"
-                  >
-                    <div className="px-4 py-3 border-b border-border/40">
-                      <Skeleton className="h-4 w-16" />
-                    </div>
-                    <Skeleton className="w-full aspect-video" />
-                  </div>
-                ))}
+        {/* Images du Jour */}
+        {(isLoading || imageItems.length > 0) && (
+          <motion.section variants={sectionVars} className="container pb-16">
+            <div className="max-w-5xl mx-auto">
+              <div className="flex items-center gap-4 mb-8">
+                <h2 className="text-2xl font-serif font-bold text-foreground">
+                  Images du Jour
+                </h2>
+                <div className="flex-1 h-px bg-border/40" />
               </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {videoItems.map((item: any, idx: number) => (
-                  <div
-                    key={item.id}
-                    className="rounded-xl overflow-hidden border border-border/40 bg-card hover:shadow-md transition-shadow"
-                  >
-                    {/* Card label like "Vidéo 1" */}
-                    <div className="px-4 py-3 border-b border-border/40">
-                      <span className="text-sm font-medium text-foreground">
-                        Vidéo {idx + 1}
-                      </span>
+
+              {isLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {[0, 1].map(i => (
+                    <div key={i} className="rounded-xl overflow-hidden border border-border/40">
+                      <Skeleton className="w-full aspect-video" />
                     </div>
-                    <div className="p-4">
-                      {item.youtubeUrl ? (
-                        <YouTubeEmbed url={item.youtubeUrl} />
-                      ) : item.mediaUrl ? (
-                        <video
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {imageItems.map((item: any, idx: number) => (
+                    <motion.div
+                      key={item.id}
+                      whileHover={{ y: -4, scale: 1.01 }}
+                      className="group rounded-xl overflow-hidden border border-border/30 bg-white/40 backdrop-blur-sm hover:shadow-xl hover:border-primary/10 transition-all duration-300"
+                    >
+                      <div className="overflow-hidden">
+                        <img
                           src={item.mediaUrl}
-                          controls
-                          className="w-full rounded-lg"
+                          alt={item.title}
+                          className="w-full aspect-[16/10] object-cover group-hover:scale-105 transition-transform duration-1000"
                         />
-                      ) : null}
-                    </div>
-                  </div>
-                ))}
+                      </div>
+                      <div className="p-3 text-center border-t border-border/10 bg-white/20">
+                        <p className="text-sm font-medium text-primary/80">
+                          {item.title || `Légende ${idx + 1}`}
+                        </p>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </motion.section>
+        )}
+
+        {/* Vidéos à la Une */}
+        {(isLoading || videoItems.length > 0) && (
+          <motion.section variants={sectionVars} className="container pb-24">
+            <div className="max-w-5xl mx-auto">
+              <div className="flex items-center gap-4 mb-8">
+                <h2 className="text-2xl font-serif font-bold text-foreground">
+                  Vidéos à la Une
+                </h2>
+                <div className="flex-1 h-px bg-border/40" />
               </div>
-            )}
-          </div>
-        </section>
-      )}
+
+              {isLoading ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {[0, 1].map(i => (
+                    <div key={i} className="rounded-xl overflow-hidden border border-border/40">
+                      <Skeleton className="w-full aspect-video" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {videoItems.map((item: any, idx: number) => (
+                    <motion.div
+                      key={item.id}
+                      whileHover={{ y: -4, scale: 1.01 }}
+                      className="rounded-xl overflow-hidden border border-border/30 bg-white/40 backdrop-blur-sm hover:shadow-xl hover:border-primary/10 transition-all duration-300"
+                    >
+                      <div className="px-4 py-2.5 bg-primary/5 flex items-center justify-between border-b border-border/10">
+                        <span className="text-[10px] font-bold uppercase tracking-widest text-primary/60">
+                          Vidéo {idx + 1}
+                        </span>
+                      </div>
+                      <div className="p-4 bg-white/10">
+                        {item.youtubeUrl ? (
+                          <YouTubeEmbed url={item.youtubeUrl} />
+                        ) : item.mediaUrl ? (
+                          <video
+                            src={item.mediaUrl}
+                            controls
+                            className="w-full rounded-lg aspect-video object-cover"
+                          />
+                        ) : null}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </motion.section>
+        )}
+      </motion.div>
     </div>
   );
 }

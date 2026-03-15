@@ -145,6 +145,9 @@ export const pageContent = sqliteTable("page_content", {
   displayOrder: integer("displayOrder").default(0).notNull(),
   visible: integer("visible", { mode: "boolean" }).default(true).notNull(),
   loop: integer("loop", { mode: "boolean" }).default(false).notNull(),
+  featuredHome: integer("featuredHome", { mode: "boolean" })
+    .default(false)
+    .notNull(),
   description: text("description"),
   authorId: integer("authorId").notNull(),
   createdAt: integer("createdAt", { mode: "timestamp" })

@@ -49,10 +49,10 @@ export default function Home() {
             Contenu en vedette
           </h3>
           <p className="text-muted-foreground">
-            Images, vidéos et contenus spéciaux
+            Sélection d'images et vidéos à travers le site
           </p>
         </div>
-        <PageContentDisplay pageId="home" />
+        <PageContentDisplay featuredOnly />
       </section>
 
       {/* Articles grid */}

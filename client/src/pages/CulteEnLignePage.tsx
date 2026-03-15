@@ -28,7 +28,7 @@ export default function CulteEnLignePage() {
 
       {/* Content section */}
       <section className="container py-16">
-        <PageContentDisplay pageId="culte-en-ligne" />
+        <PageContentDisplay pageId="culte-en-ligne" layout="split" />
       </section>
     </div>
   );
