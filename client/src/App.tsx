@@ -17,6 +17,7 @@ import Login from "./pages/Login";
 import AdminTutorial from "./pages/AdminTutorial";
 import BibliothequeePage from "./pages/BibliothequeePage";
 import CulteEnLignePage from "./pages/CulteEnLignePage";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -88,6 +89,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Router />
+          <SpeedInsights />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

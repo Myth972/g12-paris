@@ -61,23 +61,23 @@ function formatTimeAgo(date: Date): string {
   if (minutes < 1) return "À l'instant";
   if (minutes < 60) return `Il y a ${minutes} min`;
   if (hours < 24) return `Il y a ${hours}h`;
-  
-  return d.toLocaleTimeString("fr-FR", { hour: '2-digit', minute: '2-digit' });
+
+  return d.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" });
 }
 
 function getDayLabel(date: Date): string {
   const now = new Date();
   const d = new Date(date);
-  
+
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
-  
+
   const itemDate = new Date(d.getFullYear(), d.getMonth(), d.getDate());
-  
+
   if (itemDate.getTime() === today.getTime()) return "Aujourd'hui";
   if (itemDate.getTime() === yesterday.getTime()) return "Hier";
-  
+
   return d.toLocaleDateString("fr-FR", {
     day: "numeric",
     month: "long",
@@ -136,7 +136,11 @@ export default function NotificationBell() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative h-9 w-9 hover:bg-accent/80 transition-colors">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="relative h-9 w-9 hover:bg-accent/80 transition-colors"
+        >
           <AnimatePresence mode="wait">
             {unreadCount > 0 ? (
               <motion.div
@@ -158,9 +162,9 @@ export default function NotificationBell() {
               </motion.div>
             )}
           </AnimatePresence>
-          
+
           {unreadCount > 0 && (
-            <motion.span 
+            <motion.span
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] rounded-full bg-red-600 text-white text-[10px] font-bold flex items-center justify-center px-1 shadow-sm border border-white"
@@ -170,15 +174,20 @@ export default function NotificationBell() {
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-[380px] p-0 shadow-xl border-border/40 overflow-hidden" sideOffset={8}>
+      <PopoverContent
+        align="end"
+        className="w-[380px] p-0 shadow-xl border-border/40 overflow-hidden"
+        sideOffset={8}
+      >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-border/60">
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-bold text-foreground">
-              Notifications
-            </h3>
+            <h3 className="text-sm font-bold text-foreground">Notifications</h3>
             {unreadCount > 0 && (
-              <Badge variant="secondary" className="h-5 px-1.5 text-[10px] bg-primary/10 text-primary border-none">
+              <Badge
+                variant="secondary"
+                className="h-5 px-1.5 text-[10px] bg-primary/10 text-primary border-none"
+              >
                 {unreadCount} nouvelles
               </Badge>
             )}
@@ -213,88 +222,95 @@ export default function NotificationBell() {
             </div>
           ) : (
             <div className="pb-2">
-              {Object.entries(groupedNotifications).map(([label, groupItems], groupIdx) => (
-                <div key={label} className="mt-2">
-                  <div className="px-4 py-2 sticky top-0 bg-white/95 backdrop-blur-sm z-10">
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 flex items-center gap-2">
-                       <Calendar className="w-3 h-3" />
-                       {label}
-                    </span>
-                  </div>
-                  <div className="divide-y divide-border/40">
-                    {groupItems.map((notif: any) => {
-                      const config =
-                        TYPE_CONFIG[notif.type as keyof typeof TYPE_CONFIG] ??
-                        TYPE_CONFIG.info;
-                      const Icon = config.icon;
+              {Object.entries(groupedNotifications).map(
+                ([label, groupItems], groupIdx) => (
+                  <div key={label} className="mt-2">
+                    <div className="px-4 py-2 sticky top-0 bg-white/95 backdrop-blur-sm z-10">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 flex items-center gap-2">
+                        <Calendar className="w-3 h-3" />
+                        {label}
+                      </span>
+                    </div>
+                    <div className="divide-y divide-border/40">
+                      {groupItems.map((notif: any) => {
+                        const config =
+                          TYPE_CONFIG[notif.type as keyof typeof TYPE_CONFIG] ??
+                          TYPE_CONFIG.info;
+                        const Icon = config.icon;
 
-                      return (
-                        <motion.div
-                          key={notif.id}
-                          layout
-                          className={`flex gap-3 px-4 py-4 transition-all cursor-pointer relative ${
-                            !notif.isRead ? "bg-primary/[0.02]" : "hover:bg-accent/40"
-                          }`}
-                          onClick={() => handleNotificationClick(notif)}
-                        >
-                          {/* Unread indicator pulse */}
-                          {!notif.isRead && (
-                             <span className="absolute left-1 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-full" />
-                          )}
-
-                          {/* Type icon */}
-                          <div
-                            className={`flex-shrink-0 w-10 h-10 rounded-xl ${config.bg} flex items-center justify-center mt-0.5 shadow-sm border border-white/50`}
+                        return (
+                          <motion.div
+                            key={notif.id}
+                            layout
+                            className={`flex gap-3 px-4 py-4 transition-all cursor-pointer relative ${
+                              !notif.isRead
+                                ? "bg-primary/[0.02]"
+                                : "hover:bg-accent/40"
+                            }`}
+                            onClick={() => handleNotificationClick(notif)}
                           >
-                            <Icon className={`w-5 h-5 ${config.color}`} />
-                          </div>
+                            {/* Unread indicator pulse */}
+                            {!notif.isRead && (
+                              <span className="absolute left-1 top-1/2 -translate-y-1/2 w-1 h-8 bg-primary rounded-full" />
+                            )}
 
-                          {/* Content */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-2">
-                              <p
-                                className={`text-sm leading-tight mb-1 ${!notif.isRead ? "font-bold text-foreground" : "text-foreground/90"}`}
-                              >
-                                {notif.title}
+                            {/* Type icon */}
+                            <div
+                              className={`flex-shrink-0 w-10 h-10 rounded-xl ${config.bg} flex items-center justify-center mt-0.5 shadow-sm border border-white/50`}
+                            >
+                              <Icon className={`w-5 h-5 ${config.color}`} />
+                            </div>
+
+                            {/* Content */}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-start justify-between gap-2">
+                                <p
+                                  className={`text-sm leading-tight mb-1 ${!notif.isRead ? "font-bold text-foreground" : "text-foreground/90"}`}
+                                >
+                                  {notif.title}
+                                </p>
+                                {!notif.isRead && (
+                                  <motion.span
+                                    animate={{ scale: [1, 1.2, 1] }}
+                                    transition={{
+                                      repeat: Infinity,
+                                      duration: 2,
+                                    }}
+                                    className="flex-shrink-0 w-2 h-2 rounded-full bg-primary mt-1 shadow-[0_0_8px_rgba(var(--primary),0.5)]"
+                                  />
+                                )}
+                              </div>
+                              <p className="text-xs text-muted-foreground/90 leading-relaxed mb-2">
+                                {notif.message}
                               </p>
-                              {!notif.isRead && (
-                                <motion.span 
-                                  animate={{ scale: [1, 1.2, 1] }}
-                                  transition={{ repeat: Infinity, duration: 2 }}
-                                  className="flex-shrink-0 w-2 h-2 rounded-full bg-primary mt-1 shadow-[0_0_8px_rgba(var(--primary),0.5)]" 
-                                />
-                              )}
+                              <div className="flex items-center justify-between">
+                                <span className="text-[10px] font-medium text-muted-foreground/60 flex items-center gap-1">
+                                  <History className="w-3 h-3" />
+                                  {formatTimeAgo(notif.createdAt)}
+                                </span>
+                                {notif.linkUrl && (
+                                  <div className="p-1 rounded-md bg-accent/50">
+                                    <ExternalLink className="w-3 h-3 text-primary" />
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                            <p className="text-xs text-muted-foreground/90 leading-relaxed mb-2">
-                              {notif.message}
-                            </p>
-                            <div className="flex items-center justify-between">
-                              <span className="text-[10px] font-medium text-muted-foreground/60 flex items-center gap-1">
-                                <History className="w-3 h-3" />
-                                {formatTimeAgo(notif.createdAt)}
-                              </span>
-                              {notif.linkUrl && (
-                                <div className="p-1 rounded-md bg-accent/50">
-                                  <ExternalLink className="w-3 h-3 text-primary" />
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </motion.div>
-                      );
-                    })}
+                          </motion.div>
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              ))}
+                )
+              )}
             </div>
           )}
         </ScrollArea>
         {items.length > 0 && (
-            <div className="px-4 py-2 border-t border-border/40 bg-muted/20">
-                <p className="text-[10px] text-center text-muted-foreground uppercase tracking-widest font-semibold">
-                    Fin des notifications
-                </p>
-            </div>
+          <div className="px-4 py-2 border-t border-border/40 bg-muted/20">
+            <p className="text-[10px] text-center text-muted-foreground uppercase tracking-widest font-semibold">
+              Fin des notifications
+            </p>
+          </div>
         )}
       </PopoverContent>
     </Popover>
