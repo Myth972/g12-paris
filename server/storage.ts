@@ -1,6 +1,6 @@
 import { promises as fs } from "fs";
 import path from "path";
-import { ENV } from "./_core/env.ts";
+import { ENV } from "./_core/env.js";
 
 const UPLOADS_DIR = path.join(process.cwd(), "uploads");
 
