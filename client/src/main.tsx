@@ -9,6 +9,35 @@ import { getLoginUrl } from "./const";
 import "./index.css";
 
 const queryClient = new QueryClient();
+const CSRF_COOKIE_NAME = "csrf_token";
+const CSRF_HEADER_NAME = "x-csrf-token";
+
+const readCookie = (name: string) => {
+  if (typeof document === "undefined") return undefined;
+  const match = document.cookie.match(
+    new RegExp(
+      `(?:^|; )${name.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&")}=([^;]*)`
+    )
+  );
+  return match ? decodeURIComponent(match[1]) : undefined;
+};
+
+const ensureCsrfToken = async () => {
+  let token = readCookie(CSRF_COOKIE_NAME);
+  if (token) return token;
+
+  try {
+    const res = await fetch("/api/csrf", { credentials: "include" });
+    if (res.ok) {
+      const data = (await res.json()) as { token?: string };
+      token = data?.token;
+    }
+  } catch {
+    // Ignore: will fail later if CSRF is required.
+  }
+
+  return token;
+};
 
 const redirectToLoginIfUnauthorized = (error: unknown) => {
   if (!(error instanceof TRPCClientError)) return;
@@ -42,9 +71,20 @@ const trpcClient = trpc.createClient({
     httpBatchLink({
       url: "/api/trpc",
       transformer: superjson,
-      fetch(input, init) {
+      async fetch(input, init) {
+        let csrfToken = readCookie(CSRF_COOKIE_NAME);
+        if (!csrfToken) {
+          await ensureCsrfToken();
+          csrfToken = readCookie(CSRF_COOKIE_NAME);
+        }
+
+        const headers = new Headers(init?.headers || {});
+        if (csrfToken) {
+          headers.set(CSRF_HEADER_NAME, csrfToken);
+        }
         return globalThis.fetch(input, {
           ...(init ?? {}),
+          headers,
           credentials: "include",
         });
       },

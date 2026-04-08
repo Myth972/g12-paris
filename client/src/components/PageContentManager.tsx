@@ -43,6 +43,8 @@ import { extractYouTubeId } from "./YouTubeEmbed";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { AIProviderSelect } from "@/components/AIProviderSelect";
+import { useAiProvider } from "@/hooks/useAiProvider";
 
 interface PageContentManagerProps {
   pageId: string;
@@ -67,6 +69,7 @@ export default function PageContentManager({
     loop: false,
     featuredHome: false,
   });
+  const { activeProvider } = useAiProvider();
 
   const { data, isLoading, refetch } = trpc.pageContent.adminList.useQuery({
     pageId,
@@ -220,6 +223,17 @@ export default function PageContentManager({
                 {editingId ? "Modifier le contenu" : "Ajouter du contenu"}
               </DialogTitle>
             </DialogHeader>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">
+                  Fournisseur IA
+                </p>
+                <p className="text-[10px] text-muted-foreground/70">
+                  Utilisé pour la génération de description.
+                </p>
+              </div>
+              <AIProviderSelect size="sm" showTestButton={false} />
+            </div>
 
             <Tabs
               value={contentType}
@@ -344,7 +358,7 @@ export default function PageContentManager({
                     ) : (
                       <Sparkles className="w-3 h-3" />
                     )}
-                    Rédiger avec Groq
+                    Rédiger avec {activeProvider.label}
                   </Button>
                 </div>
                 <Textarea
@@ -478,7 +492,9 @@ export default function PageContentManager({
                             {item.featuredHome && (
                               <>
                                 <span className="w-1 h-1 rounded-full bg-border" />
-                                <span className="text-primary font-bold">🏠 Accueil</span>
+                                <span className="text-primary font-bold">
+                                  🏠 Accueil
+                                </span>
                               </>
                             )}
                           </CardDescription>

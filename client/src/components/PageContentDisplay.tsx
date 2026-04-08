@@ -62,7 +62,8 @@ function PageContentItemDisplay({ item }: { item: PageContentItem }) {
             src={item.mediaUrl}
             controls
             loop={item.loop}
-            className="w-full aspect-video object-cover"
+            muted
+            className="w-full aspect-video object-contain bg-black/5"
           />
         )}
       </div>

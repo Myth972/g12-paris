@@ -3,24 +3,61 @@ import ArticleCard from "@/components/ArticleCard";
 import PageContentDisplay from "@/components/PageContentDisplay";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import PageTitleEditor from "@/components/PageTitleEditor";
+import PageTextEditor from "@/components/PageTextEditor";
 import { Newspaper, ChevronRight } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 export default function Home() {
   const [page, setPage] = useState(0);
+  const [heroOffset, setHeroOffset] = useState(0);
   const limit = 12;
   const offset = useMemo(() => page * limit, [page]);
 
   const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset });
+  const settingsQuery = trpc.siteSettings.getAll.useQuery();
 
   const articles = data?.items ?? [];
   const total = data?.total ?? 0;
   const hasMore = offset + limit < total;
+  const heroBgUrl = settingsQuery.data?.homeHeroBgUrl as string | undefined;
+  const heroOpacityRaw = settingsQuery.data?.homeHeroBgOpacity as
+    | string
+    | undefined;
+  const heroOpacityPercent = Math.max(
+    0,
+    Math.min(60, Number(heroOpacityRaw ?? 18))
+  );
+  const heroOpacity = heroOpacityPercent / 100;
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const y = window.scrollY || 0;
+      const offset = y * 0.3;
+      setHeroOffset(Math.max(-60, Math.min(180, offset)));
+    };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <div className="min-h-screen">
       {/* Hero section */}
-      <section className="relative bg-gradient-to-b from-primary/[0.03] to-transparent py-12 md:py-16">
+      <section className="relative bg-gradient-to-b from-primary/[0.03] to-transparent py-12 md:py-[180px] min-h-[420px] md:min-h-[520px] overflow-hidden flex items-center">
+        {heroBgUrl && (
+          <div
+            className="absolute inset-0 bg-center bg-cover"
+            style={{
+              backgroundImage: `url(${heroBgUrl})`,
+              opacity: heroOpacity,
+              backgroundAttachment: "scroll",
+              backgroundPosition: `center calc(50% + ${heroOffset + 40}px)`,
+              backgroundSize: "85%",
+            }}
+          />
+        )}
+        <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/60 to-transparent pointer-events-none" />
         <div className="container">
           <div className="max-w-2xl">
             <div className="flex items-center gap-2 mb-4">
@@ -29,15 +66,18 @@ export default function Home() {
                 Dernières nouvelles
               </span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight">
-              L'actualité qui compte,
-              <br />
-              <span className="text-primary/80">racontée avec rigueur.</span>
-            </h2>
-            <p className="mt-4 text-muted-foreground text-base leading-relaxed max-w-lg">
-              Restez informé avec les dernières nouvelles de Paris et
-              d'ailleurs. Articles, reportages et vidéos au quotidien.
-            </p>
+            <PageTitleEditor
+              pageKey="home"
+              defaultH1={"L'actualité qui compte,\nracontée avec rigueur."}
+              defaultH2=""
+              h1ClassName="text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight"
+            />
+            <PageTextEditor
+              pageKey="home"
+              textKey="hero"
+              defaultText="Restez informé avec les dernières nouvelles de Paris et d'ailleurs. Articles, reportages et vidéos au quotidien."
+              className="mt-4 text-muted-foreground text-base leading-relaxed max-w-lg"
+            />
           </div>
         </div>
       </section>

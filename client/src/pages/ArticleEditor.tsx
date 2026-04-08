@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import RichTextEditor from "@/components/RichTextEditor";
 import {
   Select,
   SelectContent,
@@ -27,6 +28,8 @@ import {
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useLocation, useParams } from "wouter";
 import { toast } from "sonner";
+import { AIProviderSelect } from "@/components/AIProviderSelect";
+import { useAiProvider } from "@/hooks/useAiProvider";
 
 const CATEGORIES = [
   { value: "actualité", label: "Actualité" },
@@ -53,17 +56,23 @@ export default function ArticleEditor() {
   const [category, setCategory] = useState("actualité");
   const [youtubeUrl, setYoutubeUrl] = useState("");
   const [published, setPublished] = useState(false);
+  const [verseId, setVerseId] = useState<string>("none");
   const [coverImageUrl, setCoverImageUrl] = useState("");
   const [coverImageKey, setCoverImageKey] = useState("");
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { activeProvider } = useAiProvider();
 
   const utils = trpc.useUtils();
 
   // Load existing article
   const { data: existingArticle, isLoading: loadingArticle } =
     trpc.articles.byId.useQuery({ id: articleId! }, { enabled: !!articleId });
+
+  // Load verses
+  const { data: versesData } = trpc.verses.adminList.useQuery();
+  const verses = versesData?.items ?? [];
 
   useEffect(() => {
     if (existingArticle) {
@@ -75,8 +84,35 @@ export default function ArticleEditor() {
       setPublished(existingArticle.published);
       setCoverImageUrl(existingArticle.coverImageUrl ?? "");
       setCoverImageKey(existingArticle.coverImageKey ?? "");
+      setVerseId(
+        existingArticle.verseId ? existingArticle.verseId.toString() : "none"
+      );
     }
   }, [existingArticle]);
+
+  const suggestVerseMutation = trpc.ai.suggestVerseForArticle.useMutation({
+    onSuccess: async generated => {
+      // automatically create the verse in db if we accept it? No, wait!
+      // I'll just create the verse right away if the user accepts it, or just create it and select it.
+      createVerseMutation.mutate({
+        reference: generated.reference,
+        text: generated.text,
+        summary: generated.summary,
+      });
+      toast.success("Verset suggéré avec succès !");
+    },
+    onError: err => toast.error(err.message || "Erreur lors de la suggestion"),
+  });
+
+  const createVerseMutation = trpc.verses.create.useMutation({
+    onSuccess: newVerse => {
+      utils.verses.adminList.invalidate();
+      setVerseId(newVerse.id.toString());
+      toast.success("Nouveau verset enregistré et sélectionné");
+    },
+    onError: err =>
+      toast.error(err.message || "Erreur d'enregistrement du verset"),
+  });
 
   const createMutation = trpc.articles.create.useMutation({
     onSuccess: () => {
@@ -162,6 +198,7 @@ export default function ArticleEditor() {
         youtubeUrl: youtubeUrl.trim() || undefined,
         coverImageUrl: coverImageUrl || undefined,
         coverImageKey: coverImageKey || undefined,
+        verseId: verseId && verseId !== "none" ? parseInt(verseId, 10) : null,
         published,
       };
 
@@ -245,6 +282,18 @@ export default function ArticleEditor() {
       {/* Form */}
       <div className="container max-w-4xl mx-auto py-8">
         <div className="space-y-6">
+          {/* AI Provider */}
+          <div className="bg-card rounded-xl border border-border p-4 shadow-sm flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-foreground">
+                Fournisseur IA
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Utilisé pour les résumés et suggestions de versets.
+              </p>
+            </div>
+            <AIProviderSelect size="sm" />
+          </div>
           {/* Title */}
           <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
             <Label className="text-sm font-semibold text-foreground mb-2 block">
@@ -281,7 +330,7 @@ export default function ArticleEditor() {
                 ) : (
                   <Sparkles className="w-3 h-3" />
                 )}
-                Rédiger avec Groq
+                Rédiger avec {activeProvider.label}
               </Button>
             </div>
             <Textarea
@@ -306,6 +355,48 @@ export default function ArticleEditor() {
                 {CATEGORIES.map(cat => (
                   <SelectItem key={cat.value} value={cat.value}>
                     {cat.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Verses */}
+          <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-2">
+              <Label className="text-sm font-semibold text-foreground">
+                Verset biblique lié
+              </Label>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 text-[10px] gap-1.5 text-primary hover:bg-primary/10"
+                disabled={
+                  suggestVerseMutation.isPending ||
+                  createVerseMutation.isPending ||
+                  !title ||
+                  !content
+                }
+                onClick={() => suggestVerseMutation.mutate({ title, content })}
+              >
+                {suggestVerseMutation.isPending ||
+                createVerseMutation.isPending ? (
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                ) : (
+                  <Sparkles className="w-3 h-3" />
+                )}
+                Suggérer avec {activeProvider.label}
+              </Button>
+            </div>
+            <Select value={verseId} onValueChange={setVerseId}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Aucun verset sélectionné" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Aucun verset sélectionné</SelectItem>
+                {verses.map((v: any) => (
+                  <SelectItem key={v.id} value={v.id.toString()}>
+                    {v.reference} - {v.text.substring(0, 50)}...
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -394,16 +485,21 @@ export default function ArticleEditor() {
           </div>
 
           {/* Content */}
-          <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
-            <Label className="text-sm font-semibold text-foreground mb-2 block">
-              Contenu de l'article * (Markdown supporté)
-            </Label>
-            <Textarea
-              value={content}
-              onChange={e => setContent(e.target.value)}
-              placeholder="Rédigez le contenu de votre article ici... Le format Markdown est supporté."
-              rows={16}
-              className="font-mono text-sm leading-relaxed"
+          <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
+            <div className="px-6 pt-5 pb-2">
+              <Label className="text-sm font-semibold text-foreground">
+                Contenu de l'article *
+              </Label>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Utilisez la barre d'outils pour mettre en forme votre texte
+                (titres, couleurs, alignement…)
+              </p>
+            </div>
+            <RichTextEditor
+              content={content}
+              onChange={setContent}
+              placeholder="Rédigez le contenu de votre article ici..."
+              minHeight="400px"
             />
           </div>
 

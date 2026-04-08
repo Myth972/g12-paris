@@ -3,6 +3,8 @@ import PageContentDisplay from "@/components/PageContentDisplay";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import YouTubeEmbed from "@/components/YouTubeEmbed";
+import PageTitleEditor from "@/components/PageTitleEditor";
+import PageTextEditor from "@/components/PageTextEditor";
 import { ChevronRight } from "lucide-react";
 import { useState, useMemo } from "react";
 
@@ -26,15 +28,18 @@ export default function GalleriesPage() {
                 Galeries
               </span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight">
-              Galerie d'Images
-              <br />
-              <span className="text-primary/80">et Vidéos</span>
-            </h2>
-            <p className="mt-4 text-muted-foreground text-base leading-relaxed max-w-lg">
-              Explorez notre collection complète d'images inspirantes et de
-              vidéos édifiantes avec leurs versets bibliques associés.
-            </p>
+            <PageTitleEditor
+              pageKey="galeries"
+              defaultH1={"Galerie d'Images\net Vidéos"}
+              defaultH2=""
+              h1ClassName="text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight"
+            />
+            <PageTextEditor
+              pageKey="galeries"
+              textKey="hero"
+              defaultText="Explorez notre collection complète d'images inspirantes et de vidéos édifiantes avec leurs versets bibliques associés."
+              className="mt-4 text-muted-foreground text-base leading-relaxed max-w-lg"
+            />
           </div>
         </div>
       </section>

@@ -24,6 +24,8 @@ import {
 import { Plus, Trash2, BookOpen, Sparkles, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AIProviderSelect } from "@/components/AIProviderSelect";
+import { useAiProvider } from "@/hooks/useAiProvider";
 
 export default function VersesManager() {
   const [isOpen, setIsOpen] = useState(false);
@@ -33,6 +35,7 @@ export default function VersesManager() {
     summary: "",
   });
   const utils = trpc.useUtils();
+  const { activeProvider } = useAiProvider();
 
   const { data, isLoading } = trpc.verses.adminList.useQuery();
   const verses = data?.items ?? [];
@@ -99,6 +102,17 @@ export default function VersesManager() {
                   Ce verset pourra être associé à une publication du jour.
                 </DialogDescription>
               </DialogHeader>
+              <div className="flex items-center justify-between gap-3 pt-2">
+                <div>
+                  <p className="text-xs font-medium text-muted-foreground">
+                    Fournisseur IA
+                  </p>
+                  <p className="text-[10px] text-muted-foreground/70">
+                    Utilisé pour la génération des versets.
+                  </p>
+                </div>
+                <AIProviderSelect size="sm" showTestButton={false} />
+              </div>
               <div className="flex justify-end pt-2">
                 <Button
                   variant="outline"
@@ -118,8 +132,8 @@ export default function VersesManager() {
                     <Sparkles className="w-4 h-4" />
                   )}
                   {formData.reference
-                    ? "Générer depuis la référence"
-                    : "Suggérer un verset aléatoire"}
+                    ? `Générer avec ${activeProvider.label}`
+                    : `Suggérer avec ${activeProvider.label}`}
                 </Button>
               </div>
               <div className="space-y-4 py-2">

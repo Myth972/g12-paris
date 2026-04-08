@@ -1,5 +1,6 @@
 import PageContentDisplay from "@/components/PageContentDisplay";
-import { Library } from "lucide-react";
+import PageTitleEditor from "@/components/PageTitleEditor";
+import PageTextEditor from "@/components/PageTextEditor";
 
 export default function BibliothequeePage() {
   return (
@@ -14,15 +15,18 @@ export default function BibliothequeePage() {
                 Bibliothèque
               </span>
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight">
-              Bibliothèque
-              <br />
-              <span className="text-primary/80">Médias & Ressources</span>
-            </h1>
-            <p className="mt-4 text-muted-foreground text-base leading-relaxed max-w-lg">
-              Retrouvez ici nos ressources éducatives et spirituelles : vidéos,
-              images et contenus pour approfondir votre foi.
-            </p>
+            <PageTitleEditor
+              pageKey="bibliotheque"
+              defaultH1={"Bibliothèque\nMédias & Ressources"}
+              defaultH2=""
+              h1ClassName="text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight"
+            />
+            <PageTextEditor
+              pageKey="bibliotheque"
+              textKey="hero"
+              defaultText="Retrouvez ici nos ressources éducatives et spirituelles : vidéos, images et contenus pour approfondir votre foi."
+              className="mt-4 text-muted-foreground text-base leading-relaxed max-w-lg"
+            />
           </div>
         </div>
       </section>

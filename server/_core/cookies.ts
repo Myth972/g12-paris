@@ -47,3 +47,15 @@ export function getSessionCookieOptions(
     secure,
   };
 }
+
+export function getCsrfCookieOptions(
+  req: Request
+): Pick<CookieOptions, "domain" | "httpOnly" | "path" | "sameSite" | "secure"> {
+  const secure = isSecureRequest(req);
+  return {
+    httpOnly: false,
+    path: "/",
+    sameSite: secure ? "none" : "lax",
+    secure,
+  };
+}

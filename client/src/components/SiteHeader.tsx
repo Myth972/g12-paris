@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getLoginUrl } from "@/const";
-import { Menu, X, User, LogOut, Shield, Newspaper } from "lucide-react";
+import { Menu, X, User, LogOut, Shield, Newspaper, Facebook, Instagram, Youtube } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import NotificationBell from "./NotificationBell";
@@ -19,6 +19,27 @@ const NAV_LINKS = [
   { href: "/galeries", label: "Galeries" },
   { href: "/culte-en-ligne", label: "Culte en ligne" },
   { href: "/bibliotheque", label: "Bibliothèque" },
+];
+
+const SOCIAL_LINKS = [
+  { 
+    href: "https://www.facebook.com/G12France/", 
+    icon: <Facebook className="w-5 h-5" />, 
+    label: "Facebook",
+    hoverColor: "hover:text-[#1877F2]"
+  },
+  { 
+    href: "https://www.instagram.com/cci.paris/", 
+    icon: <Instagram className="w-5 h-5" />, 
+    label: "Instagram",
+    hoverColor: "hover:text-[#E4405F]"
+  },
+  { 
+    href: "https://www.youtube.com/@media.mpecciparis", 
+    icon: <Youtube className="w-5 h-5" />, 
+    label: "YouTube",
+    hoverColor: "hover:text-[#FF0000]"
+  },
 ];
 
 export default function SiteHeader() {
@@ -37,9 +58,11 @@ export default function SiteHeader() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center shadow-sm group-hover:shadow-md transition-shadow">
-              <Newspaper className="w-5 h-5 text-primary-foreground" />
-            </div>
+            <img
+              src="/logo.png"
+              alt="G12 Paris Médias"
+              className="h-10 w-10 rounded-full object-cover shadow-sm group-hover:shadow-md transition-shadow"
+            />
             <div className="hidden sm:block">
               <h1 className="text-lg font-bold leading-tight tracking-tight text-foreground font-serif">
                 G12 Paris
@@ -73,102 +96,140 @@ export default function SiteHeader() {
           </nav>
 
           {/* Right side actions */}
-          <div className="flex items-center gap-2">
-            {isAuthenticated && <NotificationBell />}
-            {isAuthenticated ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="gap-2">
-                    <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
-                      <User className="w-4 h-4 text-primary" />
-                    </div>
-                    <span className="hidden sm:inline text-sm font-medium">
-                      {user?.name || "Utilisateur"}
-                    </span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
-                  {isAdmin && (
-                    <>
-                      <DropdownMenuItem asChild>
-                        <Link
-                          href="/admin"
-                          className="flex items-center gap-2 w-full"
-                        >
-                          <Shield className="w-4 h-4" />
-                          Administration
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                    </>
-                  )}
-                  <DropdownMenuItem
-                    onClick={() => logout()}
-                    className="text-destructive focus:text-destructive"
-                  >
-                    <LogOut className="w-4 h-4 mr-2" />
-                    Déconnexion
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Button
-                size="sm"
-                onClick={() => (window.location.href = getLoginUrl())}
-                className="font-medium"
-              >
-                Connexion
-              </Button>
-            )}
+          <div className="flex items-center gap-4">
+            {/* Social Icons Desktop */}
+            <div className="hidden lg:flex items-center gap-3 ml-2 border-l border-border/60 pl-5">
+              {SOCIAL_LINKS.map(social => (
+                <a
+                  key={social.label}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`text-muted-foreground transition-all duration-300 hover:scale-110 ${social.hoverColor}`}
+                  title={social.label}
+                >
+                  {social.icon}
+                </a>
+              ))}
+            </div>
 
-            {/* Mobile menu toggle */}
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden"
-              onClick={() => setMobileOpen(!mobileOpen)}
-            >
-              {mobileOpen ? (
-                <X className="w-5 h-5" />
+            <div className="flex items-center gap-2">
+              {isAuthenticated && <NotificationBell />}
+              {isAuthenticated ? (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="gap-2">
+                      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+                        <User className="w-4 h-4 text-primary" />
+                      </div>
+                      <span className="hidden sm:inline text-sm font-medium">
+                        {user?.name || "Utilisateur"}
+                      </span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    {isAdmin && (
+                      <>
+                        <DropdownMenuItem asChild>
+                          <Link
+                            href="/admin"
+                            className="flex items-center gap-2 w-full"
+                          >
+                            <Shield className="w-4 h-4" />
+                            Administration
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                      </>
+                    )}
+                    <DropdownMenuItem
+                      onClick={() => logout()}
+                      className="text-destructive focus:text-destructive"
+                    >
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Déconnexion
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               ) : (
-                <Menu className="w-5 h-5" />
+                <Button
+                  size="sm"
+                  onClick={() => (window.location.href = getLoginUrl())}
+                  className="font-medium"
+                >
+                  Connexion
+                </Button>
               )}
-            </Button>
+
+              {/* Mobile menu toggle */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="lg:hidden"
+                onClick={() => setMobileOpen(!mobileOpen)}
+              >
+                {mobileOpen ? (
+                  <X className="w-5 h-5" />
+                ) : (
+                  <Menu className="w-5 h-5" />
+                )}
+              </Button>
+            </div>
           </div>
         </div>
 
         {/* Mobile nav */}
         {mobileOpen && (
-          <nav className="lg:hidden pb-4 border-t border-border/40 pt-3 space-y-1">
-            {NAV_LINKS.map(link => {
-              const isActive =
-                location === link.href ||
-                (link.href !== "/" && location.startsWith(link.href));
-              return (
+          <nav className="lg:hidden pb-6 border-t border-border/40 pt-3 flex flex-col">
+            <div className="space-y-1 mb-6">
+              {NAV_LINKS.map(link => {
+                const isActive =
+                  location === link.href ||
+                  (link.href !== "/" && location.startsWith(link.href));
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    onClick={() => setMobileOpen(false)}
+                    className={`block px-3 py-2.5 text-sm font-medium rounded-md transition-colors ${
+                      isActive
+                        ? "text-primary bg-primary/5"
+                        : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                    }`}
+                  >
+                    {link.label}
+                  </Link>
+                );
+              })}
+              {isAdmin && (
                 <Link
-                  key={link.href}
-                  href={link.href}
+                  href="/admin"
                   onClick={() => setMobileOpen(false)}
-                  className={`block px-3 py-2.5 text-sm font-medium rounded-md transition-colors ${
-                    isActive
-                      ? "text-primary bg-primary/5"
-                      : "text-muted-foreground hover:text-foreground hover:bg-accent"
-                  }`}
+                  className="block px-3 py-2.5 text-sm font-medium rounded-md text-primary hover:bg-primary/5"
                 >
-                  {link.label}
+                  <Shield className="w-4 h-4 inline mr-2" />
+                  Administration
                 </Link>
-              );
-            })}
-            {isAdmin && (
-              <Link
-                href="/admin"
-                onClick={() => setMobileOpen(false)}
-                className="block px-3 py-2.5 text-sm font-medium rounded-md text-primary hover:bg-primary/5"
-              >
-                <Shield className="w-4 h-4 inline mr-2" />
-                Administration
-              </Link>
-            )}
+              )}
+            </div>
+
+            {/* Social Icons Mobile */}
+            <div className="px-3 pt-6 border-t border-border/40">
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-4">Suivez-nous</p>
+              <div className="flex items-center gap-6">
+                {SOCIAL_LINKS.map(social => (
+                  <a
+                    key={social.label}
+                    href={social.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`text-muted-foreground transition-all duration-300 ${social.hoverColor}`}
+                  >
+                    {social.icon}
+                  </a>
+                ))}
+              </div>
+            </div>
           </nav>
         )}
       </div>

@@ -150,12 +150,14 @@ function vitePluginManusDebugCollector(): Plugin {
   };
 }
 
+const enableManusDebugCollector = process.env.MANUS_DEBUG_COLLECTOR === "true";
+
 const plugins = [
   react(),
   tailwindcss(),
   jsxLocPlugin(),
   vitePluginManusRuntime(),
-  vitePluginManusDebugCollector(),
+  ...(enableManusDebugCollector ? [vitePluginManusDebugCollector()] : []),
 ];
 
 export default defineConfig({
@@ -165,7 +167,18 @@ export default defineConfig({
       "@": path.resolve(import.meta.dirname, "client", "src"),
       "@shared": path.resolve(import.meta.dirname, "shared"),
       "@assets": path.resolve(import.meta.dirname, "attached_assets"),
+      react: path.resolve(import.meta.dirname, "node_modules/react"),
+      "react-dom": path.resolve(import.meta.dirname, "node_modules/react-dom"),
+      "react/jsx-runtime": path.resolve(
+        import.meta.dirname,
+        "node_modules/react/jsx-runtime"
+      ),
+      "react/jsx-dev-runtime": path.resolve(
+        import.meta.dirname,
+        "node_modules/react/jsx-dev-runtime"
+      ),
     },
+    dedupe: ["react", "react-dom"],
   },
   envDir: path.resolve(import.meta.dirname),
   root: path.resolve(import.meta.dirname, "client"),
@@ -173,6 +186,48 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: (id) => {
+          if (id.includes("node_modules")) {
+            // Group the core UI framework together to avoid initialization order issues
+            if (
+              id.includes("react") ||
+              id.includes("react-dom") ||
+              id.includes("wouter") ||
+              id.includes("lucide-react") ||
+              id.includes("@radix-ui") ||
+              id.includes("framer-motion") ||
+              id.includes("clsx") ||
+              id.includes("tailwind-merge")
+            ) {
+              return "vendor-framework";
+            }
+            
+            // Extract package name, handling .pnpm structure
+            const parts = id.toString().split("node_modules/");
+            if (parts.length > 1) {
+              let pathSeg = parts[parts.length - 1];
+              if (pathSeg.startsWith(".pnpm/")) {
+                 const subParts = id.toString().split("node_modules/");
+                 pathSeg = subParts[subParts.length - 1];
+              }
+              
+              const pkgName = pathSeg.split("/")[0];
+              if (pkgName.startsWith("@")) {
+                const subPkg = pathSeg.split("/")[1];
+                return `vendor-${pkgName.replace("@", "")}-${subPkg}`;
+              }
+              if (pkgName && !pkgName.startsWith(".")) {
+                return `vendor-${pkgName}`;
+              }
+            }
+            return "vendor-misc";
+          }
+        },
+      },
+    },
+    chunkSizeWarningLimit: 1000,
   },
   server: {
     host: true,

@@ -1,3 +1,4 @@
+import { TRPCError } from "@trpc/server";
 import { ENV } from "./env";
 
 export type Role = "system" | "user" | "assistant" | "tool" | "function";
@@ -60,6 +61,8 @@ export type ToolChoice =
   | ToolChoiceByName
   | ToolChoiceExplicit;
 
+export type AiProvider = "google" | "groq" | "minimax" | "aimlapi";
+
 export type InvokeParams = {
   messages: Message[];
   tools?: Tool[];
@@ -71,6 +74,8 @@ export type InvokeParams = {
   output_schema?: OutputSchema;
   responseFormat?: ResponseFormat;
   response_format?: ResponseFormat;
+  provider?: AiProvider;
+  model?: string;
 };
 
 export type ToolCall = {
@@ -138,7 +143,10 @@ const normalizeContentPart = (
     return part;
   }
 
-  throw new Error("Unsupported message content part");
+  throw new TRPCError({
+    code: "BAD_REQUEST",
+    message: "Unsupported message content part",
+  });
 };
 
 const normalizeMessage = (message: Message) => {
@@ -187,15 +195,19 @@ const normalizeToolChoice = (
 
   if (toolChoice === "required") {
     if (!tools || tools.length === 0) {
-      throw new Error(
-        "tool_choice 'required' was provided but no tools were configured"
-      );
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "tool_choice 'required' was provided but no tools were configured",
+      });
     }
 
     if (tools.length > 1) {
-      throw new Error(
-        "tool_choice 'required' needs a single tool or specify the tool name explicitly"
-      );
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message:
+          "tool_choice 'required' needs a single tool or specify the tool name explicitly",
+      });
     }
 
     return {
@@ -235,9 +247,10 @@ const normalizeResponseFormat = ({
       explicitFormat.type === "json_schema" &&
       !explicitFormat.json_schema?.schema
     ) {
-      throw new Error(
-        "responseFormat json_schema requires a defined schema object"
-      );
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "responseFormat json_schema requires a defined schema object",
+      });
     }
     return explicitFormat;
   }
@@ -246,7 +259,10 @@ const normalizeResponseFormat = ({
   if (!schema) return undefined;
 
   if (!schema.name || !schema.schema) {
-    throw new Error("outputSchema requires both name and schema");
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "outputSchema requires both name and schema",
+    });
   }
 
   return {
@@ -271,28 +287,50 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     response_format,
   } = params;
 
-  const provider = ENV.preferredAiProvider || "google";
+  const provider = params.provider || ENV.preferredAiProvider || "groq";
   let apiUrl = "";
   let apiKey = "";
-  let model = "";
+  let model = params.model || "";
 
-  if (provider === "groq") {
+  if (provider === "minimax") {
+    apiUrl = "https://api.minimaxi.chat/v1/text/chatcompletion_v2";
+    apiKey = ENV.minimaxApiKey;
+    model = model || "MiniMax-M1";
+    if (!apiKey)
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "MINIMAX_API_KEY is not configured",
+      });
+  } else if (provider === "aimlapi") {
+    apiUrl = "https://api.aimlapi.com/v1/chat/completions";
+    apiKey = ENV.aimlApiKey;
+    model = model || "mistralai/Mistral-7B-Instruct-v0.2";
+    if (!apiKey)
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "AIMLAPI_KEY is not configured",
+      });
+  } else if (provider === "groq") {
     apiUrl = "https://api.groq.com/openai/v1/chat/completions";
     apiKey = ENV.groqApiKey;
-    model = "llama-3.3-70b-versatile";
-    if (!apiKey) throw new Error("GROQ_API_KEY is not configured");
+    model = model || "llama-3.3-70b-versatile";
+    if (!apiKey)
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "GROQ_API_KEY is not configured",
+      });
   } else {
-    // Default to Google (Gemini via Forge or similar)
+    // Google / Gemini fallback
     apiUrl = "https://forge.manus.im/v1/chat/completions";
-    apiKey = (ENV as any).forgeApiKey || ENV.googleApiKey; // Fallback if forgeApiKey is missing
-    model = "gemini-2.0-flash-exp";
-    // Note: If you want to use the user's provided Forge URL, you can put it back here
+    apiKey = (ENV as any).forgeApiKey || ENV.googleApiKey;
+    model = model || "gemini-2.0-flash-exp";
     if (!apiKey && (ENV as any).googleApiKey)
       apiKey = (ENV as any).googleApiKey;
     if (!apiKey)
-      throw new Error(
-        "AI API Key is not configured (GOOGLE_API_KEY or GROQ_API_KEY)"
-      );
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "AI API Key is not configured",
+      });
   }
 
   const payload: Record<string, unknown> = {
@@ -342,9 +380,10 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
 
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(
-      `LLM invoke failed (${provider}): ${response.status} ${response.statusText} – ${errorText}`
-    );
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: `LLM invoke failed (${provider}): ${response.status} ${response.statusText} – ${errorText}`,
+    });
   }
 
   return (await response.json()) as InvokeResult;

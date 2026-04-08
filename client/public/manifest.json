@@ -1,0 +1,17 @@
+{
+  "name": "G12 Paris Infos Médias",
+  "short_name": "G12 Paris",
+  "description": "Votre source d'information de confiance sur l'actualité",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

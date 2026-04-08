@@ -12,6 +12,16 @@ import {
 } from "../drizzle/schema.js";
 import { notInArray, inArray } from "drizzle-orm";
 import { ENV } from "./_core/env.js";
+import { TRPCError } from "@trpc/server";
+
+function assertDb(db: unknown): asserts db {
+  if (!db) {
+    throw new TRPCError({
+      code: "INTERNAL_SERVER_ERROR",
+      message: "Database not available",
+    });
+  }
+}
 
 let _db: any = null;
 
@@ -38,14 +48,14 @@ export async function getDb() {
 
 export async function upsertUser(user: InsertUser): Promise<void> {
   if (!user.openId) {
-    throw new Error("User openId is required for upsert");
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "User openId is required for upsert",
+    });
   }
 
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot upsert user: database not available");
-    return;
-  }
+  assertDb(db);
 
   try {
     const values: InsertUser = {
@@ -124,7 +134,7 @@ export async function createArticle(
   data: Omit<InsertArticle, "id" | "createdAt" | "updatedAt">
 ) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   const [row] = await db.insert(articles).values(data).returning();
   return row;
@@ -135,7 +145,7 @@ export async function updateArticle(
   data: Partial<Omit<InsertArticle, "id" | "createdAt" | "updatedAt">>
 ) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   await db.update(articles).set(data).where(eq(articles.id, id));
   const rows = await db
@@ -148,7 +158,7 @@ export async function updateArticle(
 
 export async function deleteArticle(id: number) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   await db.delete(articles).where(eq(articles.id, id));
   return { success: true };
@@ -156,7 +166,7 @@ export async function deleteArticle(id: number) {
 
 export async function getArticleById(id: number) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   const rows = await db
     .select({
@@ -174,7 +184,7 @@ export async function getArticleById(id: number) {
 
 export async function getArticleBySlug(slug: string) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   const rows = await db
     .select({
@@ -196,7 +206,7 @@ export async function listPublishedArticles(
   category?: string
 ) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   const conditions = [eq(articles.published, true)];
   if (category && category !== "all") {
@@ -220,7 +230,7 @@ export async function listPublishedArticles(
 
 export async function countPublishedArticles(category?: string) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   const conditions = [eq(articles.published, true)];
   if (category && category !== "all") {
@@ -237,7 +247,7 @@ export async function countPublishedArticles(category?: string) {
 
 export async function listAllArticles(limit = 50, offset = 0) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   const rows = await db
     .select({
@@ -255,7 +265,7 @@ export async function listAllArticles(limit = 50, offset = 0) {
 
 export async function countAllArticles() {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   const rows = await db.select({ count: sql<number>`count(*)` }).from(articles);
   return rows[0]?.count ?? 0;
@@ -267,7 +277,7 @@ export async function createNotification(
   data: Omit<InsertNotification, "id" | "createdAt">
 ) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   const [row] = await db.insert(notifications).values(data).returning();
   return row;
@@ -275,7 +285,7 @@ export async function createNotification(
 
 export async function deleteNotification(id: number) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   // Delete associated reads first
   await db
@@ -287,7 +297,7 @@ export async function deleteNotification(id: number) {
 
 export async function listNotifications(limit = 50, offset = 0) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   const rows = await db
     .select({
@@ -308,7 +318,7 @@ export async function listNotifications(limit = 50, offset = 0) {
 
 export async function countNotifications() {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   const rows = await db
     .select({ count: sql<number>`count(*)` })
@@ -318,7 +328,7 @@ export async function countNotifications() {
 
 export async function getUserNotifications(userId: number, limit = 20) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   // Get all notifications with read status for this user
   const rows = await db
@@ -349,7 +359,7 @@ export async function getUserNotifications(userId: number, limit = 20) {
 
 export async function countUnreadNotifications(userId: number) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   // Get IDs of notifications this user has read
   const readRows = await db
@@ -379,7 +389,7 @@ export async function markNotificationAsRead(
   userId: number
 ) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   // Check if already read
   const existing = await db
@@ -405,7 +415,7 @@ export async function markNotificationAsRead(
 
 export async function markAllNotificationsAsRead(userId: number) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   // Get all notification IDs
   const allNotifs = await db
@@ -445,7 +455,7 @@ export async function markAllNotificationsAsRead(userId: number) {
 
 export async function getFeaturedGalleryItems() {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   const { galleryItems, biblicalVerses } = await import("../drizzle/schema.js");
 
@@ -468,7 +478,7 @@ export async function getFeaturedGalleryItems() {
 
 export async function getAllGalleryItems(limit = 50, offset = 0) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   const { galleryItems, biblicalVerses } = await import("../drizzle/schema.js");
 
@@ -491,7 +501,7 @@ export async function getAllGalleryItems(limit = 50, offset = 0) {
 
 export async function createGalleryItem(data: any) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   const { galleryItems } = await import("../drizzle/schema.js");
 
@@ -501,7 +511,7 @@ export async function createGalleryItem(data: any) {
 
 export async function deleteGalleryItem(id: number) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   const { galleryItems } = await import("../drizzle/schema.js");
 
@@ -511,14 +521,16 @@ export async function deleteGalleryItem(id: number) {
 
 export async function getFeaturedHomeContent() {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   const { pageContent } = await import("../drizzle/schema.js");
 
   const rows = await db
     .select()
     .from(pageContent)
-    .where(and(eq(pageContent.featuredHome, true), eq(pageContent.visible, true)))
+    .where(
+      and(eq(pageContent.featuredHome, true), eq(pageContent.visible, true))
+    )
     .orderBy(desc(pageContent.createdAt));
 
   return rows;
@@ -528,7 +540,7 @@ export async function getFeaturedHomeContent() {
 
 export async function createBiblicalVerse(data: any) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   const { biblicalVerses } = await import("../drizzle/schema.js");
 
@@ -538,7 +550,7 @@ export async function createBiblicalVerse(data: any) {
 
 export async function getBiblicalVerseById(id: number) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   const { biblicalVerses } = await import("../drizzle/schema.js");
 
@@ -552,7 +564,7 @@ export async function getBiblicalVerseById(id: number) {
 
 export async function getLatestBiblicalVerse() {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   const { biblicalVerses } = await import("../drizzle/schema.js");
 
@@ -566,7 +578,7 @@ export async function getLatestBiblicalVerse() {
 
 export async function listBiblicalVerses() {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   const { biblicalVerses } = await import("../drizzle/schema.js");
 
@@ -579,7 +591,7 @@ export async function listBiblicalVerses() {
 
 export async function deleteBiblicalVerse(id: number) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   const { biblicalVerses, galleryItems } = await import("../drizzle/schema.js");
 
@@ -598,7 +610,7 @@ export async function deleteBiblicalVerse(id: number) {
 
 export async function getPageContent(pageId: string) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   const { pageContent } = await import("../drizzle/schema.js");
 
@@ -613,7 +625,7 @@ export async function getPageContent(pageId: string) {
 
 export async function createPageContent(data: any) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   const { pageContent } = await import("../drizzle/schema.js");
 
@@ -623,7 +635,7 @@ export async function createPageContent(data: any) {
 
 export async function updatePageContent(id: number, data: any) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   const { pageContent } = await import("../drizzle/schema.js");
 
@@ -638,7 +650,7 @@ export async function updatePageContent(id: number, data: any) {
 
 export async function deletePageContent(id: number) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   const { pageContent } = await import("../drizzle/schema.js");
 
@@ -648,7 +660,7 @@ export async function deletePageContent(id: number) {
 
 export async function listPageContent(pageId: string, limit = 50, offset = 0) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   const { pageContent } = await import("../drizzle/schema.js");
 
@@ -665,7 +677,7 @@ export async function listPageContent(pageId: string, limit = 50, offset = 0) {
 
 export async function countPageContent(pageId: string) {
   const db = await getDb();
-  if (!db) throw new Error("Database not available");
+  assertDb(db);
 
   const { pageContent } = await import("../drizzle/schema.js");
 

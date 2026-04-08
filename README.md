@@ -1,43 +1,20 @@
-# 📰 G12 Paris Infos Médias
+# G12 Paris Infos Médias
 
-Un site web moderne pour publier des actualités, des articles et des publications avec support de l'IA générative pour la rédaction.
+Plateforme web moderne pour publier des actualités, articles et publications, avec support IA pour la rédaction.
 
-## ✨ Fonctionnalités Principales
+**Dernière mise à jour**: 2026-04-06  
+**Version**: 1.0.0  
+**Status**: ✅ Opérationnel
 
-### 📄 Gestion de Contenu
+---
 
-- **Articles** - Créer, éditer et publier des articles journalistiques
-- **Publications** - Partager des images et contenus visuels
-- **Catégories** - Organiser le contenu par catégorie
-- **Slugs** - URLs lisibles et SEO-friendly
+## ✨ Fonctionnalités
 
-### 🤖 IA Générative (Groq)
-
-- **Génération de titres** - Créer des titres percutants
-- **Génération de résumés** - Écrire des chapôs professionnels
-- **Correction de texte** - Corriger orthographe et grammaire
-- **Génération de contenu** - Rédiger des articles structurés
-
-### 🔐 Authentification & Autorisation
-
-- **Dev Login** - Compte de développement pour tester
-- **Admin Panel** - Interface d'administration
-- **Contrôle d'accès** - Admin et user roles
-- **JWT Sessions** - Sessions sécurisées
-
-### 🎨 Frontend Moderne
-
-- **React 19** - Dernière version de React
-- **TailwindCSS** - Design responsive et élégant
-- **Radix UI** - Composants d'interface accessibles
-- **Wouter** - Routeur léger et performant
-
-### ⚡ Backend Robuste
-
-- **Node.js + Express** - Serveur performant
-- **tRPC** - RPC typé et sécurisé
-- **Turso/LibSQL** - Base de données distribuée
-- **Drizzle ORM** - Gestion élégante de la base de données
+- Gestion de contenu: articles, publications, catégories, slugs SEO
+- IA générative: titres, résumés, correction, rédaction
+- Authentification: Dev Login, rôles admin/user, JWT
+- Frontend moderne: React 19, TailwindCSS, Radix UI, Wouter
+- Backend robuste: Node.js, Express, tRPC, Turso/LibSQL, Drizzle ORM
 
 ---
 
@@ -47,65 +24,46 @@ Un site web moderne pour publier des actualités, des articles et des publicatio
 
 - Node.js 18+
 - npm ou pnpm
-- Variables d'environnement configurées (voir `.env`)
+- Variables d’environnement configurées (voir `.env`)
 
 ### Installation
 
 ```bash
-# 1. Installer les dépendances
 npm install
-
-# 2. Vérifier TypeScript
 npm run check
-
-# 3. Démarrer le serveur de développement
 npm run dev
+```
+
+### Windows (script)
+
+Double-cliquez `launch-server.bat` et choisissez :
+
+1. Mode Développement (hot-reload, debug)
+2. Mode Production (build + serveur)
+3. Vérifier versions Node/npm
+4. Installer dépendances
+
+### Mac/Linux
+
+```bash
+npm run dev
+npm run build
+npm start
+npm run check
 ```
 
 ### Accès
 
-- **Frontend**: http://localhost:3001/
-- **API**: http://localhost:3001/api/trpc
-
----
-
-## 📖 Utilisation
-
-### Lancer via le Script Batch (Windows)
-
-Double-cliquez sur `launch-server.bat` et choisissez :
-
-1. **Mode Développement** (hot-reload, debug)
-2. **Mode Production** (build + serveur)
-3. **Vérifier versions Node/npm**
-4. **Installer dépendances**
-
-### Commands NPM
-
-```bash
-# Développement
-npm run dev          # Démarrer avec hot-reload
-
-# Build & Production
-npm run build        # Compiler pour production
-npm start            # Lancer en production
-
-# Vérification
-npm run check        # Vérifier les types TypeScript
-npm run format       # Formater le code
-
-# Tests & Database
-npm run test         # Lancer les tests
-npm run db:push      # Générer les migrations
-```
+- Frontend (dev): http://localhost:3001/
+- API tRPC (dev): http://localhost:3001/api/trpc
+- Frontend (prod): http://localhost:3000/ (ou `PORT`)
+- API tRPC (prod): http://localhost:3000/api/trpc
 
 ---
 
 ## 🔐 Authentification
 
-### Test Login (Développement)
-
-Pour tester avec un compte admin :
+Dev Login (développement uniquement):
 
 ```bash
 curl -X POST http://localhost:3001/api/dev/login \
@@ -113,17 +71,15 @@ curl -X POST http://localhost:3001/api/dev/login \
   -d '{"role":"admin"}'
 ```
 
-Ou accédez à `/dev-login` dans le navigateur.
+Ou via `/dev-login` dans le navigateur.
 
-### Production
-
-Configurez `OAUTH_SERVER_URL` et `OWNER_OPEN_ID` dans `.env` pour utiliser OAuth en production.
+Production: configurer `OAUTH_SERVER_URL` et `OWNER_OPEN_ID` dans `.env`.
 
 ---
 
-## 🤖 Utiliser l'IA
+## 🤖 IA
 
-### Exemple: Générer un titre
+### Exemples
 
 ```typescript
 const title = await trpc.ai.generateText.mutate({
@@ -132,111 +88,60 @@ const title = await trpc.ai.generateText.mutate({
 });
 ```
 
-### Types disponibles
+### Types
 
-- `title` - Générer des titres percutants
-- `summary` - Créer des résumés professionnels
-- `correction` - Corriger le texte
-- `content` - Rédiger du contenu structuré
+- `title`
+- `summary`
+- `correction`
+- `content`
+
+### Endpoints IA
+
+- `POST /api/trpc/ai.generateText`
+- `POST /api/trpc/ai.generateImage`
 
 ---
 
-## 📊 Structure du Projet
+## 📚 API (tRPC)
 
-```
-.
-├── client/                    # Frontend React
-│   ├── src/
-│   │   ├── pages/            # Pages du site
-│   │   ├── components/       # Composants réutilisables
-│   │   ├── lib/              # Utilities et configs
-│   │   └── main.tsx          # Entrée React
-│   └── index.html
-├── server/                    # Backend Node.js
-│   ├── main.ts               # Entrée serveur
-│   ├── routers.ts            # Endpoints tRPC
-│   ├── db.ts                 # Fonctions database
-│   └── _core/                # Modules core
-├── shared/                    # Code partagé
-│   ├── types.ts              # Types TypeScript
-│   └── const.ts              # Constantes
-├── api/                       # API Vercel
-├── drizzle/                   # Schéma database
-├── launch-server.bat         # Script de démarrage
-├── SERVER_GUIDE.md           # Guide serveur détaillé
-└── README.md                 # Ce fichier
-```
+Publications:
+
+- `GET /api/trpc/publications.list`
+- `POST /api/trpc/publications.create`
+- `POST /api/trpc/publications.delete`
+
+Articles:
+
+- `GET /api/trpc/articles.list`
+- `GET /api/trpc/articles.bySlug`
+- `POST /api/trpc/articles.create`
+- `POST /api/trpc/articles.update`
+- `POST /api/trpc/articles.delete`
+
+Auth:
+
+- `GET /api/trpc/auth.me`
+- `POST /api/trpc/auth.logout`
 
 ---
 
 ## 🗄️ Base de Données
 
-### Provider
+- Provider: Turso (LibSQL)
+- ORM: Drizzle
+- Tables principales: `users`, `articles`, `publications`, `notifications`, `galleries`, `pages`
 
-- **Turso** (LibSQL) - Base de données distribuée et performante
-- **Drizzle ORM** - Gestion élégante avec type-safety
-
-### Tables Principales
-
-- `users` - Utilisateurs et authentification
-- `articles` - Articles et actualités
-- `publications` - Publications et images
-- `notifications` - Notifications utilisateurs
-- `galleries` - Galeries d'images
-- `pages` - Pages statiques
-
-### Migration
+Migrations:
 
 ```bash
-npm run db:push  # Générer et appliquer les migrations
+npm run db:push
 ```
 
 ---
 
-## 🧪 Tests
+## 📝 Variables d’Environnement
 
-### Type Checking
-
-```bash
-npm run check  # Vérifier les types TypeScript (0 erreurs attendues ✅)
-```
-
-### Tests
-
-```bash
-npm run test   # Lancer les tests unitaires
-```
-
----
-
-## 🚢 Déploiement
-
-### Vercel (Recommandé)
-
-1. Push le code vers GitHub
-2. Connectez le repo à Vercel
-3. Configurez les variables d'environnement
-4. Déployez automatiquement
-
-### Docker
-
-```bash
-docker build -t g12-paris .
-docker run -p 3000:3000 g12-paris
-```
-
-### Autres Hosting
-
-```bash
-npm run build  # Build
-npm start      # Lancer le serveur
-```
-
----
-
-## 📝 Variables d'Environnement
-
-Copiez `.env.example` en `.env` et configurez :
+Copier `.env.example` en `.env` puis configurer:
 
 ```env
 # Database
@@ -249,6 +154,7 @@ JWT_SECRET=votre-secret-ici
 # AI Provider
 PREFERRED_AI_PROVIDER=groq
 GROQ_API_KEY=votre-cle-groq
+GOOGLE_API_KEY=... (optionnel)
 
 # OAuth (Production)
 OAUTH_SERVER_URL=https://...
@@ -257,81 +163,95 @@ OWNER_OPEN_ID=...
 
 ---
 
+## 🧪 Tests
+
+```bash
+npm run check
+npm run test
+npm run build
+```
+
+---
+
 ## 🐛 Troubleshooting
 
-### Erreur: Port déjà utilisé
+Port déjà utilisé: le serveur tente automatiquement le port suivant.
 
-Le serveur essaie automatiquement le port suivant (3001, 3002, etc.)
+Frontend ne charge pas:
 
-### Frontend ne charge pas
-
-- Vérifier que le port 3001 est accessible
-- Vider le cache (Ctrl+Shift+Delete)
+- Vérifier le port 3001
+- Vider le cache navigateur
 - Hard refresh (Ctrl+F5)
 
-### API Erreurs
+API erreurs:
 
-- Vérifier que vous êtes connecté (dev login)
-- Vérifier les logs du serveur
-- Vérifier que `GROQ_API_KEY` est configuré
+- Vérifier la session dev login
+- Vérifier les logs serveur
+- Vérifier `GROQ_API_KEY`
+
+Build:
+
+- `client/index.html` doit exister pour le build
+
+---
+
+## 📊 Structure du Projet
+
+```
+.
+├── client/                    # Frontend React
+├── server/                    # Backend Node.js
+├── shared/                    # Code partagé
+├── api/                       # API Vercel
+├── drizzle/                   # Schéma database
+├── launch-server.bat          # Script de démarrage
+└── README.md                  # Documentation consolidée
+```
 
 ---
 
 ## 📊 État du Projet
 
-| Aspect       | Status | Notes                             |
-| ------------ | ------ | --------------------------------- |
-| TypeScript   | ✅     | 0 erreurs                         |
-| Frontend     | ✅     | React 19, Vite                    |
-| Backend      | ✅     | Node.js, Express, tRPC            |
-| Database     | ✅     | Turso/LibSQL                      |
-| AI           | ✅     | Groq (llama-3.3-70b)              |
-| Auth         | ✅     | JWT + Dev Login                   |
-| Publications | ✅     | 2 publiées                        |
-| Articles     | ✅     | 1 publié                          |
-| Build        | ⚠️     | Nécessite index.html dans client/ |
+| Aspect       | Status | Notes                  |
+| ------------ | ------ | ---------------------- |
+| TypeScript   | ✅     | 0 erreurs              |
+| Frontend     | ✅     | React 19, Vite         |
+| Backend      | ✅     | Node.js, Express, tRPC |
+| Database     | ✅     | Turso/LibSQL           |
+| AI           | ✅     | Groq (llama-3.3-70b)   |
+| Auth         | ✅     | JWT + Dev Login        |
+| Publications | ✅     | 2 publiées             |
+| Articles     | ✅     | 1 publié               |
+
+---
+
+## 🎯 Prochaines Étapes
+
+- Configurer OAuth en production
+- Ajouter des tests automatisés
+- Mettre en place le monitoring
+- Configurer les backups
+- Optimiser les performances
 
 ---
 
 ## 🤝 Contribution
 
-Pour contribuer au projet:
-
-1. Créez une branche `feature/votre-feature`
-2. Faites vos changements
-3. Vérifiez les types: `npm run check`
-4. Formattez le code: `npm run format`
-5. Créez une Pull Request
+1. Créer une branche `feature/votre-feature`
+2. Faire les changements
+3. Vérifier les types: `npm run check`
+4. Formater le code: `npm run format`
+5. Ouvrir une Pull Request
 
 ---
 
 ## 📄 Licence
 
-MIT - Libre d'utilisation
+MIT
 
 ---
 
 ## 📞 Support
 
-Pour des questions ou problèmes:
-
-1. Consultez `SERVER_GUIDE.md`
-2. Vérifiez les logs du serveur
-3. Regardez dans `.manus-logs/` pour les informations de debug
-
----
-
-## 🎉 Prochaines Étapes
-
-- [ ] Configurer OAuth en production
-- [ ] Ajouter des tests automatisés
-- [ ] Mettre en place le monitoring
-- [ ] Configurer les backups
-- [ ] Optimiser les performances
-- [ ] Ajouter plus de fonctionnalités IA
-
----
-
-**Dernière mise à jour**: 2026-02-21  
-**Version**: 1.0.0  
-**Status**: ✅ Opérationnel et prêt pour utilisation
+- Consulter les logs serveur
+- Regarder `.manus-logs/` pour le debug

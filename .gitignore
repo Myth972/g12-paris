@@ -111,3 +111,7 @@ uploads/
 
 # Webdev artifacts (checkpoint zips, migrations, etc.)
 .webdev/
+# Backups
+backup-*
+.manus-logs/
+.npm-cache/

@@ -16,12 +16,13 @@ echo [4] Check Node.js and npm versions
 echo [5] Install dependencies
 echo [6] Run Tests
 echo [7] Format Code
-echo [8] Exit
+echo [8] Restart Server (Dev)
+echo [9] Exit
 echo.
 set choice=1
-set /p choice="Enter choice (1-8) [Default: 1]: "
+set /p choice="Enter choice (1-9) [Default: 1]: "
 
-if "%choice%"=="8" (
+if "%choice%"=="9" (
     exit /b 0
 )
 
@@ -95,6 +96,26 @@ if "%choice%"=="7" (
     echo.
     echo Code formatted!
     pause
+    goto menu
+)
+
+if "%choice%"=="8" (
+    echo.
+    echo ==========================================
+    echo    Restarting Development Server
+    echo ==========================================
+    echo.
+    echo Stopping server on ports 3000/3001 if running...
+    for /f "tokens=5" %%a in ('netstat -ano ^| findstr :3000') do taskkill /F /PID %%a >nul 2>nul
+    for /f "tokens=5" %%a in ('netstat -ano ^| findstr :3001') do taskkill /F /PID %%a >nul 2>nul
+    echo.
+    echo Starting Development Mode...
+    echo Frontend: http://localhost:3001/
+    echo API: http://localhost:3001/api/trpc
+    echo.
+    echo Press Ctrl+C to stop the server
+    echo.
+    call npm run dev
     goto menu
 )
 

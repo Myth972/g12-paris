@@ -4,6 +4,8 @@ import YouTubeEmbed from "@/components/YouTubeEmbed";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { Quote } from "lucide-react";
+import PageTitleEditor from "@/components/PageTitleEditor";
+import PageTextEditor from "@/components/PageTextEditor";
 
 const containerVars = {
   hidden: { opacity: 0 },
@@ -35,6 +37,12 @@ export default function PublicationDuJour() {
   const verseItem = items.find((i: any) => i.verse);
   const verse = verseItem?.verse || latestVerse;
   const isLoading = galleryLoading;
+  const pairCount = Math.max(imageItems.length, videoItems.length);
+  const pairedItems = Array.from({ length: pairCount }).map((_, idx) => ({
+    image: imageItems[idx],
+    video: videoItems[idx],
+    index: idx,
+  }));
 
   return (
     <div className="min-h-screen bg-slate-50/30">
@@ -45,9 +53,21 @@ export default function PublicationDuJour() {
         className="py-12 md:py-20 text-center"
       >
         <div className="container">
-          <h1 className="text-4xl md:text-5xl font-bold font-serif text-foreground tracking-tight">
-            Publications du Jour
-          </h1>
+          <PageTitleEditor
+            pageKey="publication-du-jour"
+            defaultH1="Publications du Jour"
+            defaultH2=""
+            h1ClassName="text-4xl md:text-5xl font-bold font-serif text-foreground tracking-tight"
+            alignClassName="text-center"
+          />
+          <div className="mt-4 max-w-2xl mx-auto">
+            <PageTextEditor
+              pageKey="publication-du-jour"
+              textKey="hero"
+              defaultText="Découvrez les publications mises en avant du jour, entre images inspirantes et vidéos édifiantes."
+              className="text-muted-foreground text-base leading-relaxed"
+            />
+          </div>
           <div className="w-24 h-1 bg-primary mx-auto mt-6 rounded-full opacity-60" />
         </div>
       </motion.section>
@@ -103,95 +123,90 @@ export default function PublicationDuJour() {
           </motion.section>
         )}
 
-        {/* Images du Jour */}
-        {(isLoading || imageItems.length > 0) && (
-          <motion.section variants={sectionVars} className="container pb-16">
-            <div className="max-w-5xl mx-auto">
-              <div className="flex items-center gap-4 mb-8">
-                <h2 className="text-2xl font-serif font-bold text-foreground">
-                  Images du Jour
-                </h2>
-                <div className="flex-1 h-px bg-border/40" />
-              </div>
-
-              {isLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {[0, 1].map(i => (
-                    <div key={i} className="rounded-xl overflow-hidden border border-border/40">
-                      <Skeleton className="w-full aspect-video" />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {imageItems.map((item: any, idx: number) => (
-                    <motion.div
-                      key={item.id}
-                      whileHover={{ y: -4, scale: 1.01 }}
-                      className="group rounded-xl overflow-hidden border border-border/30 bg-white/40 backdrop-blur-sm hover:shadow-xl hover:border-primary/10 transition-all duration-300"
-                    >
-                      <div className="overflow-hidden">
-                        <img
-                          src={item.mediaUrl}
-                          alt={item.title}
-                          className="w-full aspect-[16/10] object-cover group-hover:scale-105 transition-transform duration-1000"
-                        />
-                      </div>
-                      <div className="p-3 text-center border-t border-border/10 bg-white/20">
-                        <p className="text-sm font-medium text-primary/80">
-                          {item.title || `Légende ${idx + 1}`}
-                        </p>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </motion.section>
-        )}
-
-        {/* Vidéos à la Une */}
-        {(isLoading || videoItems.length > 0) && (
+        {/* Publications du Jour (Image 1 + Video 1, etc.) */}
+        {(isLoading || pairedItems.length > 0) && (
           <motion.section variants={sectionVars} className="container pb-24">
-            <div className="max-w-5xl mx-auto">
+            <div className="max-w-6xl mx-auto">
               <div className="flex items-center gap-4 mb-8">
                 <h2 className="text-2xl font-serif font-bold text-foreground">
-                  Vidéos à la Une
+                  Publications du Jour
                 </h2>
                 <div className="flex-1 h-px bg-border/40" />
               </div>
 
               {isLoading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   {[0, 1].map(i => (
-                    <div key={i} className="rounded-xl overflow-hidden border border-border/40">
-                      <Skeleton className="w-full aspect-video" />
+                    <div
+                      key={i}
+                      className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                    >
+                      <div className="rounded-xl overflow-hidden border border-border/40">
+                        <Skeleton className="w-full aspect-[16/10]" />
+                      </div>
+                      <div className="rounded-xl overflow-hidden border border-border/40">
+                        <Skeleton className="w-full aspect-video" />
+                      </div>
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {videoItems.map((item: any, idx: number) => (
+                <div className="space-y-8">
+                  {pairedItems.map(pair => (
                     <motion.div
-                      key={item.id}
-                      whileHover={{ y: -4, scale: 1.01 }}
-                      className="rounded-xl overflow-hidden border border-border/30 bg-white/40 backdrop-blur-sm hover:shadow-xl hover:border-primary/10 transition-all duration-300"
+                      key={`pair-${pair.index}`}
+                      whileHover={{ y: -2 }}
+                      className="grid grid-cols-1 md:grid-cols-2 gap-6"
                     >
-                      <div className="px-4 py-2.5 bg-primary/5 flex items-center justify-between border-b border-border/10">
-                        <span className="text-[10px] font-bold uppercase tracking-widest text-primary/60">
-                          Vidéo {idx + 1}
-                        </span>
+                      {/* Image */}
+                      <div className="group rounded-xl overflow-hidden border border-border/30 bg-white/40 backdrop-blur-sm hover:shadow-xl hover:border-primary/10 transition-all duration-300">
+                        {pair.image ? (
+                          <>
+                            <div className="overflow-hidden">
+                              <img
+                                src={pair.image.mediaUrl}
+                                alt={pair.image.title}
+                                className="w-full aspect-[16/10] object-cover group-hover:scale-105 transition-transform duration-1000"
+                              />
+                            </div>
+                            <div className="p-3 text-center border-t border-border/10 bg-white/20">
+                              <p className="text-sm font-medium text-primary/80">
+                                {pair.image.title || `Image ${pair.index + 1}`}
+                              </p>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="w-full aspect-[16/10] flex items-center justify-center text-xs text-muted-foreground">
+                            Aucune image
+                          </div>
+                        )}
                       </div>
-                      <div className="p-4 bg-white/10">
-                        {item.youtubeUrl ? (
-                          <YouTubeEmbed url={item.youtubeUrl} />
-                        ) : item.mediaUrl ? (
-                          <video
-                            src={item.mediaUrl}
-                            controls
-                            className="w-full rounded-lg aspect-video object-cover"
-                          />
-                        ) : null}
+
+                      {/* Video */}
+                      <div className="rounded-xl overflow-hidden border border-border/30 bg-white/40 backdrop-blur-sm hover:shadow-xl hover:border-primary/10 transition-all duration-300">
+                        <div className="px-4 py-2.5 bg-primary/5 flex items-center justify-between border-b border-border/10">
+                          <span className="text-[10px] font-bold uppercase tracking-widest text-primary/60">
+                            Vidéo {pair.index + 1}
+                          </span>
+                        </div>
+                        <div className="p-4 bg-white/10">
+                          {pair.video ? (
+                            pair.video.youtubeUrl ? (
+                              <YouTubeEmbed url={pair.video.youtubeUrl} />
+                            ) : pair.video.mediaUrl ? (
+                              <video
+                                src={pair.video.mediaUrl}
+                                controls
+                                muted
+                                className="w-full rounded-lg aspect-video object-contain bg-black/5"
+                              />
+                            ) : null
+                          ) : (
+                            <div className="w-full aspect-video flex items-center justify-center text-xs text-muted-foreground bg-black/5 rounded-lg">
+                              Aucune vidéo
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </motion.div>
                   ))}

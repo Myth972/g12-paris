@@ -43,6 +43,7 @@ export const articles = sqliteTable("articles", {
   coverImageUrl: text("coverImageUrl"),
   coverImageKey: text("coverImageKey"),
   youtubeUrl: text("youtubeUrl"),
+  verseId: integer("verseId"),
   category: text("category").default("actualité").notNull(),
   published: integer("published", { mode: "boolean" }).default(false).notNull(),
   authorId: integer("authorId").notNull(),
@@ -160,3 +161,27 @@ export const pageContent = sqliteTable("page_content", {
 
 export type PageContent = typeof pageContent.$inferSelect;
 export type InsertPageContent = typeof pageContent.$inferInsert;
+
+export const subscribers = sqliteTable("subscribers", {
+  id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
+  email: text("email").notNull().unique(),
+  name: text("name"),
+  createdAt: integer("createdAt", { mode: "timestamp" })
+    .default(sql`(strftime('%s', 'now'))`)
+    .notNull(),
+});
+
+export type Subscriber = typeof subscribers.$inferSelect;
+export type InsertSubscriber = typeof subscribers.$inferInsert;
+
+export const siteSettings = sqliteTable("site_settings", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  key: text("key").notNull().unique(),
+  value: text("value"),
+  updatedAt: integer("updatedAt", { mode: "timestamp" })
+    .default(sql`(strftime('%s', 'now'))`)
+    .notNull(),
+});
+
+export type SiteSetting = typeof siteSettings.$inferSelect;
+export type InsertSiteSetting = typeof siteSettings.$inferInsert;

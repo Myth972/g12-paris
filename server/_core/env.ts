@@ -7,6 +7,12 @@ export const ENV = {
   adminPassword: process.env.ADMIN_PASSWORD ?? "",
   groqApiKey: process.env.GROQ_API_KEY ?? "",
   googleApiKey: process.env.GOOGLE_API_KEY ?? "",
+  minimaxApiKey: process.env.MINIMAX_API_KEY ?? "",
+  aimlApiKey: process.env.AIMLAPI_KEY ?? "",
   preferredAiProvider:
-    (process.env.PREFERRED_AI_PROVIDER as "google" | "groq") ?? "google",
+    (process.env.PREFERRED_AI_PROVIDER as
+      | "google"
+      | "groq"
+      | "minimax"
+      | "aimlapi") ?? "groq",
 };

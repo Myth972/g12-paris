@@ -40,10 +40,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import PageContentManager from "@/components/PageContentManager";
-import VersesManager from "@/components/VersesManager";
-import GalleryManager from "@/components/GalleryManager";
-import { AIChatBox, Message } from "@/components/AIChatBox";
 import {
   Plus,
   Pencil,
@@ -61,10 +57,28 @@ import {
   AlertCircle,
   HelpCircle,
   BookOpen,
+  Mail,
+  Wand2,
+  Loader2,
 } from "lucide-react";
-import { useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
+import { useAiProvider } from "@/hooks/useAiProvider";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
+
+// Lazy-loaded components for admin tabs
+const PageContentManager = lazy(() => import("@/components/PageContentManager"));
+const VersesManager = lazy(() => import("@/components/VersesManager"));
+const GalleryManager = lazy(() => import("@/components/GalleryManager"));
+const NewsletterAdmin = lazy(() => import("./NewsletterAdmin"));
+const KlingStudio = lazy(() => import("./KlingStudio"));
+const AIChatBox = lazy(() => import("@/components/AIChatBox").then(m => ({ default: m.AIChatBox })));
+
+import HomeHeroBackgroundSettings from "@/components/HomeHeroBackgroundSettings";
+import CulteHeroBackgroundSettings from "@/components/CulteHeroBackgroundSettings";
+import CulteBannerSettings from "@/components/CulteBannerSettings";
+
+import { Message } from "@/components/AIChatBox";
 
 function formatDate(date: Date): string {
   return new Date(date).toLocaleDateString("fr-FR", {
@@ -547,13 +561,33 @@ function NotificationsTab() {
 // ─── AI Assistant Tab ──────────────────────────────────────────
 
 function AIAssistantTab() {
+  const {
+    providers,
+    provider,
+    activeProvider,
+    setProvider,
+    testProvider,
+    isTesting,
+  } = useAiProvider();
+
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "system",
-      content:
-        "Tu es un assistant IA puissant et utile. Tu aides l'administrateur du site G12 Paris à gérer le contenu, rédiger des articles et répondre aux questions. Ton modèle actuel est Llama 3.3 70B via Groq.",
+      content: `Tu es un assistant IA puissant et utile. Tu aides l'administrateur du site G12 Paris à gérer le contenu, rédiger des articles et répondre aux questions. Ton modèle actuel est ${activeProvider.model} via ${activeProvider.label}.`,
     },
   ]);
+
+  useEffect(() => {
+    setMessages(prev => {
+      if (prev.length === 0 || prev[0].role !== "system") return prev;
+      const next = [...prev];
+      next[0] = {
+        ...next[0],
+        content: `Tu es un assistant IA puissant et utile. Tu aides l'administrateur du site G12 Paris à gérer le contenu, rédiger des articles et répondre aux questions. Ton modèle actuel est ${activeProvider.model} via ${activeProvider.label}.`,
+      };
+      return next;
+    });
+  }, [activeProvider.label, activeProvider.model]);
 
   const chatMutation = trpc.ai.chat.useMutation({
     onSuccess: response => {
@@ -578,15 +612,46 @@ function AIAssistantTab() {
 
   return (
     <div className="max-w-4xl mx-auto flex flex-col gap-4">
-      <div className="flex items-center gap-2 mb-2">
-        <Sparkles className="w-5 h-5 text-primary" />
-        <div>
-          <h3 className="text-lg font-serif font-bold text-foreground">
-            Assistant IA Groq
-          </h3>
-          <p className="text-xs text-muted-foreground">
-            Llama 3.3 70B - Sans limites pour votre rédaction
-          </p>
+      <div className="flex items-start justify-between gap-4 mb-2">
+        <div className="flex items-center gap-2">
+          <Sparkles className="w-5 h-5 text-primary" />
+          <div>
+            <h3 className="text-lg font-serif font-bold text-foreground">
+              Assistant IA — {activeProvider.label}
+            </h3>
+            <p className="text-xs text-muted-foreground">
+              {activeProvider.model} • {activeProvider.description}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="min-w-[220px]">
+            <Select
+              value={provider}
+              onValueChange={value => {
+                setProvider(value as any);
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {providers.map(p => (
+                  <SelectItem key={p.value} value={p.value}>
+                    {p.label} — {p.model}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => testProvider(provider)}
+            disabled={isTesting}
+          >
+            {isTesting ? "Test..." : "Tester l'IA"}
+          </Button>
         </div>
       </div>
 
@@ -695,9 +760,17 @@ export default function Admin() {
               <BookOpen className="w-4 h-4" />
               Publications & Versets
             </TabsTrigger>
+            <TabsTrigger value="newsletter" className="gap-2">
+              <Mail className="w-4 h-4" />
+              Newsletter
+            </TabsTrigger>
             <TabsTrigger value="ai" className="gap-2">
               <Sparkles className="w-4 h-4 text-primary" />
               Assistant IA
+            </TabsTrigger>
+            <TabsTrigger value="kling" className="gap-2">
+              <Wand2 className="w-4 h-4 text-violet-500" />
+              Kling Studio
             </TabsTrigger>
           </TabsList>
           <TabsContent value="articles">
@@ -707,30 +780,45 @@ export default function Admin() {
             <NotificationsTab />
           </TabsContent>
           <TabsContent value="pages">
-            <div className="space-y-8">
-              <PageContentManager pageId="home" pageName="Accueil" />
-              <PageContentManager
-                pageId="publication-du-jour"
-                pageName="Publication du jour"
-              />
-              <PageContentManager pageId="galeries" pageName="Galeries" />
-              <PageContentManager
-                pageId="culte-en-ligne"
-                pageName="Culte en ligne"
-              />
-              <PageContentManager
-                pageId="bibliotheque"
-                pageName="Bibliothèque"
-              />
-            </div>
+            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> Chargement du gestionnaire...</div>}>
+              <div className="space-y-8">
+                <HomeHeroBackgroundSettings />
+                <CulteHeroBackgroundSettings />
+                <CulteBannerSettings />
+                <PageContentManager pageId="home" pageName="Accueil" />
+                <PageContentManager
+                  pageId="publication-du-jour"
+                  pageName="Publication du jour"
+                />
+                <PageContentManager pageId="galeries" pageName="Galeries" />
+                <PageContentManager
+                  pageId="culte-en-ligne"
+                  pageName="Culte en ligne"
+                />
+                <PageContentManager
+                  pageId="bibliotheque"
+                  pageName="Bibliothèque"
+                />
+              </div>
+            </Suspense>
           </TabsContent>
           <TabsContent value="publications" className="space-y-8">
-            <GalleryManager />
-            <div className="h-px bg-border my-8" />
-            <VersesManager />
+            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> Chargement...</div>}>
+               <GalleryManager />
+               <div className="h-px bg-border my-8" />
+               <VersesManager />
+            </Suspense>
+          </TabsContent>
+          <TabsContent value="newsletter">
+            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> Chargement...</div>}>
+              <NewsletterAdmin />
+            </Suspense>
           </TabsContent>
           <TabsContent value="ai">
             <AIAssistantTab />
+          </TabsContent>
+          <TabsContent value="kling" className="py-4">
+            <KlingStudio />
           </TabsContent>
         </Tabs>
       </div>
