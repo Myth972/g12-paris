@@ -9,6 +9,7 @@ export const ENV = {
   googleApiKey: process.env.GOOGLE_API_KEY ?? "",
   minimaxApiKey: process.env.MINIMAX_API_KEY ?? "",
   aimlApiKey: process.env.AIMLAPI_KEY ?? "",
+  blobToken: process.env.BLOB_READ_WRITE_TOKEN ?? "",
   preferredAiProvider:
     (process.env.PREFERRED_AI_PROVIDER as
       | "google"

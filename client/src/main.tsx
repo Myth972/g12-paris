@@ -7,6 +7,8 @@ import superjson from "superjson";
 import App from "./App";
 import { getLoginUrl } from "./const";
 import "./index.css";
+import { SpeedInsights } from "@vercel/speed-insights/react";
+import { Analytics } from "@vercel/analytics/react";
 
 const queryClient = new QueryClient();
 const CSRF_COOKIE_NAME = "csrf_token";
@@ -92,10 +94,25 @@ const trpcClient = trpc.createClient({
   ],
 });
 
+const isLocalhost = Boolean(
+  typeof window !== "undefined" &&
+    (window.location.hostname === "localhost" ||
+      window.location.hostname === "[::1]" ||
+      window.location.hostname.match(
+        /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
+      ))
+);
+
 createRoot(document.getElementById("root")!).render(
   <trpc.Provider client={trpcClient} queryClient={queryClient}>
     <QueryClientProvider client={queryClient}>
       <App />
+      {import.meta.env.PROD && !isLocalhost && (
+        <>
+          <SpeedInsights />
+          <Analytics />
+        </>
+      )}
     </QueryClientProvider>
   </trpc.Provider>
 );

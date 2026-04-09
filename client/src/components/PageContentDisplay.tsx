@@ -43,7 +43,7 @@ function PageContentItemDisplay({ item }: { item: PageContentItem }) {
     <motion.div
       variants={itemVars}
       whileHover={{ y: -4, scale: 1.01 }}
-      className="group rounded-xl overflow-hidden border border-border/30 bg-card/60 backdrop-blur-sm hover:shadow-xl hover:border-primary/10 transition-all duration-300"
+      className="group rounded-xl overflow-hidden border border-border/40 bg-card/60 backdrop-blur-md hover:shadow-xl hover:border-primary/10 transition-all duration-300"
     >
       {/* Media */}
       <div className="overflow-hidden relative">
@@ -69,7 +69,7 @@ function PageContentItemDisplay({ item }: { item: PageContentItem }) {
       </div>
 
       {/* Caption */}
-      <div className="py-2 px-3 text-center bg-white/30 backdrop-blur-md">
+      <div className="py-3 px-4 text-center bg-white/20 backdrop-blur-lg border-t border-border/10">
         <p className="text-xs sm:text-sm text-primary/80 font-medium tracking-tight">
           {item.title}
         </p>

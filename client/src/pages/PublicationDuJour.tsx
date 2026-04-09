@@ -126,7 +126,7 @@ export default function PublicationDuJour() {
         {/* Publications du Jour (Image 1 + Video 1, etc.) */}
         {(isLoading || pairedItems.length > 0) && (
           <motion.section variants={sectionVars} className="container pb-24">
-            <div className="max-w-6xl mx-auto">
+            <div className="max-w-5xl mx-auto">
               <div className="flex items-center gap-4 mb-8">
                 <h2 className="text-2xl font-serif font-bold text-foreground">
                   Publications du Jour
@@ -155,22 +155,21 @@ export default function PublicationDuJour() {
                   {pairedItems.map(pair => (
                     <motion.div
                       key={`pair-${pair.index}`}
-                      whileHover={{ y: -2 }}
                       className="grid grid-cols-1 md:grid-cols-2 gap-6"
                     >
                       {/* Image */}
-                      <div className="group rounded-xl overflow-hidden border border-border/30 bg-white/40 backdrop-blur-sm hover:shadow-xl hover:border-primary/10 transition-all duration-300">
+                      <div className="group rounded-xl overflow-hidden border border-border/40 bg-card/60 backdrop-blur-md hover:shadow-xl hover:border-primary/10 transition-all duration-300">
                         {pair.image ? (
                           <>
-                            <div className="overflow-hidden">
+                            <div className="overflow-hidden relative">
                               <img
                                 src={pair.image.mediaUrl}
                                 alt={pair.image.title}
-                                className="w-full aspect-[16/10] object-cover group-hover:scale-105 transition-transform duration-1000"
+                                className="w-full aspect-[16/10] object-cover group-hover:scale-105 transition-transform duration-1000 ease-in-out"
                               />
                             </div>
-                            <div className="p-3 text-center border-t border-border/10 bg-white/20">
-                              <p className="text-sm font-medium text-primary/80">
+                            <div className="py-3 px-4 text-center border-t border-border/10 bg-white/20 backdrop-blur-lg">
+                              <p className="text-sm font-medium text-primary/80 tracking-tight">
                                 {pair.image.title || `Image ${pair.index + 1}`}
                               </p>
                             </div>
@@ -183,13 +182,13 @@ export default function PublicationDuJour() {
                       </div>
 
                       {/* Video */}
-                      <div className="rounded-xl overflow-hidden border border-border/30 bg-white/40 backdrop-blur-sm hover:shadow-xl hover:border-primary/10 transition-all duration-300">
-                        <div className="px-4 py-2.5 bg-primary/5 flex items-center justify-between border-b border-border/10">
+                      <div className="rounded-xl overflow-hidden border border-border/40 bg-card/60 backdrop-blur-md hover:shadow-xl hover:border-primary/10 transition-all duration-300">
+                        <div className="px-5 py-3 bg-white/10 backdrop-blur-lg flex items-center justify-between border-b border-border/10">
                           <span className="text-[10px] font-bold uppercase tracking-widest text-primary/60">
                             Vidéo {pair.index + 1}
                           </span>
                         </div>
-                        <div className="p-4 bg-white/10">
+                        <div className="p-4">
                           {pair.video ? (
                             pair.video.youtubeUrl ? (
                               <YouTubeEmbed url={pair.video.youtubeUrl} />

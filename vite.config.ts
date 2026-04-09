@@ -190,39 +190,52 @@ export default defineConfig({
       output: {
         manualChunks: (id) => {
           if (id.includes("node_modules")) {
-            // Group the core UI framework together to avoid initialization order issues
+            // 1. Core Framework & Essential UI (Regroups pour viter les erreurs de contexte React)
             if (
               id.includes("react") ||
-              id.includes("react-dom") ||
               id.includes("wouter") ||
+              id.includes("scheduler") ||
               id.includes("lucide-react") ||
               id.includes("@radix-ui") ||
               id.includes("framer-motion") ||
+              id.includes("embla-carousel") ||
               id.includes("clsx") ||
-              id.includes("tailwind-merge")
+              id.includes("tailwind-merge") ||
+              id.includes("class-variance-authority") ||
+              id.includes("@vercel/analytics") ||
+              id.includes("@vercel/speed-insights")
             ) {
-              return "vendor-framework";
+              return "vendor-ui-core";
             }
-            
-            // Extract package name, handling .pnpm structure
-            const parts = id.toString().split("node_modules/");
-            if (parts.length > 1) {
-              let pathSeg = parts[parts.length - 1];
-              if (pathSeg.startsWith(".pnpm/")) {
-                 const subParts = id.toString().split("node_modules/");
-                 pathSeg = subParts[subParts.length - 1];
-              }
-              
-              const pkgName = pathSeg.split("/")[0];
-              if (pkgName.startsWith("@")) {
-                const subPkg = pathSeg.split("/")[1];
-                return `vendor-${pkgName.replace("@", "")}-${subPkg}`;
-              }
-              if (pkgName && !pkgName.startsWith(".")) {
-                return `vendor-${pkgName}`;
-              }
+            // 3. Rich Text Editor
+            if (id.includes("@tiptap") || id.includes("prosemirror")) {
+              return "vendor-editor";
             }
-            return "vendor-misc";
+            // 4. Data Fetching & State
+            if (
+              id.includes("@tanstack") ||
+              id.includes("@trpc") ||
+              id.includes("zod") ||
+              id.includes("react-hook-form") ||
+              id.includes("axios") ||
+              id.includes("superjson")
+            ) {
+              return "vendor-data";
+            }
+            // 5. AI & Code Formatting
+            if (id.includes("shiki") || id.includes("streamdown")) {
+              return "vendor-ai-highlight";
+            }
+            // 6. Diagrams & Visualizations (Isolés pour éviter les conflits d'initialisation)
+            if (id.includes("mermaid")) {
+              return "vendor-mermaid";
+            }
+            if (id.includes("katex")) {
+              return "vendor-katex";
+            }
+            if (id.includes("cytoscape")) {
+              return "vendor-visuals";
+            }
           }
         },
       },

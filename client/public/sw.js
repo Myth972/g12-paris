@@ -1,4 +1,4 @@
-const CACHE_NAME = "g12-paris-cache-v4";
+const CACHE_NAME = "g12-paris-cache-v8";
 const urlsToCache = [
   "/",
   "/index.html",
