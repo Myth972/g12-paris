@@ -29,12 +29,20 @@ export async function storagePut(
 
   if (ENV.blobToken) {
     // Production / Cloud Storage
-    const blob = await put(key, data, {
+    const blobData = data instanceof Uint8Array ? Buffer.from(data) : data;
+    const blob = await put(key, blobData, {
       access: "public",
       contentType,
       token: ENV.blobToken,
     });
     return { key: blob.pathname, url: blob.url };
+  }
+
+  // If we are on Vercel but blobToken is missing, we must NOT try to write to local FS
+  if (process.env.VERCEL) {
+    throw new Error(
+      "Vercel Blob n'est pas configuré. Veuillez créer un Blob Store dans le dashboard Vercel et redéployer."
+    );
   }
 
   // Local / Development Storage
