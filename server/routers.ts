@@ -1,4 +1,4 @@
-﻿import { COOKIE_NAME } from "../shared/const.js";
+import { COOKIE_NAME } from "../shared/const.js";
 import { getSessionCookieOptions } from "./_core/cookies.js";
 import { systemRouter } from "./_core/systemRouter.js";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc.js";
@@ -104,7 +104,7 @@ export const appRouter = router({
         const { ONE_YEAR_MS, COOKIE_NAME } = await import("../shared/const.js");
         const cookieOptions = getSessionCookieOptions(ctx.req);
 
-        ctx.res.cookie(COOKIE_NAME, sessionToken, {
+        (ctx.res as any).cookie(COOKIE_NAME, sessionToken, {
           ...cookieOptions,
           maxAge: ONE_YEAR_MS,
         });
@@ -113,7 +113,7 @@ export const appRouter = router({
       }),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
-      ctx.res.clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
+      (ctx.res as any).clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
     }),
   }),
@@ -566,7 +566,7 @@ export const appRouter = router({
       const { ENV } = await import("./_core/env.js");
       const { getDb } = await import("./db.js");
       const db = await getDb();
-      let provider: "google" | "groq" | undefined = ENV.preferredAiProvider;
+      let provider: "google" | "groq" | "minimax" | "aimlapi" | undefined = ENV.preferredAiProvider as any;
 
       if (db) {
         const { siteSettings } = await import("../drizzle/schema.js");
@@ -813,7 +813,7 @@ export const appRouter = router({
             },
             { role: "user", content: prompt },
           ],
-          provider,
+          provider: "minimax", // Forcément MiniMax pour une meilleure compréhension spirituelle et contextuelle
         });
 
         const raw = (response.choices[0].message.content as string) || "";

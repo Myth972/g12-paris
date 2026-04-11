@@ -18,21 +18,23 @@ const CSRF_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 7;
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
 
-const readCsrfCookie = (req: express.Request) => {
-  const header = req.headers.cookie;
+const readCsrfCookie = (req: any) => {
+  const header = req.headers?.cookie || req.headers?.get?.("cookie");
   if (!header) return undefined;
   const parsed = parseCookieHeader(header);
   return parsed[CSRF_COOKIE_NAME];
 };
 
-const ensureCsrfCookie = (req: express.Request, res: express.Response) => {
+const ensureCsrfCookie = (req: any, res: any) => {
   let token = readCsrfCookie(req);
   if (!token) {
     token = crypto.randomBytes(32).toString("hex");
-    res.cookie(CSRF_COOKIE_NAME, token, {
-      ...getCsrfCookieOptions(req),
-      maxAge: CSRF_MAX_AGE_MS,
-    });
+    if (res.cookie) {
+      res.cookie(CSRF_COOKIE_NAME, token, {
+        ...getCsrfCookieOptions(req),
+        maxAge: CSRF_MAX_AGE_MS,
+      });
+    }
   }
   return token;
 };
@@ -47,13 +49,13 @@ console.log("[Vercel API] Env check:", {
 });
 
 // Middleware to ensure CSRF cookie is present
-app.use((req, res, next) => {
+app.use((req: any, res: any, next: any) => {
   ensureCsrfCookie(req, res);
   next();
 });
 
 // CSRF token endpoint (CRITICAL for frontend)
-app.get("/api/csrf", (req, res) => {
+app.get("/api/csrf", (req: any, res: any) => {
   try {
     const token = ensureCsrfCookie(req, res);
     res.status(200).json({ token });
@@ -64,7 +66,7 @@ app.get("/api/csrf", (req, res) => {
 });
 
 // Health check
-app.get("/api/health", (req, res) => {
+app.get("/api/health", (req: any, res: any) => {
   res.json({
     status: "ok",
     databaseLinked: !!process.env.TURSO_DATABASE_URL,
@@ -82,12 +84,14 @@ app.use(
 );
 
 // Global Error Handler
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: any, req: any, res: any, next: any) => {
   console.error("[Vercel API] Global Error:", err);
-  res.status(err.status || 500).json({
-    error: "Internal Server Error",
-    message: process.env.NODE_ENV === "development" ? err.message : "An unexpected error occurred",
-  });
+  if (res.status) {
+    res.status(err.status || 500).json({
+      error: "Internal Server Error",
+      message: process.env.NODE_ENV === "development" ? err.message : "An unexpected error occurred",
+    });
+  }
 });
 
 export default app;

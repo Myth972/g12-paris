@@ -69,8 +69,8 @@ class SDKServer {
     }
   }
 
-  async authenticateRequest(req: Request): Promise<User> {
-    const cookies = this.parseCookies(req.headers.cookie);
+  async authenticateRequest(req: any): Promise<User> {
+    const cookies = this.parseCookies(req.headers?.cookie);
     const sessionCookie = cookies.get(COOKIE_NAME);
     const session = await this.verifySession(sessionCookie);
 
