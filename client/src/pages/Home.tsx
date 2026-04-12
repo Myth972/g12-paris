@@ -58,7 +58,7 @@ export default function Home() {
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/60 to-transparent pointer-events-none" />
-        <div className="container">
+        <div className="container relative z-10">
           <div className="max-w-2xl">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-0.5 bg-primary rounded-full" />

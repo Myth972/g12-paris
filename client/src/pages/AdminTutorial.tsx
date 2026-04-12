@@ -174,6 +174,29 @@ export default function AdminTutorial() {
           </Card>
         </section>
 
+        {/* Section: Live Badge */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 text-xl font-semibold">
+            <HelpCircle className="h-6 w-6 text-primary" />
+            <h2>Statut "En direct"</h2>
+          </div>
+          <Card>
+            <CardContent className="pt-6 space-y-2">
+              <p className="text-sm">
+                Sur la page <strong>Culte en ligne</strong>, un badge{" "}
+                <strong>"En direct"</strong> indique l'état du live.
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Pour l'activer ou le désactiver : Administration → Contenu des
+                pages → Paramètres "Culte en ligne".
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Indicateur : LED rouge = en ligne, LED noire = hors ligne.
+              </p>
+            </CardContent>
+          </Card>
+        </section>
+
         {/* Footer */}
         <div className="text-center pt-8 border-t">
           <p className="text-sm text-muted-foreground">

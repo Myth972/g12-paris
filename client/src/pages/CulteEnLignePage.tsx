@@ -14,6 +14,10 @@ export default function CulteEnLignePage() {
     Math.min(60, Number(heroOpacityRaw ?? 18))
   );
   const heroOpacity = heroOpacityPercent / 100;
+  const liveEnabledRaw = settingsQuery.data?.culteLiveEnabled as
+    | string
+    | undefined;
+  const liveEnabled = liveEnabledRaw !== "false";
 
   return (
     <div className="min-h-screen">
@@ -29,7 +33,7 @@ export default function CulteEnLignePage() {
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/60 to-transparent pointer-events-none" />
-        <div className="container">
+        <div className="container relative z-10">
           <div className="max-w-2xl">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-0.5 bg-primary rounded-full" />
@@ -38,12 +42,24 @@ export default function CulteEnLignePage() {
               </span>
             </div>
             {/* Live Badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-wider mb-6 animate-in fade-in slide-in-from-top-4 duration-1000">
+            <div
+              className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider mb-6 animate-in fade-in slide-in-from-top-4 duration-1000 ${
+                liveEnabled
+                  ? "bg-white text-red-600 border border-red-200 shadow-sm"
+                  : "bg-black text-white border border-black/80 shadow-sm"
+              }`}
+            >
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+                {liveEnabled && (
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-300 opacity-75"></span>
+                )}
+                <span
+                  className={`relative inline-flex rounded-full h-2 w-2 ${
+                    liveEnabled ? "bg-red-600" : "bg-white"
+                  }`}
+                ></span>
               </span>
-              En direct
+              {liveEnabled ? "En direct" : "Hors ligne"}
             </div>
 
             <PageTitleEditor

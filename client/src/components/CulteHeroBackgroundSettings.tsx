@@ -3,6 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { useBlobUpload } from "@/hooks/useBlobUpload";
 
@@ -18,6 +19,8 @@ export default function CulteHeroBackgroundSettings() {
   const currentOpacityRaw = settingsQuery.data?.culteHeroBgOpacity ?? "18";
   const currentOpacity = Number(currentOpacityRaw) || 18;
   const [opacity, setOpacity] = useState(currentOpacity);
+  const liveEnabledRaw = settingsQuery.data?.culteLiveEnabled;
+  const liveEnabled = liveEnabledRaw !== "false";
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -41,6 +44,13 @@ export default function CulteHeroBackgroundSettings() {
     const value = Math.max(0, Math.min(60, opacity));
     setOpacity(value);
     setSetting.mutate({ key: "culteHeroBgOpacity", value: String(value) });
+  };
+
+  const toggleLiveBadge = (value: boolean) => {
+    setSetting.mutate({
+      key: "culteLiveEnabled",
+      value: value ? "true" : "false",
+    });
   };
 
   return (
@@ -88,6 +98,20 @@ export default function CulteHeroBackgroundSettings() {
           >
             Appliquer
           </Button>
+        </div>
+      </div>
+
+      <div className="space-y-2 border-t border-border/40 pt-4">
+        <Label className="text-xs">Statut "En direct"</Label>
+        <div className="flex items-center justify-between gap-3">
+          <div className="text-xs text-muted-foreground">
+            Afficher ou masquer le badge "En direct" sur la page Culte en ligne.
+          </div>
+          <Switch
+            checked={liveEnabled}
+            onCheckedChange={toggleLiveBadge}
+            disabled={setSetting.isPending}
+          />
         </div>
       </div>
     </div>
