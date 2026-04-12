@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,10 +13,12 @@ import {
 } from "@/components/ui/card";
 import { Image as ImageIcon, Upload, Trash2, Maximize } from "lucide-react";
 import { toast } from "sonner";
+import { useBlobUpload } from "@/hooks/useBlobUpload";
 
 export default function CulteBannerSettings() {
   const settingsQuery = trpc.siteSettings.getAll.useQuery();
   const utils = trpc.useContext();
+  const { uploadFile, isUploading } = useBlobUpload();
 
   const setSetting = trpc.siteSettings.set.useMutation({
     onSuccess: () => {
@@ -24,14 +26,6 @@ export default function CulteBannerSettings() {
       toast.success("Paramètres mis à jour");
     },
     onError: error => toast.error("Erreur: " + error.message),
-  });
-
-  const uploadBanner = trpc.siteSettings.uploadCulteBanner.useMutation({
-    onSuccess: data => {
-      setSetting.mutate({ key: "culteBannerUrl", value: data.url });
-      toast.success("Bannière mise à jour");
-    },
-    onError: error => toast.error("Erreur d'upload: " + error.message),
   });
 
   const settings = settingsQuery.data || {};
@@ -42,16 +36,19 @@ export default function CulteBannerSettings() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const base64 = (reader.result as string).split(",")[1];
-      uploadBanner.mutate({
-        base64,
-        filename: file.name,
-        contentType: file.type,
+    try {
+      const result = await uploadFile({
+        file,
+        folder: "site",
       });
-    };
-    reader.readAsDataURL(file);
+      setSetting.mutate({ key: "culteBannerUrl", value: result.url });
+      toast.success("Bannière mise à jour");
+    } catch (error) {
+      toast.error(
+        "Erreur d'upload: " +
+          (error instanceof Error ? error.message : "Erreur inconnue")
+      );
+    }
   };
 
   const handleWidthChange = (value: number[]) => {
@@ -135,7 +132,7 @@ export default function CulteBannerSettings() {
             accept="image/*"
             className="hidden"
             onChange={handleFileUpload}
-            disabled={uploadBanner.isPending}
+            disabled={isUploading}
           />
         </div>
 

@@ -4,6 +4,7 @@ import { systemRouter } from "./_core/systemRouter.js";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc.js";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { generateClientTokenFromReadWriteToken } from "@vercel/blob/client";
 import {
   createArticle,
   updateArticle,
@@ -116,6 +117,71 @@ export const appRouter = router({
       (ctx.res as any).clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
     }),
+  }),
+
+  uploads: router({
+    // Admin: generate a short-lived client upload token for Vercel Blob
+    generateUploadToken: adminProcedure
+      .input(
+        zod.object({
+          pathname: z.string().min(1).max(1024),
+          contentType: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { ENV } = await import("./_core/env.js");
+        if (!ENV.blobToken) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message:
+              "Vercel Blob n'est pas configuré. Veuillez ajouter un token de lecture/écriture.",
+          });
+        }
+
+        const cleaned = input.pathname
+          .replace(/\\/g, "/")
+          .replace(/^\/+/, "");
+
+        if (cleaned.includes("..")) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Chemin d'upload invalide.",
+          });
+        }
+
+        const allowedPrefixes = [
+          "articles/",
+          "gallery/",
+          "page-content/",
+          "site/",
+        ];
+        if (!allowedPrefixes.some(prefix => cleaned.startsWith(prefix))) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Chemin d'upload non autorisé.",
+          });
+        }
+
+        if (
+          input.contentType &&
+          !input.contentType.startsWith("image/") &&
+          !input.contentType.startsWith("video/")
+        ) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Type de fichier non autorisé.",
+          });
+        }
+
+        const token = await generateClientTokenFromReadWriteToken({
+          pathname: cleaned,
+          token: ENV.blobToken,
+          maximumSizeInBytes: 500 * 1024 * 1024,
+          allowedContentTypes: ["image/*", "video/*"],
+        });
+
+        return { token, pathname: cleaned };
+      }),
   }),
 
   articles: router({

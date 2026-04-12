@@ -45,6 +45,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { AIProviderSelect } from "@/components/AIProviderSelect";
 import { useAiProvider } from "@/hooks/useAiProvider";
+import { useBlobUpload } from "@/hooks/useBlobUpload";
 
 interface PageContentManagerProps {
   pageId: string;
@@ -75,6 +76,7 @@ export default function PageContentManager({
     pageId,
     limit: 50,
   });
+  const { uploadFile, isUploading } = useBlobUpload();
 
   const createMutation = trpc.pageContent.create.useMutation({
     onSuccess: () => {
@@ -105,16 +107,6 @@ export default function PageContentManager({
     },
     onError: error => {
       toast.error(error.message || "Erreur lors de la suppression");
-    },
-  });
-
-  const uploadMutation = trpc.pageContent.uploadMedia.useMutation({
-    onSuccess: result => {
-      setFormData(prev => ({ ...prev, mediaUrl: result.url }));
-      toast.success("Fichier uploadé avec succès");
-    },
-    onError: error => {
-      toast.error(error.message || "Erreur lors de l'upload");
     },
   });
 
@@ -181,16 +173,18 @@ export default function PageContentManager({
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = async event => {
-      const base64 = (event.target?.result as string).split(",")[1];
-      uploadMutation.mutate({
-        base64,
-        filename: file.name,
-        contentType: file.type,
+    try {
+      const result = await uploadFile({
+        file,
+        folder: "page-content",
       });
-    };
-    reader.readAsDataURL(file);
+      setFormData(prev => ({ ...prev, mediaUrl: result.url }));
+      toast.success("Fichier uploadé avec succès");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Erreur lors de l'upload"
+      );
+    }
   };
 
   const items = data?.items ?? [];
@@ -248,12 +242,12 @@ export default function PageContentManager({
               <TabsContent value="image" className="space-y-4">
                 <div>
                   <label className="text-sm font-medium">Upload d'image</label>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileUpload}
-                    disabled={uploadMutation.isPending}
-                  />
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileUpload}
+                      disabled={isUploading}
+                    />
                 </div>
               </TabsContent>
 
@@ -278,12 +272,12 @@ export default function PageContentManager({
                   <label className="text-sm font-medium">
                     Upload vidéo MP4
                   </label>
-                  <Input
-                    type="file"
-                    accept="video/mp4"
-                    onChange={handleFileUpload}
-                    disabled={uploadMutation.isPending}
-                  />
+                    <Input
+                      type="file"
+                      accept="video/mp4"
+                      onChange={handleFileUpload}
+                      disabled={isUploading}
+                    />
                 </div>
               </TabsContent>
             </Tabs>

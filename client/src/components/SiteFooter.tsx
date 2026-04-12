@@ -47,14 +47,11 @@ export default function SiteFooter() {
             </h4>
             <ul className="space-y-2">
               {[
-                { label: "Actualités", href: "/categorie/actualité" },
-                {
-                  label: "Publication du jour",
-                  href: "/categorie/publication du jour",
-                },
+                { label: "Accueil", href: "/" },
+                { label: "Publication du jour", href: "/publication-du-jour" },
                 { label: "Galeries", href: "/galeries" },
-                { label: "Culte en ligne", href: "/categorie/culte en ligne" },
-                { label: "Bibliothèque", href: "/categorie/bibliothèque" },
+                { label: "Culte en ligne", href: "/culte-en-ligne" },
+                { label: "Bibliothèque", href: "/bibliotheque" },
               ].map(cat => (
                 <li key={cat.href}>
                   <Link

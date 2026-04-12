@@ -38,6 +38,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useBlobUpload } from "@/hooks/useBlobUpload";
 
 interface GalleryFormData {
   title: string;
@@ -65,17 +66,10 @@ export default function GalleryManager() {
   const utils = trpc.useUtils();
   const { data: galleryData, isLoading } = trpc.gallery.list.useQuery();
   const { data: versesData } = trpc.verses.adminList.useQuery();
+  const { uploadFile, isUploading } = useBlobUpload();
 
   const items = galleryData?.items ?? [];
   const verses = versesData?.items ?? [];
-
-  const uploadMutation = trpc.gallery.uploadImage.useMutation({
-    onSuccess: res => {
-      setFormData(prev => ({ ...prev, mediaUrl: res.url }));
-      toast.success("Fichier uploadé avec succès");
-    },
-    onError: err => toast.error("Erreur d'upload : " + err.message),
-  });
 
   const createMutation = trpc.gallery.create.useMutation({
     onSuccess: () => {
@@ -114,16 +108,19 @@ export default function GalleryManager() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = async event => {
-      const base64 = (event.target?.result as string).split(",")[1];
-      uploadMutation.mutate({
-        base64,
-        filename: file.name,
-        contentType: file.type,
+    try {
+      const result = await uploadFile({
+        file,
+        folder: "gallery",
       });
-    };
-    reader.readAsDataURL(file);
+      setFormData(prev => ({ ...prev, mediaUrl: result.url }));
+      toast.success("Fichier uploadé avec succès");
+    } catch (error) {
+      toast.error(
+        "Erreur d'upload : " +
+          (error instanceof Error ? error.message : "Erreur inconnue")
+      );
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -190,7 +187,7 @@ export default function GalleryManager() {
                       type="file"
                       accept="image/*"
                       onChange={handleFileUpload}
-                      disabled={uploadMutation.isPending}
+                      disabled={isUploading}
                     />
                   </div>
                 </TabsContent>
@@ -222,7 +219,7 @@ export default function GalleryManager() {
                       type="file"
                       accept="video/mp4"
                       onChange={handleFileUpload}
-                      disabled={uploadMutation.isPending}
+                      disabled={isUploading}
                     />
                   </div>
                 </TabsContent>
@@ -305,9 +302,9 @@ export default function GalleryManager() {
                 </Button>
                 <Button
                   type="submit"
-                  disabled={
-                    createMutation.isPending || uploadMutation.isPending
-                  }
+                    disabled={
+                      createMutation.isPending || isUploading
+                    }
                 >
                   {createMutation.isPending ? "Création..." : "Ajouter"}
                 </Button>

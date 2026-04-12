@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { useBlobUpload } from "@/hooks/useBlobUpload";
 
 export default function HomeHeroBackgroundSettings() {
   const settingsQuery = trpc.siteSettings.getAll.useQuery();
@@ -11,15 +12,7 @@ export default function HomeHeroBackgroundSettings() {
     onSuccess: () => toast.success("Paramètres mis à jour"),
     onError: error => toast.error("Erreur: " + error.message),
   });
-  const uploadMutation = trpc.siteSettings.uploadHomeHeroBackground.useMutation(
-    {
-      onSuccess: result => {
-        toast.success("Image mise à jour");
-        setSetting.mutate({ key: "homeHeroBgUrl", value: result.url });
-      },
-      onError: error => toast.error("Erreur: " + error.message),
-    }
-  );
+  const { uploadFile, isUploading } = useBlobUpload();
 
   const currentUrl = settingsQuery.data?.homeHeroBgUrl ?? "";
   const currentOpacityRaw = settingsQuery.data?.homeHeroBgOpacity ?? "18";
@@ -29,16 +22,19 @@ export default function HomeHeroBackgroundSettings() {
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async event => {
-      const base64 = (event.target?.result as string).split(",")[1];
-      uploadMutation.mutate({
-        base64,
-        filename: file.name,
-        contentType: file.type,
+    try {
+      const result = await uploadFile({
+        file,
+        folder: "site",
       });
-    };
-    reader.readAsDataURL(file);
+      toast.success("Image mise à jour");
+      setSetting.mutate({ key: "homeHeroBgUrl", value: result.url });
+    } catch (error) {
+      toast.error(
+        "Erreur: " +
+          (error instanceof Error ? error.message : "Erreur inconnue")
+      );
+    }
   };
 
   const saveOpacity = () => {
@@ -60,7 +56,12 @@ export default function HomeHeroBackgroundSettings() {
 
       <div className="space-y-2">
         <Label className="text-xs">Image</Label>
-        <Input type="file" accept="image/*" onChange={handleFileUpload} />
+        <Input
+          type="file"
+          accept="image/*"
+          onChange={handleFileUpload}
+          disabled={isUploading}
+        />
         {currentUrl && (
           <div className="mt-2 rounded-lg overflow-hidden border border-border/60">
             <img src={currentUrl} alt="" className="w-full h-32 object-cover" />

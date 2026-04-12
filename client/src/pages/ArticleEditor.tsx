@@ -30,6 +30,7 @@ import { useLocation, useParams } from "wouter";
 import { toast } from "sonner";
 import { AIProviderSelect } from "@/components/AIProviderSelect";
 import { useAiProvider } from "@/hooks/useAiProvider";
+import { useBlobUpload } from "@/hooks/useBlobUpload";
 
 const CATEGORIES = [
   { value: "actualité", label: "Actualité" },
@@ -63,6 +64,7 @@ export default function ArticleEditor() {
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { activeProvider } = useAiProvider();
+  const { uploadFile } = useBlobUpload();
 
   const utils = trpc.useUtils();
 
@@ -134,8 +136,6 @@ export default function ArticleEditor() {
     onError: err => toast.error(err.message || "Erreur lors de la mise à jour"),
   });
 
-  const uploadMutation = trpc.articles.uploadImage.useMutation();
-
   const generateExcerptMutation = trpc.ai.generateDescription.useMutation({
     onSuccess: generated => {
       setExcerpt(generated);
@@ -149,33 +149,23 @@ export default function ArticleEditor() {
       const file = e.target.files?.[0];
       if (!file) return;
 
-      if (file.size > 5 * 1024 * 1024) {
-        toast.error("L'image ne doit pas dépasser 5 Mo");
-        return;
-      }
-
       setUploading(true);
       try {
-        const reader = new FileReader();
-        reader.onload = async () => {
-          const base64 = (reader.result as string).split(",")[1];
-          const result = await uploadMutation.mutateAsync({
-            base64,
-            filename: file.name,
-            contentType: file.type,
-          });
-          setCoverImageUrl(result.url);
-          setCoverImageKey(result.key);
-          toast.success("Image téléchargée");
-          setUploading(false);
-        };
-        reader.readAsDataURL(file);
+        const uploaderId = user?.id ?? "admin";
+        const result = await uploadFile({
+          file,
+          folder: `articles/${uploaderId}`,
+        });
+        setCoverImageUrl(result.url);
+        setCoverImageKey(result.key);
+        toast.success("Image téléchargée");
       } catch {
         toast.error("Erreur lors du téléchargement de l'image");
+      } finally {
         setUploading(false);
       }
     },
-    [uploadMutation]
+    [uploadFile, user?.id]
   );
 
   const handleSave = async () => {
