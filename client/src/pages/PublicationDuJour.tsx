@@ -1,4 +1,5 @@
 import { trpc } from "@/lib/trpc";
+import { useMotionEnabled } from "@/hooks/useMotionEnabled";
 import PageContentDisplay from "@/components/PageContentDisplay";
 import YouTubeEmbed from "@/components/YouTubeEmbed";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -27,6 +28,7 @@ const sectionVars: any = {
 };
 
 export default function PublicationDuJour() {
+  const motionEnabled = useMotionEnabled();
   const { data: galleryData, isLoading: galleryLoading } =
     trpc.gallery.featured.useQuery();
   const { data: latestVerse } = trpc.verses.latest.useQuery();
@@ -74,9 +76,10 @@ export default function PublicationDuJour() {
 
       <motion.div
         variants={containerVars}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
+        initial={motionEnabled ? "hidden" : "visible"}
+        whileInView={motionEnabled ? "visible" : undefined}
+        animate={motionEnabled ? undefined : "visible"}
+        viewport={motionEnabled ? { once: true } : undefined}
       >
         {/* Admin-managed page content */}
         <motion.section variants={sectionVars} className="container pb-16">

@@ -20,11 +20,13 @@ export default function SiteFooter() {
           {/* Brand */}
           <div className="space-y-3">
             <Link href="/" className="flex items-center gap-3">
-              <img
-                src="/logo.png"
-                alt="G12 Paris Médias"
-                className="h-10 w-10 rounded-full object-cover border border-primary-foreground/20"
-              />
+              <span className="g12-logo">
+                <img
+                  src="/logo.png"
+                  alt="G12 Paris Médias"
+                  className="h-10 w-10 rounded-full object-cover border border-primary-foreground/20"
+                />
+              </span>
               <div>
                 <h3 className="text-base font-bold font-serif">G12 Paris</h3>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-primary-foreground/60 font-medium">

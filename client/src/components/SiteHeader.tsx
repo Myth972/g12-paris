@@ -58,11 +58,13 @@ export default function SiteHeader() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 group">
-            <img
-              src="/logo.png"
-              alt="G12 Paris Médias"
-              className="h-10 w-10 rounded-full object-cover shadow-sm group-hover:shadow-md transition-shadow"
-            />
+            <span className="g12-logo">
+              <img
+                src="/logo.png"
+                alt="G12 Paris Médias"
+                className="h-10 w-10 rounded-full object-cover shadow-sm group-hover:shadow-md transition-shadow"
+              />
+            </span>
             <div className="hidden sm:block">
               <h1 className="text-lg font-bold leading-tight tracking-tight text-foreground font-serif">
                 G12 Paris
@@ -180,7 +182,7 @@ export default function SiteHeader() {
 
         {/* Mobile nav */}
         {mobileOpen && (
-          <nav className="lg:hidden pb-6 border-t border-border/40 pt-3 flex flex-col">
+          <nav className="lg:hidden w-full pb-6 border-t border-border/40 pt-3 flex flex-col">
             <div className="space-y-1 mb-6">
               {NAV_LINKS.map(link => {
                 const isActive =

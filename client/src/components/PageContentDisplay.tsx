@@ -2,6 +2,7 @@ import { trpc } from "@/lib/trpc";
 import YouTubeEmbed from "@/components/YouTubeEmbed";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
+import { useMotionEnabled } from "@/hooks/useMotionEnabled";
 
 interface PageContentDisplayProps {
   pageId?: string;
@@ -39,10 +40,11 @@ const itemVars: any = {
 };
 
 function PageContentItemDisplay({ item }: { item: PageContentItem }) {
+  const motionEnabled = useMotionEnabled();
   return (
     <motion.div
       variants={itemVars}
-      whileHover={{ y: -4, scale: 1.01 }}
+      whileHover={motionEnabled ? { y: -4, scale: 1.01 } : undefined}
       className="group rounded-xl overflow-hidden border border-border/40 bg-card/60 backdrop-blur-md hover:shadow-xl hover:border-primary/10 transition-all duration-300"
     >
       {/* Media */}
@@ -89,6 +91,7 @@ export default function PageContentDisplay({
   layout = "default",
   featuredOnly = false,
 }: PageContentDisplayProps) {
+  const motionEnabled = useMotionEnabled();
   const byPageQuery = trpc.pageContent.byPage.useQuery(
     { pageId: pageId as string },
     { enabled: !featuredOnly && !!pageId }
@@ -134,9 +137,10 @@ export default function PageContentDisplay({
     return (
       <motion.div
         variants={containerVars}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true, margin: "-100px" }}
+        initial={motionEnabled ? "hidden" : "visible"}
+        whileInView={motionEnabled ? "visible" : undefined}
+        animate={motionEnabled ? undefined : "visible"}
+        viewport={motionEnabled ? { once: true, margin: "-100px" } : undefined}
         className="space-y-16"
       >
         {firstItem && (
@@ -159,9 +163,10 @@ export default function PageContentDisplay({
     <motion.div
       className={cols}
       variants={containerVars}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-100px" }}
+      initial={motionEnabled ? "hidden" : "visible"}
+      whileInView={motionEnabled ? "visible" : undefined}
+      animate={motionEnabled ? undefined : "visible"}
+      viewport={motionEnabled ? { once: true, margin: "-100px" } : undefined}
     >
       {items.map((item: PageContentItem) => (
         <PageContentItemDisplay key={item.id} item={item} />

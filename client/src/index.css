@@ -3,6 +3,32 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@keyframes g12-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+@keyframes g12-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes g12-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 0.85;
+  }
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -108,6 +134,35 @@
 }
 
 @layer components {
+  :root[data-dev-device="mobile"] body {
+    background: linear-gradient(180deg, oklch(0.97 0.005 80), oklch(0.99 0 0));
+    overflow-x: hidden;
+  }
+
+  :root[data-dev-device="mobile"] #root {
+    max-width: 430px;
+    width: 100%;
+    margin: 0 auto;
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+    box-shadow:
+      0 0 0 1px oklch(0.9 0.005 80),
+      0 20px 60px oklch(0.2 0.03 250 / 0.12);
+    background: var(--background);
+  }
+
+  :root[data-dev-device="mobile"] header {
+    max-width: 100%;
+  }
+
+  :root[data-dev-device="desktop"] #root {
+    max-width: none;
+    margin: 0;
+    box-shadow: none;
+    background: transparent;
+  }
+
   .container {
     width: 100%;
     margin-left: auto;
@@ -180,5 +235,61 @@
   }
   .prose-article li {
     margin-bottom: 0.5em;
+  }
+
+  .g12-logo {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    border-radius: 9999px;
+    animation: g12-float 4s ease-in-out infinite;
+  }
+
+  .g12-logo::before {
+    content: "";
+    position: absolute;
+    inset: -3px;
+    border-radius: 9999px;
+    background: conic-gradient(
+      from 0deg,
+      oklch(0.55 0.12 250),
+      oklch(0.7 0.12 30),
+      oklch(0.5 0.1 150),
+      oklch(0.55 0.12 250)
+    );
+    opacity: 0.65;
+    filter: saturate(1.1);
+    animation: g12-spin 10s linear infinite;
+    pointer-events: none;
+  }
+
+  .g12-logo::after {
+    content: "";
+    position: absolute;
+    inset: -8px;
+    border-radius: 9999px;
+    background: radial-gradient(
+      circle at 30% 30%,
+      oklch(0.7 0.12 30 / 0.7),
+      transparent 60%
+    );
+    filter: blur(8px);
+    opacity: 0.5;
+    animation: g12-pulse 4s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  .g12-logo img {
+    position: relative;
+    z-index: 1;
+    border-radius: 9999px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .g12-logo,
+    .g12-logo::before,
+    .g12-logo::after {
+      animation: none;
+    }
   }
 }

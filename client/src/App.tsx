@@ -7,6 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import SiteHeader from "./components/SiteHeader";
 import SiteFooter from "./components/SiteFooter";
 import { Loader2 } from "lucide-react";
+import DevDeviceToggle from "./components/DevDeviceToggle";
 
 // Lazy-loaded pages
 const Home = lazy(() => import("./pages/Home"));
@@ -105,6 +106,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <Router />
+          {import.meta.env.DEV && <DevDeviceToggle />}
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
