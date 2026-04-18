@@ -120,9 +120,9 @@ export default function SiteHeader() {
               {isAuthenticated ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="gap-2">
-                      <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
-                        <User className="w-4 h-4 text-primary" />
+                    <Button variant="ghost" size="sm" className="gap-2 px-2 sm:px-3">
+                      <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-primary/10 flex items-center justify-center">
+                        <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
                       </div>
                       <span className="hidden sm:inline text-sm font-medium">
                         {user?.name || "Utilisateur"}
@@ -157,7 +157,7 @@ export default function SiteHeader() {
                 <Button
                   size="sm"
                   onClick={() => (window.location.href = getLoginUrl())}
-                  className="font-medium"
+                  className="font-medium px-3 sm:px-4 ml-1 sm:ml-0"
                 >
                   Connexion
                 </Button>
@@ -167,13 +167,13 @@ export default function SiteHeader() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="lg:hidden"
+                className="lg:hidden ml-1 sm:ml-2"
                 onClick={() => setMobileOpen(!mobileOpen)}
               >
                 {mobileOpen ? (
-                  <X className="w-5 h-5" />
+                  <X className="w-5 h-5 sm:w-6 sm:h-6" />
                 ) : (
-                  <Menu className="w-5 h-5" />
+                  <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
                 )}
               </Button>
             </div>

@@ -76,7 +76,7 @@ export default function GalleriesPage() {
               {items.map((item: any) => (
                 <div
                   key={item.id}
-                  className="group relative bg-card rounded-xl overflow-hidden border border-border/50 hover:border-border hover:shadow-lg transition-all duration-300"
+                  className="group relative bg-card rounded-xl overflow-hidden border border-border/50 hover:border-border hover:shadow-lg active:shadow-lg active:scale-[0.99] transition-all duration-300 touch-manipulation"
                 >
                   {/* Media */}
                   <div className="relative overflow-hidden bg-muted aspect-[16/10]">
@@ -84,7 +84,7 @@ export default function GalleriesPage() {
                       <img
                         src={item.mediaUrl}
                         alt={item.title}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        className="w-full h-full object-cover group-hover:scale-105 group-active:scale-105 transition-transform duration-500"
                       />
                     ) : (
                       <div className="w-full h-full">
@@ -110,11 +110,11 @@ export default function GalleriesPage() {
 
                     {/* Verse preview */}
                     {item.verse && (
-                      <div className="space-y-2 pt-3 border-t border-border/50">
+                      <div className="space-y-2 pt-3 border-t border-border/50 group-active:max-h-28 group-active:overflow-y-auto group-active:pr-1">
                         <p className="text-xs font-semibold text-primary">
                           Verset associé
                         </p>
-                        <p className="text-xs text-muted-foreground line-clamp-2 italic">
+                        <p className="text-xs text-muted-foreground line-clamp-2 group-active:line-clamp-none italic">
                           "{item.verse.text}"
                         </p>
                         <p className="text-xs text-muted-foreground font-medium">

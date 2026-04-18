@@ -30,9 +30,9 @@ export default function ArticleCard({
   featured = false,
 }: ArticleCardProps) {
   return (
-    <Link href={`/article/${article.slug}`}>
+    <Link href={`/article/${article.slug}`} className="block">
       <article
-        className={`group relative bg-card rounded-xl overflow-hidden border border-border/50 hover:border-border hover:shadow-lg transition-all duration-300 ${
+        className={`group relative bg-card rounded-xl overflow-hidden border border-border/50 hover:border-border hover:shadow-lg active:shadow-lg active:scale-[0.99] transition-all duration-300 touch-manipulation ${
           featured ? "md:col-span-2 md:row-span-2" : ""
         }`}
       >
@@ -44,7 +44,7 @@ export default function ArticleCard({
             <img
               src={article.coverImageUrl}
               alt={article.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+              className="w-full h-full object-cover group-hover:scale-105 group-active:scale-105 transition-transform duration-500"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-secondary">
@@ -73,9 +73,13 @@ export default function ArticleCard({
         </div>
 
         {/* Content */}
-        <div className={`p-4 ${featured ? "p-6" : ""}`}>
+        <div
+          className={`p-4 group-active:max-h-48 group-active:overflow-y-auto group-active:pr-1 ${
+            featured ? "p-6" : ""
+          }`}
+        >
           <h3
-            className={`font-serif font-bold leading-snug text-card-foreground group-hover:text-primary transition-colors line-clamp-2 ${
+            className={`font-serif font-bold leading-snug text-card-foreground group-hover:text-primary transition-colors line-clamp-2 group-active:line-clamp-none ${
               featured ? "text-xl md:text-2xl" : "text-base"
             }`}
           >
@@ -84,7 +88,7 @@ export default function ArticleCard({
 
           {article.excerpt && (
             <p
-              className={`mt-2 text-muted-foreground leading-relaxed line-clamp-2 ${featured ? "text-sm" : "text-xs"}`}
+              className={`mt-2 text-muted-foreground leading-relaxed line-clamp-2 group-active:line-clamp-none ${featured ? "text-sm" : "text-xs"}`}
             >
               {article.excerpt}
             </p>

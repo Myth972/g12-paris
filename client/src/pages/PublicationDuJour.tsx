@@ -161,14 +161,14 @@ export default function PublicationDuJour() {
                       className="grid grid-cols-1 md:grid-cols-2 gap-6"
                     >
                       {/* Image */}
-                      <div className="group rounded-xl overflow-hidden border border-border/40 bg-card/60 backdrop-blur-md hover:shadow-xl hover:border-primary/10 transition-all duration-300">
+                      <div className="group rounded-xl overflow-hidden border border-border/40 bg-card/60 backdrop-blur-md hover:shadow-xl hover:border-primary/10 active:shadow-xl active:border-primary/10 active:scale-[0.99] transition-all duration-300 touch-manipulation">
                         {pair.image ? (
                           <>
                             <div className="overflow-hidden relative">
                               <img
                                 src={pair.image.mediaUrl}
                                 alt={pair.image.title}
-                                className="w-full aspect-[16/10] object-cover group-hover:scale-105 transition-transform duration-1000 ease-in-out"
+                                className="w-full aspect-[16/10] object-cover group-hover:scale-105 group-active:scale-105 transition-transform duration-1000 ease-in-out"
                               />
                             </div>
                             <div className="py-3 px-4 text-center border-t border-border/10 bg-white/20 backdrop-blur-lg">
@@ -185,7 +185,7 @@ export default function PublicationDuJour() {
                       </div>
 
                       {/* Video */}
-                      <div className="rounded-xl overflow-hidden border border-border/40 bg-card/60 backdrop-blur-md hover:shadow-xl hover:border-primary/10 transition-all duration-300">
+                      <div className="rounded-xl overflow-hidden border border-border/40 bg-card/60 backdrop-blur-md hover:shadow-xl hover:border-primary/10 active:shadow-xl active:border-primary/10 active:scale-[0.99] transition-all duration-300 touch-manipulation">
                         <div className="px-5 py-3 bg-white/10 backdrop-blur-lg flex items-center justify-between border-b border-border/10">
                           <span className="text-[10px] font-bold uppercase tracking-widest text-primary/60">
                             Vidéo {pair.index + 1}

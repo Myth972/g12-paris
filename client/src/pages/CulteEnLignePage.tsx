@@ -66,13 +66,13 @@ export default function CulteEnLignePage() {
               pageKey="culte-en-ligne"
               defaultH1={"Culte en ligne\nAdorez depuis chez vous"}
               defaultH2=""
-              h1ClassName="text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight"
+              h1ClassName="text-2xl sm:text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight"
             />
             <PageTextEditor
               pageKey="culte-en-ligne"
               textKey="hero"
               defaultText="Participez à nos services de culte en ligne et vivez une expérience spirituelle depuis n'importe où."
-              className="mt-4 text-muted-foreground text-base leading-relaxed max-w-lg"
+              className="mt-3 sm:mt-4 text-muted-foreground text-sm sm:text-base leading-relaxed max-w-lg"
             />
           </div>
         </div>

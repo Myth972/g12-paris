@@ -70,13 +70,13 @@ export default function Home() {
               pageKey="home"
               defaultH1={"L'actualité qui compte,\nracontée avec rigueur."}
               defaultH2=""
-              h1ClassName="text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight"
+              h1ClassName="text-2xl sm:text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight"
             />
             <PageTextEditor
               pageKey="home"
               textKey="hero"
               defaultText="Restez informé avec les dernières nouvelles de Paris et d'ailleurs. Articles, reportages et vidéos au quotidien."
-              className="mt-4 text-muted-foreground text-base leading-relaxed max-w-lg"
+              className="mt-3 sm:mt-4 text-muted-foreground text-sm sm:text-base leading-relaxed max-w-lg"
             />
           </div>
         </div>

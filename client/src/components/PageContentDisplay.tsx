@@ -45,7 +45,7 @@ function PageContentItemDisplay({ item }: { item: PageContentItem }) {
     <motion.div
       variants={itemVars}
       whileHover={motionEnabled ? { y: -4, scale: 1.01 } : undefined}
-      className="group rounded-xl overflow-hidden border border-border/40 bg-card/60 backdrop-blur-md hover:shadow-xl hover:border-primary/10 transition-all duration-300"
+      className="group rounded-xl overflow-hidden border border-border/40 bg-card/60 backdrop-blur-md hover:shadow-xl hover:border-primary/10 active:shadow-xl active:border-primary/10 active:scale-[0.99] transition-all duration-300 touch-manipulation"
     >
       {/* Media */}
       <div className="overflow-hidden relative">
@@ -53,7 +53,7 @@ function PageContentItemDisplay({ item }: { item: PageContentItem }) {
           <img
             src={item.mediaUrl}
             alt={item.title}
-            className="w-full aspect-[16/10] object-cover group-hover:scale-105 transition-transform duration-1000 ease-in-out"
+            className="w-full aspect-[16/10] object-cover group-hover:scale-105 group-active:scale-105 transition-transform duration-1000 ease-in-out"
           />
         )}
         {item.contentType === "youtube_video" && item.youtubeUrl && (
@@ -71,12 +71,12 @@ function PageContentItemDisplay({ item }: { item: PageContentItem }) {
       </div>
 
       {/* Caption */}
-      <div className="py-3 px-4 text-center bg-white/20 backdrop-blur-lg border-t border-border/10">
+      <div className="py-3 px-4 text-center bg-white/20 backdrop-blur-lg border-t border-border/10 group-active:max-h-24 group-active:overflow-y-auto group-active:pr-1">
         <p className="text-xs sm:text-sm text-primary/80 font-medium tracking-tight">
           {item.title}
         </p>
         {item.description && (
-          <p className="mt-0.5 text-[10px] sm:text-xs text-muted-foreground/80 line-clamp-1 group-hover:line-clamp-none transition-all">
+          <p className="mt-0.5 text-[10px] sm:text-xs text-muted-foreground/80 line-clamp-1 group-hover:line-clamp-none group-active:line-clamp-none transition-all">
             {item.description}
           </p>
         )}
