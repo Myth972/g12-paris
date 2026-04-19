@@ -71,12 +71,12 @@ function PageContentItemDisplay({ item }: { item: PageContentItem }) {
       </div>
 
       {/* Caption */}
-      <div className="py-3 px-4 text-center bg-white/20 backdrop-blur-lg border-t border-border/10 group-active:max-h-24 group-active:overflow-y-auto group-active:pr-1">
+      <div className="py-3 px-4 text-center bg-white/20 backdrop-blur-lg border-t border-border/10">
         <p className="text-xs sm:text-sm text-primary/80 font-medium tracking-tight">
           {item.title}
         </p>
         {item.description && (
-          <p className="mt-0.5 text-[10px] sm:text-xs text-muted-foreground/80 line-clamp-1 group-hover:line-clamp-none group-active:line-clamp-none transition-all">
+          <p className="mt-0.5 text-[10px] sm:text-xs text-muted-foreground/80 line-clamp-1 transition-all">
             {item.description}
           </p>
         )}

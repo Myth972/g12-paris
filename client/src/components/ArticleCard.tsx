@@ -74,12 +74,10 @@ export default function ArticleCard({
 
         {/* Content */}
         <div
-          className={`p-4 group-active:max-h-48 group-active:overflow-y-auto group-active:pr-1 ${
-            featured ? "p-6" : ""
-          }`}
+          className={`p-4 ${featured ? "p-6" : ""}`}
         >
           <h3
-            className={`font-serif font-bold leading-snug text-card-foreground group-hover:text-primary transition-colors line-clamp-2 group-active:line-clamp-none ${
+            className={`font-serif font-bold leading-snug text-card-foreground group-hover:text-primary transition-colors line-clamp-2 ${
               featured ? "text-xl md:text-2xl" : "text-base"
             }`}
           >
@@ -88,7 +86,7 @@ export default function ArticleCard({
 
           {article.excerpt && (
             <p
-              className={`mt-2 text-muted-foreground leading-relaxed line-clamp-2 group-active:line-clamp-none ${featured ? "text-sm" : "text-xs"}`}
+              className={`mt-2 text-muted-foreground leading-relaxed line-clamp-2 ${featured ? "text-sm" : "text-xs"}`}
             >
               {article.excerpt}
             </p>
