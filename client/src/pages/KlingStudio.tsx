@@ -2,6 +2,7 @@ import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -21,8 +22,10 @@ import {
   Copy,
   RefreshCw,
   Wand2,
+  X,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useBlobUpload } from "@/hooks/useBlobUpload";
 
 const ASPECT_RATIOS_IMAGE = ["16:9", "1:1", "9:16", "4:3", "3:4"] as const;
 const ASPECT_RATIOS_VIDEO = ["16:9", "1:1", "9:16"] as const;
@@ -36,6 +39,7 @@ const PROMPT_SUGGESTIONS = [
 ];
 
 export default function KlingStudio() {
+  const { uploadFile, isUploading } = useBlobUpload();
   const [tab, setTab] = useState<"image" | "video">("image");
 
   // Image state
@@ -53,6 +57,7 @@ export default function KlingStudio() {
   const [vidRatio, setVidRatio] =
     useState<(typeof ASPECT_RATIOS_VIDEO)[number]>("16:9");
   const [vidDuration, setVidDuration] = useState<"5" | "10">("5");
+  const [vidImage, setVidImage] = useState<string | null>(null);
   const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(
     null
   );
@@ -297,9 +302,49 @@ export default function KlingStudio() {
             <div className="space-y-4">
               <div className="p-3 bg-violet-50 dark:bg-violet-950/30 rounded-lg border border-violet-200 dark:border-violet-800">
                 <p className="text-xs text-violet-700 dark:text-violet-300 font-medium">
-                  ⚡ Kling v1.6 Pro · Génération texte → vidéo · Peut prendre
+                  ⚡ Kling v1.6 Pro · Texte / Image → Vidéo · Peut prendre
                   1–2 minutes
                 </p>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium mb-2 block">
+                  Image (Optionnel - Image-to-Video)
+                </Label>
+                {vidImage ? (
+                  <div className="relative border border-border rounded-lg overflow-hidden bg-muted">
+                    <img src={vidImage} alt="Reference" className="w-full h-32 object-cover" />
+                    <Button
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2 w-6 h-6 rounded-full"
+                      onClick={() => setVidImage(null)}
+                    >
+                      <X className="w-3 h-3" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-1">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        try {
+                          const res = await uploadFile({ file, folder: "kling-refs" });
+                          if (res) setVidImage(res.url);
+                        } catch (err) {
+                          toast.error("Erreur d'upload de l'image");
+                        }
+                      }}
+                      disabled={isUploading}
+                      className="text-xs cursor-pointer"
+                    />
+                    <p className="text-[10px] text-muted-foreground">Upload depuis cet appareil vers Vercel, puis envoi à Kling.</p>
+                  </div>
+                )}
+                {isUploading && <p className="text-xs text-primary font-medium mt-1 animate-pulse flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Upload en cours...</p>}
               </div>
 
               <div>
@@ -391,6 +436,7 @@ export default function KlingStudio() {
                     duration: vidDuration,
                     aspectRatio: vidRatio,
                     negativePrompt: vidNegative || undefined,
+                    imageUrl: vidImage || undefined,
                   });
                 }}
               >

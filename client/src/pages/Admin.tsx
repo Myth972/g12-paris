@@ -151,7 +151,7 @@ function ArticlesTab() {
         </Button>
       </div>
 
-      <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
+      <div className="bg-card rounded-xl border border-border overflow-x-auto shadow-sm">
         {isLoading ? (
           <div className="p-6 space-y-4">
             {Array.from({ length: 5 }).map((_, i) => (
@@ -361,7 +361,7 @@ function NotificationsTab() {
         </Button>
       </div>
 
-      <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
+      <div className="bg-card rounded-xl border border-border overflow-x-auto shadow-sm">
         {isLoading ? (
           <div className="p-6 space-y-4">
             {Array.from({ length: 3 }).map((_, i) => (
@@ -743,7 +743,7 @@ export default function Admin() {
       {/* Tabs */}
       <div className="container py-6">
         <Tabs defaultValue="articles" className="w-full">
-          <TabsList className="mb-6">
+          <TabsList className="mb-6 flex-wrap h-auto w-full justify-start gap-y-2">
             <TabsTrigger value="articles" className="gap-2">
               <Newspaper className="w-4 h-4" />
               Articles

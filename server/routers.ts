@@ -1154,6 +1154,7 @@ export const appRouter = router({
           duration: z.enum(["5", "10"]).default("5"),
           aspectRatio: z.enum(["1:1", "16:9", "9:16"]).default("16:9"),
           negativePrompt: z.string().optional(),
+          imageUrl: z.string().url().optional(),
         })
       )
       .mutation(async ({ input }) => {
@@ -1175,11 +1176,12 @@ export const appRouter = router({
               Authorization: `Bearer ${ENV.aimlApiKey}`,
             },
             body: JSON.stringify({
-              model: "kling-video/v1.6/pro/text-to-video",
+              model: input.imageUrl ? "kling-video/v1.6/pro/image-to-video" : "kling-video/v1.6/pro/text-to-video",
               prompt: input.prompt,
               negative_prompt: input.negativePrompt || "",
               duration: input.duration,
               aspect_ratio: input.aspectRatio,
+              ...(input.imageUrl ? { image_url: input.imageUrl } : {}),
             }),
           }
         );
