@@ -3,6 +3,7 @@ import YouTubeEmbed from "@/components/YouTubeEmbed";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { useMotionEnabled } from "@/hooks/useMotionEnabled";
+import { useState } from "react";
 
 interface PageContentDisplayProps {
   pageId?: string;
@@ -41,11 +42,14 @@ const itemVars: any = {
 
 function PageContentItemDisplay({ item }: { item: PageContentItem }) {
   const motionEnabled = useMotionEnabled();
+  const [isExpanded, setIsExpanded] = useState(false);
+
   return (
     <motion.div
       variants={itemVars}
       whileHover={motionEnabled ? { y: -4, scale: 1.01 } : undefined}
-      className="group rounded-xl overflow-hidden border border-border/40 bg-card/60 backdrop-blur-md hover:shadow-xl hover:border-primary/10 active:shadow-xl active:border-primary/10 active:scale-[0.99] transition-all duration-300 touch-manipulation"
+      className="group rounded-xl overflow-hidden border border-border/40 bg-card/60 backdrop-blur-md hover:shadow-xl hover:border-primary/10 active:shadow-xl active:border-primary/10 transition-all duration-300 touch-manipulation cursor-pointer"
+      onClick={() => setIsExpanded(!isExpanded)}
     >
       {/* Media */}
       <div className="overflow-hidden relative">
@@ -53,11 +57,13 @@ function PageContentItemDisplay({ item }: { item: PageContentItem }) {
           <img
             src={item.mediaUrl}
             alt={item.title}
-            className="w-full aspect-[16/10] object-cover group-hover:scale-105 group-active:scale-105 transition-transform duration-1000 ease-in-out"
+            className="w-full aspect-[16/10] object-cover group-hover:scale-105 transition-transform duration-1000 ease-in-out"
           />
         )}
         {item.contentType === "youtube_video" && item.youtubeUrl && (
-          <YouTubeEmbed url={item.youtubeUrl} />
+          <div onClick={(e) => e.stopPropagation()}>
+            <YouTubeEmbed url={item.youtubeUrl} />
+          </div>
         )}
         {item.contentType === "mp4_video" && (
           <video
@@ -66,17 +72,18 @@ function PageContentItemDisplay({ item }: { item: PageContentItem }) {
             loop={item.loop}
             muted
             className="w-full aspect-video object-contain bg-black/5"
+            onClick={(e) => e.stopPropagation()}
           />
         )}
       </div>
 
       {/* Caption */}
       <div className="py-3 px-4 text-center bg-white/20 backdrop-blur-lg border-t border-border/10">
-        <p className="text-xs sm:text-sm text-primary/80 font-medium tracking-tight">
+        <p className={`text-xs sm:text-sm text-primary/80 font-medium tracking-tight ${isExpanded ? "" : "line-clamp-2"}`}>
           {item.title}
         </p>
         {item.description && (
-          <p className="mt-0.5 text-[10px] sm:text-xs text-muted-foreground/80 line-clamp-1 transition-all">
+          <p className={`mt-0.5 text-[10px] sm:text-xs text-muted-foreground/80 transition-all ${isExpanded ? "" : "line-clamp-1 group-hover:line-clamp-none"}`}>
             {item.description}
           </p>
         )}
