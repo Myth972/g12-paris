@@ -278,7 +278,5 @@ export default function CataloguePage() {
       </section>
     </div>
   );
-}ction>
-    </div>
-  );
 }
+
