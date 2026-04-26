@@ -203,14 +203,51 @@ export async function getArticleBySlug(slug: string) {
 export async function listPublishedArticles(
   limit = 20,
   offset = 0,
-  category?: string
+  filters: {
+    category?: string;
+    search?: string;
+    minPrice?: number;
+    maxPrice?: number;
+    theme?: string;
+    sort?: string;
+  } = {}
 ) {
   const db = await getDb();
   assertDb(db);
 
   const conditions = [eq(articles.published, true)];
-  if (category && category !== "all") {
-    conditions.push(eq(articles.category, category));
+  
+  if (filters.category && filters.category !== "all") {
+    // Exact match for category unless it's a library root
+    if (filters.category === "bibliothèque") {
+       conditions.push(sql`${articles.category} LIKE 'bibliothèque:%'`);
+    } else {
+       conditions.push(eq(articles.category, filters.category));
+    }
+  }
+
+  if (filters.search) {
+    const s = `%${filters.search}%`;
+    conditions.push(sql`(${articles.title} LIKE ${s} OR ${articles.content} LIKE ${s})`);
+  }
+
+  if (filters.theme) {
+    conditions.push(sql`${articles.category} LIKE ${`%:${filters.theme}%`}`);
+  }
+
+  if (filters.minPrice !== undefined) {
+    conditions.push(sql`${articles.price} >= ${filters.minPrice}`);
+  }
+
+  if (filters.maxPrice !== undefined) {
+    conditions.push(sql`${articles.price} <= ${filters.maxPrice}`);
+  }
+
+  let orderBy: any = desc(articles.createdAt);
+  if (filters.sort === "price_asc") {
+    orderBy = articles.price;
+  } else if (filters.sort === "price_desc") {
+    orderBy = desc(articles.price);
   }
 
   const rows = await db
@@ -221,20 +258,48 @@ export async function listPublishedArticles(
     .from(articles)
     .leftJoin(users, eq(articles.authorId, users.id))
     .where(and(...conditions))
-    .orderBy(desc(articles.createdAt))
+    .orderBy(orderBy)
     .limit(limit)
     .offset(offset);
 
   return rows.map((r: any) => ({ ...r.article, authorName: r.authorName }));
 }
 
-export async function countPublishedArticles(category?: string) {
+export async function countPublishedArticles(filters: {
+  category?: string;
+  search?: string;
+  minPrice?: number;
+  maxPrice?: number;
+  theme?: string;
+} = {}) {
   const db = await getDb();
   assertDb(db);
 
   const conditions = [eq(articles.published, true)];
-  if (category && category !== "all") {
-    conditions.push(eq(articles.category, category));
+  
+  if (filters.category && filters.category !== "all") {
+    if (filters.category === "bibliothèque") {
+       conditions.push(sql`${articles.category} LIKE 'bibliothèque:%'`);
+    } else {
+       conditions.push(eq(articles.category, filters.category));
+    }
+  }
+
+  if (filters.search) {
+    const s = `%${filters.search}%`;
+    conditions.push(sql`(${articles.title} LIKE ${s} OR ${articles.content} LIKE ${s})`);
+  }
+
+  if (filters.theme) {
+    conditions.push(sql`${articles.category} LIKE ${`%:${filters.theme}%`}`);
+  }
+
+  if (filters.minPrice !== undefined) {
+    conditions.push(sql`${articles.price} >= ${filters.minPrice}`);
+  }
+
+  if (filters.maxPrice !== undefined) {
+    conditions.push(sql`${articles.price} <= ${filters.maxPrice}`);
   }
 
   const rows = await db

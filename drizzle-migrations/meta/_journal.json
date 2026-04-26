@@ -15,6 +15,13 @@
       "when": 1775079246506,
       "tag": "0001_little_hemingway",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1777170822426,
+      "tag": "0002_cooing_the_spike",
+      "breakpoints": true
     }
   ]
 }

@@ -47,6 +47,8 @@ export const articles = sqliteTable("articles", {
   category: text("category").default("actualité").notNull(),
   published: integer("published", { mode: "boolean" }).default(false).notNull(),
   authorId: integer("authorId").notNull(),
+  price: integer("price"), // Price in cents
+  meta: text("meta"), // JSON for extra data (author, publisher, etc.)
   createdAt: integer("createdAt", { mode: "timestamp" })
     .default(sql`(strftime('%s', 'now'))`)
     .notNull(),

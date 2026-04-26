@@ -210,14 +210,20 @@ export const appRouter = router({
             limit: z.number().min(1).max(50).default(12),
             offset: z.number().min(0).default(0),
             category: z.string().optional(),
+            search: z.string().optional(),
+            minPrice: z.number().optional(),
+            maxPrice: z.number().optional(),
+            theme: z.string().optional(),
+            sort: z.enum(["newest", "price_asc", "price_desc", "popular"]).default("newest"),
           })
           .optional()
       )
       .query(async ({ input }) => {
-        const { limit = 12, offset = 0, category } = input ?? {};
+        const { limit = 12, offset = 0, category, search, minPrice, maxPrice, theme, sort } = input ?? {};
+        const { listPublishedArticles, countPublishedArticles } = await import("./db.js");
         const [items, total] = await Promise.all([
-          listPublishedArticles(limit, offset, category),
-          countPublishedArticles(category),
+          listPublishedArticles(limit, offset, { category, search, minPrice, maxPrice, theme, sort }),
+          countPublishedArticles({ category, search, minPrice, maxPrice, theme }),
         ]);
         return { items, total, limit, offset };
       }),
@@ -282,6 +288,8 @@ export const appRouter = router({
           category: z.string().max(100).default("actualité"),
           published: z.boolean().default(false),
           verseId: z.number().nullable().optional(),
+          price: z.number().optional(),
+          meta: z.string().optional(),
         })
       )
       .mutation(async ({ ctx, input }) => {
@@ -307,6 +315,8 @@ export const appRouter = router({
           category: z.string().max(100).optional(),
           published: z.boolean().optional(),
           verseId: z.number().nullable().optional(),
+          price: z.number().optional(),
+          meta: z.string().optional(),
         })
       )
       .mutation(async ({ input }) => {
@@ -1093,50 +1103,6 @@ export const appRouter = router({
 
         return response.choices[0].message.content as string;
       }),
-    testProvider: adminProcedure
-      .input(
-        z
-          .object({
-            provider: z.enum(["google", "groq"]).optional(),
-          })
-          .optional()
-      )
-      .mutation(async ({ input }) => {
-        let provider = input?.provider;
-        if (!provider) {
-          const { getDb } = await import("./db.js");
-          const db = await getDb();
-          if (db) {
-            const { siteSettings } = await import("../drizzle/schema.js");
-            const { eq } = await import("drizzle-orm");
-            const rows = await db
-              .select()
-              .from(siteSettings)
-              .where(eq(siteSettings.key, "aiProvider"))
-              .limit(1);
-            const value = rows[0]?.value;
-            provider = value as any;
-          }
-        }
-
-        const { invokeLLM } = await import("./_core/llm.js");
-        const response = await invokeLLM({
-          messages: [
-            {
-              role: "system",
-              content: "Tu réponds uniquement par le mot OK.",
-            },
-            { role: "user", content: "Réponds OK." },
-          ],
-          provider,
-        });
-
-        return {
-          ok: true,
-          provider: provider || "default",
-          model: response.model,
-          content: response.choices[0].message.content,
-        };
       }),
 
     // ─── Kling AI Image Generation ─────────────────────────────────

@@ -4,7 +4,7 @@ import {
   AI_PROVIDERS,
   type AiProvider,
   getProviderInfo,
-} from "@/lib/aiProviders";
+} from "../../../shared/aiProviders.js";
 import { toast } from "sonner";
 
 export function useAiProvider() {

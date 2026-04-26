@@ -61,7 +61,7 @@ export type ToolChoice =
   | ToolChoiceByName
   | ToolChoiceExplicit;
 
-export type AiProvider = "google" | "groq" | "minimax" | "aimlapi";
+import { type AiProvider } from "../../shared/aiProviders.js";
 
 export type InvokeParams = {
   messages: Message[];
