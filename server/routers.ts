@@ -1249,6 +1249,7 @@ export const appRouter = router({
         return { url: null, generationId, pending: true };
       }),
   }),
+  // Newsletter router for managing subscriptions
   newsletter: router({
     subscribe: publicProcedure
       .input(
