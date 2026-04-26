@@ -20,7 +20,7 @@ const PublicationDuJour = lazy(() => import("./pages/PublicationDuJour"));
 const GalleriesPage = lazy(() => import("./pages/GalleriesPage"));
 const Login = lazy(() => import("./pages/Login"));
 const AdminTutorial = lazy(() => import("./pages/AdminTutorial"));
-const BibliothequeePage = lazy(() => import("./pages/BibliothequeePage"));
+const BibliothequePage = lazy(() => import("./pages/BibliothequePage"));
 const CataloguePage = lazy(() => import("./pages/CataloguePage"));
 const PremiumBookPage = lazy(() => import("./pages/PremiumBookPage"));
 const StudiesResourcesPage = lazy(() => import("./pages/StudiesResourcesPage"));
@@ -87,7 +87,7 @@ function Router() {
         </Route>
         <Route path="/bibliotheque">
           <PublicLayout>
-            <BibliothequeePage />
+            <BibliothequePage />
           </PublicLayout>
         </Route>
         <Route path="/bibliotheque/catalogue">

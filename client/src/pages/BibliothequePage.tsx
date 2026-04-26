@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { BookOpen, BookMarked, Library, Users, ArrowRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
-export default function BibliothequeePage() {
+export default function BibliothequePage() {
   const quickAccess = [
     { icon: BookOpen, label: "Bibles", href: "/bibliotheque/catalogue?theme=bibles" },
     { icon: BookMarked, label: "Commentaires", href: "/bibliotheque/catalogue?theme=commentaires" },

@@ -725,18 +725,6 @@ export default function Admin() {
               </h1>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="default" size="sm" asChild className="bg-primary/90 hover:bg-primary text-primary-foreground shadow-sm">
-                <Link href="/admin/bibliotheque">
-                  <Library className="w-4 h-4 mr-2" />
-                  Gestion Bibliothèque
-                </Link>
-              </Button>
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/admin/design">
-                  <Palette className="w-4 h-4 mr-1" />
-                  Design & Identité
-                </Link>
-              </Button>
               <Button variant="outline" size="sm" asChild>
                 <Link href="/admin/tutorial">
                   <HelpCircle className="w-4 h-4 mr-1" />
@@ -751,6 +739,49 @@ export default function Admin() {
               </Button>
             </div>
           </div>
+        </div>
+      </div>
+
+      <div className="container pt-8">
+        <h2 className="text-lg font-serif font-bold mb-4 flex items-center gap-2">
+          <Sparkles className="w-5 h-5 text-primary" /> Accès Rapide
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+          <Link href="/admin/bibliotheque">
+            <div className="bg-card border border-border p-6 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50">
+              <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
+                <Library className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-bold font-serif mb-2">Gestion Bibliothèque</h3>
+              <p className="text-sm text-muted-foreground">
+                Gérez vos livres, études bibliques, vidéos et ressources premium.
+              </p>
+            </div>
+          </Link>
+
+          <Link href="/admin/design">
+            <div className="bg-card border border-border p-6 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50">
+              <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-600 mb-4 group-hover:scale-110 transition-transform">
+                <Palette className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-bold font-serif mb-2">Design & Identité</h3>
+              <p className="text-sm text-muted-foreground">
+                Personnalisez les couleurs, polices, logos et le style visuel global.
+              </p>
+            </div>
+          </Link>
+
+          <Link href="/admin/article/new">
+            <div className="bg-card border border-border p-6 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50">
+              <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-600 mb-4 group-hover:scale-110 transition-transform">
+                <Plus className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-bold font-serif mb-2">Nouvel Article</h3>
+              <p className="text-sm text-muted-foreground">
+                Rédigez un nouvel article pour le blog ou les actualités.
+              </p>
+            </div>
+          </Link>
         </div>
       </div>
 
