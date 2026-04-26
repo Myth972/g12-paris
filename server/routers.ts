@@ -1103,7 +1103,6 @@ export const appRouter = router({
 
         return response.choices[0].message.content as string;
       }),
-      }),
 
     // ─── Kling AI Image Generation ─────────────────────────────────
     generateImage: adminProcedure
