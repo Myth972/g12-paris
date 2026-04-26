@@ -182,6 +182,23 @@ export const appRouter = router({
 
         return { token, pathname: cleaned };
       }),
+
+    localUpload: adminProcedure
+      .input(
+        zod.object({
+          base64: z.string(),
+          filename: z.string(),
+          folder: z.string(),
+          contentType: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const buffer = Buffer.from(input.base64, "base64");
+        const { storagePut } = await import("./storage.js");
+        const folder = input.folder.replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
+        const key = `${folder}/${Date.now()}-${input.filename}`;
+        return storagePut(key, buffer, input.contentType);
+      }),
   }),
 
   articles: router({
@@ -693,6 +710,41 @@ export const appRouter = router({
           provider,
         });
         return response.choices[0].message.content as string;
+      }),
+    
+    testProvider: adminProcedure
+      .input(zod.object({ provider: z.enum(["google", "groq", "minimax", "aimlapi"]).optional() }))
+      .mutation(async ({ input }) => {
+        const { getDb } = await import("./db.js");
+        const db = await getDb();
+        let provider = input.provider;
+        
+        if (!provider && db) {
+          const { siteSettings } = await import("../drizzle/schema.js");
+          const { eq } = await import("drizzle-orm");
+          const rows = await db
+            .select()
+            .from(siteSettings)
+            .where(eq(siteSettings.key, "aiProvider"))
+            .limit(1);
+          provider = rows[0]?.value as any;
+        }
+
+        const { invokeLLM } = await import("./_core/llm.js");
+        const response = await invokeLLM({
+          messages: [{ role: "user", content: "Dis 'OK' si tu fonctionnes." }],
+          provider: provider as any,
+        });
+        
+        const { getProviderInfo } = await import("../shared/aiProviders.js");
+        const info = getProviderInfo(provider as any || "groq");
+        
+        return { 
+          ok: true, 
+          provider: provider || "groq",
+          model: info.model,
+          response: response.choices[0].message.content 
+        };
       }),
 
     generateDescription: adminProcedure

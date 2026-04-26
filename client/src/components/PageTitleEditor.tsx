@@ -81,9 +81,9 @@ export default function PageTitleEditor({
     <div className={`relative ${alignClassName ?? ""}`}>
       {isAdmin && !editing && (
         <Button
-          variant="ghost"
+          variant="secondary"
           size="sm"
-          className="absolute right-0 -top-1 h-8 px-2 text-xs"
+          className="absolute -right-4 -top-8 z-20 h-8 px-3 text-xs shadow-md bg-background/80 backdrop-blur-sm hover:bg-background"
           onClick={() => setEditing(true)}
         >
           <Pencil className="w-3 h-3 mr-1" />

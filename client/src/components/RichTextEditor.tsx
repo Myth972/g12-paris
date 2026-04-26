@@ -116,6 +116,13 @@ export default function RichTextEditor({
     extensions: [
       StarterKit.configure({
         heading: false, // use custom heading
+        link: {
+          openOnClick: false,
+          HTMLAttributes: {
+            class: "text-primary underline cursor-pointer",
+          },
+        },
+        underline: {},
       }),
       Heading.configure({
         levels: [1, 2, 3],
@@ -125,14 +132,7 @@ export default function RichTextEditor({
       TextAlign.configure({
         types: ["heading", "paragraph"],
       }),
-      Underline,
       Highlight.configure({ multicolor: true }),
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: "text-primary underline cursor-pointer",
-        },
-      }),
     ],
     content: content,
     onUpdate: ({ editor }) => {

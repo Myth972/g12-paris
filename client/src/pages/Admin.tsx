@@ -60,6 +60,8 @@ import {
   Mail,
   Wand2,
   Loader2,
+  Library,
+  Palette,
 } from "lucide-react";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useAiProvider } from "@/hooks/useAiProvider";
@@ -723,6 +725,18 @@ export default function Admin() {
               </h1>
             </div>
             <div className="flex items-center gap-2">
+              <Button variant="default" size="sm" asChild className="bg-primary/90 hover:bg-primary text-primary-foreground shadow-sm">
+                <Link href="/admin/bibliotheque">
+                  <Library className="w-4 h-4 mr-2" />
+                  Gestion Bibliothèque
+                </Link>
+              </Button>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/admin/design">
+                  <Palette className="w-4 h-4 mr-1" />
+                  Design & Identité
+                </Link>
+              </Button>
               <Button variant="outline" size="sm" asChild>
                 <Link href="/admin/tutorial">
                   <HelpCircle className="w-4 h-4 mr-1" />

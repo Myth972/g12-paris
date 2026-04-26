@@ -1,5 +1,6 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { trpc } from "@/lib/trpc";
 import { Route, Switch } from "wouter";
 import { lazy, Suspense } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -20,7 +21,17 @@ const GalleriesPage = lazy(() => import("./pages/GalleriesPage"));
 const Login = lazy(() => import("./pages/Login"));
 const AdminTutorial = lazy(() => import("./pages/AdminTutorial"));
 const BibliothequeePage = lazy(() => import("./pages/BibliothequeePage"));
+const CataloguePage = lazy(() => import("./pages/CataloguePage"));
+const PremiumBookPage = lazy(() => import("./pages/PremiumBookPage"));
+const StudiesResourcesPage = lazy(() => import("./pages/StudiesResourcesPage"));
+const BiblicalThemesPage = lazy(() => import("./pages/BiblicalThemesPage"));
+const OffersPacksPage = lazy(() => import("./pages/OffersPacksPage"));
+const AboutVisionPage = lazy(() => import("./pages/AboutVisionPage"));
+const CartCheckoutPage = lazy(() => import("./pages/CartCheckoutPage"));
 const CulteEnLignePage = lazy(() => import("./pages/CulteEnLignePage"));
+const AdminBibliotheque = lazy(() => import("./pages/AdminBibliotheque"));
+const AdminBibliothequeEditor = lazy(() => import("./pages/AdminBibliothequeEditor"));
+const AdminDesign = lazy(() => import("./pages/AdminDesign"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 import { AISearch } from "./components/AISearch";
@@ -79,6 +90,41 @@ function Router() {
             <BibliothequeePage />
           </PublicLayout>
         </Route>
+        <Route path="/bibliotheque/catalogue">
+          <PublicLayout>
+            <CataloguePage />
+          </PublicLayout>
+        </Route>
+        <Route path="/bibliotheque/livre/:id">
+          <PublicLayout>
+            <PremiumBookPage />
+          </PublicLayout>
+        </Route>
+        <Route path="/bibliotheque/etudes">
+          <PublicLayout>
+            <StudiesResourcesPage />
+          </PublicLayout>
+        </Route>
+        <Route path="/bibliotheque/themes">
+          <PublicLayout>
+            <BiblicalThemesPage />
+          </PublicLayout>
+        </Route>
+        <Route path="/bibliotheque/offres">
+          <PublicLayout>
+            <OffersPacksPage />
+          </PublicLayout>
+        </Route>
+        <Route path="/bibliotheque/vision">
+          <PublicLayout>
+            <AboutVisionPage />
+          </PublicLayout>
+        </Route>
+        <Route path="/panier">
+          <PublicLayout>
+            <CartCheckoutPage />
+          </PublicLayout>
+        </Route>
         <Route path="/culte-en-ligne">
           <PublicLayout>
             <CulteEnLignePage />
@@ -90,6 +136,9 @@ function Router() {
         <Route path="/admin" component={Admin} />
         <Route path="/admin/article/:id" component={ArticleEditor} />
         <Route path="/admin/tutorial" component={AdminTutorial} />
+        <Route path="/admin/bibliotheque" component={AdminBibliotheque} />
+        <Route path="/admin/bibliotheque/edition/:id" component={AdminBibliothequeEditor} />
+        <Route path="/admin/design" component={AdminDesign} />
 
         {/* Fallback */}
         <Route path="/404" component={NotFound} />
@@ -99,10 +148,46 @@ function Router() {
   );
 }
 
+function DynamicDesign() {
+  const { data: settings } = trpc.siteSettings.getAll.useQuery();
+  if (!settings) return null;
+
+  const primary = settings["design.primaryColor"] as string;
+  const secondary = settings["design.secondaryColor"] as string;
+  const bg = settings["design.bgColor"] as string;
+  const fontHeading = settings["design.fontHeading"] as string;
+  const fontBody = settings["design.fontBody"] as string;
+  const buttonStyle = settings["design.buttonStyle"] as string;
+  const cardStyle = settings["design.cardStyle"] as string;
+  
+  const headingFamily = fontHeading === 'playfair' ? '"Playfair Display", serif' : fontHeading === 'merriweather' ? 'Merriweather, serif' : 'Lora, serif';
+  const bodyFamily = fontBody === 'inter' ? 'Inter, sans-serif' : fontBody === 'roboto' ? 'Roboto, sans-serif' : 'Lato, sans-serif';
+
+  return (
+    <style dangerouslySetInnerHTML={{
+      __html: `
+        :root {
+          ${primary ? `--primary: ${primary};` : ''}
+          ${secondary ? `--secondary: ${secondary};` : ''}
+          ${bg ? `--background: ${bg};` : ''}
+        }
+        ${fontHeading ? `h1, h2, h3, h4, h5, h6, .font-serif { font-family: ${headingFamily} !important; }` : ''}
+        ${fontBody ? `body, .font-sans { font-family: ${bodyFamily} !important; }` : ''}
+        
+        ${buttonStyle === 'square' ? '[data-slot="button"], button, .btn { border-radius: 0px !important; }' : ''}
+        ${buttonStyle === 'pill' ? '[data-slot="button"], button, .btn { border-radius: 9999px !important; }' : ''}
+        
+        ${cardStyle === 'shadow' ? '.bg-card { border-color: transparent !important; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1) !important; }' : ''}
+      `
+    }} />
+  );
+}
+
 function App() {
   return (
     <ErrorBoundary>
       <ThemeProvider defaultTheme="light">
+        <DynamicDesign />
         <TooltipProvider>
           <Toaster />
           <Router />
