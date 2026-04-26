@@ -36,6 +36,15 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { useBlobUpload } from "@/hooks/useBlobUpload";
 
 const MOCK_CONTENTS = [
   { id: 1, title: "Bible d'Étude Vie Nouvelle", type: "Livre", theme: "Étude", status: "Publié", date: "24/04/2026" },
@@ -47,9 +56,19 @@ const MOCK_CONTENTS = [
 export default function AdminBibliotheque() {
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedType, setSelectedType] = useState<string>("all");
+  const [selectedTheme, setSelectedTheme] = useState<string>("all");
+  const [newsletterSubject, setNewsletterSubject] = useState("Actualités G12 Paris");
+  
   const utils = trpc.useUtils();
+  const { uploadFile, isUploading } = useBlobUpload();
 
+  // Data fetching
   const { data: articlesData, isLoading } = trpc.articles.adminList.useQuery();
+  const { data: galleryData, isLoading: isLoadingMedias } = trpc.gallery.list.useQuery();
+  const { data: subscribers, isLoading: isLoadingSubs } = trpc.newsletter.listSubscribers.useQuery();
+
+  // Mutations
   const deleteMutation = trpc.articles.delete.useMutation({
     onSuccess: () => {
       utils.articles.adminList.invalidate();
@@ -58,15 +77,51 @@ export default function AdminBibliotheque() {
     onError: (err) => toast.error(err.message),
   });
 
+  const deleteMediaMutation = trpc.gallery.delete.useMutation({
+    onSuccess: () => {
+      utils.gallery.list.invalidate();
+      toast.success("Média supprimé");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const sendDigestMutation = trpc.newsletter.sendDigest.useMutation({
+    onSuccess: (res) => {
+      toast.success(`Newsletter envoyée à ${res.count} abonnés`);
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
   const libraryItems = articlesData?.items.filter(a => a.category.startsWith("bibliothèque")) || [];
   
-  const filteredItems = libraryItems.filter(item => 
-    item.title.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Extract unique types and themes for filters
+  const types = Array.from(new Set(libraryItems.map(a => a.category.split(":")[1]))).filter(Boolean);
+  const themes = Array.from(new Set(libraryItems.map(a => a.category.split(":")[2]))).filter(Boolean);
+
+  const filteredItems = libraryItems.filter(item => {
+    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const itemType = item.category.split(":")[1];
+    const itemTheme = item.category.split(":")[2];
+    const matchesType = selectedType === "all" || itemType === selectedType;
+    const matchesTheme = selectedTheme === "all" || itemTheme === selectedTheme;
+    return matchesSearch && matchesType && matchesTheme;
+  });
 
   const handleDelete = async (id: number) => {
     if (confirm("Voulez-vous vraiment supprimer ce contenu ?")) {
       await deleteMutation.mutateAsync({ id });
+    }
+  };
+
+  const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      await uploadFile({ file, folder: "gallery" });
+      utils.gallery.list.invalidate();
+      toast.success("Fichier importé");
+    } catch (err: any) {
+      toast.error(err.message);
     }
   };
 
@@ -121,8 +176,8 @@ export default function AdminBibliotheque() {
 
           {/* TAB 1: CONTENUS */}
           <TabsContent value="contenus" className="space-y-6 m-0">
-            <div className="flex flex-col sm:flex-row gap-4 justify-between items-center bg-card p-4 rounded-xl border shadow-sm">
-              <div className="relative w-full sm:max-w-md">
+            <div className="flex flex-col md:flex-row gap-4 items-center bg-card p-4 rounded-xl border shadow-sm">
+              <div className="relative flex-1 w-full">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input 
                   placeholder="Rechercher un titre, un auteur..." 
@@ -131,14 +186,27 @@ export default function AdminBibliotheque() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <div className="flex gap-2 w-full sm:w-auto">
-                <Button variant="outline" className="gap-2 flex-1 sm:flex-none">
-                  <Filter className="w-4 h-4" />
-                  Filtrer
-                </Button>
-                <Button variant="outline" className="gap-2 flex-1 sm:flex-none">
-                  <Settings className="w-4 h-4" />
-                  Options
+              <div className="flex gap-2 w-full md:w-auto">
+                <Select value={selectedType} onValueChange={setSelectedType}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les types</SelectItem>
+                    {types.map(t => <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Select value={selectedTheme} onValueChange={setSelectedTheme}>
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue placeholder="Thème" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous les thèmes</SelectItem>
+                    {themes.map(t => <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" size="icon" onClick={() => { setSearchQuery(""); setSelectedType("all"); setSelectedTheme("all"); }}>
+                  <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
             </div>
@@ -246,9 +314,21 @@ export default function AdminBibliotheque() {
           <TabsContent value="medias" className="m-0 space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-serif font-bold">Gestionnaire de Médias</h2>
-              <Button className="gap-2">
-                <Plus className="w-4 h-4" /> Importer des fichiers
-              </Button>
+              <div className="flex gap-2">
+                <Input 
+                  type="file" 
+                  className="hidden" 
+                  id="media-upload" 
+                  onChange={handleMediaUpload}
+                  disabled={isUploading}
+                />
+                <Button asChild disabled={isUploading}>
+                  <label htmlFor="media-upload" className="cursor-pointer">
+                    {isUploading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
+                    Importer des fichiers
+                  </label>
+                </Button>
+              </div>
             </div>
             
             <div className="grid md:grid-cols-4 gap-6">
@@ -273,21 +353,48 @@ export default function AdminBibliotheque() {
                       <Input placeholder="Rechercher un média par nom ou tag..." className="pl-9" />
                     </div>
                   </div>
-                  
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
-                      <div key={i} className="group relative aspect-square bg-muted rounded-xl border overflow-hidden hover:border-primary transition-colors cursor-pointer">
-                        <img src={`/premium_bible.png`} alt="Media" className="w-full h-full object-cover" />
-                        <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                          <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full"><Eye className="w-4 h-4" /></Button>
-                          <Button size="icon" variant="destructive" className="h-8 w-8 rounded-full"><Trash2 className="w-4 h-4" /></Button>
-                        </div>
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 text-white text-xs truncate">
-                          cover_bible_{i}.jpg
-                        </div>
+                    {isLoadingMedias ? (
+                      <div className="col-span-full py-12 text-center">
+                        <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary opacity-20" />
                       </div>
-                    ))}
+                    ) : galleryData?.items.length === 0 ? (
+                      <div className="col-span-full py-12 text-center text-muted-foreground">
+                        Aucun média trouvé.
+                      </div>
+                    ) : (
+                      galleryData?.items.map((media) => (
+                        <div key={media.id} className="group relative aspect-square bg-muted rounded-xl border overflow-hidden hover:border-primary transition-colors">
+                          {media.type === 'image' ? (
+                            <img src={media.mediaUrl} alt={media.title} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-slate-900 text-white">
+                              <Video size={32} />
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full" onClick={() => window.open(media.mediaUrl, '_blank')}>
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                            <Button 
+                              size="icon" 
+                              variant="destructive" 
+                              className="h-8 w-8 rounded-full"
+                              onClick={() => {
+                                if (confirm("Supprimer ce média ?")) deleteMediaMutation.mutate({ id: media.id });
+                              }}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 text-white text-xs truncate">
+                            {media.title}
+                          </div>
+                        </div>
+                      ))
+                    )}
                   </div>
+                 </div>
                 </div>
               </div>
             </div>
@@ -308,15 +415,17 @@ export default function AdminBibliotheque() {
                   <FolderTree className="w-5 h-5 text-primary" /> Types de Ressources
                 </h3>
                 <div className="space-y-3">
-                  {['Livres', 'Bibles', 'Commentaires', 'Vidéos', 'PDF Gratuits'].map((cat, i) => (
+                  {types.map((cat, i) => (
                     <div key={i} className="flex items-center justify-between p-3 border rounded-lg hover:border-primary/50 transition-colors bg-muted/20">
-                      <span className="font-medium">{cat}</span>
+                      <span className="font-medium capitalize">{cat}</span>
                       <div className="flex gap-2">
-                        <Button variant="ghost" size="icon" className="h-8 w-8"><Pencil className="w-4 h-4" /></Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedType(cat)}>
+                          <Filter className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
                   ))}
+                  {types.length === 0 && <p className="text-sm text-muted-foreground italic">Aucune catégorie détectée.</p>}
                 </div>
               </div>
               
@@ -325,23 +434,20 @@ export default function AdminBibliotheque() {
                   <Palette className="w-5 h-5 text-amber-500" /> Thèmes Spirituels
                 </h3>
                 <div className="space-y-3">
-                  {[
-                    {name: 'Foi', color: 'bg-blue-500'}, 
-                    {name: 'Leadership', color: 'bg-amber-500'}, 
-                    {name: 'Famille', color: 'bg-rose-500'}, 
-                    {name: 'Prophétie', color: 'bg-purple-500'}
-                  ].map((theme, i) => (
+                  {themes.map((theme, i) => (
                     <div key={i} className="flex items-center justify-between p-3 border rounded-lg hover:border-primary/50 transition-colors bg-muted/20">
                       <div className="flex items-center gap-3">
-                        <div className={`w-4 h-4 rounded-full ${theme.color}`}></div>
-                        <span className="font-medium">{theme.name}</span>
+                        <div className={`w-3 h-3 rounded-full bg-primary`}></div>
+                        <span className="font-medium capitalize">{theme}</span>
                       </div>
                       <div className="flex gap-2">
-                        <Button variant="ghost" size="icon" className="h-8 w-8"><Pencil className="w-4 h-4" /></Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive"><Trash2 className="w-4 h-4" /></Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedTheme(theme)}>
+                          <Filter className="w-4 h-4" />
+                        </Button>
                       </div>
                     </div>
                   ))}
+                  {themes.length === 0 && <p className="text-sm text-muted-foreground italic">Aucun thème détecté.</p>}
                 </div>
               </div>
             </div>
@@ -351,29 +457,69 @@ export default function AdminBibliotheque() {
           <TabsContent value="newsletter" className="m-0 space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-serif font-bold">Éditeur de Newsletter</h2>
-              <Button className="gap-2 bg-blue-600 hover:bg-blue-700">
-                <Mail className="w-4 h-4" /> Envoyer la campagne
+              <Button 
+                className="gap-2 bg-blue-600 hover:bg-blue-700"
+                onClick={() => sendDigestMutation.mutate()}
+                disabled={sendDigestMutation.isPending || !subscribers?.length}
+              >
+                <Mail className="w-4 h-4" /> 
+                {sendDigestMutation.isPending ? "Envoi..." : "Envoyer la campagne"}
               </Button>
             </div>
             
             <div className="grid lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-6">
+              <div className="lg:col-span-2">
                 <div className="bg-card border rounded-xl p-6 shadow-sm space-y-4">
                   <div>
                     <label className="text-sm font-medium mb-1 block">Objet de l'email</label>
-                    <Input placeholder="Découvrez nos nouveautés de la semaine..." />
+                    <Input 
+                      placeholder="Découvrez nos nouveautés de la semaine..." 
+                      value={newsletterSubject}
+                      onChange={(e) => setNewsletterSubject(e.target.value)}
+                    />
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-1 block">Bannière principale</label>
-                    <div className="border-2 border-dashed rounded-xl p-8 text-center bg-muted/30 hover:bg-muted/50 transition-colors cursor-pointer flex flex-col items-center justify-center gap-2">
-                      <ImageIcon className="w-8 h-8 text-muted-foreground" />
-                      <span className="text-sm font-medium text-muted-foreground">Cliquez pour ajouter une image d'en-tête</span>
+                    <label className="text-sm font-medium mb-1 block">Abonnés ({subscribers?.length || 0})</label>
+                    <div className="border rounded-xl max-h-64 overflow-y-auto bg-muted/10 p-2">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Nom</TableHead>
+                            <TableHead className="text-right">Actions</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {isLoadingSubs ? (
+                            <TableRow><TableCell colSpan={3} className="text-center py-4">Chargement...</TableCell></TableRow>
+                          ) : subscribers?.map((sub: any) => (
+                            <TableRow key={sub.id}>
+                              <TableCell className="py-2 text-xs">{sub.email}</TableCell>
+                              <TableCell className="py-2 text-xs">{sub.name || '-'}</TableCell>
+                              <TableCell className="py-2 text-right">
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-6 w-6 text-destructive"
+                                  onClick={() => {
+                                    if(confirm("Supprimer l'abonné ?")) 
+                                      trpc.newsletter.deleteSubscriber.useMutation().mutate({ id: sub.id });
+                                  }}
+                                >
+                                  <Trash2 size={12} />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
                     </div>
                   </div>
                   <div>
                     <label className="text-sm font-medium mb-1 block">Contenu de la newsletter</label>
-                    <div className="border rounded-xl h-64 bg-muted/10 p-4 text-muted-foreground">
-                      Éditeur de texte riche (Gras, italique, liens, intégration de boutons...)
+                    <div className="border rounded-xl p-4 bg-muted/10 text-sm text-muted-foreground">
+                      <p>La newsletter automatique inclut les 3 derniers articles publiés de la bibliothèque.</p>
+                      <p className="mt-2">L'envoi est géré par Resend si configuré.</p>
                     </div>
                   </div>
                 </div>
