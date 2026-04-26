@@ -104,9 +104,9 @@ export default function KlingStudio() {
           <Wand2 className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h2 className="text-xl font-serif font-bold">Kling AI Studio</h2>
+          <h2 className="text-xl font-serif font-bold">AI Media Studio</h2>
           <p className="text-xs text-muted-foreground">
-            Génération d'images et vidéos IA via Kling v1.6 Pro · Alimenté par
+            Génération d'images (Flux) et vidéos IA (Kling v1.6 Pro) · Alimenté par
             AIMLAPI
           </p>
         </div>
@@ -235,7 +235,7 @@ export default function KlingStudio() {
                       <Wand2 className="w-8 h-8 text-white animate-pulse" />
                     </div>
                     <p className="text-sm font-medium">
-                      Kling génère votre image…
+                      Flux génère votre image…
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
                       Généralement 10–20 secondes

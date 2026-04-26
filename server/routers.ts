@@ -1117,7 +1117,7 @@ export const appRouter = router({
               Authorization: `Bearer ${ENV.aimlApiKey}`,
             },
             body: JSON.stringify({
-              model: "kling-ai/kling-v1-5-pro",
+              model: "flux/schnell",
               prompt: input.prompt,
               negative_prompt: input.negativePrompt || "",
               aspect_ratio: input.aspectRatio,
