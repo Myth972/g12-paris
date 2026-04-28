@@ -13,12 +13,12 @@ console.log(
 );
 console.log("----------------------------");
 
-if (process.env.ADMIN_PASSWORD === "adminMarty972$") {
+if (process.env.ADMIN_PASSWORD === "") {
   console.log(
     "MATCH SUCCESS: The password in .env matches the expected string exactly."
   );
 } else {
   console.log(
-    "MATCH FAILURE: The password in .env DOES NOT match the expected string 'adminMarty972$'."
+    "MATCH FAILURE: The password in .env DOES NOT match the expected string ''."
   );
 }
