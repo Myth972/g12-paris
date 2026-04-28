@@ -1,3 +1,3 @@
 @echo off
-cd /d "C:\Users\Myth972\Documents\g12-paris-infos-medias-main"
+cd /d ""
 npm run dev > server.log 2>&1
