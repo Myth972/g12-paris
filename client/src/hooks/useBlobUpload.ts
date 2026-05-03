@@ -1,6 +1,7 @@
 import { useCallback, useState } from "react";
 import { put } from "@vercel/blob/client";
 import { trpc } from "@/lib/trpc";
+import { toast } from "sonner";
 
 type UploadProgress = {
   loaded: number;
@@ -36,6 +37,7 @@ const buildDefaultPathname = (folder: string, file: File) => {
 
 export function useBlobUpload() {
   const tokenMutation = trpc.uploads.generateUploadToken.useMutation();
+  const localUploadMutation = trpc.uploads.localUpload.useMutation();
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState<number | null>(null);
 
@@ -56,64 +58,56 @@ export function useBlobUpload() {
 
       setIsUploading(true);
       setProgress(null);
+
+      // Try Vercel Blob first for all folders, fallback to local if fails
       try {
-        try {
-          const tokenResult = await tokenMutation.mutateAsync({
-            pathname,
-            contentType: file.type || undefined,
-          });
+        const tokenResult = await tokenMutation.mutateAsync({
+          pathname,
+          contentType: file.type || undefined,
+        });
 
-          const result = await put(tokenResult.pathname, file, {
-            access: "public",
-            token: tokenResult.token,
-            contentType: file.type || undefined,
-            multipart: file.size > 5 * MB,
-            onUploadProgress: info => {
-              setProgress(info.percentage);
-              onProgress?.(info);
-            },
-          });
+        const result = await put(tokenResult.pathname, file, {
+          access: "public",
+          token: tokenResult.token,
+          contentType: file.type || undefined,
+        });
 
-          return {
-            url: result.url,
-            key: result.pathname,
-            pathname: result.pathname,
-          } as UploadResult;
-        } catch (err: any) {
-          // Fallback to local upload if Vercel Blob is not configured
-          if (err.message?.includes("Vercel Blob n'est pas configuré") || err.message?.includes("token")) {
-            console.log("Vercel Blob non configuré, tentative d'upload local...");
-            
-            const base64 = await new Promise<string>((resolve, reject) => {
-              const reader = new FileReader();
-              reader.readAsDataURL(file);
-              reader.onload = () => {
-                const result = reader.result as string;
-                resolve(result.split(",")[1]);
-              };
-              reader.onerror = error => reject(error);
-            });
-
-            const result = await trpc.uploads.localUpload.mutateAsync({
-              base64,
-              filename: file.name,
-              folder: safeFolder,
-              contentType: file.type,
-            });
-
-            return {
-              url: result.url,
-              key: result.key,
-              pathname: result.key,
-            } as UploadResult;
-          }
-          throw err;
-        }
-      } finally {
         setIsUploading(false);
+        return {
+          url: result.url,
+          key: result.pathname,
+          pathname: result.pathname,
+        } as UploadResult;
+      } catch (err: any) {
+        // Fallback to local upload for any error
+        console.warn("Vercel Blob upload failed, falling back to local upload:", err.message || err);
+        
+        const base64 = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.readAsDataURL(file);
+          reader.onload = () => {
+            const result = reader.result as string;
+            resolve(result.split(",")[1]);
+          };
+          reader.onerror = error => reject(error);
+        });
+
+        const result = await localUploadMutation.mutateAsync({
+          base64,
+          filename: file.name,
+          folder: safeFolder,
+          contentType: file.type,
+        });
+
+        setIsUploading(false);
+        return {
+          url: result.url,
+          key: result.key,
+          pathname: result.key,
+        } as UploadResult;
       }
     },
-    [tokenMutation]
+    [tokenMutation, localUploadMutation]
   );
 
   return { uploadFile, isUploading, progress };

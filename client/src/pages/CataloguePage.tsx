@@ -4,7 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, SlidersHorizontal, ChevronDown, Loader2, Book } from "lucide-react";
+import { Search, SlidersHorizontal, Loader2, Book, ExternalLink } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function CataloguePage() {
@@ -14,7 +14,7 @@ export default function CataloguePage() {
   const [searchTerm, setSearchTerm] = useState(params.get("q") || "");
   const [selectedTypes, setSelectedTypes] = useState<string[]>(params.get("type") ? [params.get("type")!] : []);
   const [selectedThemes, setSelectedThemes] = useState<string[]>(params.get("theme") ? [params.get("theme")!] : []);
-  const [maxPrice, setMaxPrice] = useState<number>(params.get("maxPrice") ? parseInt(params.get("maxPrice")!) : 100);
+  const [maxPrice, setMaxPrice] = useState<number>(params.get("maxPrice") ? parseInt(params.get("maxPrice")!) : 200);
   const [sortOrder, setSortOrder] = useState(params.get("sort") || "newest");
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
 
@@ -27,6 +27,7 @@ export default function CataloguePage() {
   const { data, isLoading } = trpc.articles.list.useQuery({
     category: "bibliothèque",
     search: debouncedSearch || undefined,
+    type: selectedTypes.length > 0 ? selectedTypes[0] : undefined,
     theme: selectedThemes.length > 0 ? selectedThemes[0] : undefined,
     maxPrice: maxPrice * 100, // Convert to cents
     sort: sortOrder as any,
@@ -226,14 +227,16 @@ export default function CataloguePage() {
                 {books.map((book) => {
                   const { type, theme } = parseCategory(book.category);
                   const price = (book.price || 0) / 100;
-                  
+                  const meta = (() => { try { return JSON.parse(book.meta || "{}"); } catch { return {}; } })();
+                  const hasAffiliate = !!(book as any).affiliateUrl;
+
                   return (
                     <Link key={book.id} href={`/bibliotheque/livre/${book.id}`} className="group flex flex-col h-full">
                       <div className="rounded-xl overflow-hidden mb-4 bg-muted aspect-square relative border border-border/50 group-hover:border-primary/30 transition-all shadow-sm group-hover:shadow-md group-hover:-translate-y-1">
-                        <img 
-                          src={book.coverImageUrl || "/premium_bible.png"} 
+                        <img
+                          src={book.coverImageUrl || "/premium_bible.png"}
                           alt={book.title}
-                          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                          className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-110"
                         />
                         <div className="absolute top-2 right-2 flex flex-col gap-1 items-end">
                           <span className="bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded">
@@ -243,14 +246,25 @@ export default function CataloguePage() {
                             {theme}
                           </span>
                         </div>
+                        {hasAffiliate && (
+                          <div className="absolute bottom-2 left-2">
+                            <span className="bg-[#FF9900] text-white text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded flex items-center gap-1">
+                              <ExternalLink className="w-2.5 h-2.5" /> Amazon
+                            </span>
+                          </div>
+                        )}
                       </div>
                       <div className="flex flex-col flex-1">
                         <h3 className="font-bold text-base leading-tight mb-1 group-hover:text-primary transition-colors line-clamp-2 font-serif">
                           {book.title}
                         </h3>
-                        <p className="text-muted-foreground text-xs mb-2 italic">Auteur à définir</p>
+                        <p className="text-muted-foreground text-xs mb-2 italic">
+                          {meta.author || "Auteur inconnu"}
+                        </p>
                         <div className="mt-auto pt-2 flex items-center justify-between">
-                          <p className="font-bold text-lg text-primary">{price.toFixed(2)} €</p>
+                          <p className="font-bold text-lg text-primary">
+                            {book.price ? `${price.toFixed(2)} €` : "Gratuit"}
+                          </p>
                           <Button size="sm" variant="ghost" className="h-8 w-8 p-0 rounded-full bg-primary/5 hover:bg-primary hover:text-primary-foreground transition-all">
                             <span className="sr-only">Détails</span>
                             +

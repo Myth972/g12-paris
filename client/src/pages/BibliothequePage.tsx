@@ -2,23 +2,50 @@ import { Link } from "wouter";
 import PageTitleEditor from "@/components/PageTitleEditor";
 import PageTextEditor from "@/components/PageTextEditor";
 import { Button } from "@/components/ui/button";
-import { BookOpen, BookMarked, Library, Users, ArrowRight } from "lucide-react";
+import { BookOpen, BookMarked, Library, Users, ArrowRight, RefreshCw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export default function BibliothequePage() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  
   const quickAccess = [
     { icon: BookOpen, label: "Bibles", href: "/bibliotheque/catalogue?theme=bibles" },
     { icon: BookMarked, label: "Commentaires", href: "/bibliotheque/catalogue?theme=commentaires" },
-    { icon: Library, label: "Études", href: "/bibliotheque/etudes" },
     { icon: Users, label: "Jeunesse", href: "/bibliotheque/catalogue?theme=jeunesse" }
   ];
 
-  const featuredBooks = [
-    { id: 1, title: "Bible d'Étude Vie Nouvelle", author: "Collectif", price: "45,00 €", image: "/premium_bible.png" },
-    { id: 2, title: "Le Leadership Spirituel", author: "J. Oswald Sanders", price: "15,50 €", image: "/premium_bible.png" },
-    { id: 3, title: "La Prière qui Transforme", author: "Timothy Keller", price: "22,00 €", image: "/premium_bible.png" },
-    { id: 4, title: "Fondements de la Foi", author: "C.S. Lewis", price: "18,90 €", image: "/premium_bible.png" },
-  ];
+  // Fetch featured books from server
+  const { data: booksData, refetch: refetchBooks, isLoading: booksLoading } = trpc.articles.list.useQuery({
+    category: "bibliothèque",
+    limit: 4,
+    sort: "newest"
+  });
+
+  const featuredBooks = (booksData?.items || []).map((book: any) => ({
+    id: book.id,
+    title: book.title,
+    author: (JSON.parse(book.meta || "{}") as any).author || "Auteur inconnu",
+    price: book.price ? `${(book.price / 100).toFixed(2)} €` : "Gratuit",
+    image: book.coverImageUrl || "/premium_bible.png"
+  }));
+
+  const handleSync = async () => {
+    setIsRefreshing(true);
+    try {
+      await refetchBooks();
+      toast.success("Bibliothèque synchronisée");
+    } catch (error) {
+      toast.error("Erreur lors de la synchronisation");
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -113,13 +140,27 @@ export default function BibliothequePage() {
               <h2 className="text-3xl font-bold font-serif mb-2">Nouveautés & Meilleures Ventes</h2>
               <p className="text-muted-foreground">Découvrez nos dernières sélections spirituelles</p>
             </div>
-            <Button variant="ghost" asChild className="hidden md:flex">
-              <Link href="/bibliotheque/catalogue">Voir tout <ArrowRight className="ml-2 w-4 h-4" /></Link>
-            </Button>
+            <div className="flex gap-2 hidden md:flex">
+              {isAdmin && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSync}
+                  disabled={isRefreshing}
+                  className="gap-2"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                  {isRefreshing ? 'Sync...' : 'Synchroniser'}
+                </Button>
+              )}
+              <Button variant="ghost" asChild>
+                <Link href="/bibliotheque/catalogue">Voir tout <ArrowRight className="ml-2 w-4 h-4" /></Link>
+              </Button>
+            </div>
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            {featuredBooks.map((book) => (
+            {featuredBooks.map((book: any) => (
               <Link key={book.id} href={`/bibliotheque/livre/${book.id}`} className="group">
                 <div className="rounded-xl overflow-hidden mb-4 bg-muted aspect-[3/4] relative">
                   <img 

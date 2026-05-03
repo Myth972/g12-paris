@@ -39,6 +39,12 @@ import {
   listPageContent,
   countPageContent,
   getFeaturedHomeContent,
+  listCategories,
+  createCategory,
+  deleteCategory,
+  listThemes,
+  createTheme,
+  deleteTheme,
 } from "./db.js";
 import { storagePut } from "./storage.js";
 import { nanoid } from "nanoid";
@@ -74,6 +80,63 @@ function generateSlug(title: string): string {
 
 export const appRouter = router({
   system: systemRouter,
+  bibliotheque: router({
+    listMedias: adminProcedure
+      .input(zod.object({ limit: z.number().default(50), offset: z.number().default(0) }))
+      .query(async ({ input }) => {
+        const items = await getAllGalleryItems(input.limit, input.offset);
+        return { items };
+      }),
+    deleteMedia: adminProcedure
+      .input(zod.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        return deleteGalleryItem(input.id);
+      }),
+    listCategories: adminProcedure.query(async () => {
+      return listCategories();
+    }),
+    createCategory: adminProcedure
+      .input(zod.object({ name: z.string(), description: z.string().optional() }))
+      .mutation(async ({ input }) => {
+        const slug = input.name
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "");
+        return createCategory({ name: input.name, slug, description: input.description });
+      }),
+    deleteCategory: adminProcedure
+      .input(zod.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        return deleteCategory(input.id);
+      }),
+    listThemes: adminProcedure.query(async () => {
+      return listThemes();
+    }),
+    createTheme: adminProcedure
+      .input(zod.object({ name: z.string(), categoryId: z.number().optional(), description: z.string().optional() }))
+      .mutation(async ({ input }) => {
+        const slug = input.name
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/^-|-$/g, "");
+        return createTheme({ name: input.name, slug, categoryId: input.categoryId, description: input.description });
+      }),
+    deleteTheme: adminProcedure
+      .input(zod.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        return deleteTheme(input.id);
+      }),
+    sendNewsletter: adminProcedure
+      .input(zod.object({ subject: z.string().min(1).max(200), content: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        const { sendNewsletter } = await import("./db.js");
+        return sendNewsletter(input.subject, input.content);
+      }),
+  }),
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     login: publicProcedure
@@ -205,25 +268,24 @@ export const appRouter = router({
     // Public: list published articles
     list: publicProcedure
       .input(
-        z
-          .object({
-            limit: z.number().min(1).max(50).default(12),
-            offset: z.number().min(0).default(0),
-            category: z.string().optional(),
-            search: z.string().optional(),
-            minPrice: z.number().optional(),
-            maxPrice: z.number().optional(),
-            theme: z.string().optional(),
-            sort: z.enum(["newest", "price_asc", "price_desc", "popular"]).default("newest"),
-          })
-          .optional()
+        zod.object({
+          limit: z.number().min(1).max(100).default(12),
+          offset: z.number().min(0).default(0),
+          category: z.string().optional(),
+          search: z.string().optional(),
+          minPrice: z.number().optional(),
+          maxPrice: z.number().optional(),
+          type: z.string().optional(),
+          theme: z.string().optional(),
+          sort: z.enum(["newest", "popular", "price_asc", "price_desc"]).optional(),
+        })
       )
       .query(async ({ input }) => {
-        const { limit = 12, offset = 0, category, search, minPrice, maxPrice, theme, sort } = input ?? {};
+        const { limit = 12, offset = 0, category, search, minPrice, maxPrice, type, theme, sort } = input ?? {};
         const { listPublishedArticles, countPublishedArticles } = await import("./db.js");
         const [items, total] = await Promise.all([
-          listPublishedArticles(limit, offset, { category, search, minPrice, maxPrice, theme, sort }),
-          countPublishedArticles({ category, search, minPrice, maxPrice, theme }),
+          listPublishedArticles(limit, offset, { category, search, minPrice, maxPrice, type, theme, sort }),
+          countPublishedArticles({ category, search, minPrice, maxPrice, type, theme }),
         ]);
         return { items, total, limit, offset };
       }),
@@ -290,6 +352,7 @@ export const appRouter = router({
           verseId: z.number().nullable().optional(),
           price: z.number().optional(),
           meta: z.string().optional(),
+          affiliateUrl: z.string().url().optional(),
         })
       )
       .mutation(async ({ ctx, input }) => {
@@ -317,6 +380,7 @@ export const appRouter = router({
           verseId: z.number().nullable().optional(),
           price: z.number().optional(),
           meta: z.string().optional(),
+          affiliateUrl: z.string().url().nullable().optional(),
         })
       )
       .mutation(async ({ input }) => {
@@ -941,7 +1005,7 @@ export const appRouter = router({
             },
             { role: "user", content: prompt },
           ],
-          provider: "minimax", // Forcément MiniMax pour une meilleure compréhension spirituelle et contextuelle
+          provider: provider || "minimax", // Utilise le fournisseur préféré ou MiniMax par défaut
         });
 
         const raw = (response.choices[0].message.content as string) || "";
@@ -1579,6 +1643,7 @@ export const appRouter = router({
         return { url };
       }),
   }),
+
 });
 
 export type AppRouter = typeof appRouter;

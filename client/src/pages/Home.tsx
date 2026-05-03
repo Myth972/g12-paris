@@ -1,6 +1,7 @@
+import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import ArticleCard from "@/components/ArticleCard";
-import PageContentDisplay from "@/components/PageContentDisplay";
+
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import PageTitleEditor from "@/components/PageTitleEditor";
@@ -14,7 +15,7 @@ export default function Home() {
   const limit = 12;
   const offset = useMemo(() => page * limit, [page]);
 
-  const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset });
+const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, category: "actualité" });
   const settingsQuery = trpc.siteSettings.getAll.useQuery();
 
   const articles = data?.items ?? [];
@@ -82,17 +83,19 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Custom content section */}
+      {/* Bibliothèque Quick Access */}
       <section className="container py-16 border-t border-border/30">
         <div className="mb-8">
           <h3 className="text-2xl font-serif font-bold text-foreground mb-2">
-            Contenu en vedette
+            Bibliothèque
           </h3>
           <p className="text-muted-foreground">
-            Sélection d'images et vidéos à travers le site
+            Découvrez notre collection de ressources spirituelles
           </p>
         </div>
-        <PageContentDisplay featuredOnly />
+        <Button asChild size="lg" className="bg-amber-600 hover:bg-amber-700 text-white border-0 shadow-lg shadow-amber-900/50">
+          <Link href="/bibliotheque">Explorer la bibliothèque</Link>
+        </Button>
       </section>
 
       {/* Articles grid */}

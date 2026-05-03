@@ -9,6 +9,10 @@ import {
   notifications,
   notificationReads,
   type InsertNotification,
+  categories,
+  themes,
+  type InsertCategory,
+  type InsertTheme,
 } from "../drizzle/schema.js";
 import { notInArray, inArray } from "drizzle-orm";
 import { ENV } from "./_core/env.js";
@@ -208,6 +212,7 @@ export async function listPublishedArticles(
     search?: string;
     minPrice?: number;
     maxPrice?: number;
+    type?: string;
     theme?: string;
     sort?: string;
   } = {}
@@ -231,6 +236,10 @@ export async function listPublishedArticles(
     conditions.push(sql`(${articles.title} LIKE ${s} OR ${articles.content} LIKE ${s})`);
   }
 
+  if (filters.type) {
+    conditions.push(sql`${articles.category} LIKE ${`bibliothèque:${filters.type}%`}`);
+  }
+
   if (filters.theme) {
     conditions.push(sql`${articles.category} LIKE ${`%:${filters.theme}%`}`);
   }
@@ -248,6 +257,9 @@ export async function listPublishedArticles(
     orderBy = articles.price;
   } else if (filters.sort === "price_desc") {
     orderBy = desc(articles.price);
+  } else if (filters.sort === "popular") {
+    // Si on n'a pas de champ viewCount, on trie par date pour l'instant
+    orderBy = desc(articles.createdAt);
   }
 
   const rows = await db
@@ -270,6 +282,7 @@ export async function countPublishedArticles(filters: {
   search?: string;
   minPrice?: number;
   maxPrice?: number;
+  type?: string;
   theme?: string;
 } = {}) {
   const db = await getDb();
@@ -288,6 +301,10 @@ export async function countPublishedArticles(filters: {
   if (filters.search) {
     const s = `%${filters.search}%`;
     conditions.push(sql`(${articles.title} LIKE ${s} OR ${articles.content} LIKE ${s})`);
+  }
+
+  if (filters.type) {
+    conditions.push(sql`${articles.category} LIKE ${`bibliothèque:${filters.type}:%`}`);
   }
 
   if (filters.theme) {
@@ -752,4 +769,56 @@ export async function countPageContent(pageId: string) {
     .where(eq(pageContent.pageId, pageId));
 
   return rows[0]?.count ?? 0;
+}
+
+// ─── Categories & Themes helpers ────────────────────────────────
+
+export async function listCategories() {
+  const db = await getDb();
+  assertDb(db);
+  return db.select().from(categories).orderBy(categories.name);
+}
+
+export async function createCategory(data: InsertCategory) {
+  const db = await getDb();
+  assertDb(db);
+  // Explicitly omit id so SQLite can auto-increment it
+  const { id: _id, ...insertData } = data as any;
+  const [row] = await db.insert(categories).values(insertData).returning();
+  return row;
+}
+
+export async function deleteCategory(id: number) {
+  const db = await getDb();
+  assertDb(db);
+  // Delete associated themes first
+  await db.delete(themes).where(eq(themes.categoryId, id));
+  await db.delete(categories).where(eq(categories.id, id));
+  return { success: true };
+}
+
+export async function listThemes(categoryId?: number) {
+  const db = await getDb();
+  assertDb(db);
+  let query = db.select().from(themes);
+  if (categoryId) {
+    query = query.where(eq(themes.categoryId, categoryId)) as any;
+  }
+  return query.orderBy(themes.name);
+}
+
+export async function createTheme(data: InsertTheme) {
+  const db = await getDb();
+  assertDb(db);
+  // Explicitly omit id so SQLite can auto-increment it
+  const { id: _id, ...insertData } = data as any;
+  const [row] = await db.insert(themes).values(insertData).returning();
+  return row;
+}
+
+export async function deleteTheme(id: number) {
+  const db = await getDb();
+  assertDb(db);
+  await db.delete(themes).where(eq(themes.id, id));
+  return { success: true };
 }

@@ -92,7 +92,7 @@ export default function PageTextEditor({
           </div>
         </div>
       ) : (
-        <p className={className}>{text}</p>
+        <p className={`${className} whitespace-pre-wrap break-words leading-relaxed`}>{text}</p>
       )}
     </div>
   );

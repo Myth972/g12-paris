@@ -199,6 +199,8 @@
   }
   .prose-article p {
     margin-bottom: 1.25em;
+    white-space: pre-wrap;
+    word-break: break-word;
   }
   .prose-article h2 {
     font-size: 1.5rem;

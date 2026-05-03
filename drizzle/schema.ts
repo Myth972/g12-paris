@@ -49,6 +49,7 @@ export const articles = sqliteTable("articles", {
   authorId: integer("authorId").notNull(),
   price: integer("price"), // Price in cents
   meta: text("meta"), // JSON for extra data (author, publisher, etc.)
+  affiliateUrl: text("affiliateUrl"), // External affiliate purchase link (Amazon, etc.)
   createdAt: integer("createdAt", { mode: "timestamp" })
     .default(sql`(strftime('%s', 'now'))`)
     .notNull(),
@@ -187,3 +188,36 @@ export const siteSettings = sqliteTable("site_settings", {
 
 export type SiteSetting = typeof siteSettings.$inferSelect;
 export type InsertSiteSetting = typeof siteSettings.$inferInsert;
+
+/**
+ * Categories for articles and media.
+ */
+export const categories = sqliteTable("categories", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+  createdAt: integer("createdAt", { mode: "timestamp" })
+    .default(sql`(strftime('%s', 'now'))`)
+    .notNull(),
+});
+
+export type Category = typeof categories.$inferSelect;
+export type InsertCategory = typeof categories.$inferInsert;
+
+/**
+ * Themes for articles and media, linked to categories.
+ */
+export const themes = sqliteTable("themes", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  name: text("name").notNull(),
+  slug: text("slug").notNull().unique(),
+  categoryId: integer("categoryId").references(() => categories.id),
+  description: text("description"),
+  createdAt: integer("createdAt", { mode: "timestamp" })
+    .default(sql`(strftime('%s', 'now'))`)
+    .notNull(),
+});
+
+export type Theme = typeof themes.$inferSelect;
+export type InsertTheme = typeof themes.$inferInsert;

@@ -266,7 +266,7 @@ export function AIChatBox({
                           <Streamdown>{message.content}</Streamdown>
                         </div>
                       ) : (
-                        <p className="whitespace-pre-wrap text-sm">
+                        <p className="whitespace-pre-wrap text-sm leading-relaxed">
                           {message.content}
                         </p>
                       )}

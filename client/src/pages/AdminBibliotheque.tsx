@@ -67,6 +67,8 @@ export default function AdminBibliotheque() {
   const { data: articlesData, isLoading } = trpc.articles.adminList.useQuery();
   const { data: galleryData, isLoading: isLoadingMedias } = trpc.gallery.list.useQuery();
   const { data: subscribers, isLoading: isLoadingSubs } = trpc.newsletter.listSubscribers.useQuery();
+  const { data: categoriesData } = trpc.bibliotheque.listCategories.useQuery();
+  const { data: themesData } = trpc.bibliotheque.listThemes.useQuery();
 
   // Mutations
   const deleteMutation = trpc.articles.delete.useMutation({
@@ -85,6 +87,13 @@ export default function AdminBibliotheque() {
     onError: (err) => toast.error(err.message),
   });
 
+  const createMediaMutation = trpc.gallery.create.useMutation({
+    onSuccess: () => {
+      utils.gallery.list.invalidate();
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
   const sendDigestMutation = trpc.newsletter.sendDigest.useMutation({
     onSuccess: (res) => {
       toast.success(`Newsletter envoyée à ${res.count} abonnés`);
@@ -92,11 +101,50 @@ export default function AdminBibliotheque() {
     onError: (err) => toast.error(err.message),
   });
 
+  const deleteSubscriberMutation = trpc.newsletter.deleteSubscriber.useMutation({
+    onSuccess: () => {
+      utils.newsletter.listSubscribers.invalidate();
+      toast.success("Abonné supprimé");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const createCategoryMutation = trpc.bibliotheque.createCategory.useMutation({
+    onSuccess: () => {
+      utils.bibliotheque.listCategories.invalidate();
+      toast.success("Catégorie créée");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const deleteCategoryMutation = trpc.bibliotheque.deleteCategory.useMutation({
+    onSuccess: () => {
+      utils.bibliotheque.listCategories.invalidate();
+      toast.success("Catégorie supprimée");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const createThemeMutation = trpc.bibliotheque.createTheme.useMutation({
+    onSuccess: () => {
+      utils.bibliotheque.listThemes.invalidate();
+      toast.success("Thème créé");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const deleteThemeMutation = trpc.bibliotheque.deleteTheme.useMutation({
+    onSuccess: () => {
+      utils.bibliotheque.listThemes.invalidate();
+      toast.success("Thème supprimé");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
   const libraryItems = articlesData?.items.filter(a => a.category.startsWith("bibliothèque")) || [];
   
-  // Extract unique types and themes for filters
-  const types = Array.from(new Set(libraryItems.map(a => a.category.split(":")[1]))).filter(Boolean);
-  const themes = Array.from(new Set(libraryItems.map(a => a.category.split(":")[2]))).filter(Boolean);
+  const types = categoriesData?.map(c => c.name) || [];
+  const themes = themesData?.map(t => t.name) || [];
 
   const filteredItems = libraryItems.filter(item => {
     const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -117,7 +165,13 @@ export default function AdminBibliotheque() {
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      await uploadFile({ file, folder: "gallery" });
+      const result = await uploadFile({ file, folder: "gallery" });
+      await createMediaMutation.mutateAsync({
+        title: file.name,
+        type: file.type.startsWith("video") ? "video" : "image",
+        mediaUrl: result.url,
+        mediaKey: result.key,
+      });
       utils.gallery.list.invalidate();
       toast.success("Fichier importé");
     } catch (err: any) {
@@ -288,8 +342,10 @@ export default function AdminBibliotheque() {
                                       <Pencil className="w-4 h-4 mr-2" /> Éditer
                                     </Link>
                                   </DropdownMenuItem>
-                                  <DropdownMenuItem className="flex items-center cursor-pointer">
-                                    <Eye className="w-4 h-4 mr-2" /> Aperçu
+                                  <DropdownMenuItem asChild>
+                                    <Link href={`/bibliotheque/livre/${item.id}`} className="flex items-center cursor-pointer">
+                                      <Eye className="w-4 h-4 mr-2" /> Aperçu
+                                    </Link>
                                   </DropdownMenuItem>
                                   <DropdownMenuItem 
                                     className="text-red-600 flex items-center cursor-pointer"
@@ -358,7 +414,7 @@ export default function AdminBibliotheque() {
                       <div className="col-span-full py-12 text-center">
                         <Loader2 className="w-8 h-8 animate-spin mx-auto text-primary opacity-20" />
                       </div>
-                    ) : galleryData?.items.length === 0 ? (
+                    ) : (galleryData?.items || []).length === 0 ? (
                       <div className="col-span-full py-12 text-center text-muted-foreground">
                         Aucun média trouvé.
                       </div>
@@ -394,7 +450,6 @@ export default function AdminBibliotheque() {
                       ))
                     )}
                   </div>
-                 </div>
                 </div>
               </div>
             </div>
@@ -404,9 +459,27 @@ export default function AdminBibliotheque() {
           <TabsContent value="categories" className="m-0 space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-serif font-bold">Catégories & Thèmes</h2>
-              <Button className="gap-2">
-                <Plus className="w-4 h-4" /> Nouvelle Catégorie
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline"
+                  className="gap-2"
+                  onClick={() => {
+                    const name = prompt("Nom du nouveau thème :");
+                    if (name) createThemeMutation.mutate({ name });
+                  }}
+                >
+                  <Plus className="w-4 h-4" /> Nouveau Thème
+                </Button>
+                <Button 
+                  className="gap-2"
+                  onClick={() => {
+                    const name = prompt("Nom de la nouvelle catégorie :");
+                    if (name) createCategoryMutation.mutate({ name });
+                  }}
+                >
+                  <Plus className="w-4 h-4" /> Nouvelle Catégorie
+                </Button>
+              </div>
             </div>
             
             <div className="grid md:grid-cols-2 gap-6">
@@ -421,6 +494,19 @@ export default function AdminBibliotheque() {
                       <div className="flex gap-2">
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedType(cat)}>
                           <Filter className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-destructive"
+                          onClick={() => {
+                            const catObj = categoriesData?.find(c => c.name === cat);
+                            if (catObj && confirm("Supprimer cette catégorie ?")) {
+                              deleteCategoryMutation.mutate({ id: catObj.id });
+                            }
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>
@@ -443,6 +529,19 @@ export default function AdminBibliotheque() {
                       <div className="flex gap-2">
                         <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedTheme(theme)}>
                           <Filter className="w-4 h-4" />
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="h-8 w-8 text-destructive"
+                          onClick={() => {
+                            const themeObj = themesData?.find(t => t.name === theme);
+                            if (themeObj && confirm("Supprimer ce thème ?")) {
+                              deleteThemeMutation.mutate({ id: themeObj.id });
+                            }
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
                     </div>
@@ -503,7 +602,7 @@ export default function AdminBibliotheque() {
                                   className="h-6 w-6 text-destructive"
                                   onClick={() => {
                                     if(confirm("Supprimer l'abonné ?")) 
-                                      trpc.newsletter.deleteSubscriber.useMutation().mutate({ id: sub.id });
+                                      deleteSubscriberMutation.mutate({ id: sub.id });
                                   }}
                                 >
                                   <Trash2 size={12} />

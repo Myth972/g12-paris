@@ -96,7 +96,7 @@ export default function ArticleDetail() {
         </h1>
 
         {article.excerpt && (
-          <p className="mt-4 text-lg text-muted-foreground leading-relaxed">
+          <p className="mt-4 text-lg text-muted-foreground leading-relaxed whitespace-pre-wrap break-words">
             {article.excerpt}
           </p>
         )}

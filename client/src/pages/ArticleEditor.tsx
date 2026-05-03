@@ -60,6 +60,8 @@ export default function ArticleEditor() {
   const [verseId, setVerseId] = useState<string>("none");
   const [coverImageUrl, setCoverImageUrl] = useState("");
   const [coverImageKey, setCoverImageKey] = useState("");
+  const [libType, setLibType] = useState("livre");
+  const [libTheme, setLibTheme] = useState("foi");
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -76,12 +78,25 @@ export default function ArticleEditor() {
   const { data: versesData } = trpc.verses.adminList.useQuery();
   const verses = versesData?.items ?? [];
 
+  // Load library metadata
+  const { data: libCategories } = trpc.bibliotheque.listCategories.useQuery();
+  const { data: libThemes } = trpc.bibliotheque.listThemes.useQuery();
+
   useEffect(() => {
     if (existingArticle) {
       setTitle(existingArticle.title);
       setExcerpt(existingArticle.excerpt ?? "");
       setContent(existingArticle.content);
-      setCategory(existingArticle.category);
+      
+      if (existingArticle.category.startsWith("bibliothèque")) {
+        const parts = existingArticle.category.split(":");
+        setCategory("bibliothèque");
+        setLibType(parts[1] || "livre");
+        setLibTheme(parts[2] || "foi");
+      } else {
+        setCategory(existingArticle.category);
+      }
+
       setYoutubeUrl(existingArticle.youtubeUrl ?? "");
       setPublished(existingArticle.published);
       setCoverImageUrl(existingArticle.coverImageUrl ?? "");
@@ -184,7 +199,7 @@ export default function ArticleEditor() {
         title: title.trim(),
         excerpt: excerpt.trim() || undefined,
         content: content.trim(),
-        category,
+        category: category === "bibliothèque" ? `bibliothèque:${libType}:${libTheme}` : category,
         youtubeUrl: youtubeUrl.trim() || undefined,
         coverImageUrl: coverImageUrl || undefined,
         coverImageKey: coverImageKey || undefined,
@@ -332,23 +347,71 @@ export default function ArticleEditor() {
             />
           </div>
 
-          {/* Category */}
-          <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
-            <Label className="text-sm font-semibold text-foreground mb-2 block">
-              Catégorie
-            </Label>
-            <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="w-full sm:w-64">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {CATEGORIES.map(cat => (
-                  <SelectItem key={cat.value} value={cat.value}>
-                    {cat.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="bg-card rounded-xl border border-border p-6 shadow-sm space-y-4">
+            <div>
+              <Label className="text-sm font-semibold text-foreground mb-2 block">
+                Catégorie
+              </Label>
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger className="w-full sm:w-64">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {CATEGORIES.map(cat => (
+                    <SelectItem key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {category === "bibliothèque" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t">
+                <div>
+                  <Label className="text-xs font-semibold text-muted-foreground mb-2 block uppercase tracking-wider">
+                    Type de ressource
+                  </Label>
+                  <Select value={libType} onValueChange={setLibType}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {libCategories?.map(c => (
+                        <SelectItem key={c.id} value={c.name} className="capitalize">{c.name}</SelectItem>
+                      )) || (
+                        <>
+                          <SelectItem value="livre">Livre</SelectItem>
+                          <SelectItem value="bible">Bible</SelectItem>
+                          <SelectItem value="etude">Étude</SelectItem>
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="text-xs font-semibold text-muted-foreground mb-2 block uppercase tracking-wider">
+                    Thème spirituel
+                  </Label>
+                  <Select value={libTheme} onValueChange={setLibTheme}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {libThemes?.map(t => (
+                        <SelectItem key={t.id} value={t.name} className="capitalize">{t.name}</SelectItem>
+                      )) || (
+                        <>
+                          <SelectItem value="foi">Foi</SelectItem>
+                          <SelectItem value="prière">Prière</SelectItem>
+                          <SelectItem value="famille">Famille</SelectItem>
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Verses */}

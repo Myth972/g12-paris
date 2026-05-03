@@ -38,19 +38,33 @@ export default function AdminBibliothequeEditor() {
   const [subtitle, setSubtitle] = useState("");
   const [content, setContent] = useState("");
   const [resourceType, setResourceType] = useState("livre");
-  const [theme, setTheme] = useState("etude");
+  const [selectedThemes, setSelectedThemes] = useState<string[]>(["etude"]);
   const [price, setPrice] = useState("");
+  const [affiliateUrl, setAffiliateUrl] = useState("");
   const [featured, setFeatured] = useState(false);
   const [coverImageUrl, setCoverImageUrl] = useState("");
   const [fileUrl, setFileUrl] = useState("");
-  const [tags, setTags] = useState<string[]>(["prière", "enseignement"]);
+  const [tags, setTags] = useState<string[]>(["prière", "seignement"]);
   const [tagInput, setTagInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
+  
+  // Détails du livre
+  const [author, setAuthor] = useState("");
+  const [publisher, setPublisher] = useState("");
+  const [language, setLanguage] = useState("français");
+  const [bookFormat, setBookFormat] = useState("ebook");
+  const [publishedDate, setPublishedDate] = useState("");
+  const [isbn, setIsbn] = useState("");
+  const [pageCount, setPageCount] = useState("");
 
   const { activeProvider } = useAiProvider();
   const { uploadFile } = useBlobUpload();
   const utils = trpc.useUtils();
+
+  // Load library metadata
+  const { data: libCategories } = trpc.bibliotheque.listCategories.useQuery();
+  const { data: libThemes } = trpc.bibliotheque.listThemes.useQuery();
 
   // Load existing content
   const { data: existingArticle, isLoading: loadingContent } =
@@ -61,17 +75,27 @@ export default function AdminBibliothequeEditor() {
       setTitle(existingArticle.title);
       setSubtitle(existingArticle.excerpt ?? "");
       setContent(existingArticle.content);
-      // We'll parse the category if it was structured differently, 
-      // but for now let's assume it's just 'bibliothèque' and extra info is in meta or we just stick to what we have.
-      // If we want to support themes and types properly, we should have columns for them.
-      // Since we don't, I'll store them in the 'category' field separated by colons: "bibliothèque:livre:etude"
       if (existingArticle.category.startsWith("bibliothèque:")) {
         const parts = existingArticle.category.split(":");
         if (parts[1]) setResourceType(parts[1]);
-        if (parts[2]) setTheme(parts[2]);
+        if (parts[2]) {
+          const themesList = parts.slice(2).filter(t => t);
+          setSelectedThemes(themesList.length > 0 ? themesList : ["etude"]);
+        }
       }
       setCoverImageUrl(existingArticle.coverImageUrl ?? "");
-      // Mocking other fields for now as they aren't in schema
+      setPrice(existingArticle.price ? (existingArticle.price / 100).toString() : "");
+      setAffiliateUrl((existingArticle as any).affiliateUrl ?? "");
+      
+      // Charger les détails du livre depuis meta
+      const meta = JSON.parse(existingArticle.meta || "{}");
+      if (meta.author) setAuthor(meta.author);
+      if (meta.publisher) setPublisher(meta.publisher);
+      if (meta.language) setLanguage(meta.language);
+      if (meta.format) setBookFormat(meta.format);
+      if (meta.publishedDate) setPublishedDate(meta.publishedDate);
+      if (meta.isbn) setIsbn(meta.isbn);
+      if (meta.pageCount) setPageCount(meta.pageCount.toString());
     }
   }, [existingArticle]);
 
@@ -115,8 +139,9 @@ export default function AdminBibliothequeEditor() {
       if (type === 'cover') setCoverImageUrl(result.url);
       if (type === 'file') setFileUrl(result.url);
       toast.success("Fichier téléchargé");
-    } catch {
-      toast.error("Erreur lors du téléchargement");
+    } catch (err: any) {
+      console.error("Upload error:", err);
+      toast.error(err?.message || "Erreur lors du téléchargement");
     } finally {
       setUploading(null);
     }
@@ -130,8 +155,17 @@ export default function AdminBibliothequeEditor() {
 
     setSaving(true);
     try {
-      // Store resourceType and theme in the category field for now
-      const categoryString = `bibliothèque:${resourceType}:${theme}`;
+      const categoryString = `bibliothèque:${resourceType}:${selectedThemes.join(":")}`;
+      
+      const meta = {
+        author: author.trim() || undefined,
+        publisher: publisher.trim() || undefined,
+        language,
+        format: bookFormat,
+        publishedDate: publishedDate.trim() || undefined,
+        isbn: isbn.trim() || undefined,
+        pageCount: pageCount ? parseInt(pageCount) : undefined,
+      };
       
       const payload = {
         title: title.trim(),
@@ -139,7 +173,10 @@ export default function AdminBibliothequeEditor() {
         content: content.trim(),
         category: categoryString,
         coverImageUrl: coverImageUrl || undefined,
-        published: true, // Auto publish for now
+        price: price ? Math.round(parseFloat(price) * 100) : null,
+        affiliateUrl: affiliateUrl.trim() || undefined,
+        published: true,
+        meta: JSON.stringify(meta),
       };
 
       if (isNew) {
@@ -180,21 +217,17 @@ export default function AdminBibliothequeEditor() {
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Éditeur Bibliothèque
-                </span>
-                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700">
-                  Brouillon
-                </span>
-              </div>
-              <h1 className="text-xl font-bold">{isNew ? "Nouveau Contenu" : "Édition: Bible d'Étude Vie Nouvelle"}</h1>
+              <h1 className="text-xl font-bold">
+                {isNew ? "Nouveau Contenu" : `Édition: ${existingArticle?.title || "Chargement..."}`}
+              </h1>
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="gap-2">
-              <Eye className="w-4 h-4" />
-              Aperçu
+            <Button variant="outline" className="gap-2" asChild>
+              <Link href={isNew ? "/bibliotheque" : `/bibliotheque/livre/${contentId}`}>
+                <Eye className="w-4 h-4" />
+                Aperçu
+              </Link>
             </Button>
             <Button className="gap-2" onClick={handleSave} disabled={saving}>
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
@@ -293,6 +326,94 @@ export default function AdminBibliothequeEditor() {
               </div>
             </div>
 
+            {/* Détails du livre */}
+            <div className="bg-card border rounded-xl p-6 shadow-sm space-y-6">
+              <h2 className="font-serif font-bold text-lg border-b pb-2">Détails du livre</h2>
+              
+              <div className="grid sm:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label htmlFor="author" className="text-sm font-medium">Auteur</label>
+                  <Input 
+                    id="author"
+                    placeholder="Ex: César Castellanos" 
+                    value={author}
+                    onChange={(e) => setAuthor(e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="publisher" className="text-sm font-medium">Éditeur</label>
+                  <Input 
+                    id="publisher"
+                    placeholder="Ex: G12 francophonie" 
+                    value={publisher}
+                    onChange={(e) => setPublisher(e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="language" className="text-sm font-medium">Langue</label>
+                  <Select value={language} onValueChange={setLanguage}>
+                    <SelectTrigger id="language">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="français">Français</SelectItem>
+                      <SelectItem value="anglais">Anglais</SelectItem>
+                      <SelectItem value="espagnol">Espagnol</SelectItem>
+                      <SelectItem value="portugais">Portugais</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="book-format" className="text-sm font-medium">Format</label>
+                  <Select value={bookFormat} onValueChange={setBookFormat}>
+                    <SelectTrigger id="book-format">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ebook">ebook (Kindle)</SelectItem>
+                      <SelectItem value="broché">Broché</SelectItem>
+                      <SelectItem value="relié">Relié</SelectItem>
+                      <SelectItem value="audio">Audiobook</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="published-date" className="text-sm font-medium">Date de publication</label>
+                  <Input 
+                    id="published-date"
+                    type="date"
+                    value={publishedDate}
+                    onChange={(e) => setPublishedDate(e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="isbn" className="text-sm font-medium">ISBN</label>
+                  <Input 
+                    id="isbn"
+                    placeholder="Ex: 978-2-1234-5678-9" 
+                    value={isbn}
+                    onChange={(e) => setIsbn(e.target.value)}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label htmlFor="page-count" className="text-sm font-medium">Nombre de pages</label>
+                  <Input 
+                    id="page-count"
+                    type="number"
+                    placeholder="Ex: 256" 
+                    value={pageCount}
+                    onChange={(e) => setPageCount(e.target.value)}
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Fichiers Joints */}
             <div className="bg-card border rounded-xl p-6 shadow-sm space-y-6">
               <h2 className="font-serif font-bold text-lg border-b pb-2 flex items-center gap-2">
@@ -310,7 +431,7 @@ export default function AdminBibliothequeEditor() {
                   >
                     {coverImageUrl ? (
                       <>
-                        <img src={coverImageUrl} alt="Cover" className="absolute inset-0 w-full h-full object-cover" />
+                        <img src={coverImageUrl} alt="Cover" className="absolute inset-0 w-full h-full object-cover object-center" />
                         <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
                           <Button size="sm" variant="secondary">Remplacer</Button>
                         </div>
@@ -367,30 +488,41 @@ export default function AdminBibliothequeEditor() {
                     <SelectValue placeholder="Sélectionner un type..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="livre">Livre physique</SelectItem>
-                    <SelectItem value="bible">Bible</SelectItem>
-                    <SelectItem value="pdf">Ressource PDF</SelectItem>
-                    <SelectItem value="video">Vidéo / Enseignement</SelectItem>
-                    <SelectItem value="audio">Audio / Podcast</SelectItem>
+                    {libCategories?.map(c => (
+                      <SelectItem key={c.id} value={c.name} className="capitalize">{c.name}</SelectItem>
+                    )) || (
+                      <>
+                        <SelectItem value="livre">Livre</SelectItem>
+                        <SelectItem value="bible">Bible</SelectItem>
+                        <SelectItem value="pdf">PDF</SelectItem>
+                        <SelectItem value="video">Vidéo</SelectItem>
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="resource-theme" className="text-sm font-medium text-muted-foreground">Thème principal</label>
-                <Select value={theme} onValueChange={setTheme}>
-                  <SelectTrigger id="resource-theme" name="theme">
-                    <SelectValue placeholder="Sélectionner un thème..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="foi">Foi & Fondements</SelectItem>
-                    <SelectItem value="leadership">Leadership</SelectItem>
-                    <SelectItem value="famille">Famille</SelectItem>
-                    <SelectItem value="jeunesse">Jeunesse</SelectItem>
-                    <SelectItem value="prieres">Prières & Méditation</SelectItem>
-                    <SelectItem value="etude">Étude Biblique</SelectItem>
-                  </SelectContent>
-                </Select>
+                <label className="text-sm font-medium text-muted-foreground">Thèmes</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {(libThemes?.map(t => t.name) || ["foi", "leadership", "famille", "prière", "prophétie", "évangélisation", "guérison", "finance", "danse", "louange"]).map(themeOption => (
+                    <label key={themeOption} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-2 rounded-md transition-colors">
+                      <input 
+                        type="checkbox" 
+                        checked={selectedThemes.includes(themeOption)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedThemes([...selectedThemes, themeOption]);
+                          } else {
+                            setSelectedThemes(selectedThemes.filter(t => t !== themeOption));
+                          }
+                        }}
+                        className="rounded border-input text-primary focus:ring-primary w-4 h-4" 
+                      />
+                      <span className="text-sm capitalize">{themeOption}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -439,6 +571,19 @@ export default function AdminBibliothequeEditor() {
                   onChange={(e) => setPrice(e.target.value)}
                 />
                 <p className="text-xs text-muted-foreground">Laissez vide si gratuit</p>
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="affiliateUrl" className="text-sm font-medium text-muted-foreground">Lien d'affiliation Amazon</label>
+                <Input 
+                  id="affiliateUrl" 
+                  name="affiliateUrl"
+                  type="url" 
+                  placeholder="https://amazon.fr/..." 
+                  value={affiliateUrl}
+                  onChange={(e) => setAffiliateUrl(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">URL d'affiliation pour les achats Amazon (optionnel)</p>
               </div>
               
               <div className="flex items-center gap-2 pt-2 cursor-pointer">
