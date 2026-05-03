@@ -34,6 +34,7 @@ function formatDate(date: Date): string {
 
 export default function NewsletterAdmin() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [newsletterSubject, setNewsletterSubject] = useState("Les dernières actualités de G12 Paris");
   const utils = trpc.useUtils();
 
   const { data: subscribers, isLoading } =
@@ -70,16 +71,30 @@ export default function NewsletterAdmin() {
             {(subscribers?.length ?? 0) > 1 ? "s" : ""}
           </p>
         </div>
-        <Button
-          size="sm"
-          onClick={() => sendDigestMutation.mutate()}
-          disabled={sendDigestMutation.isPending || !subscribers?.length}
-        >
-          <Send className="w-4 h-4 mr-1" />
-          {sendDigestMutation.isPending
-            ? "Envoi en cours..."
-            : "Envoyer les actualités"}
-        </Button>
+        <div className="flex gap-2 items-center">
+          <div className="w-64">
+            <input 
+              type="text" 
+              placeholder="Objet de l'email..."
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+              value={newsletterSubject}
+              onChange={(e) => setNewsletterSubject(e.target.value)}
+            />
+          </div>
+          <Button
+            size="sm"
+            onClick={() => sendDigestMutation.mutate({ 
+              category: "actualité",
+              subject: newsletterSubject
+            })}
+            disabled={sendDigestMutation.isPending || !subscribers?.length}
+          >
+            <Send className="w-4 h-4 mr-1" />
+            {sendDigestMutation.isPending
+              ? "Envoi..."
+              : "Envoyer"}
+          </Button>
+        </div>
       </div>
 
       <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm max-w-4xl mx-auto">

@@ -159,7 +159,7 @@ export default function AdminBibliotheque() {
     onSuccess: (res) => {
       toast.success(`Newsletter envoyée à ${res.count} abonnés`);
     },
-    onError: (err) => toast.error(err.message),
+    onError: (err) => toast.error("Erreur lors de l'envoi: " + err.message),
   });
 
   const deleteSubscriberMutation = trpc.newsletter.deleteSubscriber.useMutation({
@@ -745,7 +745,10 @@ export default function AdminBibliotheque() {
               <h2 className="text-2xl font-serif font-bold">Éditeur de Newsletter</h2>
               <Button 
                 className="gap-2 bg-blue-600 hover:bg-blue-700"
-                onClick={() => sendDigestMutation.mutate()}
+                onClick={() => sendDigestMutation.mutate({ 
+                  category: "bibliothèque", 
+                  subject: newsletterSubject 
+                })}
                 disabled={sendDigestMutation.isPending || !subscribers?.length}
               >
                 <Mail className="w-4 h-4" /> 

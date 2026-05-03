@@ -133,8 +133,18 @@ export const appRouter = router({
     sendNewsletter: adminProcedure
       .input(zod.object({ subject: z.string().min(1).max(200), content: z.string().min(1) }))
       .mutation(async ({ input }) => {
-        const { sendNewsletter } = await import("./db.js");
-        return sendNewsletter(input.subject, input.content);
+        const { getDb } = await import("./db.js");
+        const { subscribers } = await import("../drizzle/schema.js");
+        const db = await getDb();
+        
+        const allSubscribers = await db.select().from(subscribers);
+        if (allSubscribers.length === 0) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Aucun abonné." });
+        }
+        
+        const emails = allSubscribers.map((s: any) => s.email);
+        const { sendCustomNewsletter } = await import("./_core/newsletter.js");
+        return sendCustomNewsletter(emails, input.subject, input.content);
       }),
   }),
   auth: router({
@@ -1372,41 +1382,59 @@ export const appRouter = router({
         return { success: true };
       }),
 
-    sendDigest: adminProcedure.mutation(async () => {
-      const { getDb } = await import("./db.js");
-      const { subscribers, articles } = await import("../drizzle/schema.js");
-      const { desc, eq } = await import("drizzle-orm");
-      const db = await getDb();
+    sendDigest: adminProcedure
+      .input(zod.object({ 
+        subject: z.string().optional(),
+        category: z.string().optional()
+      }).optional())
+      .mutation(async ({ input }) => {
+        const { getDb } = await import("./db.js");
+        const { subscribers, articles } = await import("../drizzle/schema.js");
+        const { desc, eq, and, like } = await import("drizzle-orm");
+        const db = await getDb();
 
-      const allSubscribers = await db.select().from(subscribers);
-      if (allSubscribers.length === 0) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Aucun abonné à contacter.",
-        });
-      }
+        const allSubscribers = await db.select().from(subscribers);
+        if (allSubscribers.length === 0) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Aucun abonné à contacter.",
+          });
+        }
 
-      const latestArticles = await db
-        .select()
-        .from(articles)
-        .where(eq(articles.published, true))
-        .orderBy(desc(articles.createdAt))
-        .limit(3);
+        let query = db
+          .select()
+          .from(articles)
+          .where(eq(articles.published, true));
+        
+        if (input?.category) {
+          // Use like for flexible category matching (e.g. bibliothèque:bible)
+          query = db
+            .select()
+            .from(articles)
+            .where(and(
+              eq(articles.published, true),
+              like(articles.category, `${input.category}%`)
+            ));
+        }
 
-      if (latestArticles.length === 0) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Aucun article publié à envoyer.",
-        });
-      }
+        const latestArticles = await query
+          .orderBy(desc(articles.createdAt))
+          .limit(3);
 
-      const emails = allSubscribers.map((s: any) => s.email);
+        if (latestArticles.length === 0) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Aucun article publié à envoyer.",
+          });
+        }
 
-      const { sendWeeklyDigest } = await import("./_core/newsletter.js");
-      await sendWeeklyDigest(emails, latestArticles as any);
+        const emails = allSubscribers.map((s: any) => s.email);
 
-      return { success: true, count: emails.length };
-    }),
+        const { sendWeeklyDigest } = await import("./_core/newsletter.js");
+        await sendWeeklyDigest(emails, latestArticles as any, input?.subject);
+
+        return { success: true, count: emails.length };
+      }),
   }),
 
   siteSettings: router({
