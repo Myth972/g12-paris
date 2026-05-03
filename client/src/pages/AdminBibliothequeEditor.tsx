@@ -99,6 +99,7 @@ export default function AdminBibliothequeEditor() {
       if (meta.publishedDate) setPublishedDate(meta.publishedDate);
       if (meta.isbn) setIsbn(meta.isbn);
       if (meta.pageCount) setPageCount(meta.pageCount.toString());
+      if (meta.tags) setTags(meta.tags);
     }
   }, [existingArticle]);
 
@@ -168,6 +169,7 @@ export default function AdminBibliothequeEditor() {
         publishedDate: publishedDate.trim() || undefined,
         isbn: isbn.trim() || undefined,
         pageCount: pageCount ? parseInt(pageCount) : undefined,
+        tags: tags.length > 0 ? tags : undefined,
       };
       
       const payload = {
@@ -202,7 +204,8 @@ export default function AdminBibliothequeEditor() {
     }
   };
 
-  const removeTag = (tagToRemove: string) => {
+  const removeTag = (e: React.MouseEvent, tagToRemove: string) => {
+    e.preventDefault();
     setTags(tags.filter(t => t !== tagToRemove));
   };
 
@@ -537,7 +540,7 @@ export default function AdminBibliothequeEditor() {
                 {tags.map(tag => (
                   <Badge key={tag} variant="secondary" className="pl-2 pr-1 py-1 gap-1 flex items-center">
                     {tag}
-                    <button onClick={() => removeTag(tag)} className="hover:bg-muted/50 rounded-full p-0.5">
+                    <button type="button" onClick={(e) => removeTag(e, tag)} className="hover:bg-muted/50 rounded-full p-0.5">
                       <X className="w-3 h-3 text-muted-foreground" />
                     </button>
                   </Badge>
@@ -553,7 +556,7 @@ export default function AdminBibliothequeEditor() {
                   onKeyDown={addTag}
                   className="pr-10"
                 />
-                <Button size="icon" variant="ghost" className="absolute right-1 top-1 bottom-1 h-auto" onClick={(e) => addTag({ key: 'Enter', preventDefault: () => {} } as any)}>
+                <Button type="button" size="icon" variant="ghost" className="absolute right-1 top-1 bottom-1 h-auto" onClick={(e) => addTag({ key: 'Enter', preventDefault: () => e.preventDefault() } as any)}>
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>
