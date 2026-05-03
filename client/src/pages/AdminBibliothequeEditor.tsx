@@ -37,7 +37,10 @@ export default function AdminBibliothequeEditor() {
   const [title, setTitle] = useState("");
   const [subtitle, setSubtitle] = useState("");
   const [content, setContent] = useState("");
-  const [resourceType, setResourceType] = useState("livre");
+  // Determine initial type from query params if new
+  const searchParams = new URLSearchParams(window.location.search);
+  const initialType = isNew ? (searchParams.get("type") || "livre") : "livre";
+  const [resourceType, setResourceType] = useState(initialType);
   const [selectedThemes, setSelectedThemes] = useState<string[]>(["etude"]);
   const [price, setPrice] = useState("");
   const [affiliateUrl, setAffiliateUrl] = useState("");
@@ -488,13 +491,14 @@ export default function AdminBibliothequeEditor() {
                     <SelectValue placeholder="Sélectionner un type..." />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="offre">Offre / Pack</SelectItem>
                     {libCategories?.map(c => (
                       <SelectItem key={c.id} value={c.name} className="capitalize">{c.name}</SelectItem>
                     )) || (
                       <>
                         <SelectItem value="livre">Livre</SelectItem>
                         <SelectItem value="bible">Bible</SelectItem>
-                        <SelectItem value="pdf">PDF</SelectItem>
+                        <SelectItem value="etude">Étude</SelectItem>
                         <SelectItem value="video">Vidéo</SelectItem>
                       </>
                     )}

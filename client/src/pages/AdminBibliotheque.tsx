@@ -24,7 +24,8 @@ import {
   Video,
   Music,
   Download,
-  Loader2
+  Loader2,
+  Gift
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -221,6 +222,10 @@ export default function AdminBibliotheque() {
             <TabsTrigger value="categories" className="gap-2 data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
               <FolderTree className="w-4 h-4" />
               Catégories & Thèmes
+            </TabsTrigger>
+            <TabsTrigger value="offres" className="gap-2 data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
+              <Gift className="w-4 h-4" />
+              Offres & Packs
             </TabsTrigger>
             <TabsTrigger value="newsletter" className="gap-2 data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
               <Mail className="w-4 h-4" />
@@ -552,7 +557,53 @@ export default function AdminBibliotheque() {
             </div>
           </TabsContent>
 
-          {/* TAB 4: NEWSLETTER */}
+          {/* TAB 4: OFFRES */}
+          <TabsContent value="offres" className="space-y-6 m-0">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-serif font-bold">Gestion des Offres & Packs</h2>
+              <Button asChild>
+                <Link href="/admin/bibliotheque/edition/new?type=offre">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Nouvelle Offre
+                </Link>
+              </Button>
+            </div>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {articlesData?.items.filter(a => a.category === "bibliothèque:offre").map(offre => {
+                const meta = (() => { try { return JSON.parse(offre.meta || "{}"); } catch { return {}; } })();
+                const isPopular = meta.popular || false;
+                const price = (offre.price || 0) / 100;
+                
+                return (
+                  <div key={offre.id} className="bg-card border rounded-xl p-6 shadow-sm relative">
+                    {isPopular && (
+                      <Badge className="absolute top-4 right-4">Populaire</Badge>
+                    )}
+                    <h3 className="font-bold text-lg mb-2">{offre.title}</h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{offre.excerpt}</p>
+                    <p className="font-bold text-primary text-xl mb-4">{price.toFixed(2)} €</p>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" asChild className="flex-1">
+                        <Link href={`/admin/bibliotheque/edition/${offre.id}`}>
+                          <Pencil className="w-4 h-4 mr-2" /> Modifier
+                        </Link>
+                      </Button>
+                      <Button variant="outline" size="icon" className="text-destructive" onClick={() => handleDelete(offre.id)}>
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+              {articlesData?.items.filter(a => a.category === "bibliothèque:offre").length === 0 && (
+                <div className="col-span-full py-12 text-center border rounded-xl border-dashed">
+                  <p className="text-muted-foreground">Aucune offre configurée.</p>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          {/* TAB 5: NEWSLETTER */}
           <TabsContent value="newsletter" className="m-0 space-y-6">
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-serif font-bold">Éditeur de Newsletter</h2>
