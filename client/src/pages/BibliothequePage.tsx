@@ -20,6 +20,9 @@ export default function BibliothequePage() {
     { icon: Users, label: "Jeunesse", href: "/bibliotheque/catalogue?theme=jeunesse" }
   ];
 
+  const settingsQuery = trpc.siteSettings.getAll.useQuery();
+  const settings = settingsQuery.data || {};
+
   // Fetch featured books from server
   const { data: booksData, refetch: refetchBooks, isLoading: booksLoading } = trpc.articles.list.useQuery({
     category: "bibliothèque",
@@ -188,12 +191,16 @@ export default function BibliothequePage() {
         <div className="absolute inset-0 bg-primary/90 z-0" />
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1455390582262-044cdead2708?q=80&w=2000')] bg-cover bg-center opacity-20 mix-blend-overlay z-0" />
         <div className="container relative z-10 text-center text-primary-foreground">
-          <h2 className="text-4xl font-serif font-bold mb-6">Explorez par Thématiques</h2>
+          <h2 className="text-4xl font-serif font-bold mb-6">
+            {settings["page.bibliotheque.themesTitle"] || "Explorez par Thématiques"}
+          </h2>
           <p className="text-lg max-w-2xl mx-auto mb-8 text-primary-foreground/80">
-            Foi, Leadership, Famille, Prophétie... Trouvez les ressources qui correspondent exactement à votre besoin spirituel du moment.
+            {settings["page.bibliotheque.themesDesc"] || "Foi, Leadership, Famille, Prophétie... Trouvez les ressources qui correspondent exactement à votre besoin spirituel du moment."}
           </p>
-          <Button asChild size="lg" variant="secondary" className="font-semibold">
-            <Link href="/bibliotheque/themes">Parcourir les thèmes</Link>
+          <Button asChild size="lg" className="font-semibold bg-primary text-white hover:bg-primary/80 border border-white/20 shadow-lg">
+            <Link href="/bibliotheque/themes">
+              {settings["page.bibliotheque.themesBtn"] || "Parcourir les thèmes"}
+            </Link>
           </Button>
         </div>
       </section>

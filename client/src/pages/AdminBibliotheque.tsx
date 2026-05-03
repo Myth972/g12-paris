@@ -71,6 +71,10 @@ export default function AdminBibliotheque() {
   const [offresBulkDesc, setOffresBulkDesc] = useState("Vous êtes responsable d'une église, d'un groupe de jeunes ou vous souhaitez commander en grande quantité ? Profitez de nos tarifs préférentiels.");
   const [offresBulkBtn, setOffresBulkBtn] = useState("Demander un devis personnalisé");
 
+  const [biblioThemesTitle, setBiblioThemesTitle] = useState("Explorez par Thématiques");
+  const [biblioThemesDesc, setBiblioThemesDesc] = useState("Foi, Leadership, Famille, Prophétie... Trouvez les ressources qui correspondent exactement à votre besoin spirituel du moment.");
+  const [biblioThemesBtn, setBiblioThemesBtn] = useState("Parcourir les thèmes");
+
   useEffect(() => {
     if (settingsQuery.data) {
       if (settingsQuery.data["page.offres.badge"]) setOffresBadge(settingsQuery.data["page.offres.badge"] as string);
@@ -79,6 +83,10 @@ export default function AdminBibliotheque() {
       if (settingsQuery.data["page.offres.bulkTitle"]) setOffresBulkTitle(settingsQuery.data["page.offres.bulkTitle"] as string);
       if (settingsQuery.data["page.offres.bulkDesc"]) setOffresBulkDesc(settingsQuery.data["page.offres.bulkDesc"] as string);
       if (settingsQuery.data["page.offres.bulkBtn"]) setOffresBulkBtn(settingsQuery.data["page.offres.bulkBtn"] as string);
+      
+      if (settingsQuery.data["page.bibliotheque.themesTitle"]) setBiblioThemesTitle(settingsQuery.data["page.bibliotheque.themesTitle"] as string);
+      if (settingsQuery.data["page.bibliotheque.themesDesc"]) setBiblioThemesDesc(settingsQuery.data["page.bibliotheque.themesDesc"] as string);
+      if (settingsQuery.data["page.bibliotheque.themesBtn"]) setBiblioThemesBtn(settingsQuery.data["page.bibliotheque.themesBtn"] as string);
     }
   }, [settingsQuery.data]);
 
@@ -93,6 +101,19 @@ export default function AdminBibliotheque() {
         setSetting.mutateAsync({ key: "page.offres.bulkBtn", value: offresBulkBtn }),
       ]);
       toast.success("Textes de la page Offres enregistrés avec succès.");
+    } catch (e) {
+      toast.error("Erreur lors de l'enregistrement des paramètres.");
+    }
+  };
+
+  const saveBiblioSettings = async () => {
+    try {
+      await Promise.all([
+        setSetting.mutateAsync({ key: "page.bibliotheque.themesTitle", value: biblioThemesTitle }),
+        setSetting.mutateAsync({ key: "page.bibliotheque.themesDesc", value: biblioThemesDesc }),
+        setSetting.mutateAsync({ key: "page.bibliotheque.themesBtn", value: biblioThemesBtn }),
+      ]);
+      toast.success("Textes de la page Bibliothèque enregistrés avec succès.");
     } catch (e) {
       toast.error("Erreur lors de l'enregistrement des paramètres.");
     }
@@ -523,6 +544,33 @@ export default function AdminBibliotheque() {
                 >
                   <Plus className="w-4 h-4" /> Nouvelle Catégorie
                 </Button>
+              </div>
+            </div>
+
+            <div className="bg-card border rounded-xl p-6 shadow-sm mb-6 space-y-4">
+              <div className="flex items-center justify-between border-b pb-4 mb-4">
+                <h3 className="font-bold text-lg flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-primary" /> Textes de la page Bibliothèque (Thématiques)
+                </h3>
+                <Button onClick={saveBiblioSettings} disabled={setSetting.isPending} size="sm">
+                  {setSetting.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                  Enregistrer les textes
+                </Button>
+              </div>
+
+              <div className="space-y-4 max-w-3xl">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Titre de la section Thématiques</label>
+                  <Input value={biblioThemesTitle} onChange={e => setBiblioThemesTitle(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Description</label>
+                  <Textarea value={biblioThemesDesc} onChange={e => setBiblioThemesDesc(e.target.value)} rows={2} />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Texte du bouton</label>
+                  <Input value={biblioThemesBtn} onChange={e => setBiblioThemesBtn(e.target.value)} />
+                </div>
               </div>
             </div>
             
