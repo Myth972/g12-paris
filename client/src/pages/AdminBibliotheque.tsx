@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   Library, 
@@ -59,6 +60,44 @@ export default function AdminBibliotheque() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedTheme, setSelectedTheme] = useState<string>("all");
+
+  const settingsQuery = trpc.siteSettings.getAll.useQuery();
+  const setSetting = trpc.siteSettings.set.useMutation();
+
+  const [offresBadge, setOffresBadge] = useState("Bons Plans & Idées Cadeaux");
+  const [offresTitle, setOffresTitle] = useState("Offres & Packs Exclusifs");
+  const [offresDesc, setOffresDesc] = useState("Économisez jusqu'à 25% en choisissant nos packs thématiques. Idéals pour s'équiper, étudier ou pour offrir un cadeau spirituel qui a du sens.");
+  const [offresBulkTitle, setOffresBulkTitle] = useState("Commandes Groupées & Églises");
+  const [offresBulkDesc, setOffresBulkDesc] = useState("Vous êtes responsable d'une église, d'un groupe de jeunes ou vous souhaitez commander en grande quantité ? Profitez de nos tarifs préférentiels.");
+  const [offresBulkBtn, setOffresBulkBtn] = useState("Demander un devis personnalisé");
+
+  useEffect(() => {
+    if (settingsQuery.data) {
+      if (settingsQuery.data["page.offres.badge"]) setOffresBadge(settingsQuery.data["page.offres.badge"] as string);
+      if (settingsQuery.data["page.offres.title"]) setOffresTitle(settingsQuery.data["page.offres.title"] as string);
+      if (settingsQuery.data["page.offres.desc"]) setOffresDesc(settingsQuery.data["page.offres.desc"] as string);
+      if (settingsQuery.data["page.offres.bulkTitle"]) setOffresBulkTitle(settingsQuery.data["page.offres.bulkTitle"] as string);
+      if (settingsQuery.data["page.offres.bulkDesc"]) setOffresBulkDesc(settingsQuery.data["page.offres.bulkDesc"] as string);
+      if (settingsQuery.data["page.offres.bulkBtn"]) setOffresBulkBtn(settingsQuery.data["page.offres.bulkBtn"] as string);
+    }
+  }, [settingsQuery.data]);
+
+  const saveOffresSettings = async () => {
+    try {
+      await Promise.all([
+        setSetting.mutateAsync({ key: "page.offres.badge", value: offresBadge }),
+        setSetting.mutateAsync({ key: "page.offres.title", value: offresTitle }),
+        setSetting.mutateAsync({ key: "page.offres.desc", value: offresDesc }),
+        setSetting.mutateAsync({ key: "page.offres.bulkTitle", value: offresBulkTitle }),
+        setSetting.mutateAsync({ key: "page.offres.bulkDesc", value: offresBulkDesc }),
+        setSetting.mutateAsync({ key: "page.offres.bulkBtn", value: offresBulkBtn }),
+      ]);
+      toast.success("Textes de la page Offres enregistrés avec succès.");
+    } catch (e) {
+      toast.error("Erreur lors de l'enregistrement des paramètres.");
+    }
+  };
+
   const [newsletterSubject, setNewsletterSubject] = useState("Actualités G12 Paris");
   
   const utils = trpc.useUtils();
@@ -568,7 +607,56 @@ export default function AdminBibliotheque() {
                 </Link>
               </Button>
             </div>
+
+            <div className="bg-card border rounded-xl p-6 shadow-sm mb-6 space-y-4">
+              <div className="flex items-center justify-between border-b pb-4 mb-4">
+                <h3 className="font-bold text-lg flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-primary" /> Textes de la page
+                </h3>
+                <Button onClick={saveOffresSettings} disabled={setSetting.isPending} size="sm">
+                  {setSetting.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                  Enregistrer les textes
+                </Button>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-sm text-muted-foreground uppercase">En-tête de la page</h4>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Badge (Petit texte en haut)</label>
+                    <Input value={offresBadge} onChange={e => setOffresBadge(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Titre Principal</label>
+                    <Input value={offresTitle} onChange={e => setOffresTitle(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Description</label>
+                    <Textarea value={offresDesc} onChange={e => setOffresDesc(e.target.value)} rows={3} />
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="font-semibold text-sm text-muted-foreground uppercase">Section "Commandes Groupées"</h4>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Titre de la section</label>
+                    <Input value={offresBulkTitle} onChange={e => setOffresBulkTitle(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Description</label>
+                    <Textarea value={offresBulkDesc} onChange={e => setOffresBulkDesc(e.target.value)} rows={3} />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Texte du bouton "Devis"</label>
+                    <Input value={offresBulkBtn} onChange={e => setOffresBulkBtn(e.target.value)} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <h3 className="font-bold text-xl mt-8 mb-4">Liste des Packs</h3>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+
               {articlesData?.items.filter(a => a.category === "bibliothèque:offre").map(offre => {
                 const meta = (() => { try { return JSON.parse(offre.meta || "{}"); } catch { return {}; } })();
                 const isPopular = meta.popular || false;

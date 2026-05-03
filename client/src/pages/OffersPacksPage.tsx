@@ -1,16 +1,31 @@
+import { useState } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Check, Gift, Package, Sparkles, BookOpen, Users, Loader2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 export default function OffersPacksPage() {
+  const [isDevisOpen, setIsDevisOpen] = useState(false);
   const { data, isLoading } = trpc.articles.list.useQuery({
     category: "bibliothèque:offre",
     limit: 20
   });
 
+  const settingsQuery = trpc.siteSettings.getAll.useQuery();
+  const settings = settingsQuery.data || {};
+
   const packs = data?.items || [];
+
+  const handleDevisSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    toast.success("Votre demande de devis a été envoyée ! Nous vous contacterons rapidement.");
+    setIsDevisOpen(false);
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -21,15 +36,16 @@ export default function OffersPacksPage() {
         </div>
         <div className="container relative z-10">
           <span className="inline-block py-1 px-3 rounded-full bg-primary/10 text-primary text-xs font-bold tracking-widest uppercase mb-6">
-            Bons Plans & Idées Cadeaux
+            {settings["page.offres.badge"] || "Bons Plans & Idées Cadeaux"}
           </span>
-          <h1 className="text-4xl md:text-5xl font-bold font-serif mb-6">Offres & Packs Exclusifs</h1>
+          <h1 className="text-4xl md:text-5xl font-bold font-serif mb-6">
+            {settings["page.offres.title"] || "Offres & Packs Exclusifs"}
+          </h1>
           <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Économisez jusqu'à 25% en choisissant nos packs thématiques. Idéals pour s'équiper, étudier ou pour offrir un cadeau spirituel qui a du sens.
+            {settings["page.offres.desc"] || "Économisez jusqu'à 25% en choisissant nos packs thématiques. Idéals pour s'équiper, étudier ou pour offrir un cadeau spirituel qui a du sens."}
           </p>
         </div>
       </section>
-
       {/* Packs Grid */}
       <section className="py-20">
         <div className="container">
@@ -45,7 +61,7 @@ export default function OffersPacksPage() {
             </div>
           ) : (
             <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-8">
-              {packs.map((pack) => {
+              {packs.map((pack: any) => {
                 const meta = (() => { try { return JSON.parse(pack.meta || "{}"); } catch { return {}; } })();
                 const features = meta.features || [];
                 const originalPrice = meta.originalPrice || 0;
@@ -114,11 +130,50 @@ export default function OffersPacksPage() {
               <Users className="w-12 h-12 text-primary" />
             </div>
             <div className="flex-1">
-              <h3 className="text-2xl font-bold font-serif mb-2">Commandes Groupées & Églises</h3>
+              <h3 className="text-2xl font-bold font-serif mb-2">
+                {settings["page.offres.bulkTitle"] || "Commandes Groupées & Églises"}
+              </h3>
               <p className="text-muted-foreground mb-4">
-                Vous êtes responsable d'une église, d'un groupe de jeunes ou vous souhaitez commander en grande quantité ? Profitez de nos tarifs préférentiels.
+                {settings["page.offres.bulkDesc"] || "Vous êtes responsable d'une église, d'un groupe de jeunes ou vous souhaitez commander en grande quantité ? Profitez de nos tarifs préférentiels."}
               </p>
-              <Button variant="secondary">Demander un devis personnalisé</Button>
+              
+              <Dialog open={isDevisOpen} onOpenChange={setIsDevisOpen}>
+                <DialogTrigger asChild>
+                  <Button className="bg-primary text-white hover:bg-primary/90">
+                    {settings["page.offres.bulkBtn"] || "Demander un devis personnalisé"}
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Demander un devis</DialogTitle>
+                    <DialogDescription>
+                      Remplissez ce formulaire pour recevoir une offre adaptée à vos besoins.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <form onSubmit={handleDevisSubmit} className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <label htmlFor="name" className="text-sm font-medium">Nom ou Organisation</label>
+                      <Input id="name" placeholder="Ex: Église Paris" required />
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="email" className="text-sm font-medium">Adresse Email</label>
+                      <Input id="email" type="email" placeholder="contact@exemple.com" required />
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="quantity" className="text-sm font-medium">Quantité estimée</label>
+                      <Input id="quantity" type="number" placeholder="Ex: 50" min="1" required />
+                    </div>
+                    <div className="space-y-2">
+                      <label htmlFor="message" className="text-sm font-medium">Précisez votre demande</label>
+                      <Textarea id="message" placeholder="Quels livres ou packs vous intéressent ?" rows={3} required />
+                    </div>
+                    <DialogFooter className="pt-4">
+                      <Button type="button" variant="outline" onClick={() => setIsDevisOpen(false)}>Annuler</Button>
+                      <Button type="submit">Envoyer la demande</Button>
+                    </DialogFooter>
+                  </form>
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
         </div>
