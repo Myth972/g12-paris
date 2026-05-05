@@ -84,7 +84,9 @@ export default function GalleriesPage() {
                       <img
                         src={item.mediaUrl}
                         alt={item.title}
-                        className="w-full h-full object-cover group-hover:scale-105 group-active:scale-105 transition-transform duration-500"
+                        className="w-full h-full object-cover group-hover:scale-105 group-active:scale-105 transition-transform duration-500 select-none"
+                        onContextMenu={(e) => e.preventDefault()}
+                        draggable={false}
                       />
                     ) : (
                       <div className="w-full h-full">
@@ -95,7 +97,7 @@ export default function GalleriesPage() {
                     )}
 
                     {/* Type badge */}
-                    <div className="absolute top-3 left-3">
+                    <div className="absolute top-3 left-3 pointer-events-none">
                       <span className="inline-block bg-white/90 backdrop-blur-sm text-foreground font-medium text-xs px-3 py-1 rounded-full shadow-sm">
                         {item.type === "image" ? "📷 Image" : "🎥 Vidéo"}
                       </span>

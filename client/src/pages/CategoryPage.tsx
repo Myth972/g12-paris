@@ -46,7 +46,7 @@ export default function CategoryPage() {
               Rubrique
             </span>
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold font-serif text-foreground">
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold font-serif text-foreground">
             {categoryLabel}
           </h2>
         </div>
@@ -119,6 +119,7 @@ export default function CategoryPage() {
                 <Button
                   variant="outline"
                   size="sm"
+                  className="rounded-full px-6"
                   disabled={!hasMore}
                   onClick={() => setPage(p => p + 1)}
                 >

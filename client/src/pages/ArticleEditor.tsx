@@ -219,7 +219,7 @@ export default function ArticleEditor() {
 
   if (authLoading || (!isNew && loadingArticle)) {
     return (
-      <div className="container max-w-4xl mx-auto py-10">
+      <div className="container max-w-6xl mx-auto py-10">
         <Skeleton className="h-8 w-48 mb-6" />
         <div className="space-y-4">
           <Skeleton className="h-12 w-full" />
@@ -243,7 +243,7 @@ export default function ArticleEditor() {
   }
 
   return (
-    <div className="min-h-screen bg-secondary/30">
+    <div className="min-h-screen bg-secondary/30 overflow-y-auto">
       {/* Header */}
       <div className="bg-card border-b border-border sticky top-0 z-40">
         <div className="container py-4">
@@ -285,7 +285,7 @@ export default function ArticleEditor() {
       </div>
 
       {/* Form */}
-      <div className="container max-w-4xl mx-auto py-8">
+      <div className="container max-w-6xl mx-auto py-8">
         <div className="space-y-6">
           {/* AI Provider */}
           <div className="bg-card rounded-xl border border-border p-4 shadow-sm flex items-center justify-between">

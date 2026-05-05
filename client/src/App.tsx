@@ -167,9 +167,9 @@ function DynamicDesign() {
     <style dangerouslySetInnerHTML={{
       __html: `
         :root {
-          ${primary ? `--primary: ${primary};` : ''}
-          ${secondary ? `--secondary: ${secondary};` : ''}
-          ${bg ? `--background: ${bg};` : ''}
+          ${primary ? `--primary: ${primary} !important;` : ''}
+          ${secondary ? `--secondary: ${secondary} !important;` : ''}
+          ${bg ? `--background: ${bg} !important;` : ''}
         }
         ${fontHeading ? `h1, h2, h3, h4, h5, h6, .font-serif { font-family: ${headingFamily} !important; }` : ''}
         ${fontBody ? `body, .font-sans { font-family: ${bodyFamily} !important; }` : ''}

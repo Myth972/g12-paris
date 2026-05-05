@@ -73,7 +73,7 @@ export default function SiteFooter() {
               <Mail className="w-4 h-4" />
               Newsletter
             </h4>
-            <p className="text-sm text-primary-foreground/60 mb-4">
+            <p className="text-sm text-primary-foreground/90 mb-4">
               Restez informé de nos derniers ajouts et publications.
             </p>
             <form
@@ -92,14 +92,15 @@ export default function SiteFooter() {
                 type="email"
                 name="email"
                 placeholder="Votre adresse email"
-                className="bg-primary-foreground/10 border-none text-primary-foreground placeholder:text-primary-foreground/50 w-full"
+                className="bg-primary-foreground/10 border-none text-primary-foreground placeholder:text-primary-foreground/70 w-full"
                 required
               />
               <Button
                 type="submit"
-                variant="secondary"
+                variant="default"
                 size="icon"
                 disabled={subscribeMutation.isPending}
+                className="bg-primary text-white hover:bg-primary/90 shadow-md transition-all active:scale-95"
               >
                 <Send className="w-4 h-4" />
               </Button>

@@ -19,6 +19,7 @@ import {
   History,
   Calendar,
 } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
@@ -206,7 +207,7 @@ export default function NotificationBell() {
         </div>
 
         {/* Notifications list */}
-        <div className="max-h-[60vh] md:max-h-[450px] overflow-y-auto overscroll-contain">
+        <ScrollArea className="max-h-[60vh] md:max-h-[450px]">
           {items.length === 0 ? (
             <div className="py-16 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="w-16 h-16 rounded-full bg-muted/30 flex items-center justify-center mx-auto mb-4">
@@ -303,7 +304,7 @@ export default function NotificationBell() {
               )}
             </div>
           )}
-        </div>
+        </ScrollArea>
         {items.length > 0 && (
           <div className="px-4 py-2 border-t border-border/40 bg-muted/20">
             <p className="text-[10px] text-center text-muted-foreground uppercase tracking-widest font-semibold">

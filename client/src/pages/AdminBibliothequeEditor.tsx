@@ -214,7 +214,7 @@ export default function AdminBibliothequeEditor() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/10 pb-20">
+    <div className="min-h-screen bg-muted/10 pb-20 overflow-y-auto">
       {/* Top Bar */}
       <div className="bg-card border-b sticky top-0 z-20 shadow-sm">
         <div className="container py-4 flex items-center justify-between">

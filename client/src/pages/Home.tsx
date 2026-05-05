@@ -71,7 +71,7 @@ const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, categor
               pageKey="home"
               defaultH1={"L'actualité qui compte,\nracontée avec rigueur."}
               defaultH2=""
-              h1ClassName="text-2xl sm:text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight"
+              h1ClassName="text-4xl md:text-5xl lg:text-6xl font-bold font-serif text-foreground leading-tight"
             />
             <PageTextEditor
               pageKey="home"
@@ -93,7 +93,7 @@ const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, categor
             Découvrez notre collection de ressources spirituelles
           </p>
         </div>
-        <Button asChild size="lg" className="bg-amber-600 hover:bg-amber-700 text-white border-0 shadow-lg shadow-amber-900/50">
+        <Button asChild size="lg" className="bg-primary text-white hover:bg-primary/90 border-0 shadow-lg shadow-primary/20 rounded-full px-8">
           <Link href="/bibliotheque">Explorer la bibliothèque</Link>
         </Button>
       </section>

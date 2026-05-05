@@ -154,7 +154,7 @@ export default function CataloguePage() {
 
                 <Button 
                   variant="outline" 
-                  className="w-full text-xs" 
+                  className="w-full text-xs rounded-lg" 
                   onClick={() => {
                     setSearchTerm("");
                     setSelectedTypes([]);
@@ -280,10 +280,10 @@ export default function CataloguePage() {
             {/* Pagination Placeholder */}
             {books.length > 0 && (
               <div className="flex justify-center mt-12">
-                <div className="flex gap-1">
-                  <Button variant="outline" size="sm" className="px-4" disabled>Précédent</Button>
-                  <Button variant="default" size="sm" className="w-10">1</Button>
-                  <Button variant="outline" size="sm" className="px-4">Suivant</Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" className="px-6 rounded-full" disabled>Précédent</Button>
+                  <Button variant="default" size="sm" className="w-10 h-10 rounded-full shadow-md">1</Button>
+                  <Button variant="outline" size="sm" className="px-6 rounded-full">Suivant</Button>
                 </div>
               </div>
             )}

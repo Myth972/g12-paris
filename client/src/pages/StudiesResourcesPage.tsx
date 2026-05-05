@@ -42,7 +42,7 @@ export default function StudiesResourcesPage() {
                   </div>
                 ))}
               </div>
-              <Button variant="outline" className="w-full">Voir tous les guides</Button>
+              <Button variant="outline" className="w-full rounded-xl">Voir tous les guides</Button>
             </div>
 
             {/* Plans de lecture */}
@@ -69,7 +69,7 @@ export default function StudiesResourcesPage() {
                   </div>
                 ))}
               </div>
-              <Button variant="outline" className="w-full">Explorer les plans</Button>
+              <Button variant="outline" className="w-full rounded-xl">Explorer les plans</Button>
             </div>
 
           </div>
@@ -109,7 +109,7 @@ export default function StudiesResourcesPage() {
                         <p className="text-xs text-muted-foreground">Document PDF • {pdf.size}</p>
                       </div>
                     </div>
-                    <Button size="icon" variant="ghost" className="rounded-full hover:bg-primary hover:text-white">
+                    <Button size="icon" variant="ghost" className="rounded-full hover:bg-primary hover:text-white transition-all">
                       <Download className="w-5 h-5" />
                     </Button>
                   </div>

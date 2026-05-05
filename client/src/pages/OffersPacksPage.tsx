@@ -110,7 +110,10 @@ export default function OffersPacksPage() {
                         ))}
                       </ul>
 
-                      <Button className={`w-full h-12 text-md ${isPopular ? '' : 'variant-outline'}`} variant={isPopular ? 'default' : 'outline'}>
+                      <Button 
+                        className={`w-full h-12 text-md rounded-xl transition-all ${isPopular ? 'shadow-lg shadow-primary/30 scale-105' : ''}`} 
+                        variant={isPopular ? 'default' : 'outline'}
+                      >
                         Ajouter au panier
                       </Button>
                     </div>
@@ -139,7 +142,7 @@ export default function OffersPacksPage() {
               
               <Dialog open={isDevisOpen} onOpenChange={setIsDevisOpen}>
                 <DialogTrigger asChild>
-                  <Button className="bg-primary text-white hover:bg-primary/90">
+                  <Button className="bg-primary text-white hover:bg-primary/90 rounded-xl px-8 py-6 h-auto text-lg shadow-lg shadow-primary/20">
                     {settings["page.offres.bulkBtn"] || "Demander un devis personnalisé"}
                   </Button>
                 </DialogTrigger>

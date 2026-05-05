@@ -97,7 +97,7 @@ export default function AdminDesign() {
   };
 
   return (
-    <div className="min-h-screen bg-muted/20 pb-20">
+    <div className="min-h-screen bg-muted/20 pb-20 overflow-y-auto">
       {/* Header */}
       <div className="bg-card border-b sticky top-0 z-10 shadow-sm">
         <div className="container py-4 flex items-center justify-between">

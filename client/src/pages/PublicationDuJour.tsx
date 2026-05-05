@@ -168,7 +168,9 @@ export default function PublicationDuJour() {
                               <img
                                 src={pair.image.mediaUrl}
                                 alt={pair.image.title}
-                                className="w-full aspect-[16/10] object-cover group-hover:scale-105 group-active:scale-105 transition-transform duration-1000 ease-in-out"
+                                className="w-full aspect-[16/10] object-cover group-hover:scale-105 group-active:scale-105 transition-transform duration-1000 ease-in-out select-none"
+                                onContextMenu={(e) => e.preventDefault()}
+                                draggable={false}
                               />
                             </div>
                             <div className="py-3 px-4 text-center border-t border-border/10 bg-white/20 backdrop-blur-lg">

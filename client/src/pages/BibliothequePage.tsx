@@ -123,7 +123,7 @@ export default function BibliothequePage() {
 
       {/* Inspiring Verse */}
       <section className="py-16 bg-primary/5">
-        <div className="container max-w-4xl text-center">
+        <div className="container max-w-6xl text-center">
           <blockquote className="space-y-4">
             <p className="text-2xl md:text-3xl font-serif italic text-foreground/80 leading-relaxed">
               "Ta parole est une lampe à mes pieds, Et une lumière sur mon sentier."

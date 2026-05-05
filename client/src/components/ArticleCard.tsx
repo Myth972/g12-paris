@@ -44,7 +44,9 @@ export default function ArticleCard({
             <img
               src={article.coverImageUrl}
               alt={article.title}
-              className="w-full h-full object-cover group-hover:scale-105 group-active:scale-105 transition-transform duration-500"
+              className="w-full h-full object-cover group-hover:scale-105 group-active:scale-105 transition-transform duration-500 select-none"
+              onContextMenu={(e) => e.preventDefault()}
+              draggable={false}
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-secondary">
@@ -65,7 +67,7 @@ export default function ArticleCard({
           <div className="absolute top-3 left-3">
             <Badge
               variant="secondary"
-              className="bg-white/90 backdrop-blur-sm text-foreground font-medium text-xs shadow-sm"
+              className="bg-white/90 backdrop-blur-sm text-foreground font-bold uppercase tracking-widest text-[9px] shadow-sm"
             >
               {article.category}
             </Badge>

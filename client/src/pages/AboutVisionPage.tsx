@@ -102,11 +102,11 @@ export default function AboutVisionPage() {
           <p className="text-lg text-muted-foreground mb-8">
             Parcourez notre catalogue et découvrez les ressources que nous avons soigneusement sélectionnées pour vous.
           </p>
-          <div className="flex gap-4 justify-center">
-            <Button size="lg" asChild>
+          <div className="flex flex-wrap gap-4 justify-center">
+            <Button size="lg" asChild className="rounded-full px-8 shadow-lg shadow-primary/20">
               <Link href="/bibliotheque/catalogue">Explorer la bibliothèque</Link>
             </Button>
-            <Button size="lg" variant="outline" asChild>
+            <Button size="lg" variant="outline" asChild className="rounded-full px-8 backdrop-blur-sm">
               <Link href="/contact">Nous contacter</Link>
             </Button>
           </div>

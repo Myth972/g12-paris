@@ -107,7 +107,9 @@ export default function PremiumBookPage() {
               <img
                 src={book.coverImageUrl || "/premium_bible.png"}
                 alt={book.title}
-                className="w-full h-full object-cover object-center transition-transform duration-700 hover:scale-105"
+                className="w-full h-full object-cover object-center transition-transform duration-700 hover:scale-105 select-none"
+                onContextMenu={(e) => e.preventDefault()}
+                draggable={false}
               />
             </div>
             {/* Type/Theme badges */}
@@ -241,7 +243,7 @@ export default function PremiumBookPage() {
             ))}
           </div>
 
-          <div className="max-w-4xl">
+          <div className="max-w-6xl">
             {activeTab === "description" && (
               <div
                 className="prose prose-lg dark:prose-invert text-muted-foreground max-w-none whitespace-pre-wrap break-words"

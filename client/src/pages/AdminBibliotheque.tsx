@@ -241,7 +241,7 @@ export default function AdminBibliotheque() {
   };
 
   return (
-    <div className="min-h-screen bg-muted/20">
+    <div className="min-h-screen bg-muted/20 overflow-y-auto">
       {/* Header */}
       <div className="bg-card border-b sticky top-0 z-10">
         <div className="container py-4 flex items-center justify-between">
@@ -259,7 +259,7 @@ export default function AdminBibliotheque() {
               <h1 className="text-2xl font-bold font-serif">Gestion Bibliothèque</h1>
             </div>
           </div>
-          <Button asChild>
+          <Button asChild className="rounded-xl shadow-lg shadow-primary/20">
             <Link href="/admin/bibliotheque/edition/new">
               <Plus className="w-4 h-4 mr-2" />
               Nouveau Contenu
@@ -552,7 +552,7 @@ export default function AdminBibliotheque() {
                 <h3 className="font-bold text-lg flex items-center gap-2">
                   <FileText className="w-5 h-5 text-primary" /> Textes de la page Bibliothèque (Thématiques)
                 </h3>
-                <Button onClick={saveBiblioSettings} disabled={setSetting.isPending} size="sm">
+                <Button onClick={saveBiblioSettings} disabled={setSetting.isPending} size="sm" className="rounded-lg shadow-sm">
                   {setSetting.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                   Enregistrer les textes
                 </Button>
@@ -661,7 +661,7 @@ export default function AdminBibliotheque() {
                 <h3 className="font-bold text-lg flex items-center gap-2">
                   <FileText className="w-5 h-5 text-primary" /> Textes de la page
                 </h3>
-                <Button onClick={saveOffresSettings} disabled={setSetting.isPending} size="sm">
+                <Button onClick={saveOffresSettings} disabled={setSetting.isPending} size="sm" className="rounded-lg shadow-sm">
                   {setSetting.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
                   Enregistrer les textes
                 </Button>
@@ -744,7 +744,7 @@ export default function AdminBibliotheque() {
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-serif font-bold">Éditeur de Newsletter</h2>
               <Button 
-                className="gap-2 bg-blue-600 hover:bg-blue-700"
+                className="gap-2 bg-primary text-white hover:bg-primary/90 rounded-xl shadow-md px-6"
                 onClick={() => sendDigestMutation.mutate({ 
                   category: "bibliothèque", 
                   subject: newsletterSubject 
@@ -820,11 +820,11 @@ export default function AdminBibliotheque() {
                   <div className="space-y-4">
                     <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
                       <span className="text-muted-foreground">Abonnés actifs</span>
-                      <span className="font-bold text-lg text-primary">1,248</span>
+                      <span className="font-bold text-lg text-primary">{subscribers?.length || 0}</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
                       <span className="text-muted-foreground">Taux d'ouverture moy.</span>
-                      <span className="font-bold text-lg text-green-500">42%</span>
+                      <span className="font-bold text-lg text-green-500">--%</span>
                     </div>
                   </div>
                 </div>

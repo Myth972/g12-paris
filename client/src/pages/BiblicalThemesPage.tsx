@@ -133,7 +133,7 @@ export default function BiblicalThemesPage() {
           <p className="text-muted-foreground mb-8">
             Utilisez notre recherche avancée dans le catalogue complet pour trouver exactement ce que vous cherchez parmi des milliers de références.
           </p>
-          <Button asChild size="lg">
+          <Button asChild size="lg" className="rounded-full px-8 shadow-lg shadow-primary/20">
             <Link href="/bibliotheque/catalogue">Rechercher dans le catalogue</Link>
           </Button>
         </div>
