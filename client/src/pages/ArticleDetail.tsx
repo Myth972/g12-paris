@@ -3,7 +3,7 @@ import YouTubeEmbed from "@/components/YouTubeEmbed";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Calendar, User, Share2 } from "lucide-react";
+import { ArrowLeft, Calendar, User, Share2, Mail } from "lucide-react";
 import { useLocation, useParams } from "wouter";
 import { Streamdown } from "streamdown";
 import { toast } from "sonner";
@@ -150,23 +150,6 @@ export default function ArticleDetail() {
       <div className="container max-w-6xl mx-auto">
         <div className="prose-article">
           <Streamdown>{article.content}</Streamdown>
-        </div>
-        
-        {/* Newsletter section after content */}
-        <div className="mt-16 p-8 md:p-12 bg-primary/5 rounded-3xl border border-primary/10 text-center relative overflow-hidden">
-          <div className="absolute -right-8 -bottom-8 opacity-5">
-            <Mail className="w-48 h-48" />
-          </div>
-          <div className="relative z-10 max-w-2xl mx-auto">
-            <h3 className="text-2xl md:text-3xl font-serif font-bold mb-4">Restez informé de nos publications</h3>
-            <p className="text-muted-foreground mb-8">
-              Inscrivez-vous à notre newsletter pour recevoir chaque semaine le meilleur de G12 Paris directement dans votre boîte mail.
-            </p>
-            <Button className="rounded-full px-10 py-7 h-auto text-lg bg-primary text-white hover:bg-primary/90 shadow-xl shadow-primary/20 transition-all hover:scale-105 active:scale-95">
-              <Mail className="w-5 h-5 mr-3" />
-              S'abonner à la newsletter
-            </Button>
-          </div>
         </div>
       </div>
 

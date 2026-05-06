@@ -25,7 +25,7 @@ import {
   Loader2,
   Sparkles,
 } from "lucide-react";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from "react";
 import { useLocation, useParams } from "wouter";
 import { toast } from "sonner";
 import { AIProviderSelect } from "@/components/AIProviderSelect";
@@ -377,8 +377,8 @@ export default function ArticleEditor() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {libCategories?.map(c => (
-                        <SelectItem key={c.id} value={c.name} className="capitalize">{c.name}</SelectItem>
+                      {libCategories?.map((c: any) => (
+                        <SelectItem key={c.id} value={String(c.name)} className="capitalize">{String(c.name)}</SelectItem>
                       )) || (
                         <>
                           <SelectItem value="livre">Livre</SelectItem>
@@ -398,8 +398,8 @@ export default function ArticleEditor() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {libThemes?.map(t => (
-                        <SelectItem key={t.id} value={t.name} className="capitalize">{t.name}</SelectItem>
+                      {libThemes?.map((t: any) => (
+                        <SelectItem key={t.id} value={String(t.name)} className="capitalize">{String(t.name)}</SelectItem>
                       )) || (
                         <>
                           <SelectItem value="foi">Foi</SelectItem>
