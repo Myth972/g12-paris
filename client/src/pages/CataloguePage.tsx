@@ -99,7 +99,7 @@ export default function CataloguePage() {
                  <div>
                    <label className="text-sm font-medium mb-3 block font-serif">Type</label>
                    <div className="space-y-2">
-                     {["bible", "livre", "etude", "jeunesse"].map(type => (
+                     {["bible", "livre", "etude", "jeunesse", "famille"].map(type => (
                        <label key={type} className="flex items-center gap-2 cursor-pointer group">
                          <input 
                            type="checkbox" 
@@ -108,18 +108,19 @@ export default function CataloguePage() {
                            className="rounded border-input text-primary focus:ring-primary w-4 h-4" 
                          />
                          <span className="text-sm capitalize group-hover:text-primary transition-colors">
-                           {type === "bible" ? "Bibles" : type === "etude" ? "Études" : type === "jeunesse" ? "Jeunesse" : type === "livre" ? "Livre" : type}
+                           {type === "bible" ? "Bibles" : type === "etude" ? "Études" : type === "jeunesse" ? "Jeunesse" : type === "livre" ? "Livre" : type === "famille" ? "Familles" : type}
                          </span>
                        </label>
                      ))}
                    </div>
+                 </div>
                  </div>
 
                 {/* Thèmes */}
                 <div>
                   <label className="text-sm font-medium mb-3 block font-serif">Thème</label>
                   <div className="space-y-2">
-                    {["foi", "leadership", "familles", "prophetie", "priere", "evangelisation"].map(theme => (
+                    {["foi", "leadership", "famille", "prophetie", "priere", "evangelisation"].map(theme => (
                       <label key={theme} className="flex items-center gap-2 cursor-pointer group">
                         <input 
                           type="checkbox" 

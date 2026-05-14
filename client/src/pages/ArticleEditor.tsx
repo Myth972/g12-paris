@@ -400,13 +400,13 @@ export default function ArticleEditor() {
                     <SelectContent>
                       {libThemes?.map((t: any) => (
                         <SelectItem key={t.id} value={String(t.name)} className="capitalize">{String(t.name)}</SelectItem>
-                      )) || (
-                        <>
-                          <SelectItem value="foi">Foi</SelectItem>
-                          <SelectItem value="prière">Prière</SelectItem>
-                          <SelectItem value="famille">Famille</SelectItem>
-                        </>
-                      )}
+                       )) || (
+                         <>
+                           <SelectItem value="foi">Foi</SelectItem>
+                           <SelectItem value="prière">Prière</SelectItem>
+                           <SelectItem value="famille">Famille</SelectItem>
+                         </>
+                       )}
                     </SelectContent>
                   </Select>
                 </div>
