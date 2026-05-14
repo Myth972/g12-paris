@@ -114,7 +114,6 @@ export default function CataloguePage() {
                      ))}
                    </div>
                  </div>
-                 </div>
 
                 {/* Thèmes */}
                 <div>
