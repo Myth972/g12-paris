@@ -75,8 +75,7 @@ export default function BibliothequePage() {
               <PageTextEditor
                 pageKey="bibliotheque"
                 textKey="hero"
-                 defaultText="Plongez dans des textes inspirants. Des Bibles 
-aux finitions exceptionnelles, des études profondes et des ressources pour nourrir votre esprit."
+                defaultText="Plongez dans des textes inspirants. Des Bibles aux finitions exceptionnelles, des commentaires profonds et des ressources pour nourrir votre esprit."
                 className="text-lg md:text-xl text-slate-300 mb-8 max-w-xl font-light"
               />
               <div className="flex flex-wrap gap-4">

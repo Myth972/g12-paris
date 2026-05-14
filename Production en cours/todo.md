@@ -1,0 +1,24 @@
+# G12 Paris infos médias - TODO
+
+- [x] Schéma de base de données (articles, catégories)
+- [x] Requêtes DB (CRUD articles)
+- [x] Routes API tRPC (articles publics + admin)
+- [x] Upload d'images vers S3
+- [x] Thème élégant et design global (couleurs, typographie, CSS)
+- [x] Navigation / En-tête du site avec menu principal
+- [x] Page d'accueil avec grille d'articles et images de couverture
+- [x] Page de détail d'article (contenu, images, vidéos YouTube)
+- [x] Interface d'administration (créer, modifier, supprimer articles)
+- [x] Intégration vidéos YouTube via URL avec lecteur intégré
+- [x] Système d'authentification avec rôles utilisateur/admin
+- [x] Tests unitaires (vitest)
+- [x] Schéma DB pour les notifications (table notifications)
+- [x] Requêtes DB et routes API pour les notifications (CRUD + marquer comme lues)
+- [x] Interface admin pour créer/envoyer des notifications personnalisées
+- [x] Composant cloche de notification dans le header pour les utilisateurs
+- [x] Panneau de notifications avec liste et marquage comme lu
+- [x] Tests unitaires pour les notifications
+- [x] Renommer catégorie "Politique" en "Publication du jour" dans la navigation
+- [x] Renommer catégorie "Culture" en "Culte en ligne" dans la navigation
+- [x] Renommer catégorie "Sport" en "Bibliothèque" dans la navigation
+- [x] Mettre à jour les liens de catégorie dans SiteHeader, Home, CategoryPage, ArticleEditor et SiteFooter

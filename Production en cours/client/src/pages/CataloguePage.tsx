@@ -66,7 +66,7 @@ export default function CataloguePage() {
           </div>
           <h1 className="text-4xl md:text-5xl font-bold font-serif mb-4">Catalogue Complet</h1>
           <p className="text-muted-foreground text-lg max-w-2xl">
-            Explorez notre collection compl�te de Bibles, livres, études et ressources pour votre croissance spirituelle.
+            Explorez notre collection complète de Bibles, livres, commentaires et ressources pour votre croissance spirituelle.
           </p>
         </div>
       </section>
