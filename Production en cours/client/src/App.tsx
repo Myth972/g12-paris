@@ -100,7 +100,7 @@ function Router() {
             <PremiumBookPage />
           </PublicLayout>
         </Route>
-        <Route path="/bibliotheque/etudes">
+        <Route path="/bibliotheque/etude">
           <PublicLayout>
             <StudiesResourcesPage />
           </PublicLayout>

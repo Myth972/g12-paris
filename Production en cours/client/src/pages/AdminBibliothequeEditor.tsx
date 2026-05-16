@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Link, useLocation, useParams } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,13 @@ import {
   X,
   Plus,
   Sparkles,
-  Loader2
+  Loader2,
+  AlertCircle,
+  CheckCircle2,
+  Clock,
+  EyeOff,
+  FileEdit,
+  Keyboard
 } from "lucide-react";
 import { useAiProvider } from "@/hooks/useAiProvider";
 import { AIProviderSelect } from "@/components/AIProviderSelect";
@@ -51,6 +57,10 @@ export default function AdminBibliothequeEditor() {
   const [tagInput, setTagInput] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState<string | null>(null);
+  const [autoSaveStatus, setAutoSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const [lastAutoSave, setLastAutoSave] = useState<Date | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
   
   // Détails du livre
   const [author, setAuthor] = useState("");
@@ -82,7 +92,7 @@ export default function AdminBibliothequeEditor() {
         const parts = existingArticle.category.split(":");
         if (parts[1]) setResourceType(parts[1]);
         if (parts[2]) {
-          const themesList = parts.slice(2).filter(t => t);
+          const themesList = parts.slice(2).filter((t: string) => t);
           setSelectedThemes(themesList.length > 0 ? themesList : ["etude"]);
         }
       }
@@ -178,7 +188,7 @@ export default function AdminBibliothequeEditor() {
         content: content.trim(),
         category: categoryString,
         coverImageUrl: coverImageUrl || undefined,
-        price: price ? Math.round(parseFloat(price) * 100) : null,
+        price: price ? Math.round(parseFloat(price) * 100) : undefined,
         affiliateUrl: affiliateUrl.trim() || undefined,
         published: true,
         meta: JSON.stringify(meta),
@@ -209,6 +219,72 @@ export default function AdminBibliothequeEditor() {
     setTags(tags.filter(t => t !== tagToRemove));
   };
 
+  // Auto-save draft every 30 seconds if there are unsaved changes
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      if (!hasUnsavedChanges || !title.trim() || autoSaveStatus === "saving") return;
+      
+      setAutoSaveStatus("saving");
+      try {
+        const categoryString = `bibliothèque:${resourceType}:${selectedThemes.join(":")}`;
+        const meta = {
+          author: author.trim() || undefined,
+          publisher: publisher.trim() || undefined,
+          language,
+          format: bookFormat,
+          publishedDate: publishedDate.trim() || undefined,
+          isbn: isbn.trim() || undefined,
+          pageCount: pageCount ? parseInt(pageCount) : undefined,
+          tags: tags.length > 0 ? tags : undefined,
+        };
+        
+        const payload = {
+          title: title.trim(),
+          excerpt: subtitle.trim() || undefined,
+          content: content.trim(),
+          category: categoryString,
+          coverImageUrl: coverImageUrl || undefined,
+          price: price ? Math.round(parseFloat(price) * 100) : undefined,
+          affiliateUrl: affiliateUrl.trim() || undefined,
+          published: false,
+          meta: JSON.stringify(meta),
+        };
+        
+        if (isNew) {
+          await createMutation.mutateAsync({ ...payload, content: payload.content || " " });
+        } else if (contentId) {
+          await updateMutation.mutateAsync({ id: contentId, ...payload });
+        }
+        setAutoSaveStatus("saved");
+        setLastAutoSave(new Date());
+        setHasUnsavedChanges(false);
+        setTimeout(() => setAutoSaveStatus("idle"), 3000);
+      } catch {
+        setAutoSaveStatus("error");
+        setTimeout(() => setAutoSaveStatus("idle"), 5000);
+      }
+    }, 30000);
+    
+    return () => clearInterval(interval);
+  }, [hasUnsavedChanges, title, subtitle, content, resourceType, selectedThemes, author, publisher, language, bookFormat, publishedDate, isbn, pageCount, tags, coverImageUrl, price, affiliateUrl, contentId, isNew]);
+
+  // Track changes
+  useEffect(() => {
+    setHasUnsavedChanges(true);
+  }, [title, subtitle, content, resourceType, selectedThemes, author, publisher, language, bookFormat, publishedDate, isbn, pageCount, tags, coverImageUrl, price, affiliateUrl]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+        e.preventDefault();
+        handleSave();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [title, subtitle, content]);
+
   if (authLoading || (!isNew && loadingContent)) {
     return <div className="p-20 text-center"><Loader2 className="w-10 h-10 animate-spin mx-auto" /></div>;
   }
@@ -217,7 +293,7 @@ export default function AdminBibliothequeEditor() {
     <div className="min-h-screen bg-muted/10 pb-20 overflow-y-auto">
       {/* Top Bar */}
       <div className="bg-card border-b sticky top-0 z-20 shadow-sm">
-        <div className="container py-4 flex items-center justify-between">
+        <div className="container py-3 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={() => setLocation("/admin/bibliotheque")}>
               <ArrowLeft className="w-5 h-5" />
@@ -226,18 +302,43 @@ export default function AdminBibliothequeEditor() {
               <h1 className="text-xl font-bold">
                 {isNew ? "Nouveau Contenu" : `Édition: ${existingArticle?.title || "Chargement..."}`}
               </h1>
+              {lastAutoSave && (
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  Dernier brouillon: {lastAutoSave.toLocaleTimeString("fr-FR", { hour: '2-digit', minute: '2-digit' })}
+                </p>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" className="gap-2" asChild>
-              <Link href={isNew ? "/bibliotheque" : `/bibliotheque/livre/${contentId}`}>
-                <Eye className="w-4 h-4" />
-                Aperçu
-              </Link>
+            {autoSaveStatus === "saving" && (
+              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                <Loader2 className="w-3 h-3 animate-spin" /> Sauvegarde en cours...
+              </span>
+            )}
+            {autoSaveStatus === "saved" && (
+              <span className="text-xs text-green-600 flex items-center gap-1">
+                <CheckCircle2 className="w-3 h-3" /> Brouillon enregistré
+              </span>
+            )}
+            {autoSaveStatus === "error" && (
+              <span className="text-xs text-red-600 flex items-center gap-1">
+                <AlertCircle className="w-3 h-3" /> Erreur de sauvegarde
+              </span>
+            )}
+            {hasUnsavedChanges && autoSaveStatus === "idle" && (
+              <span className="text-xs text-amber-600 flex items-center gap-1">
+                <FileEdit className="w-3 h-3" /> Modifications non enregistrées
+              </span>
+            )}
+            <Button variant="outline" className="gap-2" onClick={() => setIsPreviewMode(!isPreviewMode)}>
+              <Eye className="w-4 h-4" />
+              {isPreviewMode ? "Éditer" : "Aperçu"}
             </Button>
             <Button className="gap-2" onClick={handleSave} disabled={saving}>
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               {isNew ? "Publier" : "Mettre à jour"}
+              <span className="text-xs opacity-60 ml-1">(Ctrl+S)</span>
             </Button>
           </div>
         </div>
@@ -464,7 +565,7 @@ export default function AdminBibliothequeEditor() {
                       <div className="flex flex-col items-center gap-2">
                         <FileText className="w-10 h-10 text-primary" />
                         <span className="text-sm font-medium truncate max-w-[150px]">{fileUrl.split('/').pop()}</span>
-                        <Button size="xs" variant="outline">Changer</Button>
+                        <Button size="sm" variant="outline">Changer</Button>
                       </div>
                     ) : (
                       <>
@@ -495,7 +596,7 @@ export default function AdminBibliothequeEditor() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="offre">Offre / Pack</SelectItem>
-                    {libCategories?.map(c => (
+                    {libCategories?.map((c: any) => (
                       <SelectItem key={c.id} value={c.name} className="capitalize">{c.name}</SelectItem>
                     )) || (
                       <>
@@ -512,7 +613,7 @@ export default function AdminBibliothequeEditor() {
               <div className="space-y-2">
                 <label className="text-sm font-medium text-muted-foreground">Thèmes</label>
                 <div className="grid grid-cols-2 gap-2">
-                  {(libThemes?.map(t => t.name) || ["foi", "leadership", "famille", "prière", "prophétie", "évangélisation", "guérison", "finance", "danse", "louange"]).map(themeOption => (
+                  {(libThemes?.map((t: any) => t.name) || ["foi", "leadership", "famille", "prière", "prophétie", "évangélisation", "guérison", "finance", "danse", "louange"]).map((themeOption: string) => (
                     <label key={themeOption} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-2 rounded-md transition-colors">
                       <input 
                         type="checkbox" 
@@ -605,6 +706,81 @@ export default function AdminBibliothequeEditor() {
                 <label htmlFor="featured" className="text-sm font-medium select-none cursor-pointer">Mettre en avant (Bestseller / Nouveauté)</label>
               </div>
             </div>
+
+            {/* SEO Score */}
+            {(() => {
+              const issues: string[] = [];
+              const suggestions: string[] = [];
+              
+              if (!title.trim()) {
+                issues.push("Titre manquant");
+              } else if (title.length < 30) {
+                suggestions.push("Titre trop court (30+ caractères recommandés)");
+              } else if (title.length > 60) {
+                suggestions.push("Titre trop long (60 caractères max)");
+              }
+              
+              if (!subtitle.trim()) {
+                suggestions.push("Ajouter une méta-description (sous-titre)");
+              } else if (subtitle.length < 80) {
+                suggestions.push("Description recommandée entre 80-160 caractères");
+              }
+              
+              if (!content.trim() || content.length < 200) {
+                suggestions.push("Contenu trop court (200+ caractères recommandés)");
+              }
+              
+              if (!coverImageUrl) {
+                suggestions.push("Ajouter une image de couverture");
+              }
+              
+              if (!price && resourceType !== "offre") {
+                suggestions.push("Envisager d'ajouter un prix");
+              }
+              
+              const score = Math.max(0, 100 - (issues.length * 20) - (suggestions.length * 5));
+              
+              return (
+                <div className="bg-card border rounded-xl p-6 shadow-sm space-y-4">
+                  <h3 className="font-bold border-b pb-2 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-primary" />
+                    Analyse SEO
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Score SEO</span>
+                      <span className={`text-lg font-bold ${score >= 70 ? 'text-green-600' : score >= 40 ? 'text-amber-600' : 'text-red-600'}`}>
+                        {score}%
+                      </span>
+                    </div>
+                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                      <div 
+                        className={`h-full transition-all ${score >= 70 ? 'bg-green-500' : score >= 40 ? 'bg-amber-500' : 'bg-red-500'}`}
+                        style={{ width: `${score}%` }}
+                      />
+                    </div>
+                    {issues.length > 0 && (
+                      <div className="space-y-1">
+                        {issues.map((issue, i) => (
+                          <p key={i} className="text-xs text-red-600 flex items-center gap-1">
+                            <AlertCircle className="w-3 h-3" /> {issue}
+                          </p>
+                        ))}
+                      </div>
+                    )}
+                    {suggestions.length > 0 && (
+                      <div className="space-y-1">
+                        {suggestions.map((suggestion, i) => (
+                          <p key={i} className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Sparkles className="w-3 h-3" /> {suggestion}
+                          </p>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
 
           </div>
         </div>

@@ -226,7 +226,7 @@ export default function CataloguePage() {
               </div>
             ) : (
               <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {books.map((book) => {
+                {books.map((book: any) => {
                   const { type, theme } = parseCategory(book.category);
                   const price = (book.price || 0) / 100;
                   const meta = (() => { try { return JSON.parse(book.meta || "{}"); } catch { return {}; } })();

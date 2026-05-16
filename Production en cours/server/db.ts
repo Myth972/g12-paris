@@ -223,11 +223,11 @@ export async function listPublishedArticles(
   const conditions = [eq(articles.published, true)];
   
   if (filters.category && filters.category !== "all") {
-    // Exact match for category unless it's a library root
+    // Use LIKE for flexible category matching (e.g. bibliothèque:offre matches bibliothèque:offre:)
     if (filters.category === "bibliothèque") {
        conditions.push(sql`${articles.category} LIKE 'bibliothèque:%'`);
     } else {
-       conditions.push(eq(articles.category, filters.category));
+       conditions.push(sql`${articles.category} LIKE ${filters.category + '%'}`);
     }
   }
 
@@ -294,7 +294,7 @@ export async function countPublishedArticles(filters: {
     if (filters.category === "bibliothèque") {
        conditions.push(sql`${articles.category} LIKE 'bibliothèque:%'`);
     } else {
-       conditions.push(eq(articles.category, filters.category));
+       conditions.push(sql`${articles.category} LIKE ${filters.category + '%'}`);
     }
   }
 

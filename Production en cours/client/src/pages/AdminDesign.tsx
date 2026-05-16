@@ -13,7 +13,10 @@ import {
   MousePointerClick,
   CheckCircle2,
   Save,
-  Loader2
+  Loader2,
+  Download,
+  Upload,
+  RotateCcw
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
@@ -31,6 +34,17 @@ export default function AdminDesign() {
   const [fontBody, setFontBody] = useState("inter");
   const [buttonStyle, setButtonStyle] = useState("light");
   const [cardStyle, setCardStyle] = useState("shadow");
+
+  const colorPresets = [
+    { name: "Orange Doré", primary: "#D97706", secondary: "#1E293B", bg: "#F8FAFC" },
+    { name: "Bleu Profond", primary: "#2563EB", secondary: "#1E3A5F", bg: "#F0F9FF" },
+    { name: "Vert Forêt", primary: "#059669", secondary: "#064E3B", bg: "#ECFDF5" },
+    { name: "Rose Passion", primary: "#DB2777", secondary: "#831843", bg: "#FDF2F8" },
+    { name: "Violet Royal", primary: "#7C3AED", secondary: "#4C1D95", bg: "#FAF5FF" },
+    { name: "Rouge Vif", primary: "#DC2626", secondary: "#7F1D1D", bg: "#FEF2F2" },
+    { name: "Teal Émeraude", primary: "#0D9488", secondary: "#134E4A", bg: "#F0FDFA" },
+    { name: "Gris Élégant", primary: "#6B7280", secondary: "#1F2937", bg: "#F9FAFB" },
+  ];
   
   const [logoLight, setLogoLight] = useState("");
   const [logoDark, setLogoDark] = useState("");
@@ -94,6 +108,56 @@ export default function AdminDesign() {
     } catch (e) {
       toast.error("Erreur lors de l'enregistrement des paramètres.");
     }
+  };
+
+  const handleExportConfig = () => {
+    const config = {
+      primaryColor,
+      secondaryColor,
+      bgColor,
+      fontHeading,
+      fontBody,
+      buttonStyle,
+      cardStyle,
+    };
+    const blob = new Blob([JSON.stringify(config, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `g12-design-config-${new Date().toISOString().split("T")[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success("Configuration exportée avec succès");
+  };
+
+  const handleImportConfig = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const config = JSON.parse(event.target?.result as string);
+        if (config.primaryColor) setPrimaryColor(config.primaryColor);
+        if (config.secondaryColor) setSecondaryColor(config.secondaryColor);
+        if (config.bgColor) setBgColor(config.bgColor);
+        if (config.fontHeading) setFontHeading(config.fontHeading);
+        if (config.fontBody) setFontBody(config.fontBody);
+        if (config.buttonStyle) setButtonStyle(config.buttonStyle);
+        if (config.cardStyle) setCardStyle(config.cardStyle);
+        toast.success("Configuration importée avec succès");
+      } catch {
+        toast.error("Fichier de configuration invalide");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
+
+  const handleResetColors = () => {
+    setPrimaryColor("#D97706");
+    setSecondaryColor("#1E293B");
+    setBgColor("#F8FAFC");
+    toast.success("Couleurs réinitialisées");
   };
 
   return (
@@ -175,9 +239,52 @@ export default function AdminDesign() {
 
         {/* Couleurs Principales */}
         <section className="bg-card border rounded-2xl p-6 md:p-8 shadow-sm">
-          <h2 className="text-xl font-bold font-serif flex items-center gap-2 border-b pb-4 mb-6">
-            <Palette className="w-5 h-5 text-primary" /> Charte Graphique (Couleurs)
-          </h2>
+          <div className="flex items-center justify-between border-b pb-4 mb-6">
+            <h2 className="text-xl font-bold font-serif flex items-center gap-2">
+              <Palette className="w-5 h-5 text-primary" /> Charte Graphique (Couleurs)
+            </h2>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={handleResetColors} className="gap-1">
+                <RotateCcw className="w-4 h-4" />
+                Réinitialiser
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleExportConfig} className="gap-1">
+                <Download className="w-4 h-4" />
+                Exporter
+              </Button>
+              <label className="cursor-pointer">
+                <input type="file" accept=".json" onChange={handleImportConfig} className="hidden" />
+                <input type="file" id="config-import" accept=".json" onChange={handleImportConfig} className="hidden" />
+              <label htmlFor="config-import" className="cursor-pointer">
+                <Button variant="outline" size="sm" className="gap-1 pointer-events-none">
+                  <Upload className="w-4 h-4" />
+                  Importer
+                </Button>
+              </label>
+              </label>
+            </div>
+          </div>
+          
+          <div className="mb-6">
+            <p className="text-sm font-medium mb-3">Préréglages de couleurs</p>
+            <div className="flex flex-wrap gap-2">
+              {colorPresets.map((preset) => (
+                <button
+                  key={preset.name}
+                  onClick={() => { setPrimaryColor(preset.primary); setSecondaryColor(preset.secondary); setBgColor(preset.bg); }}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg border hover:border-primary hover:bg-primary/5 transition-all text-sm"
+                >
+                  <div className="flex -space-x-1">
+                    <div className="w-4 h-4 rounded-full" style={{ backgroundColor: preset.primary }} />
+                    <div className="w-4 h-4 rounded-full" style={{ backgroundColor: preset.secondary }} />
+                    <div className="w-4 h-4 rounded-full" style={{ backgroundColor: preset.bg }} />
+                  </div>
+                  <span>{preset.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="grid md:grid-cols-3 gap-6">
             <div className="space-y-3">
               <label htmlFor="primary-color" className="text-sm font-medium">Couleur Primaire</label>
