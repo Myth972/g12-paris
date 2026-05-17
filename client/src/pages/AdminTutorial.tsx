@@ -12,6 +12,26 @@ import {
   ListOrdered,
   Layout,
   HelpCircle,
+  Search,
+  Filter,
+  ArrowUpDown,
+  CheckSquare,
+  Eye,
+  Save,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  Sparkles,
+  Palette,
+  Download,
+  Upload,
+  RotateCcw,
+  TrendingUp,
+  Library,
+  FileText,
+  Users,
+  ImageIcon,
+  Keyboard,
 } from "lucide-react";
 import { useLocation } from "wouter";
 
@@ -193,6 +213,317 @@ export default function AdminTutorial() {
               <p className="text-sm text-muted-foreground">
                 Indicateur : LED rouge = en ligne, LED noire = hors ligne.
               </p>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Section: Gestion Bibliothèque - Nouvelles fonctionnalités */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 text-xl font-semibold">
+            <Library className="h-6 w-6 text-primary" />
+            <h2>Gestion Bibliothèque - Fonctionnalités Avancées</h2>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Search className="w-5 h-5 text-primary" />
+                  Recherche & Filtres
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  La liste des contenus dispose d'outils avancés pour find rapidement ce que vous cherchez.
+                </p>
+                <ul className="text-sm space-y-2">
+                  <li className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <span><strong>Barre de recherche</strong> : recherche par titre ou auteur</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <span><strong>Filtrer par type</strong> : Livre, Bible, Étude, Vidéo, Offre...</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <span><strong>Filtrer par thème</strong> : Foi, Leadership, Famille, Prière...</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <ArrowUpDown className="w-5 h-5 text-primary" />
+                  Tri & Pagination
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Organisez vos contenus selon vos besoins et naviguez facilement.
+                </p>
+                <ul className="text-sm space-y-2">
+                  <li className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <span><strong>Trier par</strong> : Date de création, Titre, Prix</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <span><strong>Direction</strong> : Croissant ou décroissant</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <span><strong>Pagination</strong> : 20 éléments par page avec navigation</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <CheckSquare className="w-5 h-5 text-primary" />
+                  Actions Groupées (Bulk)
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Sélectionnez plusieurs contenus pour leur appliquer des actions communes.
+                </p>
+                <ul className="text-sm space-y-2">
+                  <li className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <span><strong>Cocher la case</strong> en haut pour tout sélectionner</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <span><strong>Publier</strong> : rendre visible plusieurs contenus</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <span><strong>Dépublier</strong> : masquer plusieurs contenus</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <span><strong>Supprimer</strong> : supprimer plusieurs contenus</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Eye className="w-5 h-5 text-primary" />
+                  Actions Rapides
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Au survol d'une ligne, des boutons rapides apparaissent.
+                </p>
+                <ul className="text-sm space-y-2">
+                  <li className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <span><strong>Icône ✓</strong> : Publier ou dépublier le contenu</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <span><strong>Icône ⤳</strong> : Ouvrir l'aperçu dans un nouvel onglet</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <span><strong>Menu ⋮</strong> : Éditer, Aperçu, Supprimer</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        {/* Section: Éditeur de contenu */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 text-xl font-semibold">
+            <FileText className="h-6 w-6 text-primary" />
+            <h2>Éditeur de Contenu - Outils Intelligents</h2>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-3">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-primary" />
+                  Sauvegarde Auto
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Ne perdez jamais votre travail grâce au brouillon automatique.
+                </p>
+                <div className="bg-primary/5 border border-primary/20 p-3 rounded-md">
+                  <p className="text-sm">
+                    <strong>Toutes les 30 secondes</strong>, vos modifications sont enregistrées automatiquement en tant que brouillon (non publié).
+                  </p>
+                </div>
+                <ul className="text-sm space-y-1 text-muted-foreground">
+                  <li>• Indicateur "Sauvegarde en cours..."</li>
+                  <li>• Indicateur "Brouillon enregistré" ✓</li>
+                  <li>• Indicateur "Modifications non enregistrées"</li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-primary" />
+                  Analyse SEO
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Un score SEO vous aide à optimiser vos contenus pour les moteurs de recherche.
+                </p>
+                <ul className="text-sm space-y-2">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle2 className="h-4 w-4 mt-0.5 text-green-500 shrink-0" />
+                    <span>Score basé sur : titre, description, contenu, image</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <AlertCircle className="h-4 w-4 mt-0.5 text-red-500 shrink-0" />
+                    <span>Erreurs critiques en rouge</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Sparkles className="h-4 w-4 mt-0.5 text-amber-500 shrink-0" />
+                    <span>Suggestions d'amélioration</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Keyboard className="w-5 h-5 text-primary" />
+                  Raccourcis Clavier
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Gagnez du temps avec les raccourcis clavier.
+                </p>
+                <div className="bg-muted/50 p-3 rounded-md">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">Sauvegarder</span>
+                    <kbd className="px-2 py-1 bg-background border rounded text-xs">Ctrl + S</kbd>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Fonctionne depuis n'importe quel champ de la page.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        {/* Section: Design & Identité */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 text-xl font-semibold">
+            <Palette className="h-6 w-6 text-primary" />
+            <h2>Design & Identité - Personnalisation Avancée</h2>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Préréglages de Couleurs</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Choisissez parmi des palettes prédéfinies ou créez la vôtre.
+                </p>
+                <ul className="text-sm space-y-2">
+                  <li className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <span><strong>8 préréglages</strong> : Orange Doré, Bleu Profond, Vert Forêt, Rose Passion, Violet Royal, Rouge Vif, Teal Émeraude, Gris Élégant</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <span><strong>Pipette + Hex</strong> : utilisez le sélecteur ou entrez un code couleur</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Export / Import Config</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Sauvegardez et partagez vos paramètres de design.
+                </p>
+                <div className="flex gap-2">
+                  <div className="flex-1 bg-muted/50 p-3 rounded-md text-center">
+                    <Download className="w-5 h-5 mx-auto mb-1 text-primary" />
+                    <span className="text-xs font-medium">Exporter</span>
+                    <p className="text-xs text-muted-foreground">Télécharge un fichier JSON</p>
+                  </div>
+                  <div className="flex-1 bg-muted/50 p-3 rounded-md text-center">
+                    <Upload className="w-5 h-5 mx-auto mb-1 text-primary" />
+                    <span className="text-xs font-medium">Importer</span>
+                    <p className="text-xs text-muted-foreground">Charge un fichier JSON</p>
+                  </div>
+                  <div className="flex-1 bg-muted/50 p-3 rounded-md text-center">
+                    <RotateCcw className="w-5 h-5 mx-auto mb-1 text-primary" />
+                    <span className="text-xs font-medium">Réinitialiser</span>
+                    <p className="text-xs text-muted-foreground">Remet les couleurs par défaut</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        {/* Section: Dashboard Stats */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 text-xl font-semibold">
+            <TrendingUp className="h-6 w-6 text-primary" />
+            <h2>Tableau de Bord - Aperçu Statistique</h2>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Statistiques en Temps Réel</CardTitle>
+              <CardDescription>
+                Le dashboard admin affiche des statistiques clés sur votre site.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+                  <FileText className="w-5 h-5 text-primary mb-2" />
+                  <p className="text-lg font-bold">Articles publiés</p>
+                  <p className="text-xs text-muted-foreground">Nombre de contenus visibles</p>
+                </div>
+                <div className="p-4 bg-green-500/5 rounded-lg border border-green-500/20">
+                  <Users className="w-5 h-5 text-green-600 mb-2" />
+                  <p className="text-lg font-bold">Abonnés Newsletter</p>
+                  <p className="text-xs text-muted-foreground">Total des abonnés</p>
+                </div>
+                <div className="p-4 bg-blue-500/5 rounded-lg border border-blue-500/20">
+                  <ImageIcon className="w-5 h-5 text-blue-600 mb-2" />
+                  <p className="text-lg font-bold">Médias galerie</p>
+                  <p className="text-xs text-muted-foreground">Images et vidéos</p>
+                </div>
+                <div className="p-4 bg-amber-500/5 rounded-lg border border-amber-500/20">
+                  <Library className="w-5 h-5 text-amber-600 mb-2" />
+                  <p className="text-lg font-bold">Catégories bibliothèque</p>
+                  <p className="text-xs text-muted-foreground">Types de ressources</p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </section>

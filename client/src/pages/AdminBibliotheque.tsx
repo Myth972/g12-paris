@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Library, 
   Plus, 
@@ -26,7 +27,15 @@ import {
   Music,
   Download,
   Loader2,
-  Gift
+  Gift,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  Check,
+  X,
+  ExternalLink,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -60,6 +69,11 @@ export default function AdminBibliotheque() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedTheme, setSelectedTheme] = useState<string>("all");
+  const [sortField, setSortField] = useState<"createdAt" | "title" | "price">("createdAt");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(20);
+  const [selectedItems, setSelectedItems] = useState<number[]>([]);
 
   const settingsQuery = trpc.siteSettings.getAll.useQuery();
   const setSetting = trpc.siteSettings.set.useMutation();
@@ -140,6 +154,41 @@ export default function AdminBibliotheque() {
     onError: (err) => toast.error(err.message),
   });
 
+  const updateMutation = trpc.articles.update.useMutation({
+    onSuccess: () => {
+      utils.articles.adminList.invalidate();
+      toast.success("Contenu mis à jour");
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const bulkDeleteMutation = trpc.articles.delete.useMutation({
+    onSuccess: () => {
+      utils.articles.adminList.invalidate();
+      setSelectedItems([]);
+      toast.success(`${selectedItems.length} contenus supprimés`);
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const bulkPublishMutation = trpc.articles.update.useMutation({
+    onSuccess: () => {
+      utils.articles.adminList.invalidate();
+      setSelectedItems([]);
+      toast.success(`${selectedItems.length} contenus publiés`);
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
+  const bulkUnpublishMutation = trpc.articles.update.useMutation({
+    onSuccess: () => {
+      utils.articles.adminList.invalidate();
+      setSelectedItems([]);
+      toast.success(`${selectedItems.length} contenus dépubliés`);
+    },
+    onError: (err) => toast.error(err.message),
+  });
+
   const deleteMediaMutation = trpc.gallery.delete.useMutation({
     onSuccess: () => {
       utils.gallery.list.invalidate();
@@ -202,24 +251,92 @@ export default function AdminBibliotheque() {
     onError: (err) => toast.error(err.message),
   });
 
-  const libraryItems = articlesData?.items.filter(a => a.category.startsWith("bibliothèque")) || [];
+  const libraryItems = articlesData?.items.filter((a: any) => a.category.startsWith("bibliothèque")) || [];
   
-  const types = categoriesData?.map(c => c.name) || [];
-  const themes = themesData?.map(t => t.name) || [];
+  const types = categoriesData?.map((c: any) => c.name) || [];
+  const themes = themesData?.map((t: any) => t.name) || [];
 
-  const filteredItems = libraryItems.filter(item => {
-    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const itemType = item.category.split(":")[1];
-    const itemTheme = item.category.split(":")[2];
-    const matchesType = selectedType === "all" || itemType === selectedType;
-    const matchesTheme = selectedTheme === "all" || itemTheme === selectedTheme;
-    return matchesSearch && matchesType && matchesTheme;
-  });
+  const filteredItems = useMemo(() => {
+    let items = libraryItems.filter((item: any) => {
+      const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase());
+      const itemType = item.category.split(":")[1];
+      const itemTheme = item.category.split(":")[2];
+      const matchesType = selectedType === "all" || itemType === selectedType;
+      const matchesTheme = selectedTheme === "all" || itemTheme === selectedTheme;
+      return matchesSearch && matchesType && matchesTheme;
+    });
+
+    items.sort((a: any, b: any) => {
+      let aVal: any, bVal: any;
+      if (sortField === "title") {
+        aVal = a.title?.toLowerCase() || "";
+        bVal = b.title?.toLowerCase() || "";
+      } else if (sortField === "price") {
+        aVal = a.price || 0;
+        bVal = b.price || 0;
+      } else {
+        aVal = new Date(a.createdAt).getTime();
+        bVal = new Date(b.createdAt).getTime();
+      }
+      if (sortDirection === "asc") return aVal > bVal ? 1 : -1;
+      return aVal < bVal ? 1 : -1;
+    });
+
+    return items;
+  }, [libraryItems, searchQuery, selectedType, selectedTheme, sortField, sortDirection]);
+
+  const paginatedItems = useMemo(() => {
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredItems.slice(start, start + itemsPerPage);
+  }, [filteredItems, currentPage, itemsPerPage]);
+
+  const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
 
   const handleDelete = async (id: number) => {
     if (confirm("Voulez-vous vraiment supprimer ce contenu ?")) {
       await deleteMutation.mutateAsync({ id });
     }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedItems.length === paginatedItems.length) {
+      setSelectedItems([]);
+    } else {
+      setSelectedItems(paginatedItems.map((item: any) => item.id));
+    }
+  };
+
+  const toggleSelectItem = (id: number) => {
+    setSelectedItems(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const handleBulkDelete = async () => {
+    if (selectedItems.length === 0) return;
+    if (confirm(`Voulez-vous vraiment supprimer ${selectedItems.length} contenus ?`)) {
+      for (const id of selectedItems) {
+        await bulkDeleteMutation.mutateAsync({ id });
+      }
+    }
+  };
+
+  const handleBulkPublish = async () => {
+    if (selectedItems.length === 0) return;
+    for (const id of selectedItems) {
+      await bulkPublishMutation.mutateAsync({ id, published: true });
+    }
+  };
+
+  const handleBulkUnpublish = async () => {
+    if (selectedItems.length === 0) return;
+    for (const id of selectedItems) {
+      await bulkUnpublishMutation.mutateAsync({ id, published: false });
+    }
+  };
+
+  const handleTogglePublish = async (item: any) => {
+    await updateMutation.mutateAsync({ id: item.id, published: !item.published });
   };
 
   const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -302,42 +419,85 @@ export default function AdminBibliotheque() {
                   placeholder="Rechercher un titre, un auteur..." 
                   className="pl-9"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
                 />
               </div>
-              <div className="flex gap-2 w-full md:w-auto">
-                <Select value={selectedType} onValueChange={setSelectedType}>
+              <div className="flex gap-2 w-full md:w-auto flex-wrap">
+                <Select value={selectedType} onValueChange={(v) => { setSelectedType(v); setCurrentPage(1); }}>
                   <SelectTrigger className="w-[140px]">
                     <SelectValue placeholder="Type" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Tous les types</SelectItem>
-                    {types.map(t => <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>)}
+                    {types.map((t: string) => <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>)}
                   </SelectContent>
                 </Select>
-                <Select value={selectedTheme} onValueChange={setSelectedTheme}>
+                <Select value={selectedTheme} onValueChange={(v) => { setSelectedTheme(v); setCurrentPage(1); }}>
                   <SelectTrigger className="w-[140px]">
                     <SelectValue placeholder="Thème" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Tous les thèmes</SelectItem>
-                    {themes.map(t => <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>)}
+                    {themes.map((t: string) => <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>)}
                   </SelectContent>
                 </Select>
-                <Button variant="outline" size="icon" onClick={() => { setSearchQuery(""); setSelectedType("all"); setSelectedTheme("all"); }}>
-                  <Trash2 className="w-4 h-4" />
+                <Select value={sortField} onValueChange={(v: any) => setSortField(v)}>
+                  <SelectTrigger className="w-[130px]">
+                    <SelectValue placeholder="Trier par" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="createdAt">Date</SelectItem>
+                    <SelectItem value="title">Titre</SelectItem>
+                    <SelectItem value="price">Prix</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" size="icon" onClick={() => setSortDirection(d => d === "asc" ? "desc" : "asc")}>
+                  {sortDirection === "asc" ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
+                </Button>
+                <Button variant="outline" size="icon" onClick={() => { setSearchQuery(""); setSelectedType("all"); setSelectedTheme("all"); setCurrentPage(1); }}>
+                  <X className="w-4 h-4" />
                 </Button>
               </div>
             </div>
+
+            {selectedItems.length > 0 && (
+              <div className="flex items-center gap-4 bg-primary/10 border border-primary/30 rounded-xl p-4">
+                <span className="text-sm font-medium">{selectedItems.length} élément(s) sélectionné(s)</span>
+                <div className="flex gap-2">
+                  <Button size="sm" variant="outline" onClick={handleBulkPublish} disabled={bulkPublishMutation.isPending}>
+                    {bulkPublishMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Check className="w-4 h-4 mr-1" />}
+                    Publier
+                  </Button>
+                  <Button size="sm" variant="outline" onClick={handleBulkUnpublish} disabled={bulkUnpublishMutation.isPending}>
+                    {bulkUnpublishMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <X className="w-4 h-4 mr-1" />}
+                    Dépublier
+                  </Button>
+                  <Button size="sm" variant="destructive" onClick={handleBulkDelete} disabled={bulkDeleteMutation.isPending}>
+                    {bulkDeleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Trash2 className="w-4 h-4 mr-1" />}
+                    Supprimer
+                  </Button>
+                  <Button size="sm" variant="ghost" onClick={() => setSelectedItems([])}>
+                    Annuler
+                  </Button>
+                </div>
+              </div>
+            )}
 
             <div className="bg-card border rounded-xl shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left">
                   <thead className="bg-muted/50 text-muted-foreground font-medium border-b">
                     <tr>
+                      <th className="px-4 py-4 w-10">
+                        <Checkbox 
+                          checked={selectedItems.length > 0 && paginatedItems.length === selectedItems.length}
+                          onCheckedChange={toggleSelectAll}
+                        />
+                      </th>
                       <th className="px-6 py-4">Titre du contenu</th>
                       <th className="px-6 py-4">Type</th>
                       <th className="px-6 py-4">Thème</th>
+                      <th className="px-6 py-4">Prix</th>
                       <th className="px-6 py-4">Statut</th>
                       <th className="px-6 py-4">Date</th>
                       <th className="px-6 py-4 text-right">Actions</th>
@@ -346,25 +506,31 @@ export default function AdminBibliotheque() {
                   <tbody className="divide-y">
                     {isLoading ? (
                       <tr>
-                        <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
+                        <td colSpan={8} className="px-6 py-12 text-center text-muted-foreground">
                           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
                           Chargement des contenus...
                         </td>
                       </tr>
-                    ) : filteredItems.length === 0 ? (
+                    ) : paginatedItems.length === 0 ? (
                       <tr>
-                        <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
+                        <td colSpan={8} className="px-6 py-12 text-center text-muted-foreground">
                           Aucun contenu trouvé.
                         </td>
                       </tr>
                     ) : (
-                      filteredItems.map((item) => {
+                      paginatedItems.map((item: any) => {
                         const isLibrary = item.category.startsWith("bibliothèque:");
                         const type = isLibrary ? item.category.split(":")[1] : "Article";
                         const theme = isLibrary ? item.category.split(":")[2] : "Général";
                         
                         return (
                           <tr key={item.id} className="hover:bg-muted/30 transition-colors group">
+                            <td className="px-4 py-4">
+                              <Checkbox 
+                                checked={selectedItems.includes(item.id)}
+                                onCheckedChange={() => toggleSelectItem(item.id)}
+                              />
+                            </td>
                             <td className="px-6 py-4 font-medium text-foreground flex items-center gap-3">
                               <div className="w-10 h-10 rounded bg-primary/10 flex items-center justify-center text-primary shrink-0">
                                 {type === 'video' ? <Video size={18} /> : 
@@ -381,6 +547,9 @@ export default function AdminBibliotheque() {
                             </td>
                             <td className="px-6 py-4 text-muted-foreground capitalize">{theme}</td>
                             <td className="px-6 py-4">
+                              {item.price ? <span className="font-medium">{(item.price / 100).toFixed(2)}€</span> : <span className="text-muted-foreground">-</span>}
+                            </td>
+                            <td className="px-6 py-4">
                               <Badge 
                                 className={
                                   item.published ? 'bg-green-500/10 text-green-600 hover:bg-green-500/20' : 
@@ -395,31 +564,53 @@ export default function AdminBibliotheque() {
                               {format(new Date(item.createdAt), 'dd/MM/yyyy', { locale: fr })}
                             </td>
                             <td className="px-6 py-4 text-right">
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <MoreVertical className="w-4 h-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem asChild>
-                                    <Link href={`/admin/bibliotheque/edition/${item.id}`} className="flex items-center cursor-pointer">
-                                      <Pencil className="w-4 h-4 mr-2" /> Éditer
-                                    </Link>
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem asChild>
-                                    <Link href={`/bibliotheque/livre/${item.id}`} className="flex items-center cursor-pointer">
-                                      <Eye className="w-4 h-4 mr-2" /> Aperçu
-                                    </Link>
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem 
-                                    className="text-red-600 flex items-center cursor-pointer"
-                                    onClick={() => handleDelete(item.id)}
-                                  >
-                                    <Trash2 className="w-4 h-4 mr-2" /> Supprimer
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
+                              <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8"
+                                  title={item.published ? "Dépublier" : "Publir"}
+                                  onClick={() => handleTogglePublish(item)}
+                                >
+                                  {item.published ? <X className="w-4 h-4" /> : <Check className="w-4 h-4" />}
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon" 
+                                  className="h-8 w-8"
+                                  title="Aperçu"
+                                  asChild
+                                >
+                                  <Link href={`/bibliotheque/livre/${item.id}`} target="_blank">
+                                    <ExternalLink className="w-4 h-4" />
+                                  </Link>
+                                </Button>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                      <MoreVertical className="w-4 h-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem asChild>
+                                      <Link href={`/admin/bibliotheque/edition/${item.id}`} className="flex items-center cursor-pointer">
+                                        <Pencil className="w-4 h-4 mr-2" /> Éditer
+                                      </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem asChild>
+                                      <Link href={`/bibliotheque/livre/${item.id}`} target="_blank" className="flex items-center cursor-pointer">
+                                        <Eye className="w-4 h-4 mr-2" /> Aperçu
+                                      </Link>
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem 
+                                      className="text-red-600 flex items-center cursor-pointer"
+                                      onClick={() => handleDelete(item.id)}
+                                    >
+                                      <Trash2 className="w-4 h-4 mr-2" /> Supprimer
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
                             </td>
                           </tr>
                         );
@@ -428,6 +619,54 @@ export default function AdminBibliotheque() {
                   </tbody>
                 </table>
               </div>
+
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between px-6 py-4 border-t">
+                  <div className="text-sm text-muted-foreground">
+                    Affichage de {(currentPage - 1) * itemsPerPage + 1} à {Math.min(currentPage * itemsPerPage, filteredItems.length)} sur {filteredItems.length} contenus
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum: number;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+                      return (
+                        <Button 
+                          key={pageNum}
+                          variant={currentPage === pageNum ? "default" : "outline"} 
+                          size="sm"
+                          onClick={() => setCurrentPage(pageNum)}
+                        >
+                          {pageNum}
+                        </Button>
+                      );
+                    })}
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           </TabsContent>
 
@@ -484,7 +723,7 @@ export default function AdminBibliotheque() {
                         Aucun média trouvé.
                       </div>
                     ) : (
-                      galleryData?.items.map((media) => (
+                      galleryData?.items.map((media: any) => (
                         <div key={media.id} className="group relative aspect-square bg-muted rounded-xl border overflow-hidden hover:border-primary transition-colors">
                           {media.type === 'image' ? (
                             <img src={media.mediaUrl} alt={media.title} className="w-full h-full object-cover" />
@@ -580,7 +819,7 @@ export default function AdminBibliotheque() {
                   <FolderTree className="w-5 h-5 text-primary" /> Types de Ressources
                 </h3>
                 <div className="space-y-3">
-                  {types.map((cat, i) => (
+                  {types.map((cat: string, i: number) => (
                     <div key={i} className="flex items-center justify-between p-3 border rounded-lg hover:border-primary/50 transition-colors bg-muted/20">
                       <span className="font-medium capitalize">{cat}</span>
                       <div className="flex gap-2">
@@ -592,7 +831,7 @@ export default function AdminBibliotheque() {
                           size="icon" 
                           className="h-8 w-8 text-destructive"
                           onClick={() => {
-                            const catObj = categoriesData?.find(c => c.name === cat);
+                            const catObj = categoriesData?.find((c: any) => c.name === cat);
                             if (catObj && confirm("Supprimer cette catégorie ?")) {
                               deleteCategoryMutation.mutate({ id: catObj.id });
                             }
@@ -612,7 +851,7 @@ export default function AdminBibliotheque() {
                   <Palette className="w-5 h-5 text-amber-500" /> Thèmes Spirituels
                 </h3>
                 <div className="space-y-3">
-                  {themes.map((theme, i) => (
+                  {themes.map((theme: string, i: number) => (
                     <div key={i} className="flex items-center justify-between p-3 border rounded-lg hover:border-primary/50 transition-colors bg-muted/20">
                       <div className="flex items-center gap-3">
                         <div className={`w-3 h-3 rounded-full bg-primary`}></div>
@@ -627,7 +866,7 @@ export default function AdminBibliotheque() {
                           size="icon" 
                           className="h-8 w-8 text-destructive"
                           onClick={() => {
-                            const themeObj = themesData?.find(t => t.name === theme);
+                            const themeObj = themesData?.find((t: any) => t.name === theme);
                             if (themeObj && confirm("Supprimer ce thème ?")) {
                               deleteThemeMutation.mutate({ id: themeObj.id });
                             }
@@ -705,7 +944,7 @@ export default function AdminBibliotheque() {
             <h3 className="font-bold text-xl mt-8 mb-4">Liste des Packs</h3>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
 
-              {articlesData?.items.filter(a => a.category === "bibliothèque:offre").map(offre => {
+              {articlesData?.items.filter((a: any) => a.category.startsWith("bibliothèque:offre")).map((offre: any) => {
                 const meta = (() => { try { return JSON.parse(offre.meta || "{}"); } catch { return {}; } })();
                 const isPopular = meta.popular || false;
                 const price = (offre.price || 0) / 100;
@@ -731,7 +970,7 @@ export default function AdminBibliotheque() {
                   </div>
                 );
               })}
-              {articlesData?.items.filter(a => a.category === "bibliothèque:offre").length === 0 && (
+              {articlesData?.items.filter((a: any) => a.category.startsWith("bibliothèque:offre")).length === 0 && (
                 <div className="col-span-full py-12 text-center border rounded-xl border-dashed">
                   <p className="text-muted-foreground">Aucune offre configurée.</p>
                 </div>
