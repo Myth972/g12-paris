@@ -383,8 +383,11 @@ export default function ArticleEditor() {
                       )) || (
                         <>
                           <SelectItem value="livre">Livre</SelectItem>
+                          <SelectItem value="Livres">Livres</SelectItem>
+                          <SelectItem value="Livres PDF">Livres PDF</SelectItem>
                           <SelectItem value="bible">Bible</SelectItem>
-                          <SelectItem value="etude">Étude</SelectItem>
+                          <SelectItem value="Bibles">Bibles</SelectItem>
+                          <SelectItem value="offre">Offre / Pack</SelectItem>
                         </>
                       )}
                     </SelectContent>
@@ -404,8 +407,12 @@ export default function ArticleEditor() {
                       )) || (
                         <>
                           <SelectItem value="foi">Foi</SelectItem>
-                          <SelectItem value="prière">Prière</SelectItem>
+                          <SelectItem value="Foi">Foi</SelectItem>
+                          <SelectItem value="Leadership">Leadership</SelectItem>
+                          <SelectItem value="Famille">Famille</SelectItem>
                           <SelectItem value="famille">Famille</SelectItem>
+                          <SelectItem value="Etude Biblique">Étude Biblique</SelectItem>
+                          <SelectItem value="prière">Prière</SelectItem>
                         </>
                       )}
                     </SelectContent>

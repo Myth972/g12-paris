@@ -601,9 +601,12 @@ export default function AdminBibliothequeEditor() {
                     )) || (
                       <>
                         <SelectItem value="livre">Livre</SelectItem>
+                        <SelectItem value="Livres">Livres</SelectItem>
+                        <SelectItem value="Livres PDF">Livres PDF</SelectItem>
                         <SelectItem value="bible">Bible</SelectItem>
+                        <SelectItem value="Bibles">Bibles</SelectItem>
                         <SelectItem value="etude">Étude</SelectItem>
-                        <SelectItem value="video">Vidéo</SelectItem>
+                        <SelectItem value="etude-biblique">Étude Biblique</SelectItem>
                       </>
                     )}
                   </SelectContent>
@@ -613,7 +616,7 @@ export default function AdminBibliothequeEditor() {
               <div className="space-y-2">
                 <label className="text-sm font-medium text-muted-foreground">Thèmes</label>
                 <div className="grid grid-cols-2 gap-2">
-                  {(libThemes?.map((t: any) => t.name) || ["foi", "leadership", "famille", "prière", "prophétie", "évangélisation", "guérison", "finance", "danse", "louange"]).map((themeOption: string) => (
+                  {(libThemes?.map((t: any) => t.name) || ["foi", "Foi", "Leadership", "Famille", "famille", "Etude Biblique", "bibles", "prière", "prophétie", "évangélisation", "guérison", "finance", "danse", "louange"]).map((themeOption: string) => (
                     <label key={themeOption} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-2 rounded-md transition-colors">
                       <input 
                         type="checkbox" 

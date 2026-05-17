@@ -110,7 +110,7 @@ export default function CataloguePage() {
                   <div>
                     <label className="text-sm font-medium mb-3 block font-serif">Type</label>
                     <div className="space-y-2">
-                      {["bible", "livre", "etude-biblique", "jeunesse", "famille"].map(type => (
+                      {["Livres", "Livres PDF", "Bibles", "offre", "livre"].map(type => (
                         <label key={type} className="flex items-center gap-2 cursor-pointer group">
                           <input 
                             type="checkbox" 
@@ -119,7 +119,7 @@ export default function CataloguePage() {
                             className="rounded border-input text-primary focus:ring-primary w-4 h-4" 
                           />
                           <span className="text-sm capitalize group-hover:text-primary transition-colors">
-                            {type === "bible" ? "Bibles" : type === "etude-biblique" ? "Études" : type === "jeunesse" ? "Jeunesse" : type === "livre" ? "Livre" : type === "famille" ? "Familles" : type}
+                            {type === "Livres" ? "Livres" : type === "Livres PDF" ? "Livres PDF" : type === "Bibles" ? "Bibles" : type === "offre" ? "Offres & Packs" : type === "livre" ? "Livre" : type}
                           </span>
                         </label>
                       ))}
@@ -130,7 +130,7 @@ export default function CataloguePage() {
                 <div>
                   <label className="text-sm font-medium mb-3 block font-serif">Thème</label>
                   <div className="space-y-2">
-                    {["foi", "leadership", "familles", "prophetie", "priere", "evangelisation"].map(theme => (
+                    {["Etude Biblique", "Foi", "Leadership", "Famille", "bibles"].map(theme => (
                       <label key={theme} className="flex items-center gap-2 cursor-pointer group">
                         <input 
                           type="checkbox" 
@@ -138,7 +138,9 @@ export default function CataloguePage() {
                           onChange={() => handleThemeToggle(theme)}
                           className="rounded border-input text-primary focus:ring-primary w-4 h-4" 
                         />
-                        <span className="text-sm capitalize group-hover:text-primary transition-colors">{theme}</span>
+                        <span className="text-sm capitalize group-hover:text-primary transition-colors">
+                            {theme === "Etude Biblique" ? "Études Bibliques" : theme === "Famille" ? "Famille" : theme === "bibles" ? "Bibles" : theme}
+                          </span>
                       </label>
                     ))}
                   </div>
