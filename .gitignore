@@ -106,8 +106,8 @@ temp/
 *.sqlite
 *.sqlite3
 
-# Uploaded files - kept in git for Vercel deployment
-# uploads/
+# Uploaded files
+uploads/
 
 # Webdev artifacts (checkpoint zips, migrations, etc.)
 .webdev/
