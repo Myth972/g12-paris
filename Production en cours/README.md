@@ -255,4 +255,3 @@ MIT
 
 - Consulter les logs serveur
 - Regarder `.manus-logs/` pour le debug
-# Test
