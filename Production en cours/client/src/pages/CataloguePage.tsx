@@ -11,9 +11,20 @@ export default function CataloguePage() {
   const [search] = useLocation();
   const params = new URLSearchParams(window.location.search);
   
+  const themeParam = params.get("theme");
+  // Map URL theme values to database values
+  const themeMapping: Record<string, string> = {
+    "etudes": "Etude Biblique",
+    "etude-biblique": "Etude Biblique",
+    "foi": "Foi",
+    "leadership": "Leadership",
+    "familles": "Famille",
+  };
+  const normalizedTheme = themeParam ? (themeMapping[themeParam] || themeParam) : null;
+
   const [searchTerm, setSearchTerm] = useState(params.get("q") || "");
   const [selectedTypes, setSelectedTypes] = useState<string[]>(params.get("type") ? [params.get("type")!] : []);
-  const [selectedThemes, setSelectedThemes] = useState<string[]>(params.get("theme") ? [params.get("theme")!] : []);
+  const [selectedThemes, setSelectedThemes] = useState<string[]>(normalizedTheme ? [normalizedTheme] : []);
   const [maxPrice, setMaxPrice] = useState<number>(params.get("maxPrice") ? parseInt(params.get("maxPrice")!) : 200);
   const [sortOrder, setSortOrder] = useState(params.get("sort") || "newest");
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
@@ -95,25 +106,25 @@ export default function CataloguePage() {
                   </div>
                 </div>
 
-                 {/* Type de livre */}
-                 <div>
-                   <label className="text-sm font-medium mb-3 block font-serif">Type</label>
-                   <div className="space-y-2">
-                     {["bible", "livre", "etude", "jeunesse", "famille"].map(type => (
-                       <label key={type} className="flex items-center gap-2 cursor-pointer group">
-                         <input 
-                           type="checkbox" 
-                           checked={selectedTypes.includes(type)}
-                           onChange={() => handleTypeToggle(type)}
-                           className="rounded border-input text-primary focus:ring-primary w-4 h-4" 
-                         />
-                         <span className="text-sm capitalize group-hover:text-primary transition-colors">
-                           {type === "bible" ? "Bibles" : type === "etude" ? "Études" : type === "jeunesse" ? "Jeunesse" : type === "livre" ? "Livre" : type === "famille" ? "Familles" : type}
-                         </span>
-                       </label>
-                     ))}
-                   </div>
-                 </div>
+{/* Type de livre */}
+                  <div>
+                    <label className="text-sm font-medium mb-3 block font-serif">Type</label>
+                    <div className="space-y-2">
+                      {["bible", "livre", "etude-biblique", "jeunesse", "famille"].map(type => (
+                        <label key={type} className="flex items-center gap-2 cursor-pointer group">
+                          <input 
+                            type="checkbox" 
+                            checked={selectedTypes.includes(type)}
+                            onChange={() => handleTypeToggle(type)}
+                            className="rounded border-input text-primary focus:ring-primary w-4 h-4" 
+                          />
+                          <span className="text-sm capitalize group-hover:text-primary transition-colors">
+                            {type === "bible" ? "Bibles" : type === "etude-biblique" ? "Études" : type === "jeunesse" ? "Jeunesse" : type === "livre" ? "Livre" : type === "famille" ? "Familles" : type}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
 
                 {/* Thèmes */}
                 <div>

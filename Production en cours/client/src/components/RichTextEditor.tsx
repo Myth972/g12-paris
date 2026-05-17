@@ -90,7 +90,7 @@ function ToolbarButton({
       title={title}
       disabled={disabled}
       onClick={onClick}
-      className={`p-1.5 rounded text-sm transition-colors inline-flex items-center justify-center ${
+      className={`p-1.5 sm:p-1.5 rounded text-sm transition-colors inline-flex items-center justify-center touch-manipulation ${
         isActive
           ? "bg-primary text-primary-foreground"
           : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -181,23 +181,23 @@ export default function RichTextEditor({
   return (
     <div className="border border-border rounded-xl overflow-hidden bg-card">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-0.5 p-2 border-b border-border/60 bg-muted/30">
+      <div className="flex flex-wrap items-center gap-0.5 p-1.5 sm:p-2 border-b border-border/60 bg-muted/30 overflow-x-auto no-scrollbar">
         {/* Heading selector */}
         <Popover open={headingOpen} onOpenChange={setHeadingOpen}>
           <PopoverTrigger asChild>
             <button
               type="button"
-              className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium rounded hover:bg-muted text-foreground border border-border/60 min-w-[90px]"
+              className="flex items-center gap-1 px-2 py-1.5 text-xs font-medium rounded hover:bg-muted text-foreground border border-border/60 min-w-[70px] sm:min-w-[90px] touch-manipulation"
             >
               <Type className="w-3.5 h-3.5" />
-              {currentHeading}
+              <span className="hidden sm:inline">{currentHeading}</span>
               <ChevronDown className="w-3 h-3 ml-auto" />
             </button>
           </PopoverTrigger>
-          <PopoverContent className="w-44 p-1" align="start">
+          <PopoverContent className="w-44 p-1 max-w-[calc(100vw-2rem)]" align="start">
             <button
               type="button"
-              className="flex items-center gap-2 w-full px-2 py-1.5 text-sm rounded hover:bg-muted"
+              className="flex items-center gap-2 w-full px-2 py-2 sm:py-1.5 text-sm rounded hover:bg-muted touch-manipulation"
               onClick={() => {
                 editor.chain().focus().setParagraph().run();
                 setHeadingOpen(false);
@@ -207,7 +207,7 @@ export default function RichTextEditor({
             </button>
             <button
               type="button"
-              className="flex items-center gap-2 w-full px-2 py-1.5 rounded hover:bg-muted"
+              className="flex items-center gap-2 w-full px-2 py-2 sm:py-1.5 rounded hover:bg-muted touch-manipulation"
               onClick={() => {
                 editor.chain().focus().setHeading({ level: 1 }).run();
                 setHeadingOpen(false);
@@ -220,7 +220,7 @@ export default function RichTextEditor({
             </button>
             <button
               type="button"
-              className="flex items-center gap-2 w-full px-2 py-1.5 rounded hover:bg-muted"
+              className="flex items-center gap-2 w-full px-2 py-2 sm:py-1.5 rounded hover:bg-muted touch-manipulation"
               onClick={() => {
                 editor.chain().focus().setHeading({ level: 2 }).run();
                 setHeadingOpen(false);
@@ -233,7 +233,7 @@ export default function RichTextEditor({
             </button>
             <button
               type="button"
-              className="flex items-center gap-2 w-full px-2 py-1.5 rounded hover:bg-muted"
+              className="flex items-center gap-2 w-full px-2 py-2 sm:py-1.5 rounded hover:bg-muted touch-manipulation"
               onClick={() => {
                 editor.chain().focus().setHeading({ level: 3 }).run();
                 setHeadingOpen(false);

@@ -290,92 +290,92 @@ export default function AdminBibliothequeEditor() {
   }
 
   return (
-    <div className="min-h-screen bg-muted/10 pb-20 overflow-y-auto">
+    <div className="min-h-screen bg-muted/10 pb-20">
       {/* Top Bar */}
       <div className="bg-card border-b sticky top-0 z-20 shadow-sm">
-        <div className="container py-3 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => setLocation("/admin/bibliotheque")}>
+        <div className="container py-2 sm:py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Button variant="ghost" size="icon" className="touch-manipulation" onClick={() => setLocation("/admin/bibliotheque")}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
-              <h1 className="text-xl font-bold">
-                {isNew ? "Nouveau Contenu" : `Édition: ${existingArticle?.title || "Chargement..."}`}
+              <h1 className="text-base sm:text-xl font-bold truncate max-w-[150px] sm:max-w-none">
+                {isNew ? "Nouveau" : "Modifier"}
               </h1>
               {lastAutoSave && (
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                <p className="text-xs text-muted-foreground hidden sm:flex items-center gap-1">
                   <Clock className="w-3 h-3" />
-                  Dernier brouillon: {lastAutoSave.toLocaleTimeString("fr-FR", { hour: '2-digit', minute: '2-digit' })}
+                  {lastAutoSave.toLocaleTimeString("fr-FR", { hour: '2-digit', minute: '2-digit' })}
                 </p>
               )}
             </div>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
             {autoSaveStatus === "saving" && (
               <span className="text-xs text-muted-foreground flex items-center gap-1">
-                <Loader2 className="w-3 h-3 animate-spin" /> Sauvegarde en cours...
+                <Loader2 className="w-3 h-3 animate-spin" />
               </span>
             )}
             {autoSaveStatus === "saved" && (
-              <span className="text-xs text-green-600 flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3" /> Brouillon enregistré
+              <span className="text-xs text-green-600 flex items-center gap-1 hidden sm:flex">
+                <CheckCircle2 className="w-3 h-3" />
               </span>
             )}
             {autoSaveStatus === "error" && (
               <span className="text-xs text-red-600 flex items-center gap-1">
-                <AlertCircle className="w-3 h-3" /> Erreur de sauvegarde
+                <AlertCircle className="w-3 h-3" />
               </span>
             )}
             {hasUnsavedChanges && autoSaveStatus === "idle" && (
               <span className="text-xs text-amber-600 flex items-center gap-1">
-                <FileEdit className="w-3 h-3" /> Modifications non enregistrées
+                <FileEdit className="w-3 h-3" />
               </span>
             )}
-            <Button variant="outline" className="gap-2" onClick={() => setIsPreviewMode(!isPreviewMode)}>
+            <Button variant="outline" className="gap-1 sm:gap-2 text-xs sm:text-sm touch-manipulation" onClick={() => setIsPreviewMode(!isPreviewMode)}>
               <Eye className="w-4 h-4" />
-              {isPreviewMode ? "Éditer" : "Aperçu"}
+              <span className="hidden sm:inline">{isPreviewMode ? "Éditer" : "Aperçu"}</span>
             </Button>
-            <Button className="gap-2" onClick={handleSave} disabled={saving}>
+            <Button className="gap-1 sm:gap-2 text-xs sm:text-sm mobile-button touch-manipulation" onClick={handleSave} disabled={saving}>
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
               {isNew ? "Publier" : "Mettre à jour"}
-              <span className="text-xs opacity-60 ml-1">(Ctrl+S)</span>
             </Button>
           </div>
         </div>
       </div>
 
-      <div className="container py-8 max-w-5xl">
-        <div className="grid lg:grid-cols-3 gap-8">
-          
+      <div className="container py-4 sm:py-8 max-w-5xl">
+        <div className="grid lg:grid-cols-3 gap-4 sm:gap-8">
+
           {/* Main Content Area */}
-          <div className="lg:col-span-2 space-y-6">
-            
+          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+
             {/* AI Provider */}
-            <div className="bg-card rounded-xl border p-4 shadow-sm flex items-center justify-between">
+            <div className="bg-card rounded-xl border p-3 sm:p-4 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div>
                 <p className="text-sm font-semibold flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-primary" /> Assistant IA pour la rédaction
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  <span className="hidden sm:inline">Assistant IA</span>
                 </p>
-                <p className="text-xs text-muted-foreground mt-0.5">
-                  Générez vos descriptions automatiquement avec l'intelligence artificielle.
+                <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
+                  Générez vos descriptions automatiquement.
                 </p>
               </div>
               <AIProviderSelect size="sm" />
             </div>
 
             {/* Titres & Description */}
-            <div className="bg-card border rounded-xl p-6 shadow-sm space-y-6">
-              <h2 className="font-serif font-bold text-lg border-b pb-2">Informations Générales</h2>
-              
+            <div className="bg-card border rounded-xl p-4 sm:p-6 shadow-sm space-y-4 sm:space-y-6">
+              <h2 className="font-serif font-bold text-base sm:text-lg border-b pb-2">Informations</h2>
+
               <div className="space-y-2">
-                <label htmlFor="content-title" className="text-sm font-medium">Titre du contenu *</label>
-                <Input 
+                <label htmlFor="content-title" className="text-sm font-medium">Titre *</label>
+                <Input
                   id="content-title"
                   name="title"
-                  placeholder="Ex: Bible d'Étude Vie Nouvelle" 
+                  placeholder="Ex: Bible d'Étude..." 
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="text-lg font-medium" 
+                  className="text-base font-medium mobile-input"
                 />
               </div>
               

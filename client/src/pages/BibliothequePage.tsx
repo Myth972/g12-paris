@@ -16,7 +16,7 @@ export default function BibliothequePage() {
   
    const quickAccess = [
      { icon: BookOpen, label: "Bibles", href: "/bibliotheque/catalogue?theme=bibles" },
-     { icon: BookMarked, label: "Études", href: "/bibliotheque/catalogue?theme=etudes" },
+     { icon: BookMarked, label: "Études", href: "/bibliotheque/catalogue?theme=etude-biblique" },
      { icon: Users, label: "Jeunesse", href: "/bibliotheque/catalogue?theme=jeunesse" },
       { icon: Library, label: "Familles", href: "/bibliotheque/catalogue?theme=famille" }
    ];

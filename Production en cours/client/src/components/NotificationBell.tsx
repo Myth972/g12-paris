@@ -176,11 +176,11 @@ export default function NotificationBell() {
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="w-[380px] p-0 shadow-xl border-border/40 overflow-hidden"
+        className="w-[380px] max-w-[calc(100vw-2rem)] p-0 shadow-xl border-border/40 overflow-hidden"
         sideOffset={8}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-border/60">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-3 sm:px-4 py-3 bg-white border-b border-border/60">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-bold text-foreground">Notifications</h3>
             {unreadCount > 0 && (
@@ -188,7 +188,7 @@ export default function NotificationBell() {
                 variant="secondary"
                 className="h-5 px-1.5 text-[10px] bg-primary/10 text-primary border-none"
               >
-                {unreadCount} nouvelles
+                {unreadCount}
               </Badge>
             )}
           </div>
@@ -201,13 +201,13 @@ export default function NotificationBell() {
               disabled={markAllAsRead.isPending}
             >
               <CheckCheck className="w-3.5 h-3.5 mr-1" />
-              Tout marquer lu
+              <span className="hidden sm:inline">Tout marquer lu</span>
             </Button>
           )}
         </div>
 
         {/* Notifications list */}
-        <ScrollArea className="max-h-[60vh] md:max-h-[450px]">
+        <ScrollArea className="max-h-[50vh] sm:max-h-[60vh] md:max-h-[450px]">
           {items.length === 0 ? (
             <div className="py-16 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="w-16 h-16 rounded-full bg-muted/30 flex items-center justify-center mx-auto mb-4">
@@ -242,10 +242,10 @@ export default function NotificationBell() {
                           <motion.div
                             key={notif.id}
                             layout
-                            className={`flex gap-3 px-4 py-4 transition-all cursor-pointer relative ${
+                            className={`flex gap-3 px-3 sm:px-4 py-3 sm:py-4 transition-all cursor-pointer relative touch-manipulation ${
                               !notif.isRead
                                 ? "bg-primary/[0.02]"
-                                : "hover:bg-accent/40"
+                                : "hover:bg-accent/40 active:bg-accent/60"
                             }`}
                             onClick={() => handleNotificationClick(notif)}
                           >
@@ -256,9 +256,9 @@ export default function NotificationBell() {
 
                             {/* Type icon */}
                             <div
-                              className={`flex-shrink-0 w-10 h-10 rounded-xl ${config.bg} flex items-center justify-center mt-0.5 shadow-sm border border-white/50`}
+                              className={`flex-shrink-0 w-9 sm:w-10 h-9 sm:h-10 rounded-lg sm:rounded-xl ${config.bg} flex items-center justify-center mt-0.5 shadow-sm border border-white/50`}
                             >
-                              <Icon className={`w-5 h-5 ${config.color}`} />
+                              <Icon className={`w-4 sm:w-5 h-4 sm:h-5 ${config.color}`} />
                             </div>
 
                             {/* Content */}

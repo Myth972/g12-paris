@@ -14,6 +14,81 @@ const YOUTUBE_CHANNEL_URL = "https://www.youtube.com/@media.mpecciparis";
 const CHANNEL_ID = "UCAM9d_c1ky-lTSook4ffXbA";
 const PAGE_ID = "culte-en-ligne";
 
+// Garder uniquement les vidéos des 3 derniers mois
+const MONTHS_TO_KEEP = 3;
+
+function parseYouTubeDate(dateStr) {
+  if (!dateStr) return null;
+  return new Date(dateStr);
+}
+
+function formatYouTubeDate(date) {
+  if (!date) return "";
+  return date.toLocaleDateString("fr-FR", {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric"
+  });
+}
+
+function formatShortDate(date) {
+  if (!date) return "";
+  return date.toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric"
+  });
+}
+
+function formatAddedDate() {
+  const now = new Date();
+  return now.toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "short",
+    year: "numeric"
+  });
+}
+
+// Extraire la date YouTube depuis la description
+function extractYouTubeDateFromDescription(description) {
+  if (!description) return null;
+  const match = description.match(/Publié sur YouTube: (.+?) \|/);
+  if (!match) return null;
+  
+  // Parser la date française
+  const dateStr = match[1];
+  const months = {
+    "janvier": 0, "février": 1, "mars": 2, "avril": 3, "mai": 4, "juin": 5,
+    "juillet": 6, "août": 7, "septembre": 8, "octobre": 9, "novembre": 10, "décembre": 11
+  };
+  
+  // Format: "lundi 12 avril 2026" ou "dimanche 16 février 2026"
+  const parts = dateStr.split(" ");
+  if (parts.length >= 3) {
+    const day = parseInt(parts[1]);
+    const monthName = parts[2].toLowerCase();
+    const year = parseInt(parts[3]);
+    const month = months[monthName];
+    
+    if (month !== undefined && !isNaN(day) && !isNaN(year)) {
+      return new Date(year, month, day);
+    }
+  }
+  return null;
+}
+
+// Vérifier si la vidéo est plus vieille que 3 mois
+function isVideoOlderThanMonths(description) {
+  const videoDate = extractYouTubeDateFromDescription(description);
+  if (!videoDate) return false;
+  
+  const threeMonthsAgo = new Date();
+  threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - MONTHS_TO_KEEP);
+  
+  return videoDate < threeMonthsAgo;
+}
+
 async function parseRSSFeed(channelId) {
   try {
     const feedUrl = `https://www.youtube.com/feeds/videos.xml?channel_id=${channelId}`;
@@ -37,8 +112,16 @@ async function parseRSSFeed(channelId) {
         link: links[i] || "",
         videoId: videoIds[i],
         published: published[i] || "",
+        publishedDate: parseYouTubeDate(published[i]),
       });
     }
+    
+    // Trier par date YouTube (plus récent en premier)
+    entries.sort((a, b) => {
+      if (!a.publishedDate) return 1;
+      if (!b.publishedDate) return -1;
+      return b.publishedDate.getTime() - a.publishedDate.getTime();
+    });
     
     return entries;
   } catch (error) {
@@ -77,54 +160,130 @@ async function createVideoContent(entry, existingIds, index) {
   
   const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
   
-  let displayDate = "";
-  if (entry.published) {
-    const date = new Date(entry.published);
-    displayDate = date.toLocaleDateString("fr-FR", { 
-      weekday: "long", 
-      year: "numeric", 
-      month: "long", 
-      day: "numeric" 
-    });
-  }
+  // Formater la date de publication YouTube
+  const youtubeDateStr = entry.publishedDate ? formatYouTubeDate(entry.publishedDate) : "";
+  const shortDateStr = entry.publishedDate ? formatShortDate(entry.publishedDate) : "";
+  const addedDateStr = formatAddedDate();
+  
+  // Titre avec date YouTube
+  const title = shortDateStr ? `Culte du ${shortDateStr}` : entry.title;
+  
+  // Description avec les deux dates
+  const description = `Publié sur YouTube: ${youtubeDateStr || "date inconnue"} | Ajouté sur le site: ${addedDateStr}`;
   
   await db.insert(pageContent).values({
     pageId: PAGE_ID,
     contentType: "youtube_video",
-    title: displayDate ? `${entry.title} - ${displayDate}` : entry.title,
+    title: title,
     mediaUrl: youtubeUrl,
     youtubeUrl: youtubeUrl,
-    displayOrder: index, // Les plus récents en premier (index 0 = plus récent)
+    displayOrder: index,
     visible: true,
     loop: false,
     featuredHome: false,
-    description: entry.title,
+    description: description,
     authorId: 1,
   });
   
-  console.log(`✅ Vidéo ajoutée (ordre ${index}): ${entry.title}`);
+  console.log(`✅ Vidéo ajoutée (ordre ${index}): ${title}`);
+  console.log(`   📅 YouTube: ${youtubeDateStr}`);
+  console.log(`   📆 Ajouté: ${addedDateStr}`);
   return true;
 }
 
+async function updateExistingVideosWithDates() {
+  // Mettre à jour les vidéos existantes avec les dates si pas encore fait
+  const existing = await db
+    .select()
+    .from(pageContent)
+    // @ts-ignore
+    .where(pageContent.pageId === PAGE_ID);
+  
+  let updateCount = 0;
+  for (const item of existing) {
+    if (item.description && item.description.includes("Publié sur YouTube:")) {
+      continue; // Déjà mis à jour
+    }
+    
+    // Essayer d'extraire la date du titre ou de la description
+    // Pour l'instant, on laisse tel quel
+  }
+  
+  return updateCount;
+}
+
+async function cleanOldVideos() {
+  console.log("🧹 Nettoyage des vidéos plus anciennes que 3 mois...");
+  
+  const existing = await db
+    .select()
+    .from(pageContent)
+    // @ts-ignore
+    .where(pageContent.pageId === PAGE_ID);
+  
+  let deleteCount = 0;
+  
+  for (const item of existing) {
+    if (item.contentType === "youtube_video" && isVideoOlderThanMonths(item.description)) {
+      await db
+        .delete(pageContent)
+        // @ts-ignore
+        .where(pageContent.id === item.id);
+      
+      const shortDate = item.title.replace("Culte du ", "");
+      console.log(`   🗑️ Supprimée: ${shortDate}`);
+      deleteCount++;
+    }
+  }
+  
+  if (deleteCount > 0) {
+    console.log(`✅ ${deleteCount} vidéo(s) supprimée(s) (plus de ${MONTHS_TO_KEEP} mois)`);
+  } else {
+    console.log("   ✅ Aucune vidéo à supprimer");
+  }
+  
+  return deleteCount;
+}
+
 async function main() {
-  console.log("🔍 Recherche de nouvelles vidéos YouTube...");
-  console.log(`📺 Channel ID: ${CHANNEL_ID}`);
+  console.log("═══════════════════════════════════════════════════════");
+  console.log("  🎬 Agent YouTube - Importation des Cultes");
+  console.log(`  📅 Conservation: ${MONTHS_TO_KEEP} derniers mois`);
+  console.log("═══════════════════════════════════════════════════════");
+  console.log("");
+  
+  // 1. Nettoyer les anciennes vidéos
+  await cleanOldVideos();
+  console.log("");
   
   const existingIds = await getExistingVideoIds();
-  console.log(`📊 ${existingIds.size} vidéo(s) existante(s)`);
+  console.log(`📊 ${existingIds.size} vidéo(s) existante(s) dans la base`);
   
   const entries = await parseRSSFeed(CHANNEL_ID);
   
   if (entries.length === 0) {
-    console.log("Aucune vidéo trouvée.");
+    console.log("⚠️ Aucune vidéo trouvée sur YouTube.");
     await client.close();
     return;
   }
   
   console.log(`📺 ${entries.length} vidéo(s) trouvée(s) sur YouTube`);
+  console.log("");
+  
+  // Afficher le détail des vidéos trouvées
+  console.log("📋 Détail des vidéos (triées par date YouTube):");
+  console.log("─────────────────────────────────────────────────");
+  entries.slice(0, 5).forEach((entry, i) => {
+    const dateStr = entry.publishedDate ? formatShortDate(entry.publishedDate) : "date inconnue";
+    console.log(`   ${i + 1}. ${dateStr} - ${entry.title.substring(0, 50)}...`);
+  });
+  if (entries.length > 5) {
+    console.log(`   ... et ${entries.length - 5} vidéo(s) supplémentaire(s)`);
+  }
+  console.log("");
   
   let newCount = 0;
-  // Les vidéos sont déjà triées par date (plus récent en premier)
+  // Les vidéos sont triées par date (plus récent en premier)
   for (let i = 0; i < entries.length && i < 10; i++) {
     const entry = entries[i];
     const added = await createVideoContent(entry, existingIds, i);
@@ -134,7 +293,11 @@ async function main() {
     }
   }
   
-  console.log(`✅ ${newCount} nouvelle(s) vidéo(s) ajoutée(s)!`);
+  console.log("");
+  console.log("═══════════════════════════════════════════════════════");
+  console.log(`✅ Résumé: ${newCount} nouvelle(s) vidéo(s) ajoutée(s)!`);
+  console.log("═══════════════════════════════════════════════════════");
+  
   await client.close();
 }
 

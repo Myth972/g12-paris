@@ -1,5 +1,21 @@
 # TÂCHES - Projet G12 Paris Infos Médias
 
+## Terminé ce jour (17 Mai 2026)
+
+### Analyse Médias Perdus (Publication du Jour) 🔍
+- Analyse complète du backup-20260506-211520
+- Vérification base de données Turso
+- **Résultat** : gallery_items et page_content sont VIDES sur Turso
+- Les médias ont été perdus (pas de backup des fichiers ni de la DB)
+- biblical_verses contient 3 versets (Jérémie 29:11, Hébreux 12:2, 1 Jean 3:16)
+
+### Correction Bug theme=etudes → etude-biblique ✅
+- CataloguePage.tsx : Ajout du mapping `etudes` → `etude-biblique`
+- BibliothequePage.tsx : Correction du lien vers `etude-biblique`
+- Appliqué sur Production en cours ET Developement en cours
+
+---
+
 ## Terminé ce jour (16 Mai 2026)
 
 ### Nettoyage Structurel ✅
