@@ -188,21 +188,37 @@ export default function BibliothequePage() {
       </section>
 
       {/* Sélections Thématiques CTA */}
-      <section className="py-20 relative overflow-hidden">
-        <div className="absolute inset-0 bg-primary/90 z-0" />
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1455390582262-044cdead2708?q=80&w=2000')] bg-cover bg-center opacity-20 mix-blend-overlay z-0" />
-        <div className="container relative z-10 text-center text-primary-foreground">
-          <h2 className="text-4xl font-serif font-bold mb-6">
-            {settings["page.bibliotheque.themesTitle"] || "Explorez par Thématiques"}
-          </h2>
-          <p className="text-lg max-w-2xl mx-auto mb-8 text-primary-foreground/80">
-            {settings["page.bibliotheque.themesDesc"] || "Foi, Leadership, Famille, Prophétie... Trouvez les ressources qui correspondent exactement à votre besoin spirituel du moment."}
-          </p>
-          <Button asChild size="lg" className="font-semibold bg-primary text-white hover:bg-primary/80 border border-white/20 shadow-lg">
-            <Link href="/bibliotheque/themes">
-              {settings["page.bibliotheque.themesBtn"] || "Parcourir les thèmes"}
-            </Link>
-          </Button>
+      <section className="py-12 md:py-16 relative overflow-hidden bg-primary text-primary-foreground">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1455390582262-044cdead2708?q=80&w=2000')] bg-cover bg-center opacity-10 mix-blend-overlay z-0" />
+        
+        <div className="container relative z-10 max-w-6xl px-4 min-h-[200px] flex flex-col justify-center items-center">
+          {/* Centered Text Content */}
+          <div className="text-center max-w-2xl mx-auto space-y-6">
+            <h2 className="text-3xl md:text-4xl font-serif font-bold text-white drop-shadow-sm">
+              {settings["page.bibliotheque.themesTitle"] || "Explorez par Thématiques"}
+            </h2>
+            <p className="text-base md:text-lg text-white/90 leading-relaxed">
+              {settings["page.bibliotheque.themesDesc"] || "Foi, Leadership, Famille, Études bibliques, ... Trouvez les ressources qui correspondent exactement à votre besoin spirituel du moment."}
+            </p>
+            <div className="pt-2 flex justify-center">
+              <Button asChild size="lg" className="font-semibold bg-amber-600 hover:bg-amber-700 text-white rounded-full px-8 py-6 shadow-lg shadow-black/25 transition-all hover:scale-105">
+                <Link href="/bibliotheque/themes">
+                  {settings["page.bibliotheque.themesBtn"] || "Parcourir les thèmes"}
+                </Link>
+              </Button>
+            </div>
+          </div>
+          
+          {/* Right Logo Content - absolute positioned on desktop to keep text perfectly centered */}
+          {settings["page.bibliotheque.themesLogo"] !== "" && (
+            <div className="mt-8 md:mt-0 md:absolute md:right-4 md:top-1/2 md:-translate-y-1/2 w-48 md:w-56 lg:w-60 flex justify-center items-center">
+              <img 
+                src={settings["page.bibliotheque.themesLogo"] || "/logo-g12-editions.png"} 
+                alt="Logo Section" 
+                className="h-auto max-h-[140px] md:max-h-[160px] lg:max-h-[180px] object-contain hover:scale-105 transition-transform duration-500" 
+              />
+            </div>
+          )}
         </div>
       </section>
     </div>
