@@ -13,9 +13,9 @@ import {
   themes,
   type InsertCategory,
   type InsertTheme,
-} from "../drizzle/schema.ts";
+} from "../drizzle/schema.js";
 import { notInArray, inArray } from "drizzle-orm";
-import { ENV } from "./_core/env.ts";
+import { ENV } from "./_core/env.js";
 import { TRPCError } from "@trpc/server";
 
 function assertDb(db: unknown): asserts db {
