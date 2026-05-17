@@ -167,7 +167,7 @@ export default function SiteHeader() {
               <Button
                 variant="ghost"
                 size="icon"
-                className="lg:hidden ml-1 sm:ml-2"
+                className="lg:hidden ml-1 sm:ml-2 touch-manipulation"
                 onClick={() => setMobileOpen(!mobileOpen)}
               >
                 {mobileOpen ? (
@@ -182,7 +182,7 @@ export default function SiteHeader() {
 
         {/* Mobile nav */}
         {mobileOpen && (
-          <nav className="lg:hidden w-full pb-6 border-t border-border/40 pt-3 flex flex-col">
+          <nav className="lg:hidden w-full pb-6 border-t border-border/40 pt-3 flex flex-col animate-in slide-in-from-top-2 duration-200">
             <div className="space-y-1 mb-6">
               {NAV_LINKS.map(link => {
                 const isActive =
@@ -193,10 +193,10 @@ export default function SiteHeader() {
                     key={link.href}
                     href={link.href}
                     onClick={() => setMobileOpen(false)}
-                    className={`block px-3 py-2.5 text-sm font-medium rounded-md transition-colors ${
+                    className={`block px-4 py-3 text-base font-medium rounded-md transition-colors touch-manipulation ${
                       isActive
                         ? "text-primary bg-primary/5"
-                        : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                        : "text-muted-foreground hover:text-foreground hover:bg-accent active:bg-accent/80"
                     }`}
                   >
                     {link.label}
@@ -207,7 +207,7 @@ export default function SiteHeader() {
                 <Link
                   href="/admin"
                   onClick={() => setMobileOpen(false)}
-                  className="block px-3 py-2.5 text-sm font-medium rounded-md text-primary hover:bg-primary/5"
+                  className="block px-4 py-3 text-base font-medium rounded-md text-primary hover:bg-primary/5 touch-manipulation"
                 >
                   <Shield className="w-4 h-4 inline mr-2" />
                   Administration
@@ -216,7 +216,7 @@ export default function SiteHeader() {
             </div>
 
             {/* Social Icons Mobile */}
-            <div className="px-3 pt-6 border-t border-border/40">
+            <div className="px-4 pt-6 border-t border-border/40">
               <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-4">Suivez-nous</p>
               <div className="flex items-center gap-6">
                 {SOCIAL_LINKS.map(social => (
@@ -225,7 +225,7 @@ export default function SiteHeader() {
                     href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className={`text-muted-foreground transition-all duration-300 ${social.hoverColor}`}
+                    className={`text-muted-foreground transition-all duration-300 touch-manipulation p-2 rounded-lg hover:bg-accent ${social.hoverColor}`}
                   >
                     {social.icon}
                   </a>

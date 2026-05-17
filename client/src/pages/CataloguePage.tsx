@@ -11,9 +11,20 @@ export default function CataloguePage() {
   const [search] = useLocation();
   const params = new URLSearchParams(window.location.search);
   
+  const themeParam = params.get("theme");
+  // Map URL theme values to database values
+  const themeMapping: Record<string, string> = {
+    "etudes": "Etude Biblique",
+    "etude-biblique": "Etude Biblique",
+    "foi": "Foi",
+    "leadership": "Leadership",
+    "familles": "Famille",
+  };
+  const normalizedTheme = themeParam ? (themeMapping[themeParam] || themeParam) : null;
+
   const [searchTerm, setSearchTerm] = useState(params.get("q") || "");
   const [selectedTypes, setSelectedTypes] = useState<string[]>(params.get("type") ? [params.get("type")!] : []);
-  const [selectedThemes, setSelectedThemes] = useState<string[]>(params.get("theme") ? [params.get("theme")!] : []);
+  const [selectedThemes, setSelectedThemes] = useState<string[]>(normalizedTheme ? [normalizedTheme] : []);
   const [maxPrice, setMaxPrice] = useState<number>(params.get("maxPrice") ? parseInt(params.get("maxPrice")!) : 200);
   const [sortOrder, setSortOrder] = useState(params.get("sort") || "newest");
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
@@ -66,7 +77,7 @@ export default function CataloguePage() {
           </div>
           <h1 className="text-4xl md:text-5xl font-bold font-serif mb-4">Catalogue Complet</h1>
           <p className="text-muted-foreground text-lg max-w-2xl">
-            Explorez notre collection compl�te de Bibles, livres, études et ressources pour votre croissance spirituelle.
+            Explorez notre collection complète de Bibles, livres, commentaires et ressources pour votre croissance spirituelle.
           </p>
         </div>
       </section>
@@ -95,31 +106,31 @@ export default function CataloguePage() {
                   </div>
                 </div>
 
-                 {/* Type de livre */}
-                 <div>
-                   <label className="text-sm font-medium mb-3 block font-serif">Type</label>
-                   <div className="space-y-2">
-                     {["bible", "livre", "etude", "jeunesse", "famille"].map(type => (
-                       <label key={type} className="flex items-center gap-2 cursor-pointer group">
-                         <input 
-                           type="checkbox" 
-                           checked={selectedTypes.includes(type)}
-                           onChange={() => handleTypeToggle(type)}
-                           className="rounded border-input text-primary focus:ring-primary w-4 h-4" 
-                         />
-                         <span className="text-sm capitalize group-hover:text-primary transition-colors">
-                           {type === "bible" ? "Bibles" : type === "etude" ? "Études" : type === "jeunesse" ? "Jeunesse" : type === "livre" ? "Livre" : type === "famille" ? "Familles" : type}
-                         </span>
-                       </label>
-                     ))}
-                   </div>
-                 </div>
+{/* Type de livre */}
+                  <div>
+                    <label className="text-sm font-medium mb-3 block font-serif">Type</label>
+                    <div className="space-y-2">
+                      {["Livres", "Livres PDF", "Bibles", "offre", "livre"].map(type => (
+                        <label key={type} className="flex items-center gap-2 cursor-pointer group">
+                          <input 
+                            type="checkbox" 
+                            checked={selectedTypes.includes(type)}
+                            onChange={() => handleTypeToggle(type)}
+                            className="rounded border-input text-primary focus:ring-primary w-4 h-4" 
+                          />
+                          <span className="text-sm capitalize group-hover:text-primary transition-colors">
+                            {type === "Livres" ? "Livres" : type === "Livres PDF" ? "Livres PDF" : type === "Bibles" ? "Bibles" : type === "offre" ? "Offres & Packs" : type === "livre" ? "Livre" : type}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
 
                 {/* Thèmes */}
                 <div>
                   <label className="text-sm font-medium mb-3 block font-serif">Thème</label>
                   <div className="space-y-2">
-                    {["foi", "leadership", "famille", "prophetie", "priere", "evangelisation"].map(theme => (
+                    {["Etude Biblique", "Foi", "Leadership", "Famille", "bibles"].map(theme => (
                       <label key={theme} className="flex items-center gap-2 cursor-pointer group">
                         <input 
                           type="checkbox" 
@@ -127,7 +138,9 @@ export default function CataloguePage() {
                           onChange={() => handleThemeToggle(theme)}
                           className="rounded border-input text-primary focus:ring-primary w-4 h-4" 
                         />
-                        <span className="text-sm capitalize group-hover:text-primary transition-colors">{theme}</span>
+                        <span className="text-sm capitalize group-hover:text-primary transition-colors">
+                            {theme === "Etude Biblique" ? "Études Bibliques" : theme === "Famille" ? "Famille" : theme === "bibles" ? "Bibles" : theme}
+                          </span>
                       </label>
                     ))}
                   </div>
@@ -226,7 +239,7 @@ export default function CataloguePage() {
               </div>
             ) : (
               <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {books.map((book) => {
+                {books.map((book: any) => {
                   const { type, theme } = parseCategory(book.category);
                   const price = (book.price || 0) / 100;
                   const meta = (() => { try { return JSON.parse(book.meta || "{}"); } catch { return {}; } })();

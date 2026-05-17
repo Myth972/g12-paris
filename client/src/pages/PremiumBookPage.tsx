@@ -79,6 +79,16 @@ export default function PremiumBookPage() {
   const affiliateUrl = (book as any).affiliateUrl;
   const isAffiliate = !!affiliateUrl;
 
+  const getAffiliateInfo = (url: string) => {
+    if (!url) return { name: "Amazon", color: "#FF9900", text: "Acheter sur Amazon" };
+    const domain = url.toLowerCase();
+    if (domain.includes("clcfrance")) {
+      return { name: "CLC France", color: "#2E4057", text: "Acheter sur CLC France" };
+    }
+    return { name: "Amazon", color: "#FF9900", text: "Acheter sur Amazon" };
+  };
+  const affiliateInfo = getAffiliateInfo(affiliateUrl);
+
   return (
     <div className="min-h-screen bg-background">
       {/* Breadcrumb */}
@@ -193,14 +203,15 @@ export default function PremiumBookPage() {
                     href={affiliateUrl}
                     target="_blank"
                     rel="noopener noreferrer nofollow"
-                    className="flex items-center justify-center gap-2 w-full h-14 bg-[#FF9900] hover:bg-[#e88a00] text-white font-bold text-lg rounded-lg shadow-lg shadow-amber-900/20 transition-all hover:scale-[1.02] active:scale-100"
+                    className="flex items-center justify-center gap-2 w-full h-14 hover:brightness-110 text-white font-bold text-lg rounded-lg shadow-lg shadow-amber-900/20 transition-all hover:scale-[1.02] active:scale-100"
+                    style={{ backgroundColor: affiliateInfo.color }}
                   >
                     <ShoppingCart className="w-5 h-5" />
-                    Acheter sur Amazon
+                    {affiliateInfo.text}
                     <ExternalLink className="w-4 h-4 opacity-70" />
                   </a>
                   <p className="text-xs text-center text-muted-foreground">
-                    🔗 Lien d'affiliation — Vous serez redirigé vers Amazon.fr
+                    🔗 Lien d'affiliation — Vous serez redirigé vers {affiliateInfo.name}
                   </p>
                 </div>
               ) : (

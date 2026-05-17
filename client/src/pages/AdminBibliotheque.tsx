@@ -88,6 +88,7 @@ export default function AdminBibliotheque() {
   const [biblioThemesTitle, setBiblioThemesTitle] = useState("Explorez par Thématiques");
   const [biblioThemesDesc, setBiblioThemesDesc] = useState("Foi, Leadership, Famille, Prophétie... Trouvez les ressources qui correspondent exactement à votre besoin spirituel du moment.");
   const [biblioThemesBtn, setBiblioThemesBtn] = useState("Parcourir les thèmes");
+  const [biblioThemesLogo, setBiblioThemesLogo] = useState("/logo-g12-editions.png");
 
   useEffect(() => {
     if (settingsQuery.data) {
@@ -101,6 +102,7 @@ export default function AdminBibliotheque() {
       if (settingsQuery.data["page.bibliotheque.themesTitle"]) setBiblioThemesTitle(settingsQuery.data["page.bibliotheque.themesTitle"] as string);
       if (settingsQuery.data["page.bibliotheque.themesDesc"]) setBiblioThemesDesc(settingsQuery.data["page.bibliotheque.themesDesc"] as string);
       if (settingsQuery.data["page.bibliotheque.themesBtn"]) setBiblioThemesBtn(settingsQuery.data["page.bibliotheque.themesBtn"] as string);
+      if (settingsQuery.data["page.bibliotheque.themesLogo"] !== undefined) setBiblioThemesLogo(settingsQuery.data["page.bibliotheque.themesLogo"] as string);
     }
   }, [settingsQuery.data]);
 
@@ -126,10 +128,28 @@ export default function AdminBibliotheque() {
         setSetting.mutateAsync({ key: "page.bibliotheque.themesTitle", value: biblioThemesTitle }),
         setSetting.mutateAsync({ key: "page.bibliotheque.themesDesc", value: biblioThemesDesc }),
         setSetting.mutateAsync({ key: "page.bibliotheque.themesBtn", value: biblioThemesBtn }),
+        setSetting.mutateAsync({ key: "page.bibliotheque.themesLogo", value: biblioThemesLogo }),
       ]);
       toast.success("Textes de la page Bibliothèque enregistrés avec succès.");
     } catch (e) {
       toast.error("Erreur lors de l'enregistrement des paramètres.");
+    }
+  };
+
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingLogo(true);
+    try {
+      const result = await uploadFile({ file, folder: "gallery" });
+      setBiblioThemesLogo(result.url);
+      toast.success("Nouveau logo importé. N'oubliez pas d'enregistrer.");
+    } catch (err: any) {
+      toast.error("Erreur lors de l'import : " + err.message);
+    } finally {
+      setIsUploadingLogo(false);
     }
   };
 
@@ -809,6 +829,55 @@ export default function AdminBibliotheque() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Texte du bouton</label>
                   <Input value={biblioThemesBtn} onChange={e => setBiblioThemesBtn(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Logo de la section</label>
+                  <div className="flex items-center gap-4 p-4 border rounded-xl bg-muted/10">
+                    {biblioThemesLogo ? (
+                      <div className="relative w-36 h-20 bg-slate-950 border rounded-lg flex items-center justify-center p-2 group overflow-hidden shrink-0">
+                        <img 
+                          src={biblioThemesLogo} 
+                          alt="Logo Section" 
+                          className="max-w-full max-h-full object-contain"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setBiblioThemesLogo("")}
+                          className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold"
+                        >
+                          <Trash2 className="w-4 h-4 mr-1" /> Supprimer
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="w-36 h-20 border border-dashed rounded-lg flex items-center justify-center text-muted-foreground text-xs bg-muted/20 shrink-0">
+                        Aucun logo
+                      </div>
+                    )}
+                    <div className="space-y-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Input 
+                          type="file" 
+                          accept="image/*" 
+                          className="hidden" 
+                          id="logo-section-upload" 
+                          onChange={handleLogoUpload}
+                          disabled={isUploadingLogo}
+                        />
+                        <Button asChild variant="outline" size="sm" disabled={isUploadingLogo}>
+                          <label htmlFor="logo-section-upload" className="cursor-pointer flex items-center gap-2">
+                            {isUploadingLogo ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
+                            Importer un logo
+                          </label>
+                        </Button>
+                        {biblioThemesLogo && (
+                          <Button variant="ghost" size="sm" className="text-destructive h-8" onClick={() => setBiblioThemesLogo("")}>
+                            Supprimer
+                          </Button>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground">Format recommandé : PNG transparent. Taille max : 5Mo.</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

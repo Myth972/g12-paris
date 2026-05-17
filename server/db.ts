@@ -13,9 +13,9 @@ import {
   themes,
   type InsertCategory,
   type InsertTheme,
-} from "../drizzle/schema.js";
+} from "../drizzle/schema.ts";
 import { notInArray, inArray } from "drizzle-orm";
-import { ENV } from "./_core/env.js";
+import { ENV } from "./_core/env.ts";
 import { TRPCError } from "@trpc/server";
 
 function assertDb(db: unknown): asserts db {
@@ -223,11 +223,11 @@ export async function listPublishedArticles(
   const conditions = [eq(articles.published, true)];
   
   if (filters.category && filters.category !== "all") {
-    // Exact match for category unless it's a library root
+    // Use LIKE for flexible category matching (e.g. bibliothèque:offre matches bibliothèque:offre:)
     if (filters.category === "bibliothèque") {
        conditions.push(sql`${articles.category} LIKE 'bibliothèque:%'`);
     } else {
-       conditions.push(eq(articles.category, filters.category));
+       conditions.push(sql`${articles.category} LIKE ${filters.category + '%'}`);
     }
   }
 
@@ -294,7 +294,7 @@ export async function countPublishedArticles(filters: {
     if (filters.category === "bibliothèque") {
        conditions.push(sql`${articles.category} LIKE 'bibliothèque:%'`);
     } else {
-       conditions.push(eq(articles.category, filters.category));
+       conditions.push(sql`${articles.category} LIKE ${filters.category + '%'}`);
     }
   }
 
@@ -539,7 +539,7 @@ export async function getFeaturedGalleryItems() {
   const db = await getDb();
   assertDb(db);
 
-  const { galleryItems, biblicalVerses } = await import("../drizzle/schema.js");
+  const { galleryItems, biblicalVerses } = await import("../drizzle/schema.ts");
 
   const rows = await db
     .select({
@@ -562,7 +562,7 @@ export async function getAllGalleryItems(limit = 50, offset = 0) {
   const db = await getDb();
   assertDb(db);
 
-  const { galleryItems, biblicalVerses } = await import("../drizzle/schema.js");
+  const { galleryItems, biblicalVerses } = await import("../drizzle/schema.ts");
 
   const rows = await db
     .select({
@@ -585,7 +585,7 @@ export async function createGalleryItem(data: any) {
   const db = await getDb();
   assertDb(db);
 
-  const { galleryItems } = await import("../drizzle/schema.js");
+  const { galleryItems } = await import("../drizzle/schema.ts");
 
   const [row] = await db.insert(galleryItems).values(data).returning();
   return row;
@@ -595,7 +595,7 @@ export async function deleteGalleryItem(id: number) {
   const db = await getDb();
   assertDb(db);
 
-  const { galleryItems } = await import("../drizzle/schema.js");
+  const { galleryItems } = await import("../drizzle/schema.ts");
 
   await db.delete(galleryItems).where(eq(galleryItems.id, id));
   return { success: true };
@@ -605,7 +605,7 @@ export async function getFeaturedHomeContent() {
   const db = await getDb();
   assertDb(db);
 
-  const { pageContent } = await import("../drizzle/schema.js");
+  const { pageContent } = await import("../drizzle/schema.ts");
 
   const rows = await db
     .select()
@@ -624,7 +624,7 @@ export async function createBiblicalVerse(data: any) {
   const db = await getDb();
   assertDb(db);
 
-  const { biblicalVerses } = await import("../drizzle/schema.js");
+  const { biblicalVerses } = await import("../drizzle/schema.ts");
 
   const [row] = await db.insert(biblicalVerses).values(data).returning();
   return row;
@@ -634,7 +634,7 @@ export async function getBiblicalVerseById(id: number) {
   const db = await getDb();
   assertDb(db);
 
-  const { biblicalVerses } = await import("../drizzle/schema.js");
+  const { biblicalVerses } = await import("../drizzle/schema.ts");
 
   const rows = await db
     .select()
@@ -648,7 +648,7 @@ export async function getLatestBiblicalVerse() {
   const db = await getDb();
   assertDb(db);
 
-  const { biblicalVerses } = await import("../drizzle/schema.js");
+  const { biblicalVerses } = await import("../drizzle/schema.ts");
 
   const rows = await db
     .select()
@@ -662,7 +662,7 @@ export async function listBiblicalVerses() {
   const db = await getDb();
   assertDb(db);
 
-  const { biblicalVerses } = await import("../drizzle/schema.js");
+  const { biblicalVerses } = await import("../drizzle/schema.ts");
 
   const rows = await db
     .select()
@@ -675,7 +675,7 @@ export async function deleteBiblicalVerse(id: number) {
   const db = await getDb();
   assertDb(db);
 
-  const { biblicalVerses, galleryItems } = await import("../drizzle/schema.js");
+  const { biblicalVerses, galleryItems } = await import("../drizzle/schema.ts");
 
   // First update gallery_items to clear the verseId
   await db
@@ -694,7 +694,7 @@ export async function getPageContent(pageId: string) {
   const db = await getDb();
   assertDb(db);
 
-  const { pageContent } = await import("../drizzle/schema.js");
+  const { pageContent } = await import("../drizzle/schema.ts");
 
   const rows = await db
     .select()
@@ -709,7 +709,7 @@ export async function createPageContent(data: any) {
   const db = await getDb();
   assertDb(db);
 
-  const { pageContent } = await import("../drizzle/schema.js");
+  const { pageContent } = await import("../drizzle/schema.ts");
 
   const [row] = await db.insert(pageContent).values(data).returning();
   return row;
@@ -719,7 +719,7 @@ export async function updatePageContent(id: number, data: any) {
   const db = await getDb();
   assertDb(db);
 
-  const { pageContent } = await import("../drizzle/schema.js");
+  const { pageContent } = await import("../drizzle/schema.ts");
 
   await db.update(pageContent).set(data).where(eq(pageContent.id, id));
   const rows = await db
@@ -734,7 +734,7 @@ export async function deletePageContent(id: number) {
   const db = await getDb();
   assertDb(db);
 
-  const { pageContent } = await import("../drizzle/schema.js");
+  const { pageContent } = await import("../drizzle/schema.ts");
 
   await db.delete(pageContent).where(eq(pageContent.id, id));
   return { success: true };
@@ -744,7 +744,7 @@ export async function listPageContent(pageId: string, limit = 50, offset = 0) {
   const db = await getDb();
   assertDb(db);
 
-  const { pageContent } = await import("../drizzle/schema.js");
+  const { pageContent } = await import("../drizzle/schema.ts");
 
   const rows = await db
     .select()
@@ -761,7 +761,7 @@ export async function countPageContent(pageId: string) {
   const db = await getDb();
   assertDb(db);
 
-  const { pageContent } = await import("../drizzle/schema.js");
+  const { pageContent } = await import("../drizzle/schema.ts");
 
   const rows = await db
     .select({ count: sql<number>`count(*)` })

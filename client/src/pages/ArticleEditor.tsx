@@ -243,41 +243,42 @@ export default function ArticleEditor() {
   }
 
   return (
-    <div className="min-h-screen bg-secondary/30 overflow-y-auto">
+    <div className="min-h-screen bg-secondary/30">
       {/* Header */}
       <div className="bg-card border-b border-border sticky top-0 z-40">
-        <div className="container py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+        <div className="container py-3 sm:py-4">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 sm:gap-3">
               <Button
                 variant="ghost"
                 size="icon"
+                className="touch-manipulation"
                 onClick={() => setLocation("/admin")}
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
-              <h1 className="text-lg font-serif font-bold text-foreground">
-                {isNew ? "Nouvel article" : "Modifier l'article"}
+              <h1 className="text-base sm:text-lg font-serif font-bold text-foreground">
+                {isNew ? "Nouvel article" : "Modifier"}
               </h1>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 sm:gap-3">
               <div className="flex items-center gap-2">
                 <Switch
                   checked={published}
                   onCheckedChange={setPublished}
                   id="published"
                 />
-                <Label htmlFor="published" className="text-sm font-medium">
+                <Label htmlFor="published" className="text-xs sm:text-sm font-medium hidden sm:block">
                   {published ? "Publié" : "Brouillon"}
                 </Label>
               </div>
-              <Button onClick={handleSave} disabled={saving}>
+              <Button onClick={handleSave} disabled={saving} className="mobile-button touch-manipulation text-sm px-3 sm:px-4">
                 {saving ? (
                   <Loader2 className="w-4 h-4 mr-1 animate-spin" />
                 ) : (
                   <Save className="w-4 h-4 mr-1" />
                 )}
-                Enregistrer
+                <span className="hidden sm:inline">Enregistrer</span>
               </Button>
             </div>
           </div>
@@ -285,8 +286,8 @@ export default function ArticleEditor() {
       </div>
 
       {/* Form */}
-      <div className="container max-w-6xl mx-auto py-8">
-        <div className="space-y-6">
+      <div className="container max-w-6xl mx-auto py-4 sm:py-8">
+        <div className="space-y-4 sm:space-y-6">
           {/* AI Provider */}
           <div className="bg-card rounded-xl border border-border p-4 shadow-sm flex items-center justify-between">
             <div>
@@ -300,28 +301,28 @@ export default function ArticleEditor() {
             <AIProviderSelect size="sm" />
           </div>
           {/* Title */}
-          <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
+          <div className="bg-card rounded-xl border border-border p-4 sm:p-6 shadow-sm">
             <Label className="text-sm font-semibold text-foreground mb-2 block">
               Titre de l'article *
             </Label>
             <Input
               value={title}
               onChange={e => setTitle(e.target.value)}
-              placeholder="Saisissez le titre de l'article..."
-              className="text-lg font-serif"
+              placeholder="Saisissez le titre..."
+              className="text-base sm:text-lg font-serif mobile-input"
             />
           </div>
 
           {/* Excerpt */}
-          <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
+          <div className="bg-card rounded-xl border border-border p-4 sm:p-6 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
               <Label className="text-sm font-semibold text-foreground">
-                Résumé / Chapô
+                Résumé
               </Label>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 text-[10px] gap-1.5 text-primary hover:text-primary hover:bg-primary/10"
+                className="h-8 text-xs gap-1.5 text-primary hover:text-primary hover:bg-primary/10 touch-manipulation self-start sm:self-auto"
                 disabled={generateExcerptMutation.isPending || !title}
                 onClick={() =>
                   generateExcerptMutation.mutate({
@@ -335,25 +336,25 @@ export default function ArticleEditor() {
                 ) : (
                   <Sparkles className="w-3 h-3" />
                 )}
-                Rédiger avec {activeProvider.label}
+                <span className="hidden sm:inline">IA</span>
               </Button>
             </div>
             <Textarea
               value={excerpt}
               onChange={e => setExcerpt(e.target.value)}
-              placeholder="Un court résumé de l'article (optionnel)..."
+              placeholder="Un court résumé (optionnel)..."
               rows={2}
-              className="resize-none"
+              className="resize-none mobile-input text-sm"
             />
           </div>
 
-          <div className="bg-card rounded-xl border border-border p-6 shadow-sm space-y-4">
+          <div className="bg-card rounded-xl border border-border p-4 sm:p-6 shadow-sm space-y-4">
             <div>
               <Label className="text-sm font-semibold text-foreground mb-2 block">
                 Catégorie
               </Label>
               <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger className="w-full sm:w-64">
+                <SelectTrigger className="w-full mobile-select-trigger">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -370,10 +371,10 @@ export default function ArticleEditor() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t">
                 <div>
                   <Label className="text-xs font-semibold text-muted-foreground mb-2 block uppercase tracking-wider">
-                    Type de ressource
+                    Type
                   </Label>
                   <Select value={libType} onValueChange={setLibType}>
-                    <SelectTrigger>
+                    <SelectTrigger className="mobile-select-trigger">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -382,8 +383,11 @@ export default function ArticleEditor() {
                       )) || (
                         <>
                           <SelectItem value="livre">Livre</SelectItem>
+                          <SelectItem value="Livres">Livres</SelectItem>
+                          <SelectItem value="Livres PDF">Livres PDF</SelectItem>
                           <SelectItem value="bible">Bible</SelectItem>
-                          <SelectItem value="etude">Étude</SelectItem>
+                          <SelectItem value="Bibles">Bibles</SelectItem>
+                          <SelectItem value="offre">Offre / Pack</SelectItem>
                         </>
                       )}
                     </SelectContent>
@@ -391,22 +395,26 @@ export default function ArticleEditor() {
                 </div>
                 <div>
                   <Label className="text-xs font-semibold text-muted-foreground mb-2 block uppercase tracking-wider">
-                    Thème spirituel
+                    Thème
                   </Label>
                   <Select value={libTheme} onValueChange={setLibTheme}>
-                    <SelectTrigger>
+                    <SelectTrigger className="mobile-select-trigger">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       {libThemes?.map((t: any) => (
                         <SelectItem key={t.id} value={String(t.name)} className="capitalize">{String(t.name)}</SelectItem>
-                       )) || (
-                         <>
-                           <SelectItem value="foi">Foi</SelectItem>
-                           <SelectItem value="prière">Prière</SelectItem>
-                           <SelectItem value="famille">Famille</SelectItem>
-                         </>
-                       )}
+                      )) || (
+                        <>
+                          <SelectItem value="foi">Foi</SelectItem>
+                          <SelectItem value="Foi">Foi</SelectItem>
+                          <SelectItem value="Leadership">Leadership</SelectItem>
+                          <SelectItem value="Famille">Famille</SelectItem>
+                          <SelectItem value="famille">Famille</SelectItem>
+                          <SelectItem value="Etude Biblique">Étude Biblique</SelectItem>
+                          <SelectItem value="prière">Prière</SelectItem>
+                        </>
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
@@ -414,16 +422,16 @@ export default function ArticleEditor() {
             )}
           </div>
 
-          {/* Verses */}
-          <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
-            <div className="flex items-center justify-between mb-2">
+          {/* Versets */}
+          <div className="bg-card rounded-xl border border-border p-4 sm:p-6 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
               <Label className="text-sm font-semibold text-foreground">
-                Verset biblique lié
+                Verset biblique
               </Label>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-7 text-[10px] gap-1.5 text-primary hover:bg-primary/10"
+                className="h-8 text-xs gap-1.5 text-primary hover:bg-primary/10 touch-manipulation self-start"
                 disabled={
                   suggestVerseMutation.isPending ||
                   createVerseMutation.isPending ||
@@ -438,18 +446,18 @@ export default function ArticleEditor() {
                 ) : (
                   <Sparkles className="w-3 h-3" />
                 )}
-                Suggérer avec {activeProvider.label}
+                <span className="hidden sm:inline">IA</span>
               </Button>
             </div>
             <Select value={verseId} onValueChange={setVerseId}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Aucun verset sélectionné" />
+              <SelectTrigger className="w-full mobile-select-trigger">
+                <SelectValue placeholder="Aucun" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Aucun verset sélectionné</SelectItem>
+                <SelectItem value="none">Aucun</SelectItem>
                 {verses.map((v: any) => (
                   <SelectItem key={v.id} value={v.id.toString()}>
-                    {v.reference} - {v.text.substring(0, 50)}...
+                    {v.reference}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -457,7 +465,7 @@ export default function ArticleEditor() {
           </div>
 
           {/* Cover image */}
-          <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
+          <div className="bg-card rounded-xl border border-border p-4 sm:p-6 shadow-sm">
             <Label className="text-sm font-semibold text-foreground mb-3 block">
               Image de couverture
             </Label>
@@ -466,12 +474,12 @@ export default function ArticleEditor() {
                 <img
                   src={coverImageUrl}
                   alt="Couverture"
-                  className="w-full max-h-64 object-cover"
+                  className="w-full max-h-48 sm:max-h-64 object-cover"
                 />
                 <Button
                   variant="destructive"
                   size="icon"
-                  className="absolute top-2 right-2 h-8 w-8"
+                  className="absolute top-2 right-2 h-8 w-8 touch-manipulation"
                   onClick={() => {
                     setCoverImageUrl("");
                     setCoverImageKey("");
@@ -482,7 +490,7 @@ export default function ArticleEditor() {
               </div>
             ) : (
               <div
-                className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary/40 hover:bg-primary/[0.02] transition-colors"
+                className="border-2 border-dashed border-border rounded-lg p-4 sm:p-8 text-center cursor-pointer hover:border-primary/40 hover:bg-primary/[0.02] transition-colors touch-manipulation"
                 onClick={() => fileInputRef.current?.click()}
               >
                 {uploading ? (
@@ -492,11 +500,11 @@ export default function ArticleEditor() {
                 )}
                 <p className="text-sm text-muted-foreground">
                   {uploading
-                    ? "Téléchargement en cours..."
-                    : "Cliquez pour ajouter une image"}
+                    ? "Téléchargement..."
+                    : "Ajouter une image"}
                 </p>
                 <p className="text-xs text-muted-foreground/70 mt-1">
-                  JPG, PNG ou WebP (max 5 Mo)
+                  JPG, PNG, WebP
                 </p>
               </div>
             )}
@@ -510,25 +518,27 @@ export default function ArticleEditor() {
             {!coverImageUrl && (
               <div className="mt-3">
                 <Label className="text-xs text-muted-foreground mb-1 block">
-                  Ou collez une URL d'image
+                  Ou URL
                 </Label>
                 <Input
-                  placeholder="https://exemple.com/image.jpg"
+                  placeholder="https://..."
                   onChange={e => setCoverImageUrl(e.target.value)}
+                  className="mobile-input"
                 />
               </div>
             )}
           </div>
 
           {/* YouTube URL */}
-          <div className="bg-card rounded-xl border border-border p-6 shadow-sm">
+          <div className="bg-card rounded-xl border border-border p-4 sm:p-6 shadow-sm">
             <Label className="text-sm font-semibold text-foreground mb-2 block">
               Vidéo YouTube
             </Label>
             <Input
               value={youtubeUrl}
               onChange={e => setYoutubeUrl(e.target.value)}
-              placeholder="https://www.youtube.com/watch?v=..."
+              placeholder="https://youtube.com/watch?v=..."
+              className="mobile-input"
             />
             {youtubeUrl && (
               <div className="mt-4">
@@ -539,35 +549,34 @@ export default function ArticleEditor() {
 
           {/* Content */}
           <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
-            <div className="px-6 pt-5 pb-2">
+            <div className="px-4 sm:px-6 pt-4 sm:pt-5 pb-2">
               <Label className="text-sm font-semibold text-foreground">
-                Contenu de l'article *
+                Contenu *
               </Label>
-              <p className="text-xs text-muted-foreground mt-0.5">
+              <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
                 Utilisez la barre d'outils pour mettre en forme votre texte
-                (titres, couleurs, alignement…)
               </p>
             </div>
             <RichTextEditor
               content={content}
               onChange={setContent}
-              placeholder="Rédigez le contenu de votre article ici..."
-              minHeight="400px"
+              placeholder="Rédigez votre article ici..."
+              minHeight="300px sm:400px"
             />
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-between pt-2">
-            <Button variant="outline" onClick={() => setLocation("/admin")}>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+            <Button variant="outline" onClick={() => setLocation("/admin")} className="w-full sm:w-auto touch-manipulation">
               Annuler
             </Button>
-            <Button onClick={handleSave} disabled={saving} size="lg">
+            <Button onClick={handleSave} disabled={saving} size="lg" className="w-full sm:w-auto mobile-button touch-manipulation">
               {saving ? (
                 <Loader2 className="w-4 h-4 mr-1 animate-spin" />
               ) : (
                 <Save className="w-4 h-4 mr-1" />
               )}
-              {isNew ? "Créer l'article" : "Enregistrer les modifications"}
+              {isNew ? "Créer" : "Enregistrer"}
             </Button>
           </div>
         </div>

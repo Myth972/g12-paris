@@ -138,6 +138,8 @@
     background: linear-gradient(180deg, oklch(0.97 0.005 80), oklch(0.99 0 0));
     overflow-x: hidden;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
   }
 
   :root[data-dev-device="mobile"] #root {
@@ -162,6 +164,148 @@
     margin: 0;
     box-shadow: none;
     background: transparent;
+  }
+
+  :root {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  @media (max-width: 640px) {
+    .container {
+      padding-left: 0.875rem;
+      padding-right: 0.875rem;
+    }
+
+    .prose-article {
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    .prose-article h2 {
+      font-size: 1.25rem;
+    }
+
+    .prose-article h3 {
+      font-size: 1.1rem;
+    }
+
+    input, textarea, select, button {
+      font-size: 16px !important;
+    }
+
+    .touch-manipulation {
+      touch-action: manipulation;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    .snap-x {
+      scroll-snap-type: x mandatory;
+    }
+    .snap-center {
+      scroll-snap-align: center;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    .scrollbar-thin::-webkit-scrollbar-track {
+      background: oklch(0.95 0.005 80);
+      border-radius: 4px;
+    }
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+      background: oklch(0.8 0.01 80);
+      border-radius: 4px;
+    }
+    .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+      background: oklch(0.7 0.01 80);
+    }
+
+    .mobile-padded-section {
+      padding-left: 1rem;
+      padding-right: 1rem;
+    }
+
+    .mobile-card {
+      border-radius: 0.75rem;
+      padding: 1rem;
+    }
+
+    .mobile-input {
+      font-size: 1rem;
+      padding: 0.75rem 1rem;
+      min-height: 48px;
+    }
+
+    .mobile-button {
+      min-height: 48px;
+      padding: 0.75rem 1.5rem;
+    }
+
+    .mobile-tap-target {
+      min-height: 44px;
+      min-width: 44px;
+    }
+
+    .mobile-menu-item {
+      padding: 0.875rem 1rem;
+      font-size: 1rem;
+    }
+
+    .mobile-form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .mobile-form-label {
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      display: block;
+    }
+
+    .mobile-form-input {
+      width: 100%;
+      padding: 0.75rem;
+      border-radius: 0.5rem;
+      border: 1px solid oklch(0.9 0.005 80);
+      background: white;
+      font-size: 1rem;
+    }
+
+    .mobile-select-trigger {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      min-height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+  }
+
+  @media (hover: none) and (pointer: coarse) {
+    :root {
+      --touch-target-size: 44px;
+    }
+
+    button, a, select, input[type="checkbox"], input[type="radio"] {
+      min-height: var(--touch-target-size);
+      min-width: var(--touch-target-size);
+    }
+
+    .hover\:scale-105:hover,
+    .hover\:shadow-lg:hover {
+      transform: none;
+      box-shadow: none;
+    }
   }
 
   .container {

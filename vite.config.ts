@@ -161,8 +161,14 @@ const plugins = [
 ];
 
 export default defineConfig({
-  plugins,
-  resolve: {
+  plugins: [
+    react(),
+    tailwindcss(),
+    jsxLocPlugin(),
+    vitePluginManusRuntime(),
+    ...(enableManusDebugCollector ? [vitePluginManusDebugCollector()] : []),
+  ],
+    resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "client", "src"),
       "@shared": path.resolve(import.meta.dirname, "shared"),
@@ -241,6 +247,9 @@ export default defineConfig({
       },
     },
     chunkSizeWarningLimit: 1000,
+  },
+  optimizeDeps: {
+    exclude: ['es-toolkit'],
   },
   server: {
     host: true,

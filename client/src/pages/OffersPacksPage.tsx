@@ -114,7 +114,7 @@ export default function OffersPacksPage() {
                         className={`w-full h-12 text-md rounded-xl transition-all ${isPopular ? 'shadow-lg shadow-primary/30 scale-105' : ''}`} 
                         variant={isPopular ? 'default' : 'outline'}
                       >
-                        Ajouter au panier
+                        Demander un devis
                       </Button>
                     </div>
                   </div>
