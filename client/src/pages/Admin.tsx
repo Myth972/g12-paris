@@ -62,6 +62,10 @@ import {
   Loader2,
   Library,
   Palette,
+  Users,
+  FileText,
+  ImageIcon,
+  TrendingUp,
 } from "lucide-react";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useAiProvider } from "@/hooks/useAiProvider";
@@ -742,7 +746,73 @@ export default function Admin() {
         </div>
       </div>
 
-      <div className="container pt-8">
+      {/* Stats Overview */}
+      <div className="container pt-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          {(() => {
+            const articlesData = trpc.articles.adminList.useQuery();
+            const subscribersData = trpc.newsletter.listSubscribers.useQuery();
+            const galleryData = trpc.gallery.list.useQuery();
+            const biblioData = trpc.bibliotheque.listCategories.useQuery();
+            
+            const publishedCount = articlesData.data?.items?.filter((a: any) => a.published).length || 0;
+            const totalSubscribers = subscribersData.data?.length || 0;
+            const totalMedia = galleryData.data?.items?.length || 0;
+            const totalCategories = biblioData.data?.length || 0;
+
+            return (
+              <>
+                <div className="bg-card border rounded-xl p-4 shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
+                      <FileText className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold">{publishedCount}</p>
+                      <p className="text-xs text-muted-foreground">Articles publiés</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-card border rounded-xl p-4 shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center text-green-600">
+                      <Users className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold">{totalSubscribers}</p>
+                      <p className="text-xs text-muted-foreground">Abonnés Newsletter</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-card border rounded-xl p-4 shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center text-blue-600">
+                      <ImageIcon className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold">{totalMedia}</p>
+                      <p className="text-xs text-muted-foreground">Médias galerie</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-card border rounded-xl p-4 shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center text-amber-600">
+                      <Library className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold">{totalCategories}</p>
+                      <p className="text-xs text-muted-foreground">Catégories bibliothèque</p>
+                    </div>
+                  </div>
+                </div>
+              </>
+            );
+          })()}
+        </div>
+      </div>
+
+      <div className="container pt-2">
         <h2 className="text-lg font-serif font-bold mb-4 flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-primary" /> Accès Rapide
         </h2>
