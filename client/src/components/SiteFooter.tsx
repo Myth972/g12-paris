@@ -86,21 +86,20 @@ export default function SiteFooter() {
                   e.currentTarget.reset();
                 }
               }}
-              className="flex items-center gap-2"
+              className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2"
             >
               <Input
                 type="email"
                 name="email"
                 placeholder="Votre adresse email"
-                className="bg-primary-foreground/10 border-none text-primary-foreground placeholder:text-primary-foreground/70 w-full"
+                className="bg-primary-foreground/10 border-none text-primary-foreground placeholder:text-primary-foreground/70 w-full h-11"
                 required
               />
               <Button
                 type="submit"
                 variant="default"
-                size="icon"
+                className="w-full sm:w-auto h-11 px-4 bg-primary text-white hover:bg-primary/90 shadow-md transition-all active:scale-95"
                 disabled={subscribeMutation.isPending}
-                className="bg-primary text-white hover:bg-primary/90 shadow-md transition-all active:scale-95"
               >
                 <Send className="w-4 h-4" />
               </Button>

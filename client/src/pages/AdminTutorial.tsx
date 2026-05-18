@@ -32,11 +32,30 @@ import {
   Users,
   ImageIcon,
   Keyboard,
+  Shield,
 } from "lucide-react";
 import { useLocation } from "wouter";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 export default function AdminTutorial() {
+  const { user } = useAuth();
   const [, setLocation] = useLocation();
+
+  if (user?.role !== "admin") {
+    return (
+      <div className="container py-20 text-center">
+        <Shield className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+        <h2 className="text-xl font-serif font-bold mb-2">Accès restreint</h2>
+        <p className="text-muted-foreground mb-6">
+          Cette page est réservée aux administrateurs.
+        </p>
+        <Button variant="outline" onClick={() => () => setLocation("/")}>
+          <ChevronLeft className="w-4 h-4 mr-2" />
+          Retour à l'accueil
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background p-6">

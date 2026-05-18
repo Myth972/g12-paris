@@ -12,11 +12,12 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
-import { Shield, Lock, ArrowLeft } from "lucide-react";
+import { Shield, Lock, User, ArrowLeft } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/_core/hooks/useAuth";
 
 export default function Login() {
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [, setLocation] = useLocation();
   const { user, refresh } = useAuth();
@@ -44,7 +45,11 @@ export default function Login() {
       toast.error("Veuillez saisir le mot de passe");
       return;
     }
-    loginMutation.mutate({ password });
+    // Si username fourni, on l'envoie aussi
+    loginMutation.mutate({ 
+      username: username || undefined, 
+      password 
+    });
   };
 
   return (
@@ -58,20 +63,34 @@ export default function Login() {
             Administration
           </CardTitle>
           <CardDescription>
-            Saisissez le mot de passe pour accéder au tableau de bord.
+            Connectez-vous avec votre compte utilisateur ou le mot de passe admin
           </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="username">Nom d'utilisateur (optionnel)</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="username"
+                  type="text"
+                  placeholder="Pour utilisateur Editeur/Bibliothèque"
+                  className="pl-9 h-11"
+                  value={username}
+                  onChange={e => setUsername(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="password">Mot de passe</Label>
               <div className="relative">
-                <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="password"
                   type="password"
                   placeholder="••••••••"
-                  className="pl-9"
+                  className="pl-9 h-11"
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   autoFocus

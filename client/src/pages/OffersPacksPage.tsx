@@ -154,25 +154,27 @@ export default function OffersPacksPage() {
                     </DialogDescription>
                   </DialogHeader>
                   <form onSubmit={handleDevisSubmit} className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <label htmlFor="name" className="text-sm font-medium">Nom ou Organisation</label>
-                      <Input id="name" placeholder="Ex: Église Paris" required />
-                    </div>
-                    <div className="space-y-2">
-                      <label htmlFor="email" className="text-sm font-medium">Adresse Email</label>
-                      <Input id="email" type="email" placeholder="contact@exemple.com" required />
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label htmlFor="name" className="text-sm font-medium">Nom ou Organisation</label>
+                        <Input id="name" placeholder="Ex: Église Paris" required className="h-11" />
+                      </div>
+                      <div className="space-y-2">
+                        <label htmlFor="email" className="text-sm font-medium">Adresse Email</label>
+                        <Input id="email" type="email" placeholder="contact@exemple.com" required className="h-11" />
+                      </div>
                     </div>
                     <div className="space-y-2">
                       <label htmlFor="quantity" className="text-sm font-medium">Quantité estimée</label>
-                      <Input id="quantity" type="number" placeholder="Ex: 50" min="1" required />
+                      <Input id="quantity" type="number" placeholder="Ex: 50" min="1" required className="h-11" />
                     </div>
                     <div className="space-y-2">
                       <label htmlFor="message" className="text-sm font-medium">Précisez votre demande</label>
-                      <Textarea id="message" placeholder="Quels livres ou packs vous intéressent ?" rows={3} required />
+                      <Textarea id="message" placeholder="Quels livres ou packs vous interessent ?" rows={3} className="min-h-[100px] resize-none" required />
                     </div>
-                    <DialogFooter className="pt-4">
-                      <Button type="button" variant="outline" onClick={() => setIsDevisOpen(false)}>Annuler</Button>
-                      <Button type="submit">Envoyer la demande</Button>
+                    <DialogFooter className="pt-4 flex flex-col sm:flex-row gap-2 sm:gap-0">
+                      <Button type="button" variant="outline" onClick={() => setIsDevisOpen(false)} className="w-full sm:w-auto">Annuler</Button>
+                      <Button type="submit" className="w-full sm:w-auto">Envoyer la demande</Button>
                     </DialogFooter>
                   </form>
                 </DialogContent>

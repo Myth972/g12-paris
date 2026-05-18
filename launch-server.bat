@@ -9,16 +9,14 @@ echo ==========================================
 echo    G12 Paris Infos Medias - Environment Selection
 echo ==========================================
 echo.
-echo [1] Production en cours
-echo [2] Developement en cours
-echo [3] Racine du projet (actuel)
+echo [1] Racine du projet (Development)
+echo [2] Production en cours (Build/Deploy)
 echo.
 set env_choice=
-set /p env_choice="Select environment (1-3): "
+set /p env_choice="Select environment (1-2): "
 
-if "%env_choice%"=="1" set "TARGET_DIR=Production en cours"
-if "%env_choice%"=="2" set "TARGET_DIR=developement en cours"
-if "%env_choice%"=="3" set "TARGET_DIR=."
+if "%env_choice%"=="1" set "TARGET_DIR=."
+if "%env_choice%"=="2" set "TARGET_DIR=Production en cours"
 
 if "%TARGET_DIR%"=="" (
     echo Invalid choice.
@@ -145,13 +143,12 @@ if "%choice%"=="8" (
     echo    Restarting Development Server
     echo ==========================================
     echo.
-    echo Stopping server on ports 3000/3001 if running...
+    echo Stopping server on port 3000 if running...
     for /f "tokens=5" %%a in ('netstat -ano ^| findstr :3000') do taskkill /F /PID %%a >nul 2>nul
-    for /f "tokens=5" %%a in ('netstat -ano ^| findstr :3001') do taskkill /F /PID %%a >nul 2>nul
     echo.
     echo Starting Development Mode in %TARGET_DIR%...
-    echo Frontend: http://localhost:3001/
-    echo API: http://localhost:3001/api/trpc
+    echo Frontend: http://localhost:3000/
+    echo API: http://localhost:3000/api/trpc
     echo.
     echo Press Ctrl+C to stop the server
     echo.
@@ -167,23 +164,28 @@ if "%choice%"=="2" (
     echo    Starting Production Mode
     echo ==========================================
     echo.
-    echo Building the project in %TARGET_DIR%...
-    pushd "%TARGET_DIR%"
-    call npm run build
-    popd
-    echo.
-    echo Starting server...
-    pushd "%TARGET_DIR%"
-    call npm start
-    popd
+    if "%TARGET_DIR%"=="." (
+        echo Building the project from root...
+        call npm run build
+        echo.
+        echo Starting server from dist...
+        call npm start
+    ) else (
+        echo Starting pre-built server from Production en cours...
+        echo (Build already done, using dist/)
+        echo.
+        pushd "%TARGET_DIR%"
+        call npm start
+        popd
+    )
 ) else if "%choice%"=="1" (
     echo.
     echo ==========================================
     echo    Starting Development Mode
     echo ==========================================
     echo.
-    echo Frontend: http://localhost:3001/
-    echo API: http://localhost:3001/api/trpc
+    echo Frontend: http://localhost:3000/
+    echo API: http://localhost:3000/api/trpc
     echo.
     echo Database: Connected to Turso
     echo AI Provider: Groq (llama-3.3-70b-versatile)

@@ -115,3 +115,4 @@ uploads/
 backup-*
 .manus-logs/
 .npm-cache/
+TODO_PENDING.md

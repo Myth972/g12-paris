@@ -822,3 +822,163 @@ export async function deleteTheme(id: number) {
   await db.delete(themes).where(eq(themes.id, id));
   return { success: true };
 }
+
+// ─── User Functions ───────────────────────────────────────────────
+
+export async function findUserByPassword(password: string) {
+  const db = await getDb();
+  assertDb(db);
+
+  const result = await db
+    .select()
+    .from(users)
+    .where(eq(users.password, password))
+    .limit(1);
+
+  if (result.length === 0) return null;
+  
+  const user = result[0];
+  if (user.openId === "admin-local") return null;
+  
+  await db
+    .update(users)
+    .set({ lastSignedIn: new Date() })
+    .where(eq(users.id, user.id));
+
+  return user;
+}
+
+export async function findUserByUsernameAndPassword(username: string, password: string) {
+  const db = await getDb();
+  assertDb(db);
+
+  const result = await db
+    .select()
+    .from(users)
+    .where(and(eq(users.name, username), eq(users.password, password)))
+    .limit(1);
+
+  if (result.length === 0) return null;
+  
+  const user = result[0];
+  if (user.openId === "admin-local") return null;
+  
+  await db
+    .update(users)
+    .set({ lastSignedIn: new Date() })
+    .where(eq(users.id, user.id));
+
+  return user;
+}
+
+export async function updateUserPassword(userId: number, password: string) {
+  const db = await getDb();
+  assertDb(db);
+
+  await db
+    .update(users)
+    .set({ password, updatedAt: new Date() })
+    .where(eq(users.id, userId));
+}
+
+export async function getUserById(id: number) {
+  const db = await getDb();
+  assertDb(db);
+
+  const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+  return result.length > 0 ? result[0] : undefined;
+}
+
+export async function verifyUserPasswordById(userId: number, password: string) {
+  const db = await getDb();
+  assertDb(db);
+
+  const result = await db
+    .select()
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+
+  if (result.length === 0) return false;
+  
+  const user = result[0];
+  if (!user.password || user.password !== password) return false;
+  
+  return true;
+}
+
+export async function listAllUsers() {
+  const db = await getDb();
+  assertDb(db);
+  return db.select().from(users).orderBy(desc(users.createdAt));
+}
+
+export async function createUser(data: { openId: string; name: string; email?: string; role: string; password?: string; loginMethod?: string }) {
+  const db = await getDb();
+  assertDb(db);
+  const [row] = await db.insert(users).values({
+    openId: data.openId,
+    name: data.name,
+    email: data.email,
+    role: data.role,
+    password: data.password,
+    loginMethod: data.loginMethod,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }).returning();
+  return row;
+}
+
+export async function updateUserRole(userId: number, role: string) {
+  const db = await getDb();
+  assertDb(db);
+
+  const validRoles = ["user", "admin", "editeur", "bibliotheque"];
+  if (!validRoles.includes(role)) {
+    throw new Error(`Rôle invalide: ${role}`);
+  }
+
+  await db.update(users).set({ role, updatedAt: new Date() }).where(eq(users.id, userId));
+}
+
+export async function deleteUser(id: number) {
+  const db = await getDb();
+  assertDb(db);
+
+  const adminCount = await db.select().from(users).where(eq(users.role, "admin"));
+  const user = await getUserById(id);
+  
+  if (user?.role === "admin" && adminCount.length === 1) {
+    throw new Error("Impossible de supprimer le dernier administrateur");
+  }
+
+  await db.delete(users).where(eq(users.id, id));
+  return { success: true };
+}
+
+export async function upsertUserFromAuth(data: { openId: string; name: string; role: string; lastSignedIn?: Date }) {
+  const db = await getDb();
+  assertDb(db);
+
+  const existing = await db.select().from(users).where(eq(users.openId, data.openId)).limit(1);
+  
+  if (existing.length > 0) {
+    await db.update(users).set({
+      name: data.name,
+      role: data.role,
+      lastSignedIn: data.lastSignedIn,
+      updatedAt: new Date(),
+    }).where(eq(users.id, existing[0].id));
+    return existing[0];
+  }
+  
+  const [row] = await db.insert(users).values({
+    openId: data.openId,
+    name: data.name,
+    role: data.role,
+    lastSignedIn: data.lastSignedIn,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }).returning();
+  return row;
+}

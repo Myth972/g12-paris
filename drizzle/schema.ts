@@ -17,6 +17,7 @@ export const users = sqliteTable("users", {
   email: text("email"),
   loginMethod: text("loginMethod"),
   role: text("role").default("user").notNull(),
+  password: text("password"), // Mot de passe optionnel (pour connexion locale)
   createdAt: integer("createdAt", { mode: "timestamp" })
     .default(sql`(strftime('%s', 'now'))`)
     .notNull(),

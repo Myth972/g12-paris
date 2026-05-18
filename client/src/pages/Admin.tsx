@@ -66,6 +66,7 @@ import {
   FileText,
   ImageIcon,
   TrendingUp,
+  User,
 } from "lucide-react";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useAiProvider } from "@/hooks/useAiProvider";
@@ -83,6 +84,7 @@ const AIChatBox = lazy(() => import("@/components/AIChatBox").then(m => ({ defau
 import HomeHeroBackgroundSettings from "@/components/HomeHeroBackgroundSettings";
 import CulteHeroBackgroundSettings from "@/components/CulteHeroBackgroundSettings";
 import CulteBannerSettings from "@/components/CulteBannerSettings";
+import CulteVideoSettings from "@/components/CulteVideoSettings";
 
 import { Message } from "@/components/AIChatBox";
 
@@ -686,7 +688,7 @@ export default function Admin() {
   });
   const [, setLocation] = useLocation();
 
-  if (authLoading) {
+if (authLoading) {
     return (
       <div className="container py-10">
         <Skeleton className="h-8 w-48 mb-6" />
@@ -695,7 +697,13 @@ export default function Admin() {
     );
   }
 
-  if (user?.role !== "admin") {
+  const userRole = user?.role || "user";
+  const isAdmin = userRole === "admin";
+  const isEditeur = userRole === "editeur";
+  const isBibliotheque = userRole === "bibliotheque";
+  const hasAdminAccess = isAdmin || isEditeur || isBibliotheque;
+
+  if (!isAdmin && !isEditeur && !isBibliotheque) {
     return (
       <div className="container py-20 text-center">
         <Shield className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
@@ -708,7 +716,7 @@ export default function Admin() {
           Retour à l'accueil
         </Button>
       </div>
-    );
+);
   }
 
   return (
@@ -723,22 +731,40 @@ export default function Admin() {
                 <span className="text-xs font-semibold uppercase tracking-wider text-primary font-sans">
                   Administration
                 </span>
+                <Badge variant="outline" className="text-xs">
+                  {isAdmin ? "Administrateur" : isEditeur ? "Éditeur" : isBibliotheque ? "Bibliothèque" : "Utilisateur"}
+                </Badge>
               </div>
               <h1 className="text-2xl font-serif font-bold text-foreground">
                 Tableau de bord
               </h1>
+              {user && (
+                <p className="text-sm text-muted-foreground mt-1">
+                  Connecté en tant que <span className="font-medium">{user.name || user.openId}</span>
+                </p>
+              )}
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" asChild>
-                <Link href="/admin/tutorial">
-                  <HelpCircle className="w-4 h-4 mr-1" />
-                  Guide d'organisation
-                </Link>
-              </Button>
+              {hasAdminAccess && (
+                <>
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href="/admin/profile">
+                      <User className="w-4 h-4 mr-1" />
+                      <span className="hidden sm:inline">Mon Profil</span>
+                    </Link>
+                  </Button>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href="/admin/tutorial">
+                      <HelpCircle className="w-4 h-4 mr-1" />
+                      <span className="hidden sm:inline">Guide</span>
+                    </Link>
+                  </Button>
+                </>
+              )}
               <Button variant="outline" size="sm" asChild>
                 <Link href="/">
                   <ArrowLeft className="w-4 h-4 mr-1" />
-                  Site
+                  <span className="hidden sm:inline">Site</span>
                 </Link>
               </Button>
             </div>
@@ -746,69 +772,53 @@ export default function Admin() {
         </div>
       </div>
 
-      {/* Stats Overview */}
+      {/* Stats Overview - identiques pour tous les rôles */}
       <div className="container pt-6">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {(() => {
-            const articlesData = trpc.articles.adminList.useQuery();
-            const subscribersData = trpc.newsletter.listSubscribers.useQuery();
-            const galleryData = trpc.gallery.list.useQuery();
-            const biblioData = trpc.bibliotheque.listCategories.useQuery();
-            
-            const publishedCount = articlesData.data?.items?.filter((a: any) => a.published).length || 0;
-            const totalSubscribers = subscribersData.data?.length || 0;
-            const totalMedia = galleryData.data?.items?.length || 0;
-            const totalCategories = biblioData.data?.length || 0;
-
-            return (
-              <>
-                <div className="bg-card border rounded-xl p-4 shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
-                      <FileText className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold">{publishedCount}</p>
-                      <p className="text-xs text-muted-foreground">Articles publiés</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-card border rounded-xl p-4 shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center text-green-600">
-                      <Users className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold">{totalSubscribers}</p>
-                      <p className="text-xs text-muted-foreground">Abonnés Newsletter</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-card border rounded-xl p-4 shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center text-blue-600">
-                      <ImageIcon className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold">{totalMedia}</p>
-                      <p className="text-xs text-muted-foreground">Médias galerie</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-card border rounded-xl p-4 shadow-sm">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center text-amber-600">
-                      <Library className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <p className="text-2xl font-bold">{totalCategories}</p>
-                      <p className="text-xs text-muted-foreground">Catégories bibliothèque</p>
-                    </div>
-                  </div>
-                </div>
-              </>
-            );
-          })()}
+          <div className="bg-card border rounded-xl p-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
+                <FileText className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{trpc.articles.adminList.useQuery().data?.items?.filter((a: any) => a.published).length || 0}</p>
+                <p className="text-xs text-muted-foreground">Articles publiés</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-card border rounded-xl p-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center text-green-600">
+                <Users className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{trpc.newsletter.listSubscribers.useQuery().data?.length || 0}</p>
+                <p className="text-xs text-muted-foreground">Abonnés Newsletter</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-card border rounded-xl p-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center text-blue-600">
+                <ImageIcon className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{trpc.gallery.list.useQuery().data?.items?.length || 0}</p>
+                <p className="text-xs text-muted-foreground">Médias galerie</p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-card border rounded-xl p-4 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center text-amber-600">
+                <Library className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold">{trpc.bibliotheque.listCategories.useQuery().data?.length || 0}</p>
+                <p className="text-xs text-muted-foreground">Catégories bibliothèque</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -829,6 +839,7 @@ export default function Admin() {
             </div>
           </Link>
 
+          {isAdmin && (
           <Link href="/admin/design">
             <div className="bg-card border border-border p-6 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50">
               <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-600 mb-4 group-hover:scale-110 transition-transform">
@@ -840,6 +851,7 @@ export default function Admin() {
               </p>
             </div>
           </Link>
+          )}
 
           <Link href="/admin/article/new">
             <div className="bg-card border border-border p-6 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50">
@@ -863,17 +875,11 @@ export default function Admin() {
               <Newspaper className="w-4 h-4" />
               Articles
             </TabsTrigger>
+            {hasAdminAccess && (
+              <>
             <TabsTrigger value="notifications" className="gap-2">
               <Bell className="w-4 h-4" />
               Notifications
-            </TabsTrigger>
-            <TabsTrigger value="pages" className="gap-2">
-              <Newspaper className="w-4 h-4" />
-              Contenu des pages
-            </TabsTrigger>
-            <TabsTrigger value="publications" className="gap-2">
-              <BookOpen className="w-4 h-4" />
-              Publications & Versets
             </TabsTrigger>
             <TabsTrigger value="newsletter" className="gap-2">
               <Mail className="w-4 h-4" />
@@ -887,19 +893,52 @@ export default function Admin() {
               <Wand2 className="w-4 h-4 text-violet-500" />
               Kling Studio
             </TabsTrigger>
+            <TabsTrigger value="users" className="gap-2">
+              <Users className="w-4 h-4" />
+              Utilisateurs
+            </TabsTrigger>
+              </>
+            )}
+            <TabsTrigger value="pages" className="gap-2">
+              <Newspaper className="w-4 h-4" />
+              Contenu des pages
+            </TabsTrigger>
+            <TabsTrigger value="publications" className="gap-2">
+              <BookOpen className="w-4 h-4" />
+              Publications & Versets
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="articles">
             <ArticlesTab />
           </TabsContent>
+          {hasAdminAccess && (
+            <>
           <TabsContent value="notifications">
             <NotificationsTab />
           </TabsContent>
+          <TabsContent value="newsletter">
+            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> Chargement...</div>}>
+              <NewsletterAdmin />
+            </Suspense>
+          </TabsContent>
+          <TabsContent value="ai">
+            <AIAssistantTab />
+          </TabsContent>
+          <TabsContent value="kling" className="py-4">
+            <KlingStudio />
+          </TabsContent>
+          <TabsContent value="users">
+            <UsersTab />
+          </TabsContent>
+            </>
+          )}
           <TabsContent value="pages">
             <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> Chargement du gestionnaire...</div>}>
               <div className="space-y-8">
                 <HomeHeroBackgroundSettings />
                 <CulteHeroBackgroundSettings />
                 <CulteBannerSettings />
+                <CulteVideoSettings />
                 <PageContentManager pageId="home" pageName="Accueil" />
                 <PageContentManager
                   pageId="publication-du-jour"
@@ -920,23 +959,238 @@ export default function Admin() {
           <TabsContent value="publications" className="space-y-8">
             <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> Chargement...</div>}>
                <GalleryManager />
-               <div className="h-px bg-border my-8" />
-               <VersesManager />
+               {isAdmin && <><div className="h-px bg-border my-8" /><VersesManager /></>}
             </Suspense>
-          </TabsContent>
-          <TabsContent value="newsletter">
-            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> Chargement...</div>}>
-              <NewsletterAdmin />
-            </Suspense>
-          </TabsContent>
-          <TabsContent value="ai">
-            <AIAssistantTab />
-          </TabsContent>
-          <TabsContent value="kling" className="py-4">
-            <KlingStudio />
           </TabsContent>
         </Tabs>
       </div>
+    </div>
+  );
+}
+
+// ─── Users Tab Component ─────────────────────────────────────────
+function UsersTab() {
+  const utils = trpc.useUtils();
+  const { user } = useAuth();
+
+  const { data: users, isLoading, refetch } = trpc.users.list.useQuery();
+
+  const createUserMutation = trpc.users.create.useMutation({
+    onSuccess: () => utils.users.list.invalidate(),
+  });
+
+  const updateRoleMutation = trpc.users.updateRole.useMutation({
+    onSuccess: () => utils.users.list.invalidate(),
+  });
+
+  const deleteUserMutation = trpc.users.delete.useMutation({
+    onSuccess: () => utils.users.list.invalidate(),
+  });
+
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [newUser, setNewUser] = useState({
+    openId: "",
+    name: "",
+    email: "",
+    password: "",
+    role: "editeur" as const,
+  });
+
+  const handleCreate = () => {
+    if (!newUser.password) {
+      alert("Le mot de passe est obligatoire");
+      return;
+    }
+    createUserMutation.mutate({
+      openId: newUser.openId || `user-${Date.now()}`,
+      name: newUser.name,
+      email: newUser.email || undefined,
+      role: newUser.role,
+      password: newUser.password,
+    });
+    setIsCreateOpen(false);
+    setNewUser({ openId: "", name: "", email: "", password: "", role: "editeur" });
+  };
+
+  const handleRoleChange = (userId: number, role: string) => {
+    updateRoleMutation.mutate({ userId, role: role as any });
+  };
+
+  const handleDelete = (userId: number) => {
+    if (confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?")) {
+      deleteUserMutation.mutate({ userId });
+    }
+  };
+
+  const roleLabels: Record<string, string> = {
+    admin: "Administrateur",
+    editeur: "Éditeur",
+    bibliotheque: "Bibliothèque",
+    user: "Utilisateur",
+  };
+
+  const roleColors: Record<string, string> = {
+    admin: "bg-red-100 text-red-800",
+    editeur: "bg-blue-100 text-blue-800",
+    bibliotheque: "bg-green-100 text-green-800",
+    user: "bg-gray-100 text-gray-800",
+  };
+
+  if (user?.role !== "admin") {
+    return (
+      <div className="p-8 text-center">
+        <AlertCircle className="w-12 h-12 mx-auto text-destructive mb-4" />
+        <h2 className="text-xl font-semibold">Accès refusé</h2>
+        <p className="text-muted-foreground">Vous n'avez pas les droits pour gérer les utilisateurs.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold">Gestion des utilisateurs</h2>
+          <p className="text-muted-foreground">Gérez les accès et les rôles des utilisateurs</p>
+        </div>
+        <Button onClick={() => setIsCreateOpen(true)}>
+          <Plus className="w-4 h-4 mr-2" />
+          Ajouter un utilisateur
+        </Button>
+      </div>
+
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Nom</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Rôle</TableHead>
+              <TableHead>Dernière connexion</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin mx-auto" />
+                </TableCell>
+              </TableRow>
+            ) : users?.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                  Aucun utilisateur trouvé
+                </TableCell>
+              </TableRow>
+            ) : (
+              users?.map((u: any) => (
+                <TableRow key={u.id}>
+                  <TableCell className="font-medium">{u.name || "Sans nom"}</TableCell>
+                  <TableCell className="text-muted-foreground">{u.email || "-"}</TableCell>
+                  <TableCell>
+                    <Select
+                      value={u.role}
+                      onValueChange={(role) => handleRoleChange(u.id, role)}
+                      disabled={u.role === "admin"}
+                    >
+                      <SelectTrigger className={`w-40 ${roleColors[u.role] || ""}`}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="user">Utilisateur</SelectItem>
+                        <SelectItem value="editeur">Éditeur</SelectItem>
+                        <SelectItem value="bibliotheque">Bibliothèque</SelectItem>
+                        <SelectItem value="admin">Administrateur</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {u.lastSignedIn
+                      ? new Date(u.lastSignedIn).toLocaleDateString("fr-FR")
+                      : "Jamais"}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive"
+                      onClick={() => handleDelete(u.id)}
+                      disabled={u.role === "admin"}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Ajouter un utilisateur</DialogTitle>
+            <DialogDescription>
+              Créez un nouvel utilisateur avec un rôle spécifique
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Nom</Label>
+              <Input
+                value={newUser.name}
+                onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+                placeholder="Nom de l'utilisateur"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Email (optionnel)</Label>
+              <Input
+                type="email"
+                value={newUser.email}
+                onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                placeholder="email@exemple.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Mot de passe</Label>
+              <Input
+                type="password"
+                value={newUser.password}
+                onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                placeholder="Mot de passe pour la connexion"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Rôle</Label>
+              <Select
+                value={newUser.role}
+                onValueChange={(role) => setNewUser({ ...newUser, role: role as any })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="editeur">Éditeur</SelectItem>
+                  <SelectItem value="bibliotheque">Bibliothèque</SelectItem>
+                  <SelectItem value="user">Utilisateur</SelectItem>
+                  <SelectItem value="admin">Administrateur</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
+              Annuler
+            </Button>
+            <Button onClick={handleCreate} disabled={!newUser.name}>
+              Créer
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

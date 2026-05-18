@@ -32,6 +32,16 @@ function formatYouTubeDate(date) {
   });
 }
 
+function formatFullFrenchDate(date) {
+  if (!date) return "";
+  return date.toLocaleDateString("fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  });
+}
+
 function formatShortDate(date) {
   if (!date) return "";
   return date.toLocaleDateString("fr-FR", {
@@ -162,11 +172,17 @@ async function createVideoContent(entry, existingIds, index) {
   
   // Formater la date de publication YouTube
   const youtubeDateStr = entry.publishedDate ? formatYouTubeDate(entry.publishedDate) : "";
-  const shortDateStr = entry.publishedDate ? formatShortDate(entry.publishedDate) : "";
+  const fullFrenchDateStr = entry.publishedDate ? formatFullFrenchDate(entry.publishedDate) : "";
   const addedDateStr = formatAddedDate();
   
-  // Titre avec date YouTube
-  const title = shortDateStr ? `Culte du ${shortDateStr}` : entry.title;
+  // Nettoyer le titre YouTube (enlever les caractères spéciaux problématiques)
+  const cleanTitle = entry.title
+    .replace(/"/g, "'")
+    .replace(/[\r\n]+/g, " ")
+    .trim();
+  
+  // Titre formaté: "Titre YouTube - jour date mois année"
+  const title = fullFrenchDateStr ? `${cleanTitle} - ${fullFrenchDateStr}` : cleanTitle;
   
   // Description avec les deux dates
   const description = `Publié sur YouTube: ${youtubeDateStr || "date inconnue"} | Ajouté sur le site: ${addedDateStr}`;
@@ -230,7 +246,9 @@ async function cleanOldVideos() {
         // @ts-ignore
         .where(pageContent.id === item.id);
       
-      const shortDate = item.title.replace("Culte du ", "");
+      const shortDate = item.title.includes(" - ") 
+        ? item.title.split(" - ").pop()  // Prendre la partie après " - " (la date)
+        : item.title.substring(0, 50);   // Ou les 50 premiers caractères
       console.log(`   🗑️ Supprimée: ${shortDate}`);
       deleteCount++;
     }

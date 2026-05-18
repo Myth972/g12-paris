@@ -176,7 +176,7 @@ export default function NotificationBell() {
       </PopoverTrigger>
       <PopoverContent
         align="end"
-        className="w-[380px] max-w-[calc(100vw-2rem)] p-0 shadow-xl border-border/40 overflow-hidden"
+        className="w-[350px] sm:w-[380px] max-w-[calc(100vw-1rem)] p-0 shadow-xl border-border/40 overflow-hidden"
         sideOffset={8}
       >
         {/* Header */}
@@ -207,7 +207,7 @@ export default function NotificationBell() {
         </div>
 
         {/* Notifications list */}
-        <ScrollArea className="max-h-[50vh] sm:max-h-[60vh] md:max-h-[450px]">
+        <ScrollArea className="h-[60vh] sm:h-[50vh] md:h-[450px]">
           {items.length === 0 ? (
             <div className="py-16 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
               <div className="w-16 h-16 rounded-full bg-muted/30 flex items-center justify-center mx-auto mb-4">
@@ -265,7 +265,7 @@ export default function NotificationBell() {
                             <div className="flex-1 min-w-0">
                               <div className="flex items-start justify-between gap-2">
                                 <p
-                                  className={`text-sm leading-tight mb-1 ${!notif.isRead ? "font-bold text-foreground" : "text-foreground/90"}`}
+                                  className={`text-sm leading-tight mb-1 truncate ${!notif.isRead ? "font-bold text-foreground" : "text-foreground/90"}`}
                                 >
                                   {notif.title}
                                 </p>
@@ -280,7 +280,7 @@ export default function NotificationBell() {
                                   />
                                 )}
                               </div>
-                              <p className="text-xs text-muted-foreground/90 leading-relaxed mb-2">
+                              <p className="text-xs text-muted-foreground/90 leading-relaxed mb-2 line-clamp-2 break-words">
                                 {notif.message}
                               </p>
                               <div className="flex items-center justify-between">

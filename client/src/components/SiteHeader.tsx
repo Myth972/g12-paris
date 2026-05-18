@@ -48,6 +48,9 @@ export default function SiteHeader() {
   const [location] = useLocation();
 
   const isAdmin = user?.role === "admin";
+  const isEditeur = user?.role === "editeur";
+  const isBibliotheque = user?.role === "bibliotheque";
+  const hasAdminAccess = isAdmin || isEditeur || isBibliotheque;
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-border/60">
@@ -130,7 +133,7 @@ export default function SiteHeader() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
-                    {isAdmin && (
+                    {hasAdminAccess && (
                       <>
                         <DropdownMenuItem asChild>
                           <Link
@@ -203,7 +206,7 @@ export default function SiteHeader() {
                   </Link>
                 );
               })}
-              {isAdmin && (
+              {hasAdminAccess && (
                 <Link
                   href="/admin"
                   onClick={() => setMobileOpen(false)}

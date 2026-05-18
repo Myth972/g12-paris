@@ -1,7 +1,14 @@
 import { COOKIE_NAME } from "../shared/const.js";
 import { getSessionCookieOptions } from "./_core/cookies.js";
 import { systemRouter } from "./_core/systemRouter.js";
-import { publicProcedure, protectedProcedure, router } from "./_core/trpc.js";
+import {
+  publicProcedure,
+  protectedProcedure,
+  router,
+  adminProcedure,
+  editeurProcedure,
+  bibliothequeProcedure,
+} from "./_core/trpc.js";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { generateClientTokenFromReadWriteToken } from "@vercel/blob/client";
@@ -52,17 +59,6 @@ import { nanoid } from "nanoid";
 const zod = {
   object: <T extends z.ZodRawShape>(shape: T) => z.object(shape).strict(),
 };
-
-// Admin-only procedure
-const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (ctx.user.role !== "admin") {
-    throw new TRPCError({
-      code: "FORBIDDEN",
-      message: "Accès réservé aux administrateurs",
-    });
-  }
-  return next({ ctx });
-});
 
 function generateSlug(title: string): string {
   return (
@@ -150,29 +146,61 @@ export const appRouter = router({
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     login: publicProcedure
-      .input(zod.object({ password: z.string() }))
+      .input(zod.object({ 
+        username: z.string().optional(),
+        password: z.string() 
+      }))
       .mutation(async ({ input, ctx }) => {
         const { ENV } = await import("./_core/env.js");
-        if (input.password !== ENV.adminPassword) {
-          throw new TRPCError({
-            code: "UNAUTHORIZED",
-            message: "Mot de passe incorrect",
+        
+        let openId: string;
+        let name: string;
+        
+        // Si username fourni, chercher par username + password
+        if (input.username) {
+          const { findUserByUsernameAndPassword } = await import("./db.js");
+          const user = await findUserByUsernameAndPassword(input.username, input.password);
+          
+          if (!user) {
+            throw new TRPCError({
+              code: "UNAUTHORIZED",
+              message: "Nom d'utilisateur ou mot de passe incorrect",
+            });
+          }
+          
+          openId = user.openId;
+          name = user.name || "Utilisateur";
+        }
+        // Sinon, vérifier le mot de passe admin global
+        else if (input.password === ENV.adminPassword) {
+          openId = "admin-local";
+          name = "Administrateur";
+          
+          const { upsertUser } = await import("./db.js");
+          await upsertUser({
+            openId,
+            name,
+            role: "admin",
+            lastSignedIn: new Date(),
           });
+        } else {
+          // Chercher un utilisateur avec ce mot de passe ( backward compat)
+          const { findUserByPassword } = await import("./db.js");
+          const user = await findUserByPassword(input.password);
+          
+          if (!user) {
+            throw new TRPCError({
+              code: "UNAUTHORIZED",
+              message: "Mot de passe incorrect",
+            });
+          }
+          
+          openId = user.openId;
+          name = user.name || "Utilisateur";
         }
 
-        const openId = "admin-local";
-        const { upsertUser } = await import("./db.js");
-        await upsertUser({
-          openId,
-          name: "Administrateur",
-          role: "admin",
-          lastSignedIn: new Date(),
-        });
-
         const { sdk } = await import("./_core/sdk.js");
-        const sessionToken = await sdk.createSessionToken(openId, {
-          name: "Administrateur",
-        });
+        const sessionToken = await sdk.createSessionToken(openId, { name });
 
         const { getSessionCookieOptions } = await import("./_core/cookies.js");
         const { ONE_YEAR_MS, COOKIE_NAME } = await import("../shared/const.js");
@@ -187,7 +215,7 @@ export const appRouter = router({
       }),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
-      (ctx.res as any).clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
+      (ctx.res as any).clearCookie(COOKIE_NAME, cookieOptions);
       return { success: true } as const;
     }),
   }),
@@ -347,8 +375,8 @@ export const appRouter = router({
         return { items, total, limit, offset };
       }),
 
-    // Admin: create article
-    create: adminProcedure
+    // Admin: create article (éditeurs + admin)
+    create: editeurProcedure
       .input(
         zod.object({
           title: z.string().min(1).max(500),
@@ -374,8 +402,8 @@ export const appRouter = router({
         });
       }),
 
-    // Admin: update article
-    update: adminProcedure
+    // Admin: update article (éditeurs + admin)
+    update: editeurProcedure
       .input(
         zod.object({
           id: z.number(),
@@ -409,15 +437,15 @@ export const appRouter = router({
         return updateArticle(id, updateData);
       }),
 
-    // Admin: delete article
-    delete: adminProcedure
+    // Admin: delete article (éditeurs + admin)
+    delete: editeurProcedure
       .input(zod.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         return deleteArticle(input.id);
       }),
 
-    // Admin: upload image
-    uploadImage: adminProcedure
+    // Admin: upload image (éditeurs + admin)
+    uploadImage: editeurProcedure
       .input(
         zod.object({
           base64: z.string(),
@@ -564,8 +592,8 @@ export const appRouter = router({
         return deleteGalleryItem(input.id);
       }),
 
-    // Admin: upload image
-    uploadImage: adminProcedure
+    // Admin: upload image (éditeurs + admin)
+    uploadImage: editeurProcedure
       .input(
         zod.object({
           base64: z.string(),
@@ -657,8 +685,8 @@ export const appRouter = router({
         return { items, total };
       }),
 
-    // Admin: create page content
-    create: adminProcedure
+    // Admin: create page content (éditeurs + admin + bibliothèque)
+    create: editeurProcedure
       .input(
         zod.object({
           pageId: z.string(),
@@ -681,8 +709,8 @@ export const appRouter = router({
         });
       }),
 
-    // Admin: update page content
-    update: adminProcedure
+    // Admin: update page content (éditeurs + admin + bibliothèque)
+    update: editeurProcedure
       .input(
         zod.object({
           id: z.number(),
@@ -708,8 +736,8 @@ export const appRouter = router({
         return deletePageContent(input.id);
       }),
 
-    // Admin: upload media
-    uploadMedia: adminProcedure
+    // Admin: upload media (éditeurs + admin + bibliothèque)
+    uploadMedia: editeurProcedure
       .input(
         zod.object({
           base64: z.string(),
@@ -1668,10 +1696,118 @@ export const appRouter = router({
             .values({ key: "culteBannerUrl", value: url });
         }
 
-        return { url };
+return { url };
+      }),
+   }),
+
+  // ─── User Management ───────────────────────────────────────────
+  users: router({
+    list: adminProcedure.query(async () => {
+      const { listAllUsers } = await import("./db.js");
+      return listAllUsers();
+    }),
+
+    get: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        const { getUserById } = await import("./db.js");
+        const user = await getUserById(input.id);
+        if (!user) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Utilisateur non trouvé" });
+        }
+        return user;
+      }),
+
+    create: adminProcedure
+      .input(
+        z.object({
+          openId: z.string(),
+          name: z.string(),
+          email: z.string().optional(),
+          role: z.enum(["user", "admin", "editeur", "bibliotheque"]),
+          password: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { createUser } = await import("./db.js");
+        return createUser({
+          openId: input.openId,
+          name: input.name,
+          email: input.email,
+          role: input.role,
+          password: input.password,
+          loginMethod: "manual",
+        });
+      }),
+
+    updateRole: adminProcedure
+      .input(
+        z.object({
+          userId: z.number(),
+          role: z.enum(["user", "admin", "editeur", "bibliotheque"]),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { updateUserRole } = await import("./db.js");
+        await updateUserRole(input.userId, input.role);
+        return { success: true };
+      }),
+
+    delete: adminProcedure
+      .input(z.object({ userId: z.number() }))
+      .mutation(async ({ input }) => {
+        const { deleteUser } = await import("./db.js");
+        try {
+          await deleteUser(input.userId);
+          return { success: true };
+        } catch (error: any) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: error.message || "Erreur lors de la suppression",
+          });
+        }
+      }),
+
+    updatePassword: protectedProcedure
+      .input(
+        z.object({
+          userId: z.number(),
+          currentPassword: z.string(),
+          newPassword: z.string(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        // Only allow user to change their own password, or admin
+        if (ctx.user.role !== "admin" && ctx.user.id !== input.userId) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Vous ne pouvez pas modifier le mot de passe d'un autre utilisateur",
+          });
+        }
+
+        const { getUserById, verifyUserPasswordById, updateUserPassword } = await import("./db.js");
+        const user = await getUserById(input.userId);
+
+        if (!user) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Utilisateur non trouvé" });
+        }
+
+        // Verify current password (unless admin)
+        if (ctx.user.role !== "admin") {
+          const isValid = await verifyUserPasswordById(input.userId, input.currentPassword);
+          if (!isValid) {
+            throw new TRPCError({
+              code: "UNAUTHORIZED",
+              message: "Mot de passe actuel incorrect",
+            });
+          }
+        }
+
+        // Update password
+        await updateUserPassword(input.userId, input.newPassword);
+        return { success: true };
       }),
   }),
-
 });
 
 export type AppRouter = typeof appRouter;

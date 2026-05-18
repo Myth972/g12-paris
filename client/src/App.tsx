@@ -32,6 +32,7 @@ const CulteEnLignePage = lazy(() => import("./pages/CulteEnLignePage"));
 const AdminBibliotheque = lazy(() => import("./pages/AdminBibliotheque"));
 const AdminBibliothequeEditor = lazy(() => import("./pages/AdminBibliothequeEditor"));
 const AdminDesign = lazy(() => import("./pages/AdminDesign"));
+const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 import { AISearch } from "./components/AISearch";
@@ -134,6 +135,7 @@ function Router() {
 
         {/* Admin routes (no public layout) */}
         <Route path="/admin" component={Admin} />
+        <Route path="/admin/profile" component={ProfilePage} />
         <Route path="/admin/article/:id" component={ArticleEditor} />
         <Route path="/admin/tutorial" component={AdminTutorial} />
         <Route path="/admin/bibliotheque" component={AdminBibliotheque} />
