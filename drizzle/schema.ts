@@ -222,3 +222,12 @@ export const themes = sqliteTable("themes", {
 
 export type Theme = typeof themes.$inferSelect;
 export type InsertTheme = typeof themes.$inferInsert;
+
+export const userTheme = sqliteTable("user_theme", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: integer("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  theme: text("theme").notNull().default("light"),
+  updatedAt: integer("updatedAt", { mode: "timestamp" }).default(sql`(strftime('%s', 'now'))`).notNull(),
+});
+export type UserTheme = typeof userTheme.$inferSelect;
+export type InsertUserTheme = typeof userTheme.$inferInsert;

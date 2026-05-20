@@ -161,6 +161,8 @@ function DynamicDesign() {
   const fontBody = settings["design.fontBody"] as string;
   const buttonStyle = settings["design.buttonStyle"] as string;
   const cardStyle = settings["design.cardStyle"] as string;
+  const textColor = settings["design.textColor"] as string;
+  const mutedTextColor = settings["design.mutedTextColor"] as string;
   
   const headingFamily = fontHeading === 'playfair' ? '"Playfair Display", serif' : fontHeading === 'merriweather' ? 'Merriweather, serif' : 'Lora, serif';
   const bodyFamily = fontBody === 'inter' ? 'Inter, sans-serif' : fontBody === 'roboto' ? 'Roboto, sans-serif' : 'Lato, sans-serif';
@@ -173,6 +175,8 @@ function DynamicDesign() {
           ${secondary ? `--secondary: ${secondary} !important;` : ''}
           ${bg ? `--background: ${bg} !important;` : ''}
         }
+        ${textColor ? `body, .text-foreground, .text-card-foreground, h1, h2, h3, h4, h5, h6, nav a, p:not(.text-muted-foreground) { color: ${textColor}; }` : ''}
+        ${mutedTextColor ? `.text-muted-foreground { color: ${mutedTextColor} !important; }` : ''}
         ${fontHeading ? `h1, h2, h3, h4, h5, h6, .font-serif { font-family: ${headingFamily} !important; }` : ''}
         ${fontBody ? `body, .font-sans { font-family: ${bodyFamily} !important; }` : ''}
         
@@ -185,17 +189,27 @@ function DynamicDesign() {
   );
 }
 
+function AppWithTheme() {
+  const { data: settings } = trpc.siteSettings.getAll.useQuery();
+  const enableThemeToggle = settings?.["design.enableThemeToggle"] === "true";
+  const defaultTheme = (settings?.["design.defaultTheme"] as "light" | "dark") || "light";
+
+  return (
+    <ThemeProvider defaultTheme={defaultTheme} switchable={enableThemeToggle}>
+      <DynamicDesign />
+      <TooltipProvider>
+        <Toaster />
+        <Router />
+        {import.meta.env.DEV && <DevDeviceToggle />}
+      </TooltipProvider>
+    </ThemeProvider>
+  );
+}
+
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider defaultTheme="light">
-        <DynamicDesign />
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-          {import.meta.env.DEV && <DevDeviceToggle />}
-        </TooltipProvider>
-      </ThemeProvider>
+      <AppWithTheme />
     </ErrorBoundary>
   );
 }

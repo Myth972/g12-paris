@@ -8,10 +8,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getLoginUrl } from "@/const";
-import { Menu, X, User, LogOut, Shield, Newspaper, Facebook, Instagram, Youtube } from "lucide-react";
+import { Menu, X, User, LogOut, Shield, Newspaper, Facebook, Instagram, Youtube, Sun, Moon } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import NotificationBell from "./NotificationBell";
+import { useTheme } from "@/contexts/ThemeContext";
+import { trpc } from "@/lib/trpc";
 
 const NAV_LINKS = [
   { href: "/", label: "Accueil" },
@@ -51,6 +53,10 @@ export default function SiteHeader() {
   const isEditeur = user?.role === "editeur";
   const isBibliotheque = user?.role === "bibliotheque";
   const hasAdminAccess = isAdmin || isEditeur || isBibliotheque;
+
+  const { theme, toggleTheme, switchable } = useTheme();
+  const { data: settings } = trpc.siteSettings.getAll.useQuery();
+  const enableThemeToggle = switchable || settings?.["design.enableThemeToggle"] === "true";
 
   return (
     <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-border/60">
@@ -117,6 +123,22 @@ export default function SiteHeader() {
                 </a>
               ))}
             </div>
+
+            {/* Theme toggle */}
+            {enableThemeToggle && toggleTheme && (
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-all duration-300 hover:scale-110"
+                title={theme === 'light' ? 'Passer en mode sombre' : 'Passer en mode clair'}
+                aria-label="Basculer le thème"
+              >
+                {theme === 'light' ? (
+                  <Moon className="w-5 h-5" />
+                ) : (
+                  <Sun className="w-5 h-5 text-amber-400" />
+                )}
+              </button>
+            )}
 
             <div className="flex items-center gap-2">
               {isAuthenticated && <NotificationBell />}
@@ -235,6 +257,22 @@ export default function SiteHeader() {
                 ))}
               </div>
             </div>
+
+            {/* Theme toggle mobile */}
+            {enableThemeToggle && toggleTheme && (
+              <div className="px-4 pt-4 border-t border-border/40">
+                <button
+                  onClick={toggleTheme}
+                  className="flex items-center gap-3 w-full px-4 py-3 text-base font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors touch-manipulation"
+                >
+                  {theme === 'light' ? (
+                    <><Moon className="w-5 h-5" /> Mode Sombre</>
+                  ) : (
+                    <><Sun className="w-5 h-5 text-amber-400" /> Mode Clair</>
+                  )}
+                </button>
+              </div>
+            )}
           </nav>
         )}
       </div>

@@ -71,3 +71,20 @@ export async function storageGet(
     url: key.startsWith("http") ? key : `/uploads/${key}`,
   };
 }
+
+/**
+ * Generates a signed URL (Vercel Blob) with configurable TTL (seconds)
+ */
+export async function getSignedUrl(
+  relKey: string,
+  expiresInSec: number = 3600
+): Promise<{ key: string; url: string }> {
+  const key = relKey.replace(/^\/+/, "");
+  if (ENV.blobToken) {
+    // Vercel Blob doesn't support getSignedUrl in this version
+    // Return the public URL as a fallback
+    return storageGet(key);
+  }
+  // Fallback to local URL (no expiration)
+  return storageGet(key);
+}

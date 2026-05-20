@@ -7,8 +7,26 @@ import PageTitleEditor from "@/components/PageTitleEditor";
 import PageTextEditor from "@/components/PageTextEditor";
 import { ChevronRight } from "lucide-react";
 import { useState, useMemo } from "react";
+import { motion } from "framer-motion";
+import { useMotionEnabled } from "@/hooks/useMotionEnabled";
+
+const containerVars = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVars: any = {
+  hidden: { y: 30, opacity: 0, scale: 0.95 },
+  visible: { y: 0, opacity: 1, scale: 1, transition: { type: "spring", stiffness: 100, damping: 15 } },
+};
 
 export default function GalleriesPage() {
+  const motionEnabled = useMotionEnabled();
   const [page, setPage] = useState(0);
   const limit = 12;
   const offset = useMemo(() => page * limit, [page]);
@@ -72,11 +90,20 @@ export default function GalleriesPage() {
           </div>
         ) : items.length > 0 ? (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <motion.div 
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+              variants={containerVars}
+              initial={motionEnabled ? "hidden" : "visible"}
+              whileInView={motionEnabled ? "visible" : undefined}
+              animate={motionEnabled ? undefined : "visible"}
+              viewport={motionEnabled ? { once: true, margin: "-100px" } : undefined}
+            >
               {items.map((item: any) => (
-                <div
+                <motion.div
                   key={item.id}
-                  className="group relative bg-card rounded-xl overflow-hidden border border-border/50 hover:border-border hover:shadow-lg active:shadow-lg active:scale-[0.99] transition-all duration-300 touch-manipulation"
+                  variants={itemVars}
+                  whileHover={motionEnabled ? { y: -10, scale: 1.03, zIndex: 10 } : undefined}
+                  className="group relative bg-card rounded-xl overflow-hidden border border-border/50 hover:border-primary/40 hover:shadow-[0_15px_40px_rgba(var(--primary),0.15)] transition-all duration-300 touch-manipulation cursor-pointer"
                 >
                   {/* Media */}
                   <div className="relative overflow-hidden bg-muted aspect-[16/10]">
@@ -105,18 +132,18 @@ export default function GalleriesPage() {
                   </div>
 
                   {/* Content */}
-                  <div className="p-4">
-                    <h3 className="font-serif font-bold leading-snug text-card-foreground group-hover:text-primary transition-colors line-clamp-2 mb-3">
+                  <div className="p-4 relative z-0 bg-card">
+                    <h3 className="font-serif font-bold leading-snug text-card-foreground group-hover:text-primary transition-colors line-clamp-2 mb-1">
                       {item.title}
                     </h3>
 
-                    {/* Verse preview */}
+                    {/* Verse preview - animated slide up */}
                     {item.verse && (
-                      <div className="space-y-2 pt-3 border-t border-border/50 group-active:max-h-28 group-active:overflow-y-auto group-active:pr-1">
-                        <p className="text-xs font-semibold text-primary">
+                      <div className="absolute left-0 right-0 bottom-0 p-4 bg-gradient-to-t from-background via-background/95 to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out border-t border-primary/20 backdrop-blur-sm z-20">
+                        <p className="text-[10px] uppercase tracking-widest font-bold text-primary mb-1">
                           Verset associé
                         </p>
-                        <p className="text-xs text-muted-foreground line-clamp-2 group-active:line-clamp-none italic">
+                        <p className="text-sm text-foreground/90 italic mb-2 line-clamp-3">
                           "{item.verse.text}"
                         </p>
                         <p className="text-xs text-muted-foreground font-medium">
@@ -125,9 +152,9 @@ export default function GalleriesPage() {
                       </div>
                     )}
                   </div>
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
 
             {/* Pagination */}
             {items.length >= limit && (

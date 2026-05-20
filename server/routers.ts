@@ -298,12 +298,37 @@ export const appRouter = router({
         const { storagePut } = await import("./storage.js");
         const folder = input.folder.replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
         const key = `${folder}/${Date.now()}-${input.filename}`;
-        return storagePut(key, buffer, input.contentType);
+        
+        let finalBuffer = buffer;
+        if (input.contentType?.startsWith("image/")) {
+            const sharp = await import("sharp");
+            finalBuffer = await sharp.default(buffer).resize(1200, 1200, { fit: 'inside', withoutEnlargement: true }).jpeg({ quality: 80 }).toBuffer();
+        }
+        
+        return storagePut(key, finalBuffer, input.contentType);
+      }),
+  }),
+
+  media: router({
+    signedUrl: adminProcedure
+      .input(zod.object({ key: z.string(), ttl: z.number().optional() }))
+      .mutation(async ({ input }) => {
+        const { getSignedUrl } = await import("./storage.js");
+        return getSignedUrl(input.key, input.ttl ?? 3600);
+      }),
+    bulkSignedUrls: adminProcedure
+      .input(zod.object({ keys: z.array(z.string()), ttl: z.number().optional() }))
+      .mutation(async ({ input }) => {
+        const { getSignedUrl } = await import("./storage.js");
+        const ttl = input.ttl ?? 3600;
+        const results = await Promise.all(
+          input.keys.map((k) => getSignedUrl(k, ttl))
+        );
+        return results;
       }),
   }),
 
   articles: router({
-    // Public: list published articles
     list: publicProcedure
       .input(
         zod.object({
@@ -328,7 +353,6 @@ export const appRouter = router({
         return { items, total, limit, offset };
       }),
 
-    // Public: get single article by slug
     bySlug: publicProcedure
       .input(zod.object({ slug: z.string() }))
       .query(async ({ input }) => {
@@ -342,7 +366,6 @@ export const appRouter = router({
         return article;
       }),
 
-    // Public: get single article by id
     byId: publicProcedure
       .input(zod.object({ id: z.number() }))
       .query(async ({ input }) => {
@@ -356,7 +379,6 @@ export const appRouter = router({
         return article;
       }),
 
-    // Admin: list all articles (including drafts)
     adminList: adminProcedure
       .input(
         z
@@ -375,7 +397,6 @@ export const appRouter = router({
         return { items, total, limit, offset };
       }),
 
-    // Admin: create article (éditeurs + admin)
     create: editeurProcedure
       .input(
         zod.object({
@@ -402,7 +423,6 @@ export const appRouter = router({
         });
       }),
 
-    // Admin: update article (éditeurs + admin)
     update: editeurProcedure
       .input(
         zod.object({
@@ -437,14 +457,12 @@ export const appRouter = router({
         return updateArticle(id, updateData);
       }),
 
-    // Admin: delete article (éditeurs + admin)
     delete: editeurProcedure
       .input(zod.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         return deleteArticle(input.id);
       }),
 
-    // Admin: upload image (éditeurs + admin)
     uploadImage: editeurProcedure
       .input(
         zod.object({
@@ -457,13 +475,19 @@ export const appRouter = router({
         const buffer = Buffer.from(input.base64, "base64");
         const ext = input.filename.split(".").pop() || "jpg";
         const key = `articles/${ctx.user.id}/${nanoid(12)}.${ext}`;
-        const { url } = await storagePut(key, buffer, input.contentType);
+        
+        let finalBuffer = buffer;
+        if (input.contentType.startsWith("image/")) {
+            const sharp = await import("sharp");
+            finalBuffer = await sharp.default(buffer).resize(1200, 1200, { fit: 'inside', withoutEnlargement: true }).jpeg({ quality: 80 }).toBuffer();
+        }
+        
+        const { url } = await storagePut(key, finalBuffer, input.contentType);
         return { url, key };
       }),
   }),
 
   notifications: router({
-    // User: get own notifications with read status
     myNotifications: protectedProcedure
       .input(
         z
@@ -481,24 +505,20 @@ export const appRouter = router({
         return { items, unreadCount };
       }),
 
-    // User: get unread count only (lightweight polling)
     unreadCount: protectedProcedure.query(async ({ ctx }) => {
       return countUnreadNotifications(ctx.user.id);
     }),
 
-    // User: mark one notification as read
     markAsRead: protectedProcedure
       .input(zod.object({ notificationId: z.number() }))
       .mutation(async ({ ctx, input }) => {
         return markNotificationAsRead(input.notificationId, ctx.user.id);
       }),
 
-    // User: mark all notifications as read
     markAllAsRead: protectedProcedure.mutation(async ({ ctx }) => {
       return markAllNotificationsAsRead(ctx.user.id);
     }),
 
-    // Admin: list all notifications
     adminList: adminProcedure
       .input(
         z
@@ -517,7 +537,6 @@ export const appRouter = router({
         return { items, total };
       }),
 
-    // Admin: create notification
     create: adminProcedure
       .input(
         zod.object({
@@ -536,7 +555,6 @@ export const appRouter = router({
         });
       }),
 
-    // Admin: delete notification
     delete: adminProcedure
       .input(zod.object({ id: z.number() }))
       .mutation(async ({ input }) => {
@@ -545,12 +563,10 @@ export const appRouter = router({
   }),
 
   gallery: router({
-    // Public: get featured gallery items (Publication du jour)
     featured: publicProcedure.query(async () => {
       return getFeaturedGalleryItems();
     }),
 
-    // Public: get all gallery items with pagination
     list: publicProcedure
       .input(
         z
@@ -566,7 +582,6 @@ export const appRouter = router({
         return { items };
       }),
 
-    // Admin: create gallery item
     create: adminProcedure
       .input(
         zod.object({
@@ -585,14 +600,12 @@ export const appRouter = router({
         return createGalleryItem(input);
       }),
 
-    // Admin: delete gallery item
     delete: adminProcedure
       .input(zod.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         return deleteGalleryItem(input.id);
       }),
 
-    // Admin: upload image (éditeurs + admin)
     uploadImage: editeurProcedure
       .input(
         zod.object({
@@ -604,9 +617,16 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         const buffer = Buffer.from(input.base64, "base64");
         const fileKey = `gallery/${Date.now()}-${nanoid()}.${input.filename.split(".").pop()}`;
+        
+        let finalBuffer = buffer;
+        if (input.contentType.startsWith("image/")) {
+            const sharp = await import("sharp");
+            finalBuffer = await sharp.default(buffer).resize(1200, 1200, { fit: 'inside', withoutEnlargement: true }).jpeg({ quality: 80 }).toBuffer();
+        }
+        
         const { url, key } = await storagePut(
           fileKey,
-          buffer,
+          finalBuffer,
           input.contentType
         );
         return { url, key };
@@ -614,13 +634,11 @@ export const appRouter = router({
   }),
 
   verses: router({
-    // Public: get latest verse
     latest: publicProcedure.query(async () => {
       const items = await getLatestBiblicalVerse();
       return items;
     }),
 
-    // Admin: create biblical verse
     create: adminProcedure
       .input(
         zod.object({
@@ -633,20 +651,17 @@ export const appRouter = router({
         return createBiblicalVerse(input);
       }),
 
-    // Public: get verse by ID
     byId: publicProcedure
       .input(zod.object({ id: z.number() }))
       .query(async ({ input }) => {
         return getBiblicalVerseById(input.id);
       }),
 
-    // Admin: list all verses
     adminList: adminProcedure.query(async () => {
       const items = await listBiblicalVerses();
       return { items };
     }),
 
-    // Admin: delete verse
     delete: adminProcedure
       .input(zod.object({ id: z.number() }))
       .mutation(async ({ input }) => {
@@ -655,19 +670,16 @@ export const appRouter = router({
   }),
 
   pageContent: router({
-    // Public: get page content
     byPage: publicProcedure
       .input(zod.object({ pageId: z.string() }))
       .query(async ({ input }) => {
         return getPageContent(input.pageId);
       }),
 
-    // Public: get featured home content
     featuredHome: publicProcedure.query(async () => {
       return getFeaturedHomeContent();
     }),
 
-    // Admin: list all page content for a page
     adminList: adminProcedure
       .input(
         zod.object({
@@ -685,7 +697,6 @@ export const appRouter = router({
         return { items, total };
       }),
 
-    // Admin: create page content (éditeurs + admin + bibliothèque)
     create: editeurProcedure
       .input(
         zod.object({
@@ -709,7 +720,6 @@ export const appRouter = router({
         });
       }),
 
-    // Admin: update page content (éditeurs + admin + bibliothèque)
     update: editeurProcedure
       .input(
         zod.object({
@@ -729,14 +739,12 @@ export const appRouter = router({
         return updatePageContent(id, data);
       }),
 
-    // Admin: delete page content
     delete: adminProcedure
       .input(zod.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         return deletePageContent(input.id);
       }),
 
-    // Admin: upload media (éditeurs + admin + bibliothèque)
     uploadMedia: editeurProcedure
       .input(
         zod.object({
@@ -748,9 +756,26 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         const buffer = Buffer.from(input.base64, "base64");
         const fileKey = `page-content/${Date.now()}-${nanoid()}.${input.filename.split(".").pop()}`;
+        
+        let finalBuffer = buffer;
+        if (input.contentType.startsWith("image/")) {
+            const sharp = await import("sharp");
+            finalBuffer = await sharp.default(buffer).resize(1200, 1200, { fit: 'inside', withoutEnlargement: true }).jpeg({ quality: 80 }).toBuffer();
+        } else if (input.contentType.startsWith("video/")) {
+            const { promisify } = await import("util");
+            const exec = promisify((await import("child_process")).exec);
+            const tmpFile = `/tmp/${Date.now()}-${nanoid()}`;
+            const fs = await import("fs/promises");
+            await fs.writeFile(tmpFile, buffer);
+            await exec(`ffmpeg -i ${tmpFile} -vcodec libx264 -crf 28 -preset medium -acodec aac -b:a 128k ${tmpFile}.mp4`);
+            finalBuffer = await fs.readFile(`${tmpFile}.mp4`);
+            await fs.unlink(tmpFile);
+            await fs.unlink(`${tmpFile}.mp4`);
+        }
+        
         const { url, key } = await storagePut(
           fileKey,
-          buffer,
+          finalBuffer,
           input.contentType
         );
         return { url, key };

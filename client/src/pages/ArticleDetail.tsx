@@ -134,6 +134,9 @@ export default function ArticleDetail() {
               className="w-full max-h-[600px] object-cover"
               onContextMenu={(e) => e.preventDefault()}
               draggable={false}
+              fetchPriority="high"
+              loading="eager"
+              decoding="async"
             />
           </div>
         </div>

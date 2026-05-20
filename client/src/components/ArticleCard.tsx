@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Play } from "lucide-react";
 import { Link } from "wouter";
+import { memo } from "react";
 
 interface ArticleCardProps {
   article: {
@@ -25,7 +26,7 @@ function formatDate(date: Date): string {
   });
 }
 
-export default function ArticleCard({
+const ArticleCard = memo(function ArticleCard({
   article,
   featured = false,
 }: ArticleCardProps) {
@@ -47,6 +48,8 @@ export default function ArticleCard({
               className="w-full h-full object-cover group-hover:scale-105 group-active:scale-105 transition-transform duration-500 select-none"
               onContextMenu={(e) => e.preventDefault()}
               draggable={false}
+              loading="lazy"
+              decoding="async"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-secondary">
@@ -110,4 +113,6 @@ export default function ArticleCard({
       </article>
     </Link>
   );
-}
+});
+
+export default ArticleCard;

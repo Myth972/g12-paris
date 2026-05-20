@@ -49,8 +49,8 @@ const containerVars = {
 };
 
 const itemVars: any = {
-  hidden: { y: 20, opacity: 0 },
-  visible: { y: 0, opacity: 1, transition: { duration: 0.5, ease: "easeOut" } },
+  hidden: { y: 30, opacity: 0, scale: 0.95 },
+  visible: { y: 0, opacity: 1, scale: 1, transition: { type: "spring", stiffness: 100, damping: 15 } },
 };
 
 function PageContentItemDisplay({ item }: { item: PageContentItem }) {
@@ -63,8 +63,8 @@ function PageContentItemDisplay({ item }: { item: PageContentItem }) {
   return (
     <motion.div
       variants={itemVars}
-      whileHover={motionEnabled ? { y: -4, scale: 1.01 } : undefined}
-      className="group rounded-xl overflow-hidden border border-border/40 bg-card/60 backdrop-blur-md hover:shadow-xl hover:border-primary/10 active:shadow-xl active:border-primary/10 transition-all duration-300 touch-manipulation cursor-pointer"
+      whileHover={motionEnabled ? { y: -8, scale: 1.02, zIndex: 10 } : undefined}
+      className="group relative rounded-xl overflow-hidden border border-border/40 bg-card/60 backdrop-blur-md hover:shadow-[0_15px_40px_rgba(var(--primary),0.15)] hover:border-primary/30 active:scale-[0.98] transition-all duration-300 touch-manipulation cursor-pointer"
       onClick={() => setIsExpanded(!isExpanded)}
     >
       {/* Media */}

@@ -17,7 +17,10 @@ import {
   Download,
   Upload,
   RotateCcw,
-  Shield
+  Shield,
+  Sun,
+  Moon,
+  Monitor
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
@@ -53,6 +56,10 @@ export default function AdminDesign() {
   const [fontBody, setFontBody] = useState("inter");
   const [buttonStyle, setButtonStyle] = useState("light");
   const [cardStyle, setCardStyle] = useState("shadow");
+  const [textColor, setTextColor] = useState("#1E293B");
+  const [mutedTextColor, setMutedTextColor] = useState("#64748B");
+  const [enableThemeToggle, setEnableThemeToggle] = useState(false);
+  const [defaultTheme, setDefaultTheme] = useState("light");
 
   const colorPresets = [
     { name: "Orange Doré", primary: "#D97706", secondary: "#1E293B", bg: "#F8FAFC" },
@@ -102,6 +109,10 @@ export default function AdminDesign() {
       if (settingsQuery.data["design.fontBody"]) setFontBody(settingsQuery.data["design.fontBody"] as string);
       if (settingsQuery.data["design.buttonStyle"]) setButtonStyle(settingsQuery.data["design.buttonStyle"] as string);
       if (settingsQuery.data["design.cardStyle"]) setCardStyle(settingsQuery.data["design.cardStyle"] as string);
+      if (settingsQuery.data["design.textColor"]) setTextColor(settingsQuery.data["design.textColor"] as string);
+      if (settingsQuery.data["design.mutedTextColor"]) setMutedTextColor(settingsQuery.data["design.mutedTextColor"] as string);
+      if (settingsQuery.data["design.enableThemeToggle"]) setEnableThemeToggle(settingsQuery.data["design.enableThemeToggle"] === "true");
+      if (settingsQuery.data["design.defaultTheme"]) setDefaultTheme(settingsQuery.data["design.defaultTheme"] as string);
       
       if (settingsQuery.data["design.logoLight"]) setLogoLight(settingsQuery.data["design.logoLight"] as string);
       if (settingsQuery.data["design.logoDark"]) setLogoDark(settingsQuery.data["design.logoDark"] as string);
@@ -119,6 +130,10 @@ export default function AdminDesign() {
         setSetting.mutateAsync({ key: "design.fontBody", value: fontBody }),
         setSetting.mutateAsync({ key: "design.buttonStyle", value: buttonStyle }),
         setSetting.mutateAsync({ key: "design.cardStyle", value: cardStyle }),
+        setSetting.mutateAsync({ key: "design.textColor", value: textColor }),
+        setSetting.mutateAsync({ key: "design.mutedTextColor", value: mutedTextColor }),
+        setSetting.mutateAsync({ key: "design.enableThemeToggle", value: String(enableThemeToggle) }),
+        setSetting.mutateAsync({ key: "design.defaultTheme", value: defaultTheme }),
         setSetting.mutateAsync({ key: "design.logoLight", value: logoLight }),
         setSetting.mutateAsync({ key: "design.logoDark", value: logoDark }),
         setSetting.mutateAsync({ key: "design.defaultBanner", value: defaultBanner }),
@@ -359,8 +374,8 @@ export default function AdminDesign() {
                 </Select>
               </div>
               <div className="p-4 bg-muted/30 rounded-lg">
-                <h1 className="text-3xl font-serif font-bold mb-2">Exemple de Grand Titre</h1>
-                <h2 className="text-xl font-serif font-semibold">Exemple de Sous-titre</h2>
+                <h1 className="text-3xl font-serif font-bold mb-2" style={{ color: textColor }}>Exemple de Grand Titre</h1>
+                <h2 className="text-xl font-serif font-semibold" style={{ color: textColor }}>Exemple de Sous-titre</h2>
               </div>
             </div>
             
@@ -379,11 +394,96 @@ export default function AdminDesign() {
                 </Select>
               </div>
               <div className="p-4 bg-muted/30 rounded-lg">
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                <p className="text-sm leading-relaxed" style={{ color: mutedTextColor }}>
                   Ceci est un exemple de corps de texte. Il doit être hautement lisible, agréable à l'œil et s'adapter parfaitement aux écrans de toutes tailles.
                 </p>
               </div>
             </div>
+          </div>
+
+          {/* Couleurs de police */}
+          <div className="mt-8 pt-6 border-t border-border/40">
+            <p className="text-sm font-medium mb-4">Couleurs de la Police</p>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <label htmlFor="text-color" className="text-sm font-medium">Couleur du Texte Principal</label>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-lg shadow-inner cursor-pointer border ring-2 ring-transparent hover:ring-primary transition-all overflow-hidden relative">
+                    <input id="text-color-picker" name="textColorPicker" type="color" value={textColor} onChange={(e) => setTextColor(e.target.value)} className="absolute inset-0 w-20 h-20 -top-2 -left-2 cursor-pointer" />
+                  </div>
+                  <Input id="text-color" name="textColor" value={textColor} onChange={(e) => setTextColor(e.target.value)} className="font-mono text-sm uppercase" />
+                </div>
+                <p className="text-xs text-muted-foreground">Titres, paragraphes, texte de navigation.</p>
+              </div>
+              <div className="space-y-3">
+                <label htmlFor="muted-text-color" className="text-sm font-medium">Couleur du Texte Secondaire</label>
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-lg shadow-inner cursor-pointer border ring-2 ring-transparent hover:ring-primary transition-all overflow-hidden relative">
+                    <input id="muted-text-color-picker" name="mutedTextColorPicker" type="color" value={mutedTextColor} onChange={(e) => setMutedTextColor(e.target.value)} className="absolute inset-0 w-20 h-20 -top-2 -left-2 cursor-pointer" />
+                  </div>
+                  <Input id="muted-text-color" name="mutedTextColor" value={mutedTextColor} onChange={(e) => setMutedTextColor(e.target.value)} className="font-mono text-sm uppercase" />
+                </div>
+                <p className="text-xs text-muted-foreground">Sous-titres, descriptions, textes discrets.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Mode Sombre / Clair */}
+        <section className="bg-card border rounded-2xl p-6 md:p-8 shadow-sm">
+          <h2 className="text-xl font-bold font-serif flex items-center gap-2 border-b pb-4 mb-6">
+            <Monitor className="w-5 h-5 text-primary" /> Mode d'Affichage (Sombre / Clair)
+          </h2>
+          
+          {/* Toggle activation */}
+          <div className="flex items-center justify-between p-4 bg-muted/30 rounded-xl mb-6">
+            <div className="space-y-1">
+              <p className="text-sm font-semibold">Activer le bouton de thème pour les visiteurs</p>
+              <p className="text-xs text-muted-foreground">Un bouton ☀️/🌙 apparaîtra dans le menu de navigation pour permettre aux visiteurs de basculer entre mode clair et mode sombre.</p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={enableThemeToggle}
+              onClick={() => setEnableThemeToggle(!enableThemeToggle)}
+              className={`relative inline-flex h-7 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+                enableThemeToggle ? 'bg-primary' : 'bg-muted'
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-lg ring-0 transition-transform duration-200 ease-in-out ${
+                  enableThemeToggle ? 'translate-x-7' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+
+          {/* Thème par défaut */}
+          <div>
+            <p className="text-sm font-medium mb-3">Thème par défaut du site</p>
+            <div className="grid grid-cols-2 gap-4 max-w-md">
+              <label className={`relative flex flex-col items-center gap-3 p-5 border-2 rounded-xl cursor-pointer transition-all ${
+                defaultTheme === 'light' ? 'border-primary bg-primary/5 shadow-md' : 'border-border hover:bg-muted/50'
+              }`}>
+                <input type="radio" name="default-theme" value="light" checked={defaultTheme === 'light'} onChange={() => setDefaultTheme('light')} className="sr-only" />
+                {defaultTheme === 'light' && <div className="absolute top-2 right-2 text-primary"><CheckCircle2 className="w-4 h-4" /></div>}
+                <div className="w-16 h-16 rounded-xl bg-white border-2 border-gray-200 flex items-center justify-center shadow-sm">
+                  <Sun className="w-8 h-8 text-amber-500" />
+                </div>
+                <span className={`text-sm font-semibold ${defaultTheme === 'light' ? 'text-primary' : ''}`}>Mode Clair</span>
+              </label>
+              <label className={`relative flex flex-col items-center gap-3 p-5 border-2 rounded-xl cursor-pointer transition-all ${
+                defaultTheme === 'dark' ? 'border-primary bg-primary/5 shadow-md' : 'border-border hover:bg-muted/50'
+              }`}>
+                <input type="radio" name="default-theme" value="dark" checked={defaultTheme === 'dark'} onChange={() => setDefaultTheme('dark')} className="sr-only" />
+                {defaultTheme === 'dark' && <div className="absolute top-2 right-2 text-primary"><CheckCircle2 className="w-4 h-4" /></div>}
+                <div className="w-16 h-16 rounded-xl bg-slate-900 border-2 border-slate-700 flex items-center justify-center shadow-sm">
+                  <Moon className="w-8 h-8 text-indigo-400" />
+                </div>
+                <span className={`text-sm font-semibold ${defaultTheme === 'dark' ? 'text-primary' : ''}`}>Mode Sombre</span>
+              </label>
+            </div>
+            <p className="text-xs text-muted-foreground mt-3">Le thème utilisé par défaut lors de la première visite. Si le bouton de thème est activé, le visiteur pourra changer ensuite.</p>
           </div>
         </section>
 
