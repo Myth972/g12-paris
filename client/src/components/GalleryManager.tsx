@@ -31,6 +31,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Plus,
   Trash2,
+  Eye,
+  EyeOff,
   Image as ImageIcon,
   Video,
   BookOpen,
@@ -64,7 +66,7 @@ export default function GalleryManager() {
   });
 
   const utils = trpc.useUtils();
-  const { data: galleryData, isLoading } = trpc.gallery.list.useQuery();
+  const { data: galleryData, isLoading } = trpc.gallery.listAdmin.useQuery();
   const { data: versesData } = trpc.verses.adminList.useQuery();
   const { uploadFile, isUploading } = useBlobUpload();
 
@@ -73,6 +75,7 @@ export default function GalleryManager() {
 
   const createMutation = trpc.gallery.create.useMutation({
     onSuccess: () => {
+      utils.gallery.listAdmin.invalidate();
       utils.gallery.list.invalidate();
       utils.gallery.featured.invalidate();
       toast.success("Élément ajouté avec succès");
@@ -82,8 +85,19 @@ export default function GalleryManager() {
     onError: err => toast.error("Erreur : " + err.message),
   });
 
+  const updateMutation = trpc.gallery.update.useMutation({
+    onSuccess: () => {
+      utils.gallery.listAdmin.invalidate();
+      utils.gallery.list.invalidate();
+      utils.gallery.featured.invalidate();
+      toast.success("Média mis à jour");
+    },
+    onError: err => toast.error("Erreur : " + err.message),
+  });
+
   const deleteMutation = trpc.gallery.delete.useMutation({
     onSuccess: () => {
+      utils.gallery.listAdmin.invalidate();
       utils.gallery.list.invalidate();
       utils.gallery.featured.invalidate();
       toast.success("Élément supprimé");
@@ -332,6 +346,7 @@ export default function GalleryManager() {
                 <TableHead>Média</TableHead>
                 <TableHead>Titre</TableHead>
                 <TableHead>Type</TableHead>
+                <TableHead>Visible</TableHead>
                 <TableHead>À la une</TableHead>
                 <TableHead>Verset lié</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -367,6 +382,13 @@ export default function GalleryManager() {
                     )}
                   </TableCell>
                   <TableCell>
+                    {item.visible !== false ? (
+                      <Eye className="w-4 h-4 text-green-500" />
+                    ) : (
+                      <EyeOff className="w-4 h-4 text-muted-foreground" />
+                    )}
+                  </TableCell>
+                  <TableCell>
                     {item.featured && (
                       <Crown className="w-4 h-4 text-amber-500" />
                     )}
@@ -379,17 +401,37 @@ export default function GalleryManager() {
                     )}
                   </TableCell>
                   <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-destructive hover:bg-destructive/10 hover:text-destructive"
-                      onClick={() => {
-                        if (confirm("Supprimer ce média ?"))
-                          deleteMutation.mutate({ id: item.id });
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    <div className="flex items-center justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        title={item.visible !== false ? "Masquer" : "Afficher"}
+                        onClick={() =>
+                          updateMutation.mutate({
+                            id: item.id,
+                            visible: item.visible === false ? true : false,
+                          })
+                        }
+                      >
+                        {item.visible !== false ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => {
+                          if (confirm("Supprimer ce média ?"))
+                            deleteMutation.mutate({ id: item.id });
+                        }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}

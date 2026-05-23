@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useTheme } from "@/contexts/ThemeContext";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,6 +61,7 @@ export default function AdminDesign() {
   const [mutedTextColor, setMutedTextColor] = useState("#64748B");
   const [enableThemeToggle, setEnableThemeToggle] = useState(false);
   const [defaultTheme, setDefaultTheme] = useState("light");
+  const [previewDarkMode, setPreviewDarkMode] = useState(false);
 
   const colorPresets = [
     { name: "Orange Doré", primary: "#D97706", secondary: "#1E293B", bg: "#F8FAFC" },
@@ -401,9 +403,23 @@ export default function AdminDesign() {
             </div>
           </div>
 
-          {/* Couleurs de police */}
+          {/* Couleurs de police avec aperçu en temps réel */}
           <div className="mt-8 pt-6 border-t border-border/40">
-            <p className="text-sm font-medium mb-4">Couleurs de la Police</p>
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm font-medium">Couleurs de la Police</p>
+              <button 
+                onClick={() => {
+                  // Générer des couleurs aléatoires pour la démonstration
+                  const randomColor = () => '#' + Math.floor(Math.random()*16777215).toString(16);
+                  setTextColor(randomColor());
+                  setMutedTextColor(randomColor());
+                }}
+                className="text-xs text-primary hover:text-primary/70 transition-colors p-1 rounded hover:bg-primary/5"
+              >
+                Tester des couleurs aléatoires
+              </button>
+            </div>
+            
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-3">
                 <label htmlFor="text-color" className="text-sm font-medium">Couleur du Texte Principal</label>
@@ -424,6 +440,17 @@ export default function AdminDesign() {
                   <Input id="muted-text-color" name="mutedTextColor" value={mutedTextColor} onChange={(e) => setMutedTextColor(e.target.value)} className="font-mono text-sm uppercase" />
                 </div>
                 <p className="text-xs text-muted-foreground">Sous-titres, descriptions, textes discrets.</p>
+              </div>
+            </div>
+            
+            {/* Aperçu en temps réel des couleurs de police */}
+            <div className="mt-6 p-4 bg-muted/50 rounded-lg">
+              <p className="text-xs font-medium mb-2 text-muted-foreground">Aperçu en temps réel :</p>
+              <div className="space-y-2">
+                <p className="text-lg font-semibold" style={{ color: textColor }}>Exemple de titre principal</p>
+                <p className="text-base" style={{ color: mutedTextColor }}>Exemple de texte secondaire ou de description</p>
+                <p className="text-sm font-medium" style={{ color: textColor }}>Bouton ou lien important</p>
+                <p className="text-xs" style={{ color: mutedTextColor }}>Texte de pied de page ou légende</p>
               </div>
             </div>
           </div>
@@ -483,9 +510,85 @@ export default function AdminDesign() {
                 <span className={`text-sm font-semibold ${defaultTheme === 'dark' ? 'text-primary' : ''}`}>Mode Sombre</span>
               </label>
             </div>
-            <p className="text-xs text-muted-foreground mt-3">Le thème utilisé par défaut lors de la première visite. Si le bouton de thème est activé, le visiteur pourra changer ensuite.</p>
-          </div>
-        </section>
+             <p className="text-xs text-muted-foreground mt-3">Le thème utilisé par défaut lors de la première visite. Si le bouton de thème est activé, le visiteur pourra changer ensuite.</p>
+           </div>
+         </section>
+
+         {/* Prévisualisation du thème */}
+         <section className="bg-card border rounded-2xl p-6 md:p-8 shadow-sm">
+           <h2 className="text-xl font-bold font-serif flex items-center gap-2 border-b pb-4 mb-6">
+             <Monitor className="w-5 h-5 text-primary" /> Prévisualisation du Thème
+           </h2>
+           <div className="space-y-6">
+             <div className="flex items-center justify-between">
+               <p className="text-sm font-semibold">Prévisualiser en mode sombre</p>
+               <button
+                 type="button"
+                 role="switch"
+                 aria-checked={previewDarkMode}
+                 onClick={() => setPreviewDarkMode(!previewDarkMode)}
+                 className={`relative inline-flex h-7 w-14 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
+                   previewDarkMode ? 'bg-primary' : 'bg-muted'
+                 }`}
+               >
+                 <span
+                   className={`pointer-events-none inline-block h-6 w-6 transform rounded-full bg-white shadow-lg ring-0 transition-transform duration-200 ease-in-out ${
+                     previewDarkMode ? 'translate-x-7' : 'translate-x-0'
+                   }`}
+                 />
+               </button>
+             </div>
+             <p className="text-xs text-muted-foreground">
+               Visualisez comment votre site apparaîtra en mode sombre avec les couleurs actuelles.
+             </p>
+             <div className="grid gap-6 md:grid-cols-2">
+               {/* Light Mode Preview */}
+               <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-inner border border-border/20">
+                 <h3 className="text-lg font-semibold font-serif mb-4">Prévisualisation - Mode Clair</h3>
+                 <div className="space-y-4">
+                   <div className="flex items-center gap-4 px-4 py-3 bg-primary/10 rounded-lg">
+                     <div className="w-8 h-8 rounded-full" style={{ backgroundColor: primaryColor }} />
+                     <div className="w-8 h-8 rounded-full" style={{ backgroundColor: secondaryColor }} />
+                     <div className="w-8 h-8 rounded-full" style={{ backgroundColor: bgColor }} />
+                     <span className="text-sm">Primaire • Secondaire • Fond</span>
+                   </div>
+                   <div className="space-y-2">
+                     <p className="text-sm font-medium" style={{ color: textColor }}>Exemple de titre</p>
+                     <p className="text-base" style={{ color: mutedTextColor }}>
+                       Exemple de texte de description ou de paragraphe
+                     </p>
+                     <button className="inline-block bg-primary text-primary-foreground px-4 py-2 rounded text-sm font-medium hover:bg-primary/90">
+                       Bouton d'action
+                     </button>
+                   </div>
+                 </div>
+               </div>
+               {/* Dark Mode Preview */}
+               <div className={`bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-inner border border-border/20 ${previewDarkMode ? 'bg-black/50' : ''}`}>
+                 <h3 className="text-lg font-semibold font-serif mb-4">Prévisualisation - Mode Sombre</h3>
+                 <div className="space-y-4">
+                   <div className="flex items-center gap-4 px-4 py-3 bg-primary/10 rounded-lg">
+                     <div className="w-8 h-8 rounded-full" style={{ backgroundColor: primaryColor }} />
+                     <div className="w-8 h-8 rounded-full" style={{ backgroundColor: secondaryColor }} />
+                     <div className="w-8 h-8 rounded-full" style={{ backgroundColor: bgColor }} />
+                     <span className="text-sm">Primaire • Secondaire • Fond</span>
+                   </div>
+                   <div className="space-y-2">
+                     <p className="text-sm font-medium" style={{ color: previewDarkMode ? '#fff' : textColor }}>
+                       Exemple de titre
+                     </p>
+                     <p className="text-base" style={{ color: previewDarkMode ? '#e2e8f0' : mutedTextColor }}>
+                       Exemple de texte de description ou de paragraphe
+                     </p>
+                     <button className="inline-block bg-primary text-primary-foreground px-4 py-2 rounded text-sm font-medium hover:bg-primary/90">
+                       Bouton d'action
+                     </button>
+                   </div>
+                 </div>
+               </div>
+             </div>
+           </div>
+         </section>
 
         {/* Style des Boutons */}
         <section className="bg-card border rounded-2xl p-6 md:p-8 shadow-sm">

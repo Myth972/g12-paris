@@ -37,15 +37,24 @@ export default function GalleriesPage() {
   return (
     <div className="min-h-screen">
       {/* Hero section */}
-      <section className="bg-gradient-to-b from-primary/[0.03] to-transparent py-12 md:py-16">
+      <motion.section
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-gradient-to-b from-primary/[0.03] to-transparent py-12 md:py-16"
+      >
         <div className="container">
           <div className="max-w-2xl">
-            <div className="flex items-center gap-2 mb-4">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+              className="flex items-center gap-2 mb-4"
+            >
               <div className="w-8 h-0.5 bg-primary rounded-full" />
               <span className="text-xs font-semibold uppercase tracking-[0.15em] text-primary font-sans">
                 Galeries
               </span>
-            </div>
+            </motion.div>
             <PageTitleEditor
               pageKey="galeries"
               defaultH1={"Galerie d'Images\net Vidéos"}
@@ -60,23 +69,43 @@ export default function GalleriesPage() {
             />
           </div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Custom content section */}
-      <section className="container py-10 border-t border-border/30">
+      <motion.section
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.4 }}
+        className="container py-10 border-t border-border/30"
+      >
         <h3 className="text-xl font-serif font-bold text-foreground mb-6">
           Contenus en vedette
         </h3>
         <PageContentDisplay pageId="galeries" mode="grid" />
-      </section>
+      </motion.section>
 
       {/* Gallery grid */}
-      <section className="container pb-16 border-t border-border/30 pt-16">
+      <motion.section
+        initial={{ opacity: 0, y: 30 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.5, delay: 0.1 }}
+        className="container pb-16 border-t border-border/30 pt-16"
+      >
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
             {Array.from({ length: 6 }).map((_, i) => (
-              <div
+              <motion.div
                 key={i}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
                 className="rounded-xl overflow-hidden border border-border/50"
               >
                 <Skeleton className="aspect-[16/10] w-full" />
@@ -85,9 +114,9 @@ export default function GalleriesPage() {
                   <Skeleton className="h-4 w-full" />
                   <Skeleton className="h-3 w-1/3" />
                 </div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         ) : items.length > 0 ? (
           <>
             <motion.div 
@@ -181,8 +210,26 @@ export default function GalleriesPage() {
               </div>
             )}
           </>
-        ) : null}
-      </section>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="text-center py-20"
+          >
+            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h3 className="text-xl font-serif font-bold text-foreground mb-2">
+              Aucun média pour le moment
+            </h3>
+            <p className="text-sm text-muted-foreground max-w-md mx-auto">
+              Les images et vidéos de la galerie apparaîtront ici une fois ajoutées.
+            </p>
+          </motion.div>
+        )}
+      </motion.section>
     </div>
   );
 }

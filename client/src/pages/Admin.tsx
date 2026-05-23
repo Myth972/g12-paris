@@ -668,12 +668,19 @@ function AIAssistantTab() {
         onSendMessage={handleSend}
         isLoading={chatMutation.isPending}
         height="650px"
-        placeholder="Posez une question ou demandez de l'aide pour la rédaction..."
+        placeholder="Pose une question sur la Bible..."
+        emptyStateMessage="Pose une question sur un thème biblique"
         suggestedPrompts={[
-          "Rédige un message d'accueil pour la page d'accueil",
-          "Donne-moi des idées d'articles sur la foi",
-          "Comment optimiser mes descriptions ?",
-          "Écris un verset biblique inspirant sur l'amour",
+          "Explique la signification de Pâques dans la tradition chrétienne",
+          "Quels sont les thèmes principaux du livre des Psaumes ?",
+          "Donne-moi un résumé de l'Évangile selon Jean",
+          "Quelle est la différence entre l'Ancien et le Nouveau Testament ?",
+          "Parle-moi de la vie de l'apôtre Paul",
+          "Quels sont les enseignements de Jésus sur l'amour et le pardon ?",
+          "Explique le livre de l'Apocalypse",
+          "Qui sont les prophètes majeurs dans la Bible ?",
+          "Quelle est l'histoire de Moïse et de l'Exode ?",
+          "Parle-moi du fruit de l'Esprit selon Galates",
         ]}
       />
     </div>
@@ -687,6 +694,16 @@ export default function Admin() {
     redirectOnUnauthenticated: true,
   });
   const [, setLocation] = useLocation();
+
+  const { data: articlesData } = trpc.articles.adminList.useQuery();
+  const { data: nlData } = trpc.newsletter.listSubscribers.useQuery();
+  const { data: galleryListData } = trpc.gallery.list.useQuery();
+  const { data: catData } = trpc.bibliotheque.listCategories.useQuery();
+
+  const pubCount = articlesData?.items?.filter((a: any) => a.published).length ?? 0;
+  const nlCount = nlData?.length ?? 0;
+  const mediaCount = galleryListData?.items?.length ?? 0;
+  const catCount = catData?.length ?? 0;
 
 if (authLoading) {
     return (
@@ -781,7 +798,7 @@ if (authLoading) {
                 <FileText className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{trpc.articles.adminList.useQuery().data?.items?.filter((a: any) => a.published).length || 0}</p>
+                <p className="text-2xl font-bold">{pubCount}</p>
                 <p className="text-xs text-muted-foreground">Articles publiés</p>
               </div>
             </div>
@@ -792,7 +809,7 @@ if (authLoading) {
                 <Users className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{trpc.newsletter.listSubscribers.useQuery().data?.length || 0}</p>
+                <p className="text-2xl font-bold">{nlCount}</p>
                 <p className="text-xs text-muted-foreground">Abonnés Newsletter</p>
               </div>
             </div>
@@ -803,7 +820,7 @@ if (authLoading) {
                 <ImageIcon className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{trpc.gallery.list.useQuery().data?.items?.length || 0}</p>
+                <p className="text-2xl font-bold">{mediaCount}</p>
                 <p className="text-xs text-muted-foreground">Médias galerie</p>
               </div>
             </div>
@@ -814,7 +831,7 @@ if (authLoading) {
                 <Library className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-2xl font-bold">{trpc.bibliotheque.listCategories.useQuery().data?.length || 0}</p>
+                <p className="text-2xl font-bold">{catCount}</p>
                 <p className="text-xs text-muted-foreground">Catégories bibliothèque</p>
               </div>
             </div>
