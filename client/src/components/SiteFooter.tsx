@@ -5,7 +5,9 @@ import { Button } from "./ui/button";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import PageTextEditor from "@/components/PageTextEditor";
+import { useTranslation } from "react-i18next";
 export default function SiteFooter() {
+  const { t } = useTranslation();
   const year = new Date().getFullYear();
   const subscribeMutation = trpc.newsletter.subscribe.useMutation({
     onSuccess: () =>
@@ -45,22 +47,22 @@ export default function SiteFooter() {
           {/* Navigation */}
           <div>
             <h4 className="text-sm font-semibold uppercase tracking-wider text-primary-foreground/80 mb-4 font-sans">
-              Rubriques
+              {t('footer.sections', 'Rubriques')}
             </h4>
             <ul className="space-y-2">
               {[
-                { label: "Accueil", href: "/" },
-                { label: "Publication du jour", href: "/publication-du-jour" },
-                { label: "Galeries", href: "/galeries" },
-                { label: "Culte en ligne", href: "/culte-en-ligne" },
-                { label: "Bibliothèque", href: "/bibliotheque" },
+                { labelKey: "nav.home", defaultLabel: "Accueil", href: "/" },
+                { labelKey: "nav.dailyPost", defaultLabel: "Publication du jour", href: "/publication-du-jour" },
+                { labelKey: "nav.galleries", defaultLabel: "Galeries", href: "/galeries" },
+                { labelKey: "nav.onlineService", defaultLabel: "Culte en ligne", href: "/culte-en-ligne" },
+                { labelKey: "nav.library", defaultLabel: "Bibliothèque", href: "/bibliotheque" },
               ].map(cat => (
                 <li key={cat.href}>
                   <Link
                     href={cat.href}
                     className="text-sm text-primary-foreground/60 hover:text-primary-foreground transition-colors"
                   >
-                    {cat.label}
+                    {t(cat.labelKey, cat.defaultLabel)}
                   </Link>
                 </li>
               ))}
@@ -74,7 +76,7 @@ export default function SiteFooter() {
               Newsletter
             </h4>
             <p className="text-sm text-primary-foreground/90 mb-4">
-              Restez informé de nos derniers ajouts et publications.
+              {t('footer.newsletterDesc', 'Restez informé de nos derniers ajouts et publications.')}
             </p>
             <form
               onSubmit={e => {
@@ -91,7 +93,7 @@ export default function SiteFooter() {
               <Input
                 type="email"
                 name="email"
-                placeholder="Votre adresse email"
+                placeholder={t('footer.emailPlaceholder', 'Votre adresse email')}
                 className="bg-primary-foreground/10 border-none text-primary-foreground placeholder:text-primary-foreground/70 w-full h-11"
                 required
               />
@@ -109,7 +111,7 @@ export default function SiteFooter() {
 
         <div className="border-t border-primary-foreground/10 mt-8 pt-6 text-center">
           <p className="text-xs text-primary-foreground/50">
-            &copy; {year} G12 Paris infos médias. Tous droits réservés.
+            {t('footer.copyright', `© ${year} G12 Paris infos médias. Tous droits réservés.`)}
           </p>
         </div>
       </div>

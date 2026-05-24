@@ -1,0 +1,15 @@
+{
+  "translation": {
+    "nav": {
+      "home": "Accueil",
+      "dailyPost": "Publication du jour",
+      "articles": "Articles",
+      "library": "Bibliothèque",
+      "galleries": "Galeries",
+      "onlineService": "Culte en ligne",
+      "cart": "Panier",
+      "login": "Connexion"
+    },
+    "language": "Langue"
+  }
+}

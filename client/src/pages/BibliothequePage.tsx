@@ -70,13 +70,13 @@ export default function BibliothequePage() {
                 pageKey="bibliotheque"
                 defaultH1={"Découvrez notre\nBibliothèque Premium"}
                 defaultH2=""
-                h1ClassName="text-4xl md:text-5xl lg:text-6xl font-bold font-serif leading-tight mb-6 text-white drop-shadow-lg"
+                h1ClassName="text-4xl md:text-5xl lg:text-6xl font-bold font-serif leading-tight mb-6 !text-white drop-shadow-lg"
               />
               <PageTextEditor
                 pageKey="bibliotheque"
                 textKey="hero"
                 defaultText="Plongez dans des textes inspirants. Des Bibles aux finitions exceptionnelles, des commentaires profonds et des ressources pour nourrir votre esprit."
-                className="text-lg md:text-xl text-slate-300 mb-8 max-w-xl font-light"
+                className="text-lg md:text-xl !text-slate-300 mb-8 max-w-xl font-light"
               />
               <div className="flex flex-wrap gap-4">
                 <Button asChild size="lg" className="bg-amber-600 hover:bg-amber-700 text-white border-0 shadow-lg shadow-amber-900/50">
@@ -163,7 +163,7 @@ export default function BibliothequePage() {
             </div>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
             {featuredBooks.map((book: any) => (
               <Link key={book.id} href={`/bibliotheque/livre/${book.id}`} className="group">
                 <div className="rounded-xl overflow-hidden mb-4 bg-muted aspect-[3/4] relative">
@@ -194,10 +194,10 @@ export default function BibliothequePage() {
         <div className="container relative z-10 max-w-6xl px-4 min-h-[200px] flex flex-col justify-center items-center">
           {/* Centered Text Content */}
           <div className="text-center max-w-2xl mx-auto space-y-6">
-            <h2 className="text-3xl md:text-4xl font-serif font-bold text-white drop-shadow-sm">
+            <h2 className="text-3xl md:text-4xl font-serif font-bold !text-white drop-shadow-sm">
               {settings["page.bibliotheque.themesTitle"] || "Explorez par Thématiques"}
             </h2>
-            <p className="text-base md:text-lg text-white/90 leading-relaxed">
+            <p className="text-base md:text-lg !text-white/90 leading-relaxed">
               {settings["page.bibliotheque.themesDesc"] || "Foi, Leadership, Famille, Études bibliques, ... Trouvez les ressources qui correspondent exactement à votre besoin spirituel du moment."}
             </p>
             <div className="pt-2 flex justify-center">

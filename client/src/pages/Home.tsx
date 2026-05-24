@@ -58,7 +58,7 @@ const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, categor
             }}
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/60 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-white/90 via-white/70 to-transparent dark:from-background/95 dark:via-background/80 pointer-events-none" />
         <div className="container relative z-10">
           <div className="max-w-2xl">
             <div className="flex items-center gap-2 mb-4">
@@ -77,7 +77,7 @@ const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, categor
               pageKey="home"
               textKey="hero"
               defaultText="Restez informé avec les dernières nouvelles de Paris et d'ailleurs. Articles, reportages et vidéos au quotidien."
-              className="mt-3 sm:mt-4 text-muted-foreground text-sm sm:text-base leading-relaxed max-w-lg"
+              className="mt-3 sm:mt-4 text-foreground/70 dark:text-foreground/80 text-sm sm:text-base leading-relaxed max-w-lg"
             />
           </div>
         </div>

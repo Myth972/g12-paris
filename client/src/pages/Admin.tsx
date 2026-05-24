@@ -741,7 +741,7 @@ if (authLoading) {
       {/* Admin header */}
       <div className="bg-card border-b border-border">
         <div className="container py-6">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <Shield className="w-5 h-5 text-primary" />
@@ -766,13 +766,13 @@ if (authLoading) {
                 <>
                   <Button variant="ghost" size="sm" asChild>
                     <Link href="/admin/profile">
-                      <User className="w-4 h-4 mr-1" />
+                      <User className="w-4 h-4 sm:mr-1" />
                       <span className="hidden sm:inline">Mon Profil</span>
                     </Link>
                   </Button>
                   <Button variant="outline" size="sm" asChild>
                     <Link href="/admin/tutorial">
-                      <HelpCircle className="w-4 h-4 mr-1" />
+                      <HelpCircle className="w-4 h-4 sm:mr-1" />
                       <span className="hidden sm:inline">Guide</span>
                     </Link>
                   </Button>
@@ -780,7 +780,7 @@ if (authLoading) {
               )}
               <Button variant="outline" size="sm" asChild>
                 <Link href="/">
-                  <ArrowLeft className="w-4 h-4 mr-1" />
+                  <ArrowLeft className="w-4 h-4 sm:mr-1" />
                   <span className="hidden sm:inline">Site</span>
                 </Link>
               </Button>
@@ -791,7 +791,7 @@ if (authLoading) {
 
       {/* Stats Overview - identiques pour tous les rôles */}
       <div className="container pt-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-card border rounded-xl p-4 shadow-sm">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
@@ -887,7 +887,7 @@ if (authLoading) {
       {/* Tabs */}
       <div className="container py-6">
         <Tabs defaultValue="articles" className="w-full">
-          <TabsList className="mb-6 flex-wrap h-auto w-full justify-start gap-y-2">
+          <TabsList className="mb-6 flex overflow-x-auto h-auto w-full justify-start gap-2 pb-2 scrollbar-thin">
             <TabsTrigger value="articles" className="gap-2">
               <Newspaper className="w-4 h-4" />
               Articles

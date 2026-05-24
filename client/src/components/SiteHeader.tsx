@@ -14,13 +14,15 @@ import { Link, useLocation } from "wouter";
 import NotificationBell from "./NotificationBell";
 import { useTheme } from "@/contexts/ThemeContext";
 import { trpc } from "@/lib/trpc";
+import { useTranslation } from "react-i18next";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 const NAV_LINKS = [
-  { href: "/", label: "Accueil" },
-  { href: "/publication-du-jour", label: "Publication du jour" },
-  { href: "/galeries", label: "Galeries" },
-  { href: "/culte-en-ligne", label: "Culte en ligne" },
-  { href: "/bibliotheque", label: "Bibliothèque" },
+  { href: "/", labelKey: "nav.home", defaultLabel: "Accueil" },
+  { href: "/publication-du-jour", labelKey: "nav.dailyPost", defaultLabel: "Publication du jour" },
+  { href: "/galeries", labelKey: "nav.galleries", defaultLabel: "Galeries" },
+  { href: "/culte-en-ligne", labelKey: "nav.onlineService", defaultLabel: "Culte en ligne" },
+  { href: "/bibliotheque", labelKey: "nav.library", defaultLabel: "Bibliothèque" },
 ];
 
 const SOCIAL_LINKS = [
@@ -45,6 +47,7 @@ const SOCIAL_LINKS = [
 ];
 
 export default function SiteHeader() {
+  const { t } = useTranslation();
   const { user, isAuthenticated, logout } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [location] = useLocation();
@@ -100,7 +103,7 @@ export default function SiteHeader() {
                       : "text-muted-foreground hover:text-foreground hover:bg-accent"
                   }`}
                 >
-                  {link.label}
+                  {t(link.labelKey, link.defaultLabel)}
                 </Link>
               );
             })}
@@ -139,6 +142,8 @@ export default function SiteHeader() {
                 )}
               </button>
             )}
+
+            <LanguageSwitcher />
 
             <div className="flex items-center gap-2">
               {isAuthenticated && <NotificationBell />}
@@ -184,7 +189,7 @@ export default function SiteHeader() {
                   onClick={() => (window.location.href = getLoginUrl())}
                   className="font-medium px-3 sm:px-4 ml-1 sm:ml-0"
                 >
-                  Connexion
+                  {t('nav.login', 'Connexion')}
                 </Button>
               )}
 
@@ -224,7 +229,7 @@ export default function SiteHeader() {
                         : "text-muted-foreground hover:text-foreground hover:bg-accent active:bg-accent/80"
                     }`}
                   >
-                    {link.label}
+                    {t(link.labelKey, link.defaultLabel)}
                   </Link>
                 );
               })}

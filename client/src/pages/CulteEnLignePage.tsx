@@ -47,7 +47,7 @@ export default function CulteEnLignePage() {
             style={{ backgroundImage: `url(${heroBgUrl})`, opacity: heroOpacity }}
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/80 via-white/60 to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-white/90 via-white/70 to-transparent dark:from-background/95 dark:via-background/80 pointer-events-none" />
         <div className="container relative z-10 px-4 sm:px-0">
           <div className="max-w-2xl">
             <div className="flex items-center gap-2 mb-3 sm:mb-4">
@@ -79,11 +79,22 @@ export default function CulteEnLignePage() {
               pageKey="culte-en-ligne"
               textKey="hero"
               defaultText="Participez à nos services de culte en ligne et vivez une expérience spirituelle depuis n'importe où."
-              className="mt-2 sm:mt-4 text-muted-foreground text-sm sm:text-base leading-relaxed max-w-lg"
+              className="mt-2 sm:mt-4 text-foreground/70 dark:text-foreground/80 text-sm sm:text-base leading-relaxed max-w-lg"
             />
           </div>
         </div>
       </section>
+
+      {/* Banner Section (Déplacée ici pour une meilleure hiérarchie) */}
+      {settingsQuery.data?.culteBannerUrl && (
+        <section className="container px-4 sm:px-0 -mt-8 sm:-mt-12 relative z-20 mb-8 sm:mb-12 flex justify-center animate-in fade-in slide-in-from-bottom-4 duration-1000">
+          <img
+            src={settingsQuery.data.culteBannerUrl as string}
+            alt="Bannière culte"
+            className="rounded-xl sm:rounded-2xl shadow-lg sm:shadow-2xl shadow-primary/20 transition-transform hover:scale-[1.02] duration-500 w-full max-w-md sm:max-w-[500px] lg:max-w-[700px] h-auto"
+          />
+        </section>
+      )}
 
       {/* Video Section */}
       {(youtubeVideoId || liveEnabled) && (
@@ -144,15 +155,6 @@ export default function CulteEnLignePage() {
 
       {/* Content section */}
       <section className="container pb-12 sm:pb-16 pt-0 px-4 sm:px-0">
-        {settingsQuery.data?.culteBannerUrl && (
-          <div className="flex justify-center -mt-6 sm:-mt-8 mb-8 sm:mb-12 animate-in fade-in slide-in-from-bottom-4 duration-1000 px-2 sm:px-4">
-            <img
-              src={settingsQuery.data.culteBannerUrl as string}
-              alt="Bannière culte"
-              className="rounded-xl sm:rounded-2xl shadow-lg sm:shadow-2xl shadow-primary/10 transition-transform hover:scale-[1.02] duration-500 w-full max-w-[300px] sm:max-w-[400px] md:max-w-[500px] lg:max-w-[600px] h-auto"
-            />
-          </div>
-        )}
         <PageContentDisplay pageId="culte-en-ligne" layout="split" />
       </section>
     </div>

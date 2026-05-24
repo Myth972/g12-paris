@@ -1,0 +1,15 @@
+{
+  "translation": {
+    "nav": {
+      "home": "Home",
+      "dailyPost": "Daily Post",
+      "articles": "Articles",
+      "library": "Library",
+      "galleries": "Galleries",
+      "onlineService": "Online Service",
+      "cart": "Cart",
+      "login": "Login"
+    },
+    "language": "Language"
+  }
+}

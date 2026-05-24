@@ -170,13 +170,13 @@ function DynamicDesign() {
   return (
     <style dangerouslySetInnerHTML={{
       __html: `
-        :root {
+        :root:not(.dark) {
           ${primary ? `--primary: ${primary} !important;` : ''}
           ${secondary ? `--secondary: ${secondary} !important;` : ''}
           ${bg ? `--background: ${bg} !important;` : ''}
         }
-        ${textColor ? `body, .text-foreground, .text-card-foreground, h1, h2, h3, h4, h5, h6, nav a, p:not(.text-muted-foreground) { color: ${textColor}; }` : ''}
-        ${mutedTextColor ? `.text-muted-foreground { color: ${mutedTextColor} !important; }` : ''}
+        ${textColor ? `:root:not(.dark) body, :root:not(.dark) .text-foreground, :root:not(.dark) .text-card-foreground, :root:not(.dark) h1, :root:not(.dark) h2, :root:not(.dark) h3, :root:not(.dark) h4, :root:not(.dark) h5, :root:not(.dark) h6, :root:not(.dark) nav a, :root:not(.dark) p:not(.text-muted-foreground) { color: ${textColor} !important; }` : ''}
+        ${mutedTextColor ? `:root:not(.dark) .text-muted-foreground { color: ${mutedTextColor} !important; }` : ''}
         ${fontHeading ? `h1, h2, h3, h4, h5, h6, .font-serif { font-family: ${headingFamily} !important; }` : ''}
         ${fontBody ? `body, .font-sans { font-family: ${bodyFamily} !important; }` : ''}
         
