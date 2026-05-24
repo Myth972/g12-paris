@@ -154,7 +154,7 @@ export default function GalleriesPage() {
 
                     {/* Type badge */}
                     <div className="absolute top-3 left-3 pointer-events-none">
-                      <span className="inline-block bg-white/90 backdrop-blur-sm text-foreground font-medium text-xs px-3 py-1 rounded-full shadow-sm">
+                      <span className="inline-block bg-background/80 backdrop-blur-sm text-foreground font-medium text-xs px-3 py-1 rounded-full shadow-sm">
                         {item.type === "image" ? "📷 Image" : "🎥 Vidéo"}
                       </span>
                     </div>

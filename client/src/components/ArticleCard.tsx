@@ -70,7 +70,7 @@ const ArticleCard = memo(function ArticleCard({
           <div className="absolute top-3 left-3">
             <Badge
               variant="secondary"
-              className="bg-white/90 backdrop-blur-sm text-foreground font-bold uppercase tracking-widest text-[9px] shadow-sm"
+              className="bg-background/80 backdrop-blur-sm text-foreground font-bold uppercase tracking-widest text-[9px] shadow-sm"
             >
               {article.category}
             </Badge>

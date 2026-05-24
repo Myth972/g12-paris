@@ -336,10 +336,10 @@ export default function PublicationDuJour() {
 
                     {verse.summary && (
                       <div className="text-center w-full max-w-2xl pt-8 border-t border-primary/10">
-                        <h4 className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-4">
+                        <h4 className="text-xs uppercase tracking-widest font-bold text-foreground/60 mb-4">
                           Résumé Biblique
                         </h4>
-                    <p className="text-sm md:text-base text-muted-foreground leading-relaxed whitespace-pre-line">
+                    <p className="text-sm md:text-base text-foreground/80 leading-relaxed whitespace-pre-line">
                       {verse.summary}
                     </p>
                       </div>

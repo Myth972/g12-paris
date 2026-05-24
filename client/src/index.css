@@ -362,7 +362,7 @@
   .prose-article {
     line-height: 1.8;
     font-size: 1.075rem;
-    color: oklch(0.25 0.015 250);
+    color: var(--foreground);
   }
   .prose-article p {
     margin-bottom: 1.25em;
@@ -374,26 +374,28 @@
     font-weight: 600;
     margin-top: 2em;
     margin-bottom: 0.75em;
+    color: var(--foreground);
   }
   .prose-article h3 {
     font-size: 1.25rem;
     font-weight: 600;
     margin-top: 1.5em;
     margin-bottom: 0.5em;
+    color: var(--foreground);
   }
   .prose-article img {
     border-radius: 0.5rem;
     margin: 1.5em 0;
   }
   .prose-article blockquote {
-    border-left: 3px solid oklch(0.45 0.1 250);
+    border-left: 3px solid var(--primary);
     padding-left: 1.25em;
     margin: 1.5em 0;
     font-style: italic;
-    color: oklch(0.4 0.015 250);
+    color: var(--muted-foreground);
   }
   .prose-article a {
-    color: oklch(0.45 0.1 250);
+    color: var(--primary);
     text-decoration: underline;
     text-underline-offset: 2px;
   }
