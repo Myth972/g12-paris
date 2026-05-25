@@ -760,6 +760,10 @@ export const appRouter = router({
           loop: z.boolean().optional().default(false),
           featuredHome: z.boolean().optional().default(false),
           description: z.string().optional(),
+          ctaLabel: z.string().optional(),
+          ctaHref: z.string().optional(),
+          textColor: z.string().optional(),
+          titleColor: z.string().optional(),
         })
       )
       .mutation(async ({ ctx, input }) => {
@@ -781,6 +785,10 @@ export const appRouter = router({
           loop: z.boolean().optional(),
           featuredHome: z.boolean().optional(),
           description: z.string().optional(),
+          ctaLabel: z.string().optional(),
+          ctaHref: z.string().optional(),
+          textColor: z.string().optional(),
+          titleColor: z.string().optional(),
         })
       )
       .mutation(async ({ input }) => {
@@ -1880,6 +1888,75 @@ return { url };
         // Update password
         await updateUserPassword(input.userId, input.newPassword);
         return { success: true };
+      }),
+  }),
+
+  // ─── Announcements (Annonces & Événements flash) ──────────────
+  announcements: router({
+    list: publicProcedure
+      .input(z.object({ type: z.string().optional() }).optional())
+      .query(async ({ input }) => {
+        const { listAnnouncements } = await import("./db.js");
+        return listAnnouncements(input?.type);
+      }),
+
+    adminList: adminProcedure
+      .input(z.object({ type: z.string().optional() }).optional())
+      .query(async ({ input }) => {
+        const { adminListAnnouncements } = await import("./db.js");
+        return adminListAnnouncements(input?.type);
+      }),
+
+    create: editeurProcedure
+      .input(z.object({
+        type: z.enum(["announcement", "flash-event"]),
+        title: z.string().min(1).max(300),
+        description: z.string().optional().default(""),
+        mediaUrl: z.string().min(1),
+        badge: z.string().optional(),
+        eventDate: z.string().optional(),
+        location: z.string().optional(),
+        ctaLabel: z.string().optional(),
+        ctaHref: z.string().optional(),
+        variant: z.enum(["poster", "default", "compact"]).optional().default("poster"),
+        displayOrder: z.number().optional().default(0),
+        textColor: z.string().optional(),
+        titleColor: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { createAnnouncement } = await import("./db.js");
+        return createAnnouncement(input);
+      }),
+
+    update: editeurProcedure
+      .input(z.object({
+        id: z.number(),
+        type: z.enum(["announcement", "flash-event"]).optional(),
+        title: z.string().optional(),
+        description: z.string().optional(),
+        mediaUrl: z.string().optional(),
+        badge: z.string().optional(),
+        eventDate: z.string().optional(),
+        location: z.string().optional(),
+        ctaLabel: z.string().optional(),
+        ctaHref: z.string().optional(),
+        variant: z.enum(["poster", "default", "compact"]).optional(),
+        displayOrder: z.number().optional(),
+        visible: z.boolean().optional(),
+        textColor: z.string().optional(),
+        titleColor: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { updateAnnouncement } = await import("./db.js");
+        const { id, ...data } = input;
+        return updateAnnouncement(id, data);
+      }),
+
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const { deleteAnnouncement } = await import("./db.js");
+        return deleteAnnouncement(input.id);
       }),
   }),
 });

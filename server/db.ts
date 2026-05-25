@@ -1030,3 +1030,64 @@ export async function upsertUserFromAuth(data: { openId: string; name: string; r
   }).returning();
   return row;
 }
+
+// ─── Announcements CRUD ─────────────────────────────────────────
+
+export async function listAnnouncements(type?: string) {
+  const db = await getDb();
+  assertDb(db);
+  const { announcements } = await import("../drizzle/schema.js");
+  const { eq, asc } = await import("drizzle-orm");
+
+  const conditions = [eq(announcements.visible, true)];
+  if (type) conditions.push(eq(announcements.type, type));
+
+  return db
+    .select()
+    .from(announcements)
+    .where(and(...conditions))
+    .orderBy(asc(announcements.displayOrder));
+}
+
+export async function adminListAnnouncements(type?: string) {
+  const db = await getDb();
+  assertDb(db);
+  const { announcements } = await import("../drizzle/schema.js");
+  const { eq, desc, and } = await import("drizzle-orm");
+
+  const conditions: any[] = [];
+  if (type) conditions.push(eq(announcements.type, type));
+
+  return db
+    .select()
+    .from(announcements)
+    .where(conditions.length ? and(...conditions) : undefined)
+    .orderBy(desc(announcements.createdAt));
+}
+
+export async function createAnnouncement(data: any) {
+  const db = await getDb();
+  assertDb(db);
+  const { announcements } = await import("../drizzle/schema.js");
+  const [row] = await db.insert(announcements).values(data).returning();
+  return row;
+}
+
+export async function updateAnnouncement(id: number, data: any) {
+  const db = await getDb();
+  assertDb(db);
+  const { announcements } = await import("../drizzle/schema.js");
+  const { eq } = await import("drizzle-orm");
+  await db.update(announcements).set({ ...data, updatedAt: new Date() }).where(eq(announcements.id, id));
+  const [row] = await db.select().from(announcements).where(eq(announcements.id, id)).limit(1);
+  return row;
+}
+
+export async function deleteAnnouncement(id: number) {
+  const db = await getDb();
+  assertDb(db);
+  const { announcements } = await import("../drizzle/schema.js");
+  const { eq } = await import("drizzle-orm");
+  await db.delete(announcements).where(eq(announcements.id, id));
+  return { success: true };
+}

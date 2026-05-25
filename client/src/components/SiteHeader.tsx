@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getLoginUrl } from "@/const";
-import { Menu, X, User, LogOut, Shield, Newspaper, Facebook, Instagram, Youtube, Sun, Moon } from "lucide-react";
+import { Menu, X, User, LogOut, Shield, Newspaper, Facebook, Instagram, Youtube, Sun, Moon, FlaskConical } from "lucide-react";
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import NotificationBell from "./NotificationBell";
@@ -23,6 +23,7 @@ const NAV_LINKS = [
   { href: "/galeries", labelKey: "nav.galleries", defaultLabel: "Galeries" },
   { href: "/culte-en-ligne", labelKey: "nav.onlineService", defaultLabel: "Culte en ligne" },
   { href: "/bibliotheque", labelKey: "nav.library", defaultLabel: "Bibliothèque" },
+  { href: "/test", labelKey: "", defaultLabel: "Test", icon: true },
 ];
 
 const SOCIAL_LINKS = [
@@ -97,12 +98,13 @@ export default function SiteHeader() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                  className={`px-3 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${
                     isActive
                       ? "text-primary bg-primary/5"
                       : "text-muted-foreground hover:text-foreground hover:bg-accent"
                   }`}
                 >
+                  {link.icon && <FlaskConical className="w-3.5 h-3.5" />}
                   {t(link.labelKey, link.defaultLabel)}
                 </Link>
               );
@@ -223,12 +225,13 @@ export default function SiteHeader() {
                     key={link.href}
                     href={link.href}
                     onClick={() => setMobileOpen(false)}
-                    className={`block px-4 py-3 text-base font-medium rounded-md transition-colors touch-manipulation ${
+                    className={`block px-4 py-3 text-base font-medium rounded-md transition-colors touch-manipulation flex items-center gap-2 ${
                       isActive
                         ? "text-primary bg-primary/5"
                         : "text-muted-foreground hover:text-foreground hover:bg-accent active:bg-accent/80"
                     }`}
                   >
+                    {link.icon && <FlaskConical className="w-4 h-4" />}
                     {t(link.labelKey, link.defaultLabel)}
                   </Link>
                 );

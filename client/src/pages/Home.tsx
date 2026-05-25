@@ -1,13 +1,18 @@
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import ArticleCard from "@/components/ArticleCard";
+import HeroSlider, { type Slide } from "@/components/HeroSlider";
+import AnnouncementCard, { type Announcement } from "@/components/AnnouncementCard";
 
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import PageTitleEditor from "@/components/PageTitleEditor";
 import PageTextEditor from "@/components/PageTextEditor";
-import { Newspaper, ChevronRight } from "lucide-react";
+import { Newspaper, ChevronRight, Church, BookOpen, Mic2, Calendar } from "lucide-react";
 import { useState, useMemo, useEffect } from "react";
+
+const announcementIcons = [Church, Mic2, BookOpen];
 
 export default function Home() {
   const [page, setPage] = useState(0);
@@ -17,8 +22,48 @@ export default function Home() {
 
 const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, category: "actualité" });
   const settingsQuery = trpc.siteSettings.getAll.useQuery();
+  const { data: homeContent } = trpc.pageContent.featuredHome.useQuery();
+  const { data: announcementsData } = trpc.announcements.list.useQuery({ type: "announcement" });
+  const { data: flashEventsData } = trpc.announcements.list.useQuery({ type: "flash-event" });
 
   const articles = data?.items ?? [];
+  const whatsappSlides: Slide[] = (homeContent ?? [])
+    .filter((item: any) => item.mediaUrl)
+    .slice(0, 5)
+    .map((item: any) => ({
+      imageUrl: item.mediaUrl,
+      title: item.title || "G12 Paris",
+      subtitle: item.description || undefined,
+      ctaLabel: item.ctaLabel || undefined,
+      ctaHref: item.ctaHref || (item.id ? `/?whatsapp=${item.id}` : undefined),
+      textColor: item.textColor || undefined,
+      titleColor: item.titleColor || undefined,
+    }));
+  const announcements: Announcement[] = (announcementsData ?? []).map((item: any) => ({
+    imageUrl: item.mediaUrl,
+    title: item.title,
+    description: item.description || "",
+    date: item.eventDate || undefined,
+    location: item.location || undefined,
+    badge: item.badge || undefined,
+    ctaLabel: item.ctaLabel || undefined,
+    ctaHref: item.ctaHref || undefined,
+    variant: item.variant || "poster",
+    textColor: item.textColor || undefined,
+    titleColor: item.titleColor || undefined,
+  }));
+  const flashEvents: Announcement[] = (flashEventsData ?? []).map((item: any) => ({
+    imageUrl: item.mediaUrl,
+    title: item.title,
+    description: item.description || "",
+    date: item.eventDate || undefined,
+    location: item.location || undefined,
+    badge: item.badge || undefined,
+    ctaLabel: item.ctaLabel || undefined,
+    ctaHref: item.ctaHref || undefined,
+    variant: "default",
+    textColor: item.textColor || undefined,
+  }));
   const total = data?.total ?? 0;
   const hasMore = offset + limit < total;
   const heroBgUrl = settingsQuery.data?.homeHeroBgUrl as string | undefined;
@@ -83,19 +128,73 @@ const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, categor
         </div>
       </section>
 
-      {/* Bibliothèque Quick Access */}
-      <section className="container py-16 border-t border-border/30">
-        <div className="mb-8">
-          <h3 className="text-2xl font-serif font-bold text-foreground mb-2">
-            Bibliothèque
-          </h3>
-          <p className="text-muted-foreground">
-            Découvrez notre collection de ressources spirituelles
-          </p>
+      {/* MetaSlider — informations WhatsApp */}
+      {whatsappSlides.length > 0 && (
+        <section className="container pt-2 sm:pt-3 pb-1 sm:pb-2">
+          <HeroSlider slides={whatsappSlides} />
+        </section>
+      )}
+
+      {/* Annonces — grille 3 colonnes */}
+      <section className="container py-3 sm:py-4">
+        <div className="flex items-center gap-1.5 mb-2 sm:mb-3">
+          <div className="w-4 h-0.5 bg-primary rounded-full" />
+          <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-[0.15em] text-primary font-sans">
+            Annonces & Événements
+          </span>
         </div>
-        <Button asChild size="lg" className="bg-primary text-white hover:bg-primary/90 border-0 shadow-lg shadow-primary/20 rounded-full px-8">
-          <Link href="/bibliotheque">Explorer la bibliothèque</Link>
-        </Button>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
+          {announcements.map((item, i) => {
+            const Icon = announcementIcons[i % announcementIcons.length];
+            return (
+              <div key={i}>
+                <div className="flex items-center gap-1 mb-1.5">
+                  <Icon className="w-3 h-3 text-primary" />
+                  <span className="text-[11px] font-semibold text-foreground">
+                    {item.badge || "Annonce"}
+                  </span>
+                </div>
+                <AnnouncementCard announcement={item} />
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Événements flash */}
+      <section className="container py-3 sm:py-4 border-t border-border/20">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-2 sm:mb-3">
+          <div className="flex items-center gap-1.5">
+            <Calendar className="w-3.5 h-3.5 text-primary" />
+            <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-[0.15em] text-primary font-sans">
+              Événements flash
+            </span>
+          </div>
+          <Badge variant="secondary" className="bg-primary/10 text-primary text-[8px] font-bold tracking-wider self-start sm:self-auto px-1.5 py-0">
+            {flashEvents.length} événement{flashEvents.length > 1 ? "s" : ""}
+          </Badge>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3">
+          {flashEvents.map((event, i) => (
+            <AnnouncementCard key={event.title + i} announcement={event} />
+          ))}
+        </div>
+
+        <div className="flex justify-center mt-4 sm:mt-5">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="rounded-full border-primary/30 text-primary hover:bg-primary/5 gap-1 text-[10px] sm:text-xs h-7 sm:h-8 px-3"
+          >
+            <Link href="/">
+              Voir tous les événements
+              <ChevronRight className="w-3 h-3" />
+            </Link>
+          </Button>
+        </div>
       </section>
 
       {/* Articles grid */}

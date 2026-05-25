@@ -1,24 +1,17 @@
-# G12 Paris infos médias - TODO
+# TODO — Projet G12 Paris Infos Médias
 
-- [x] Schéma de base de données (articles, catégories)
-- [x] Requêtes DB (CRUD articles)
-- [x] Routes API tRPC (articles publics + admin)
-- [x] Upload d'images vers S3
-- [x] Thème élégant et design global (couleurs, typographie, CSS)
-- [x] Navigation / En-tête du site avec menu principal
-- [x] Page d'accueil avec grille d'articles et images de couverture
-- [x] Page de détail d'article (contenu, images, vidéos YouTube)
-- [x] Interface d'administration (créer, modifier, supprimer articles)
-- [x] Intégration vidéos YouTube via URL avec lecteur intégré
-- [x] Système d'authentification avec rôles utilisateur/admin
-- [x] Tests unitaires (vitest)
-- [x] Schéma DB pour les notifications (table notifications)
-- [x] Requêtes DB et routes API pour les notifications (CRUD + marquer comme lues)
-- [x] Interface admin pour créer/envoyer des notifications personnalisées
-- [x] Composant cloche de notification dans le header pour les utilisateurs
-- [x] Panneau de notifications avec liste et marquage comme lu
-- [x] Tests unitaires pour les notifications
-- [x] Renommer catégorie "Politique" en "Publication du jour" dans la navigation
-- [x] Renommer catégorie "Culture" en "Culte en ligne" dans la navigation
-- [x] Renommer catégorie "Sport" en "Bibliothèque" dans la navigation
-- [x] Mettre à jour les liens de catégorie dans SiteHeader, Home, CategoryPage, ArticleEditor et SiteFooter
+## Terminé
+- [x] `textColor` description HeroSlider + annonces (fix `!important`)
+- [x] `titleColor` titre HeroSlider + annonces (fix `!important`)
+- [x] `whitespace-pre-line` sur toutes les descriptions
+- [x] CTA bouton personnalisable dans les slides WhatsApp
+- [x] Route `/test` retirée
+- [x] Build client vérifié (succès)
+
+## En attente
+- [ ] Valider le comportement des couleurs en mode clair
+- [ ] Commit + push vers GitHub (après validation)
+
+## Build Vercel
+- `npm run build` → succès (0 erreurs)
+- Seuls des warnings de taille de chunks (shiki 9.4MB, mermaid 1.6MB) — non bloquants

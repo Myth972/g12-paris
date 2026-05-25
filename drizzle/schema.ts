@@ -156,6 +156,10 @@ export const pageContent = sqliteTable("page_content", {
     .default(false)
     .notNull(),
   description: text("description"),
+  ctaLabel: text("ctaLabel"),
+  ctaHref: text("ctaHref"),
+  textColor: text("textColor"),
+  titleColor: text("titleColor"),
   authorId: integer("authorId").notNull(),
   createdAt: integer("createdAt", { mode: "timestamp" })
     .default(sql`(strftime('%s', 'now'))`)
@@ -233,3 +237,33 @@ export const userTheme = sqliteTable("user_theme", {
 });
 export type UserTheme = typeof userTheme.$inferSelect;
 export type InsertUserTheme = typeof userTheme.$inferInsert;
+
+/**
+ * Announcements & Flash events for the home page.
+ */
+export const announcements = sqliteTable("announcements", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  type: text("type").notNull().default("announcement"), // "announcement" | "flash-event"
+  title: text("title").notNull(),
+  description: text("description").default("").notNull(),
+  mediaUrl: text("mediaUrl").notNull(),
+  badge: text("badge"),
+  eventDate: text("eventDate"),
+  location: text("location"),
+  ctaLabel: text("ctaLabel"),
+  ctaHref: text("ctaHref"),
+  variant: text("variant").default("poster"), // "poster" | "default" | "compact"
+  displayOrder: integer("displayOrder").default(0).notNull(),
+  visible: integer("visible", { mode: "boolean" }).default(true).notNull(),
+  textColor: text("textColor"),
+  titleColor: text("titleColor"),
+  createdAt: integer("createdAt", { mode: "timestamp" })
+    .default(sql`(strftime('%s', 'now'))`)
+    .notNull(),
+  updatedAt: integer("updatedAt", { mode: "timestamp" })
+    .default(sql`(strftime('%s', 'now'))`)
+    .notNull(),
+});
+
+export type Announcement = typeof announcements.$inferSelect;
+export type InsertAnnouncement = typeof announcements.$inferInsert;

@@ -67,6 +67,8 @@ import {
   ImageIcon,
   TrendingUp,
   User,
+  LayoutDashboard,
+  MessageCircle,
 } from "lucide-react";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useAiProvider } from "@/hooks/useAiProvider";
@@ -80,6 +82,7 @@ const GalleryManager = lazy(() => import("@/components/GalleryManager"));
 const NewsletterAdmin = lazy(() => import("./NewsletterAdmin"));
 const KlingStudio = lazy(() => import("./KlingStudio"));
 const AIChatBox = lazy(() => import("@/components/AIChatBox").then(m => ({ default: m.AIChatBox })));
+const HomeContentManager = lazy(() => import("@/components/HomeContentManager"));
 
 import HomeHeroBackgroundSettings from "@/components/HomeHeroBackgroundSettings";
 import CulteHeroBackgroundSettings from "@/components/CulteHeroBackgroundSettings";
@@ -892,6 +895,10 @@ if (authLoading) {
               <Newspaper className="w-4 h-4" />
               Articles
             </TabsTrigger>
+            <TabsTrigger value="accueil" className="gap-2">
+              <LayoutDashboard className="w-4 h-4" />
+              Accueil
+            </TabsTrigger>
             {hasAdminAccess && (
               <>
             <TabsTrigger value="notifications" className="gap-2">
@@ -927,6 +934,11 @@ if (authLoading) {
           </TabsList>
           <TabsContent value="articles">
             <ArticlesTab />
+          </TabsContent>
+          <TabsContent value="accueil">
+            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> Chargement...</div>}>
+              <HomeContentManager />
+            </Suspense>
           </TabsContent>
           {hasAdminAccess && (
             <>

@@ -21,7 +21,8 @@ import {
   Clock,
   EyeOff,
   FileEdit,
-  Keyboard
+  Keyboard,
+  Megaphone,
 } from "lucide-react";
 import { useAiProvider } from "@/hooks/useAiProvider";
 import { AIProviderSelect } from "@/components/AIProviderSelect";
@@ -138,6 +139,68 @@ export default function AdminBibliothequeEditor() {
     },
     onError: err => toast.error(err.message || "Erreur lors de la mise à jour"),
   });
+
+  const addToAnnouncementsMutation = trpc.announcements.create.useMutation({
+    onSuccess: () => {
+      utils.announcements.adminList.invalidate();
+      utils.announcements.list.invalidate();
+      toast.success("Livre ajouté aux annonces (Livre du mois)");
+    },
+    onError: (err) => toast.error(err.message || "Erreur"),
+  });
+  const updateAnnouncementMutation = trpc.announcements.update.useMutation({
+    onSuccess: () => {
+      utils.announcements.adminList.invalidate();
+      utils.announcements.list.invalidate();
+      toast.success("Annonce mise à jour");
+    },
+    onError: (err) => toast.error(err.message || "Erreur"),
+  });
+  const addToAnnouncementsPending = addToAnnouncementsMutation.isPending || updateAnnouncementMutation.isPending;
+
+  const [isInAnnouncements, setIsInAnnouncements] = useState(false);
+  const [announcementId, setAnnouncementId] = useState<number | null>(null);
+
+  // Check if this book is already in announcements
+  const { data: existingAnnouncements } = trpc.announcements.adminList.useQuery({ type: "announcement" });
+  useEffect(() => {
+    if (!existingAnnouncements) return;
+    const match = existingAnnouncements.find((a: any) =>
+      contentId ? a.ctaHref === `/bibliotheque/${contentId}` : a.title === title.trim()
+    );
+    if (match) {
+      setIsInAnnouncements(true);
+      setAnnouncementId(match.id);
+    }
+  }, [existingAnnouncements, contentId, title]);
+
+  const handleAddToAnnouncements = async () => {
+    if (!title.trim() || !coverImageUrl) {
+      toast.error("Titre et image de couverture requis");
+      return;
+    }
+    const meta = {
+      author: author.trim() || undefined,
+      publisher: publisher.trim() || undefined,
+    };
+    const payload = {
+      type: "announcement" as const,
+      title: title.trim(),
+      description: subtitle.trim() || (meta.author ? `Par ${meta.author}` : "Livre du mois G12 Paris"),
+      mediaUrl: coverImageUrl,
+      badge: "Livre du mois",
+      ctaLabel: "Découvrir",
+      ctaHref: `/bibliotheque/${contentId || ""}`,
+      variant: "poster" as const,
+    };
+    if (announcementId) {
+      await updateAnnouncementMutation.mutateAsync({ id: announcementId, ...payload });
+    } else {
+      const result = await addToAnnouncementsMutation.mutateAsync(payload);
+      setAnnouncementId(result.id);
+    }
+    setIsInAnnouncements(true);
+  };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'cover' | 'file') => {
     const file = e.target.files?.[0];
@@ -708,6 +771,31 @@ export default function AdminBibliothequeEditor() {
                 />
                 <label htmlFor="featured" className="text-sm font-medium select-none cursor-pointer">Mettre en avant (Bestseller / Nouveauté)</label>
               </div>
+            </div>
+
+            {/* Ajouter aux annonces */}
+            <div className="bg-card border rounded-xl p-6 shadow-sm space-y-3">
+              <h3 className="font-bold border-b pb-2 flex items-center gap-2">
+                <Megaphone className="w-4 h-4 text-primary" />
+                Annonce Livre du mois
+              </h3>
+              <p className="text-xs text-muted-foreground">
+                Ajoutez ce livre dans la section "Annonces" de la page d'accueil.
+              </p>
+              <Button
+                size="sm"
+                variant="outline"
+                className="w-full gap-1.5 text-xs"
+                disabled={!coverImageUrl || !title.trim() || addToAnnouncementsPending}
+                onClick={handleAddToAnnouncements}
+              >
+                {addToAnnouncementsPending ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Plus className="w-3.5 h-3.5" />
+                )}
+                {isInAnnouncements ? "Mettre à jour l'annonce" : "Ajouter aux annonces"}
+              </Button>
             </div>
 
             {/* SEO Score */}
