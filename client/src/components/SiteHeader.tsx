@@ -23,7 +23,6 @@ const NAV_LINKS = [
   { href: "/galeries", labelKey: "nav.galleries", defaultLabel: "Galeries" },
   { href: "/culte-en-ligne", labelKey: "nav.onlineService", defaultLabel: "Culte en ligne" },
   { href: "/bibliotheque", labelKey: "nav.library", defaultLabel: "Bibliothèque" },
-  { href: "/test", labelKey: "", defaultLabel: "Test", icon: true },
 ];
 
 const SOCIAL_LINKS = [
