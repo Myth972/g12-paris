@@ -30,6 +30,7 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 import { useBlobUpload } from "@/hooks/useBlobUpload";
+import { useTranslation } from "react-i18next";
 import RichTextEditor from "@/components/RichTextEditor";
 
 export default function AdminBibliothequeEditor() {
@@ -39,6 +40,7 @@ export default function AdminBibliothequeEditor() {
   const params = useParams<{ id: string }>();
   const [, setLocation] = useLocation();
   const isNew = params.id === "new";
+  const { t } = useTranslation();
   const contentId = isNew ? null : Number(params.id);
   
   const [title, setTitle] = useState("");
@@ -93,7 +95,7 @@ export default function AdminBibliothequeEditor() {
         const parts = existingArticle.category.split(":");
         if (parts[1]) setResourceType(parts[1]);
         if (parts[2]) {
-          const themesList = parts.slice(2).filter((t: string) => t);
+          const themesList = parts.slice(2).filter((part: string) => part);
           setSelectedThemes(themesList.length > 0 ? themesList : ["etude"]);
         }
       }
@@ -117,44 +119,44 @@ export default function AdminBibliothequeEditor() {
   const generateDescriptionMutation = trpc.ai.generateDescription.useMutation({
     onSuccess: generated => {
       setSubtitle(generated);
-      toast.success("Description générée avec succès");
+      toast.success(t('admin.bibliothequeEditor.toastGenerated'));
     },
-    onError: err => toast.error(err.message || "Erreur lors de la génération"),
+    onError: err => toast.error(err.message || t('admin.bibliothequeEditor.toastGenError')),
   });
 
   const createMutation = trpc.articles.create.useMutation({
     onSuccess: () => {
       utils.articles.adminList.invalidate();
-      toast.success("Contenu créé avec succès");
+      toast.success(t('admin.bibliothequeEditor.toastCreated'));
       setLocation("/admin/bibliotheque");
     },
-    onError: err => toast.error(err.message || "Erreur lors de la création"),
+    onError: err => toast.error(err.message || t('admin.bibliothequeEditor.toastCreateError')),
   });
 
   const updateMutation = trpc.articles.update.useMutation({
     onSuccess: () => {
       utils.articles.adminList.invalidate();
-      toast.success("Contenu mis à jour");
+      toast.success(t('admin.bibliothequeEditor.toastUpdated'));
       setLocation("/admin/bibliotheque");
     },
-    onError: err => toast.error(err.message || "Erreur lors de la mise à jour"),
+    onError: err => toast.error(err.message || t('admin.bibliothequeEditor.toastUpdateError')),
   });
 
   const addToAnnouncementsMutation = trpc.announcements.create.useMutation({
     onSuccess: () => {
       utils.announcements.adminList.invalidate();
       utils.announcements.list.invalidate();
-      toast.success("Livre ajouté aux annonces (Livre du mois)");
+      toast.success(t('admin.bibliothequeEditor.toastBookAdded'));
     },
-    onError: (err) => toast.error(err.message || "Erreur"),
+    onError: (err) => toast.error(err.message || t('admin.bibliothequeEditor.toastUploadError2')),
   });
   const updateAnnouncementMutation = trpc.announcements.update.useMutation({
     onSuccess: () => {
       utils.announcements.adminList.invalidate();
       utils.announcements.list.invalidate();
-      toast.success("Annonce mise à jour");
+      toast.success(t('admin.bibliothequeEditor.toastAnnouncementUpdated'));
     },
-    onError: (err) => toast.error(err.message || "Erreur"),
+    onError: (err) => toast.error(err.message || t('admin.bibliothequeEditor.toastUploadError2')),
   });
   const addToAnnouncementsPending = addToAnnouncementsMutation.isPending || updateAnnouncementMutation.isPending;
 
@@ -176,7 +178,7 @@ export default function AdminBibliothequeEditor() {
 
   const handleAddToAnnouncements = async () => {
     if (!title.trim() || !coverImageUrl) {
-      toast.error("Titre et image de couverture requis");
+      toast.error(t('admin.bibliothequeEditor.toastCoverRequired'));
       return;
     }
     const meta = {
@@ -215,10 +217,10 @@ export default function AdminBibliothequeEditor() {
       });
       if (type === 'cover') setCoverImageUrl(result.url);
       if (type === 'file') setFileUrl(result.url);
-      toast.success("Fichier téléchargé");
+      toast.success(t('admin.bibliothequeEditor.toastFileDownloaded'));
     } catch (err: any) {
       console.error("Upload error:", err);
-      toast.error(err?.message || "Erreur lors du téléchargement");
+      toast.error(err?.message || t('admin.bibliothequeEditor.toastUploadError'));
     } finally {
       setUploading(null);
     }
@@ -226,7 +228,7 @@ export default function AdminBibliothequeEditor() {
 
   const handleSave = async () => {
     if (!title.trim()) {
-      toast.error("Le titre est requis");
+      toast.error(t('admin.bibliothequeEditor.toastTitleRequired'));
       return;
     }
 
@@ -279,7 +281,7 @@ export default function AdminBibliothequeEditor() {
 
   const removeTag = (e: React.MouseEvent, tagToRemove: string) => {
     e.preventDefault();
-    setTags(tags.filter(t => t !== tagToRemove));
+    setTags(tags.filter(tag => tag !== tagToRemove));
   };
 
   // Auto-save draft every 30 seconds if there are unsaved changes
@@ -363,7 +365,7 @@ export default function AdminBibliothequeEditor() {
             </Button>
             <div>
               <h1 className="text-base sm:text-xl font-bold truncate max-w-[150px] sm:max-w-none">
-                {isNew ? "Nouveau" : "Modifier"}
+                {isNew ? t('admin.bibliothequeEditor.new') : t('admin.bibliothequeEditor.edit')}
               </h1>
               {lastAutoSave && (
                 <p className="text-xs text-muted-foreground hidden sm:flex items-center gap-1">
@@ -396,11 +398,11 @@ export default function AdminBibliothequeEditor() {
             )}
             <Button variant="outline" className="gap-1 sm:gap-2 text-xs sm:text-sm touch-manipulation" onClick={() => setIsPreviewMode(!isPreviewMode)}>
               <Eye className="w-4 h-4" />
-              <span className="hidden sm:inline">{isPreviewMode ? "Éditer" : "Aperçu"}</span>
+              <span className="hidden sm:inline">{isPreviewMode ? t('admin.bibliothequeEditor.editMode') : t('admin.bibliothequeEditor.preview')}</span>
             </Button>
             <Button className="gap-1 sm:gap-2 text-xs sm:text-sm mobile-button touch-manipulation" onClick={handleSave} disabled={saving}>
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              {isNew ? "Publier" : "Mettre à jour"}
+              {isNew ? t('admin.bibliothequeEditor.publish') : t('admin.bibliothequeEditor.update')}
             </Button>
           </div>
         </div>
@@ -417,10 +419,10 @@ export default function AdminBibliothequeEditor() {
               <div>
                 <p className="text-sm font-semibold flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-primary" />
-                  <span className="hidden sm:inline">Assistant IA</span>
+                  <span className="hidden sm:inline">{t('admin.bibliothequeEditor.aiAssistant')}</span>
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
-                  Générez vos descriptions automatiquement.
+                  {t('admin.bibliothequeEditor.aiDesc')}
                 </p>
               </div>
               <AIProviderSelect size="sm" />
@@ -428,14 +430,14 @@ export default function AdminBibliothequeEditor() {
 
             {/* Titres & Description */}
             <div className="bg-card border rounded-xl p-4 sm:p-6 shadow-sm space-y-4 sm:space-y-6">
-              <h2 className="font-serif font-bold text-base sm:text-lg border-b pb-2">Informations</h2>
+              <h2 className="font-serif font-bold text-base sm:text-lg border-b pb-2">{t('admin.bibliothequeEditor.infoTitle')}</h2>
 
               <div className="space-y-2">
-                <label htmlFor="content-title" className="text-sm font-medium">Titre *</label>
+                <label htmlFor="content-title" className="text-sm font-medium">{t('admin.bibliothequeEditor.titleLabel')}</label>
                 <Input
                   id="content-title"
                   name="title"
-                  placeholder="Ex: Bible d'Étude..." 
+                  placeholder={t('admin.bibliothequeEditor.titlePlaceholder')} 
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   className="text-base font-medium mobile-input"
@@ -444,7 +446,7 @@ export default function AdminBibliothequeEditor() {
               
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <label htmlFor="content-subtitle" className="text-sm font-medium">Sous-titre / Description courte</label>
+                  <label htmlFor="content-subtitle" className="text-sm font-medium">{t('admin.bibliothequeEditor.subtitleLabel')}</label>
                   <Button 
                     variant="ghost" 
                     size="sm" 
@@ -453,24 +455,24 @@ export default function AdminBibliothequeEditor() {
                     onClick={() => generateDescriptionMutation.mutate({ title, contentType: resourceType })}
                   >
                     {generateDescriptionMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                    Rédiger avec {activeProvider.label}
+                    {t('admin.bibliothequeEditor.writeWith', { provider: activeProvider.label })}
                   </Button>
                 </div>
                 <Textarea 
                   id="content-subtitle"
                   name="subtitle"
-                  placeholder="Une phrase d'accroche ou un bref résumé..." 
+                  placeholder={t('admin.bibliothequeEditor.subtitlePlaceholder')} 
                   className="resize-none" 
                   rows={2}
                   value={subtitle}
                   onChange={(e) => setSubtitle(e.target.value)}
                 />
-                <p className="text-xs text-muted-foreground text-right">{subtitle.length} / 160 caractères</p>
+                <p className="text-xs text-muted-foreground text-right">{t('admin.bibliothequeEditor.charCount', { count: subtitle.length })}</p>
               </div>
 
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <label htmlFor="rich-content" className="text-sm font-medium">Description Longue (Rich Text)</label>
+                  <label htmlFor="rich-content" className="text-sm font-medium">{t('admin.bibliothequeEditor.longDescription')}</label>
                   <div className="flex gap-2">
                     <Button 
                       variant="ghost" 
@@ -480,16 +482,16 @@ export default function AdminBibliothequeEditor() {
                       onClick={() => generateDescriptionMutation.mutate({ title, contentType: "description détaillée" })}
                     >
                       {generateDescriptionMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                      Générer avec {activeProvider.label}
+                      {t('admin.bibliothequeEditor.generateWith', { provider: activeProvider.label })}
                     </Button>
-                    <Button variant="ghost" size="sm" className="h-6 text-xs">Mode Plein Écran</Button>
+                    <Button variant="ghost" size="sm" className="h-6 text-xs">{t('admin.bibliothequeEditor.fullScreenMode')}</Button>
                   </div>
                 </div>
                 <div className="border rounded-md min-h-[300px] flex flex-col bg-background overflow-hidden">
                   <RichTextEditor
                     content={content}
                     onChange={setContent}
-                    placeholder="Rédigez la description détaillée..."
+                    placeholder={t('admin.bibliothequeEditor.richTextPlaceholder')}
                     minHeight="300px"
                   />
                 </div>
@@ -498,31 +500,31 @@ export default function AdminBibliothequeEditor() {
 
             {/* Détails du livre */}
             <div className="bg-card border rounded-xl p-6 shadow-sm space-y-6">
-              <h2 className="font-serif font-bold text-lg border-b pb-2">Détails du livre</h2>
+              <h2 className="font-serif font-bold text-lg border-b pb-2">{t('admin.bibliothequeEditor.bookDetails')}</h2>
               
               <div className="grid sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label htmlFor="author" className="text-sm font-medium">Auteur</label>
+                  <label htmlFor="author" className="text-sm font-medium">{t('admin.bibliothequeEditor.author')}</label>
                   <Input 
                     id="author"
-                    placeholder="Ex: César Castellanos" 
+                    placeholder={t('admin.bibliothequeEditor.authorPlaceholder')} 
                     value={author}
                     onChange={(e) => setAuthor(e.target.value)}
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <label htmlFor="publisher" className="text-sm font-medium">Éditeur</label>
+                  <label htmlFor="publisher" className="text-sm font-medium">{t('admin.bibliothequeEditor.publisher')}</label>
                   <Input 
                     id="publisher"
-                    placeholder="Ex: G12 francophonie" 
+                    placeholder={t('admin.bibliothequeEditor.publisherPlaceholder')} 
                     value={publisher}
                     onChange={(e) => setPublisher(e.target.value)}
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <label htmlFor="language" className="text-sm font-medium">Langue</label>
+                  <label htmlFor="language" className="text-sm font-medium">{t('admin.bibliothequeEditor.language')}</label>
                   <Select value={language} onValueChange={setLanguage}>
                     <SelectTrigger id="language">
                       <SelectValue />
@@ -537,7 +539,7 @@ export default function AdminBibliothequeEditor() {
                 </div>
                 
                 <div className="space-y-2">
-                  <label htmlFor="book-format" className="text-sm font-medium">Format</label>
+                  <label htmlFor="book-format" className="text-sm font-medium">{t('admin.bibliothequeEditor.format')}</label>
                   <Select value={bookFormat} onValueChange={setBookFormat}>
                     <SelectTrigger id="book-format">
                       <SelectValue />
@@ -552,7 +554,7 @@ export default function AdminBibliothequeEditor() {
                 </div>
                 
                 <div className="space-y-2">
-                  <label htmlFor="published-date" className="text-sm font-medium">Date de publication</label>
+                  <label htmlFor="published-date" className="text-sm font-medium">{t('admin.bibliothequeEditor.publicationDate')}</label>
                   <Input 
                     id="published-date"
                     type="date"
@@ -562,21 +564,21 @@ export default function AdminBibliothequeEditor() {
                 </div>
                 
                 <div className="space-y-2">
-                  <label htmlFor="isbn" className="text-sm font-medium">ISBN</label>
+                  <label htmlFor="isbn" className="text-sm font-medium">{t('admin.bibliothequeEditor.isbn')}</label>
                   <Input 
                     id="isbn"
-                    placeholder="Ex: 978-2-1234-5678-9" 
+                    placeholder={t('admin.bibliothequeEditor.isbnPlaceholder')} 
                     value={isbn}
                     onChange={(e) => setIsbn(e.target.value)}
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <label htmlFor="page-count" className="text-sm font-medium">Nombre de pages</label>
+                  <label htmlFor="page-count" className="text-sm font-medium">{t('admin.bibliothequeEditor.pageCount')}</label>
                   <Input 
                     id="page-count"
                     type="number"
-                    placeholder="Ex: 256" 
+                    placeholder={t('admin.bibliothequeEditor.pageCountPlaceholder')} 
                     value={pageCount}
                     onChange={(e) => setPageCount(e.target.value)}
                   />
@@ -588,13 +590,13 @@ export default function AdminBibliothequeEditor() {
             <div className="bg-card border rounded-xl p-6 shadow-sm space-y-6">
               <h2 className="font-serif font-bold text-lg border-b pb-2 flex items-center gap-2">
                 <UploadCloud className="w-5 h-5 text-primary" />
-                Médias & Fichiers
+                {t('admin.bibliothequeEditor.mediaFiles')}
               </h2>
               
               <div className="grid sm:grid-cols-2 gap-6">
                 {/* Vignette */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Image de couverture (Vignette)</label>
+                  <label className="text-sm font-medium">{t('admin.bibliothequeEditor.coverImage')}</label>
                   <div 
                     className="border-2 border-dashed rounded-xl aspect-[3/4] flex flex-col items-center justify-center p-6 text-center cursor-pointer hover:bg-muted/50 transition-colors relative overflow-hidden"
                     onClick={() => document.getElementById('cover-upload')?.click()}
@@ -603,14 +605,14 @@ export default function AdminBibliothequeEditor() {
                       <>
                         <img src={coverImageUrl} alt="Cover" className="absolute inset-0 w-full h-full object-cover object-center" />
                         <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <Button size="sm" variant="secondary">Remplacer</Button>
+                          <Button size="sm" variant="secondary">{t('admin.bibliothequeEditor.replace')}</Button>
                         </div>
                       </>
                     ) : (
                       <>
                         {uploading === 'cover' ? <Loader2 className="w-10 h-10 animate-spin text-primary" /> : <ImageIcon className="w-10 h-10 text-muted-foreground mb-2" />}
-                        <span className="text-sm font-medium text-muted-foreground">{uploading === 'cover' ? 'Téléchargement...' : 'Cliquez pour parcourir'}</span>
-                        <span className="text-xs text-muted-foreground/70 mt-1">JPEG, PNG • Max 5Mo</span>
+                        <span className="text-sm font-medium text-muted-foreground">{uploading === 'cover' ? t('admin.bibliothequeEditor.uploading') : t('admin.bibliothequeEditor.clickToBrowse')}</span>
+                        <span className="text-xs text-muted-foreground/70 mt-1">{t('admin.bibliothequeEditor.jpegPngMax')}</span>
                       </>
                     )}
                   </div>
@@ -619,7 +621,7 @@ export default function AdminBibliothequeEditor() {
 
                 {/* Fichier de contenu */}
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Fichier principal (PDF, Vidéo, Audio)</label>
+                  <label className="text-sm font-medium">{t('admin.bibliothequeEditor.mainFile')}</label>
                   <div 
                     className="border-2 border-dashed rounded-xl h-full min-h-[200px] flex flex-col items-center justify-center p-6 text-center cursor-pointer hover:bg-muted/50 transition-colors"
                     onClick={() => document.getElementById('file-upload')?.click()}
@@ -628,13 +630,13 @@ export default function AdminBibliothequeEditor() {
                       <div className="flex flex-col items-center gap-2">
                         <FileText className="w-10 h-10 text-primary" />
                         <span className="text-sm font-medium truncate max-w-[150px]">{fileUrl.split('/').pop()}</span>
-                        <Button size="sm" variant="outline">Changer</Button>
+                        <Button size="sm" variant="outline">{t('admin.bibliothequeEditor.changeFile')}</Button>
                       </div>
                     ) : (
                       <>
                         {uploading === 'file' ? <Loader2 className="w-10 h-10 animate-spin text-primary" /> : <UploadCloud className="w-10 h-10 text-primary mb-2" />}
-                        <span className="text-sm font-medium text-primary">{uploading === 'file' ? 'Téléchargement...' : 'Sélectionner un fichier'}</span>
-                        <span className="text-xs text-muted-foreground mt-2 max-w-[200px]">Si ce contenu est un fichier téléchargeable ou une vidéo hébergée</span>
+                        <span className="text-sm font-medium text-primary">{uploading === 'file' ? t('admin.bibliothequeEditor.uploading') : t('admin.bibliothequeEditor.selectFile')}</span>
+                        <span className="text-xs text-muted-foreground mt-2 max-w-[200px]">{t('admin.bibliothequeEditor.fileUploadHelp')}</span>
                       </>
                     )}
                   </div>
@@ -649,13 +651,13 @@ export default function AdminBibliothequeEditor() {
             
             {/* Classification */}
             <div className="bg-card border rounded-xl p-6 shadow-sm space-y-4">
-              <h3 className="font-bold border-b pb-2">Classification</h3>
+              <h3 className="font-bold border-b pb-2">{t('admin.bibliothequeEditor.classification')}</h3>
               
               <div className="space-y-2">
-                <label htmlFor="resource-type" className="text-sm font-medium text-muted-foreground">Type de ressource</label>
+                <label htmlFor="resource-type" className="text-sm font-medium text-muted-foreground">{t('admin.bibliothequeEditor.resourceType')}</label>
                 <Select value={resourceType} onValueChange={setResourceType}>
                   <SelectTrigger id="resource-type" name="resourceType">
-                    <SelectValue placeholder="Sélectionner un type..." />
+                    <SelectValue placeholder={t('admin.bibliothequeEditor.selectType')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="offre">Offre / Pack</SelectItem>
@@ -677,9 +679,9 @@ export default function AdminBibliothequeEditor() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-muted-foreground">Thèmes</label>
+                <label className="text-sm font-medium text-muted-foreground">{t('admin.bibliothequeEditor.themes')}</label>
                 <div className="grid grid-cols-2 gap-2">
-                  {(libThemes?.map((t: any) => t.name) || ["foi", "Foi", "Leadership", "Famille", "famille", "Etude Biblique", "bibles", "prière", "prophétie", "évangélisation", "guérison", "finance", "danse", "louange"]).map((themeOption: string) => (
+                  {(libThemes?.map((theme: any) => theme.name) || ["foi", "Foi", "Leadership", "Famille", "famille", "Etude Biblique", "bibles", "prière", "prophétie", "évangélisation", "guérison", "finance", "danse", "louange"]).map((themeOption: string) => (
                     <label key={themeOption} className="flex items-center gap-2 cursor-pointer hover:bg-muted/50 p-2 rounded-md transition-colors">
                       <input 
                         type="checkbox" 
@@ -688,7 +690,7 @@ export default function AdminBibliothequeEditor() {
                           if (e.target.checked) {
                             setSelectedThemes([...selectedThemes, themeOption]);
                           } else {
-                            setSelectedThemes(selectedThemes.filter(t => t !== themeOption));
+                            setSelectedThemes(selectedThemes.filter(theme => theme !== themeOption));
                           }
                         }}
                         className="rounded border-input text-primary focus:ring-primary w-4 h-4" 
@@ -702,7 +704,7 @@ export default function AdminBibliothequeEditor() {
 
             {/* Tags */}
             <div className="bg-card border rounded-xl p-6 shadow-sm space-y-4">
-              <h3 className="font-bold border-b pb-2">Mots-clés (Tags)</h3>
+              <h3 className="font-bold border-b pb-2">{t('admin.bibliothequeEditor.tags')}</h3>
               <div className="flex flex-wrap gap-2 mb-2">
                 {tags.map(tag => (
                   <Badge key={tag} variant="secondary" className="pl-2 pr-1 py-1 gap-1 flex items-center">
@@ -717,7 +719,7 @@ export default function AdminBibliothequeEditor() {
                 <Input 
                   id="tag-input"
                   name="tagInput"
-                  placeholder="Ajouter un tag + Entrée" 
+                  placeholder={t('admin.bibliothequeEditor.addTagPlaceholder')} 
                   value={tagInput}
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyDown={addTag}
@@ -727,15 +729,15 @@ export default function AdminBibliothequeEditor() {
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground">Appuyez sur Entrée pour ajouter un mot-clé</p>
+              <p className="text-xs text-muted-foreground">{t('admin.bibliothequeEditor.addTagHelp')}</p>
             </div>
 
             {/* Prix & E-commerce */}
             <div className="bg-card border rounded-xl p-6 shadow-sm space-y-4">
-              <h3 className="font-bold border-b pb-2">Prix & Options (Optionnel)</h3>
+              <h3 className="font-bold border-b pb-2">{t('admin.bibliothequeEditor.priceOptions')}</h3>
               
               <div className="space-y-2">
-                <label htmlFor="price" className="text-sm font-medium text-muted-foreground">Prix régulier (€)</label>
+                <label htmlFor="price" className="text-sm font-medium text-muted-foreground">{t('admin.bibliothequeEditor.regularPrice')}</label>
                 <Input 
                   id="price" 
                   name="price"
@@ -744,11 +746,11 @@ export default function AdminBibliothequeEditor() {
                   value={price}
                   onChange={(e) => setPrice(e.target.value)}
                 />
-                <p className="text-xs text-muted-foreground">Laissez vide si gratuit</p>
+                <p className="text-xs text-muted-foreground">{t('admin.bibliothequeEditor.leaveEmptyFree')}</p>
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="affiliateUrl" className="text-sm font-medium text-muted-foreground">Lien d'affiliation Amazon</label>
+                <label htmlFor="affiliateUrl" className="text-sm font-medium text-muted-foreground">{t('admin.bibliothequeEditor.affiliateLink')}</label>
                 <Input 
                   id="affiliateUrl" 
                   name="affiliateUrl"
@@ -757,7 +759,7 @@ export default function AdminBibliothequeEditor() {
                   value={affiliateUrl}
                   onChange={(e) => setAffiliateUrl(e.target.value)}
                 />
-                <p className="text-xs text-muted-foreground">URL d'affiliation pour les achats Amazon (optionnel)</p>
+                <p className="text-xs text-muted-foreground">{t('admin.bibliothequeEditor.affiliateHelp')}</p>
               </div>
               
               <div className="flex items-center gap-2 pt-2 cursor-pointer">
@@ -769,7 +771,7 @@ export default function AdminBibliothequeEditor() {
                   checked={featured}
                   onChange={(e) => setFeatured(e.target.checked)}
                 />
-                <label htmlFor="featured" className="text-sm font-medium select-none cursor-pointer">Mettre en avant (Bestseller / Nouveauté)</label>
+                <label htmlFor="featured" className="text-sm font-medium select-none cursor-pointer">{t('admin.bibliothequeEditor.featured')}</label>
               </div>
             </div>
 
@@ -777,10 +779,10 @@ export default function AdminBibliothequeEditor() {
             <div className="bg-card border rounded-xl p-6 shadow-sm space-y-3">
               <h3 className="font-bold border-b pb-2 flex items-center gap-2">
                 <Megaphone className="w-4 h-4 text-primary" />
-                Annonce Livre du mois
+                {t('admin.bibliothequeEditor.bookOfMonth')}
               </h3>
               <p className="text-xs text-muted-foreground">
-                Ajoutez ce livre dans la section "Annonces" de la page d'accueil.
+                {t('admin.bibliothequeEditor.addToAnnouncements')}
               </p>
               <Button
                 size="sm"
@@ -794,7 +796,7 @@ export default function AdminBibliothequeEditor() {
                 ) : (
                   <Plus className="w-3.5 h-3.5" />
                 )}
-                {isInAnnouncements ? "Mettre à jour l'annonce" : "Ajouter aux annonces"}
+                {isInAnnouncements ? t('admin.bibliothequeEditor.updateAnnouncement') : t('admin.bibliothequeEditor.addAnnouncement')}
               </Button>
             </div>
 
@@ -804,29 +806,29 @@ export default function AdminBibliothequeEditor() {
               const suggestions: string[] = [];
               
               if (!title.trim()) {
-                issues.push("Titre manquant");
+                  issues.push(t('admin.bibliothequeEditor.seoIssues.titleMissing'));
               } else if (title.length < 30) {
-                suggestions.push("Titre trop court (30+ caractères recommandés)");
+                  suggestions.push(t('admin.bibliothequeEditor.seoIssues.titleShort'));
               } else if (title.length > 60) {
-                suggestions.push("Titre trop long (60 caractères max)");
+                  suggestions.push(t('admin.bibliothequeEditor.seoIssues.titleLong'));
               }
               
               if (!subtitle.trim()) {
-                suggestions.push("Ajouter une méta-description (sous-titre)");
+                  suggestions.push(t('admin.bibliothequeEditor.seoIssues.descMissing'));
               } else if (subtitle.length < 80) {
-                suggestions.push("Description recommandée entre 80-160 caractères");
+                  suggestions.push(t('admin.bibliothequeEditor.seoIssues.descShort'));
               }
               
               if (!content.trim() || content.length < 200) {
-                suggestions.push("Contenu trop court (200+ caractères recommandés)");
+                  suggestions.push(t('admin.bibliothequeEditor.seoIssues.contentShort'));
               }
               
               if (!coverImageUrl) {
-                suggestions.push("Ajouter une image de couverture");
+                  suggestions.push(t('admin.bibliothequeEditor.seoIssues.noCover'));
               }
               
               if (!price && resourceType !== "offre") {
-                suggestions.push("Envisager d'ajouter un prix");
+                  suggestions.push(t('admin.bibliothequeEditor.seoIssues.noPrice'));
               }
               
               const score = Math.max(0, 100 - (issues.length * 20) - (suggestions.length * 5));
@@ -835,11 +837,11 @@ export default function AdminBibliothequeEditor() {
                 <div className="bg-card border rounded-xl p-6 shadow-sm space-y-4">
                   <h3 className="font-bold border-b pb-2 flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-primary" />
-                    Analyse SEO
+                    {t('admin.bibliothequeEditor.seoAnalysis')}
                   </h3>
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">Score SEO</span>
+                      <span className="text-sm font-medium">{t('admin.bibliothequeEditor.seoScore')}</span>
                       <span className={`text-lg font-bold ${score >= 70 ? 'text-green-600' : score >= 40 ? 'text-amber-600' : 'text-red-600'}`}>
                         {score}%
                       </span>

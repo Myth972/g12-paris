@@ -13,6 +13,13 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { generateClientTokenFromReadWriteToken } from "@vercel/blob/client";
 import {
+  checkUserQuota,
+  estimateTokens,
+  logAiUsage,
+  getAiStats,
+  getUserQuotaInfo,
+} from "./_core/aiQuota.js";
+import {
   createArticle,
   updateArticle,
   deleteArticle,
@@ -57,6 +64,7 @@ import {
 } from "./db.js";
 import { storagePut } from "./storage.js";
 import { nanoid } from "nanoid";
+import { themeRouter } from "./themeRouter.js";
 
 const zod = {
   object: <T extends z.ZodRawShape>(shape: T) => z.object(shape).strict(),
@@ -78,6 +86,7 @@ function generateSlug(title: string): string {
 
 export const appRouter = router({
   system: systemRouter,
+  theme: themeRouter,
   bibliotheque: router({
     listMedias: adminProcedure
       .input(zod.object({ limit: z.number().default(50), offset: z.number().default(0) }))
@@ -217,7 +226,10 @@ export const appRouter = router({
       }),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);
-      (ctx.res as any).clearCookie(COOKIE_NAME, cookieOptions);
+      (ctx.res as any).clearCookie(COOKIE_NAME, {
+        ...cookieOptions,
+        maxAge: -1,
+      });
       return { success: true } as const;
     }),
   }),
@@ -302,7 +314,7 @@ export const appRouter = router({
         const folder = input.folder.replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
         const key = `${folder}/${Date.now()}-${input.filename}`;
         
-        let finalBuffer = buffer;
+        let finalBuffer: any = buffer;
         if (input.contentType?.startsWith("image/")) {
             const sharp = await import("sharp");
             finalBuffer = await sharp.default(buffer).resize(1200, 1200, { fit: 'inside', withoutEnlargement: true }).jpeg({ quality: 80 }).toBuffer();
@@ -344,7 +356,7 @@ export const appRouter = router({
           type: z.string().optional(),
           theme: z.string().optional(),
           sort: z.enum(["newest", "popular", "price_asc", "price_desc"]).optional(),
-        })
+        }).optional()
       )
       .query(async ({ input }) => {
         const { limit = 12, offset = 0, category, search, minPrice, maxPrice, type, theme, sort } = input ?? {};
@@ -479,7 +491,7 @@ export const appRouter = router({
         const ext = input.filename.split(".").pop() || "jpg";
         const key = `articles/${ctx.user.id}/${nanoid(12)}.${ext}`;
         
-        let finalBuffer = buffer;
+        let finalBuffer: any = buffer;
         if (input.contentType.startsWith("image/")) {
             const sharp = await import("sharp");
             finalBuffer = await sharp.default(buffer).resize(1200, 1200, { fit: 'inside', withoutEnlargement: true }).jpeg({ quality: 80 }).toBuffer();
@@ -652,7 +664,7 @@ export const appRouter = router({
         const buffer = Buffer.from(input.base64, "base64");
         const fileKey = `gallery/${Date.now()}-${nanoid()}.${input.filename.split(".").pop()}`;
         
-        let finalBuffer = buffer;
+        let finalBuffer: any = buffer;
         if (input.contentType.startsWith("image/")) {
             const sharp = await import("sharp");
             finalBuffer = await sharp.default(buffer).resize(1200, 1200, { fit: 'inside', withoutEnlargement: true }).jpeg({ quality: 80 }).toBuffer();
@@ -814,7 +826,7 @@ export const appRouter = router({
         const buffer = Buffer.from(input.base64, "base64");
         const fileKey = `page-content/${Date.now()}-${nanoid()}.${input.filename.split(".").pop()}`;
         
-        let finalBuffer = buffer;
+        let finalBuffer: any = buffer;
         if (input.contentType.startsWith("image/")) {
             const sharp = await import("sharp");
             finalBuffer = await sharp.default(buffer).resize(1200, 1200, { fit: 'inside', withoutEnlargement: true }).jpeg({ quality: 80 }).toBuffer();
@@ -878,12 +890,16 @@ export const appRouter = router({
           messages: z.array(
             zod.object({
               role: z.enum(["system", "user", "assistant"]),
-              content: z.string(),
+              content: z.string().max(4000),
             })
-          ),
+          ).max(20),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
+        const userId = ctx.user?.id?.toString() || "anonymous";
+        const inputTokens = input.messages.reduce((sum, m) => sum + estimateTokens(m.content), 0);
+        checkUserQuota(userId, inputTokens);
+
         const { getDb } = await import("./db.js");
         const db = await getDb();
         let provider: "google" | "groq" | "minimax" | "aimlapi" | undefined;
@@ -898,12 +914,43 @@ export const appRouter = router({
           const value = rows[0]?.value;
           provider = value as any;
         }
-        const { invokeLLM } = await import("./_core/llm.js");
-        const response = await invokeLLM({
-          messages: input.messages as any,
-          provider,
-        });
-        return response.choices[0].message.content as string;
+        const { invokeLLMWithFallback } = await import("./_core/llm.js");
+        const startTime = Date.now();
+        try {
+          const response = await invokeLLMWithFallback({
+            messages: input.messages as any,
+            provider,
+          });
+          const outputTokens = estimateTokens(response.choices[0].message.content as string);
+          logAiUsage({
+            timestamp: new Date(),
+            userId,
+            provider: provider || "groq",
+            model: response.model,
+            endpoint: "ai.chat",
+            inputTokens,
+            outputTokens,
+            totalTokens: inputTokens + outputTokens,
+            success: true,
+            durationMs: Date.now() - startTime,
+          });
+          return response.choices[0].message.content as string;
+        } catch (err: any) {
+          logAiUsage({
+            timestamp: new Date(),
+            userId,
+            provider: provider || "groq",
+            model: "unknown",
+            endpoint: "ai.chat",
+            inputTokens,
+            outputTokens: 0,
+            totalTokens: inputTokens,
+            success: false,
+            error: err.message,
+            durationMs: Date.now() - startTime,
+          });
+          throw err;
+        }
       }),
     
     testProvider: adminProcedure
@@ -948,7 +995,10 @@ export const appRouter = router({
           contentType: z.string(),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
+        const userId = ctx.user?.id?.toString() || "anonymous";
+        checkUserQuota(userId, estimateTokens(input.title) + 200);
+
         const { getDb } = await import("./db.js");
         const db = await getDb();
         let provider: "google" | "groq" | "minimax" | "aimlapi" | undefined;
@@ -963,21 +1013,40 @@ export const appRouter = router({
           const value = rows[0]?.value;
           provider = value as any;
         }
-        const { invokeLLM } = await import("./_core/llm.js");
+        const { invokeLLMWithFallback } = await import("./_core/llm.js");
         const prompt = `Rédige une description courte (2-3 phrases) et percutante pour un contenu de type "${input.contentType}" intitulé "${input.title}". Le ton doit être inspirant et spirituel.`;
-
-        const response = await invokeLLM({
-          messages: [
-            {
-              role: "system",
-              content:
-                "Tu es un assistant éditorial pour un site d'informations chrétien.",
-            },
-            { role: "user", content: prompt },
-          ],
-          provider,
-        });
-        return response.choices[0].message.content as string;
+        const startTime = Date.now();
+        try {
+          const response = await invokeLLMWithFallback({
+            messages: [
+              {
+                role: "system",
+                content:
+                  "Tu es un assistant éditorial pour un site d'informations chrétien.",
+              },
+              { role: "user", content: prompt },
+            ],
+            provider,
+          });
+          const content = response.choices[0].message.content as string;
+          logAiUsage({
+            timestamp: new Date(), userId, provider: provider || "groq",
+            model: response.model, endpoint: "ai.generateDescription",
+            inputTokens: estimateTokens(prompt), outputTokens: estimateTokens(content),
+            totalTokens: estimateTokens(prompt) + estimateTokens(content),
+            success: true, durationMs: Date.now() - startTime,
+          });
+          return content;
+        } catch (err: any) {
+          logAiUsage({
+            timestamp: new Date(), userId, provider: provider || "groq",
+            model: "unknown", endpoint: "ai.generateDescription",
+            inputTokens: estimateTokens(prompt), outputTokens: 0,
+            totalTokens: estimateTokens(prompt), success: false,
+            error: err.message, durationMs: Date.now() - startTime,
+          });
+          throw err;
+        }
       }),
 
     generateVerse: adminProcedure
@@ -989,7 +1058,10 @@ export const appRouter = router({
           })
           .optional()
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
+        const userId = ctx.user?.id?.toString() || "anonymous";
+        checkUserQuota(userId, 500);
+
         const { getDb } = await import("./db.js");
         const db = await getDb();
         let provider: "google" | "groq" | "minimax" | "aimlapi" | undefined;
@@ -1004,7 +1076,7 @@ export const appRouter = router({
           const value = rows[0]?.value;
           provider = value as any;
         }
-        const { invokeLLM } = await import("./_core/llm.js");
+        const { invokeLLMWithFallback } = await import("./_core/llm.js");
 
         let prompt = "";
         if (input?.reference) {
@@ -1022,7 +1094,7 @@ export const appRouter = router({
           "summary": "Un résumé court (2-3 phrases) et spirituellement inspirant de ce verset."
         }`;
 
-        const response = await invokeLLM({
+        const response = await invokeLLMWithFallback({
           messages: [
             {
               role: "system",
@@ -1070,6 +1142,13 @@ export const appRouter = router({
         }
 
         if (parsed && parsed.reference && parsed.text) {
+          logAiUsage({
+            timestamp: new Date(), userId, provider: provider || "groq",
+            model: response.model, endpoint: "ai.generateVerse",
+            inputTokens: 500, outputTokens: estimateTokens(raw),
+            totalTokens: 500 + estimateTokens(raw), success: true,
+            durationMs: 0,
+          });
           return {
             reference: parsed.reference,
             text: parsed.text,
@@ -1090,7 +1169,10 @@ export const appRouter = router({
           content: z.string(),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
+        const userId = ctx.user?.id?.toString() || "anonymous";
+        checkUserQuota(userId, estimateTokens(input.title + input.content) + 300);
+
         const { getDb } = await import("./db.js");
         const db = await getDb();
         let provider: "google" | "groq" | "minimax" | "aimlapi" | undefined;
@@ -1105,7 +1187,7 @@ export const appRouter = router({
           const value = rows[0]?.value;
           provider = value as any;
         }
-        const { invokeLLM } = await import("./_core/llm.js");
+        const { invokeLLMWithFallback } = await import("./_core/llm.js");
         const prompt = `En tant qu'érudit biblique, suggère le verset biblique le plus pertinent pour accompagner l'article suivant :
         Titre : "${input.title}"
         Contenu : "${input.content.substring(0, 1000)}..."
@@ -1117,7 +1199,7 @@ export const appRouter = router({
           "summary": "Un résumé court (2-3 phrases) expliquant pourquoi ce verset est pertinent pour cet article."
         }`;
 
-        const response = await invokeLLM({
+        const response = await invokeLLMWithFallback({
           messages: [
             {
               role: "system",
@@ -1125,7 +1207,7 @@ export const appRouter = router({
             },
             { role: "user", content: prompt },
           ],
-          provider: provider || "minimax", // Utilise le fournisseur préféré ou MiniMax par défaut
+          provider: provider || "minimax",
         });
 
         const raw = (response.choices[0].message.content as string) || "";
@@ -1164,6 +1246,12 @@ export const appRouter = router({
         }
 
         if (parsed && parsed.reference && parsed.text) {
+          logAiUsage({
+            timestamp: new Date(), userId, provider: provider || "minimax",
+            model: response.model, endpoint: "ai.suggestVerseForArticle",
+            inputTokens: 300, outputTokens: estimateTokens(raw),
+            totalTokens: 300 + estimateTokens(raw), success: true, durationMs: 0,
+          });
           return {
             reference: parsed.reference,
             text: parsed.text,
@@ -1184,7 +1272,10 @@ export const appRouter = router({
           targetLanguage: z.enum(["en", "es"]),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
+        const userId = ctx.user?.id?.toString() || "anonymous";
+        checkUserQuota(userId, estimateTokens(input.text) + 200);
+
         const { getDb } = await import("./db.js");
         const db = await getDb();
         let provider: "google" | "groq" | "minimax" | "aimlapi" | undefined;
@@ -1199,47 +1290,77 @@ export const appRouter = router({
           const value = rows[0]?.value;
           provider = value as any;
         }
-        const { invokeLLM } = await import("./_core/llm.js");
+        const { invokeLLMWithFallback } = await import("./_core/llm.js");
         const languageName =
           input.targetLanguage === "en" ? "anglais" : "espagnol";
         const prompt = `Voici un texte en français (qui peut contenir du HTML). Traduis-le en ${languageName} en gardant exactement la même structure HTML s'il y en a. Renvoie UNIQUEMENT la traduction, sans aucun commentaire ou texte avant ou après :\n\n${input.text}`;
 
-        const response = await invokeLLM({
-          messages: [
-            {
-              role: "system",
-              content:
-                "Tu es un traducteur expert spécialisé dans les textes spirituels chrétiens. Tu renvoies uniquement la traduction demandée.",
-            },
-            { role: "user", content: prompt },
-          ],
-          provider,
-        });
+        const startTime = Date.now();
+        try {
+          const response = await invokeLLMWithFallback({
+            messages: [
+              {
+                role: "system",
+                content:
+                  "Tu es un traducteur expert spécialisé dans les textes spirituels chrétiens. Tu renvoies uniquement la traduction demandée.",
+              },
+              { role: "user", content: prompt },
+            ],
+            provider,
+          });
 
-        const content = response.choices[0].message.content as string;
-        // remove code blocks if the LLM wrapped the HTML
-        return content
-          .replace(/^```html/i, "")
-          .replace(/^```/i, "")
-          .replace(/```$/i, "")
-          .trim();
+          const content = response.choices[0].message.content as string;
+          const result = content
+            .replace(/^```html/i, "")
+            .replace(/^```/i, "")
+            .replace(/```$/i, "")
+            .trim();
+          logAiUsage({
+            timestamp: new Date(), userId, provider: provider || "groq",
+            model: response.model, endpoint: "ai.translate",
+            inputTokens: estimateTokens(prompt), outputTokens: estimateTokens(content),
+            totalTokens: estimateTokens(prompt) + estimateTokens(content),
+            success: true, durationMs: Date.now() - startTime,
+          });
+          return result;
+        } catch (err: any) {
+          logAiUsage({
+            timestamp: new Date(), userId, provider: provider || "groq",
+            model: "unknown", endpoint: "ai.translate",
+            inputTokens: estimateTokens(prompt), outputTokens: 0,
+            totalTokens: estimateTokens(prompt), success: false,
+            error: err.message, durationMs: Date.now() - startTime,
+          });
+          throw err;
+        }
       }),
 
     search: publicProcedure
       .input(
         zod.object({
-          query: z.string(),
+          query: z.string().min(1).max(500),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
+        const isAuthenticated = !!ctx.user;
+        const userId = ctx.user?.id?.toString() || "anonymous-demo";
+
+        // Mode démo : limite plus stricte
+        if (!isAuthenticated) {
+          checkUserQuota(userId, estimateTokens(input.query) + 200);
+        } else {
+          checkUserQuota(userId, estimateTokens(input.query) + 500);
+        }
+
         const { getDb } = await import("./db.js");
         const db = await getDb();
 
         let contextText = "";
         if (db) {
-          // Very basic text search for context feeding
           const { articles } = await import("../drizzle/schema.js");
           const { eq } = await import("drizzle-orm");
+          // Mode démo: 3 articles | Connecté: 10 articles
+          const limit = isAuthenticated ? 10 : 3;
           const rows = await db
             .select({
               title: articles.title,
@@ -1248,7 +1369,7 @@ export const appRouter = router({
             })
             .from(articles)
             .where(eq(articles.published, true))
-            .limit(10);
+            .limit(limit);
 
           contextText = rows
             .map(
@@ -1258,7 +1379,7 @@ export const appRouter = router({
             .join("\n\n");
         }
 
-        const { invokeLLM } = await import("./_core/llm.js");
+        const { invokeLLMWithFallback } = await import("./_core/llm.js");
         let provider: "google" | "groq" | "minimax" | "aimlapi" | undefined;
         if (db) {
           const { siteSettings } = await import("../drizzle/schema.js");
@@ -1271,21 +1392,50 @@ export const appRouter = router({
           const value = rows[0]?.value;
           provider = value as any;
         }
-        const prompt = `L'utilisateur pose cette question ou recherche: "${input.query}".\n\nVoici quelques extraits des récents articles du site:\n${contextText}\n\nRéponds de manière spirituelle et bienveillante en utilisant les articles comme contexte si pertinent, sinon donne une réponse inspirante chrétienne globale. Reste concis (1-3 paragraphes).`;
 
-        const response = await invokeLLM({
-          messages: [
-            {
-              role: "system",
-              content:
-                "Tu es l'assistant IA spirituel de G12 Paris Media. Tu réponds avec bienveillance et sagesse.",
-            },
-            { role: "user", content: prompt },
-          ],
-          provider,
-        });
+        // Prompt différent selon le mode
+        const systemPrompt = isAuthenticated
+          ? "Tu es l'assistant IA spirituel de G12 Paris Media. Tu réponds avec bienveillance et sagesse."
+          : "Tu es l'assistant IA de démonstration de G12 Paris Media. Réponds de manière concise (1 court paragraphe maximum). Si la question nécessite une réponse longue, suggère à l'utilisateur de se connecter pour une réponse complète.";
 
-        return response.choices[0].message.content as string;
+        const userPrompt = isAuthenticated
+          ? `L'utilisateur pose cette question ou recherche: "${input.query}".\n\nVoici quelques extraits des récents articles du site:\n${contextText}\n\nRéponds de manière spirituelle et bienveillante en utilisant les articles comme contexte si pertinent, sinon donne une réponse inspirante chrétienne globale. Reste concis (1-3 paragraphes).`
+          : `Question de démonstration: "${input.query}"\n\n${contextText ? `Extraits du site:\n${contextText}\n\n` : ""}Réponds en 1 court paragraphe maximum. Sois concis et inspirant.`;
+
+        const startTime = Date.now();
+        try {
+          const response = await invokeLLMWithFallback({
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: userPrompt },
+            ],
+            provider,
+          });
+
+          const content = response.choices[0].message.content as string;
+          logAiUsage({
+            timestamp: new Date(), userId, provider: provider || "groq",
+            model: response.model, endpoint: isAuthenticated ? "ai.search" : "ai.search.demo",
+            inputTokens: estimateTokens(userPrompt), outputTokens: estimateTokens(content),
+            totalTokens: estimateTokens(userPrompt) + estimateTokens(content),
+            success: true, durationMs: Date.now() - startTime,
+          });
+
+          // Mode démo: préfixer avec un avertissement
+          if (!isAuthenticated) {
+            return content + "\n\n---\n*🔒 Connectez-vous pour des réponses plus complètes et personnalisées.*";
+          }
+          return content;
+        } catch (err: any) {
+          logAiUsage({
+            timestamp: new Date(), userId, provider: provider || "groq",
+            model: "unknown", endpoint: isAuthenticated ? "ai.search" : "ai.search.demo",
+            inputTokens: estimateTokens(userPrompt), outputTokens: 0,
+            totalTokens: estimateTokens(userPrompt), success: false,
+            error: err.message, durationMs: Date.now() - startTime,
+          });
+          throw err;
+        }
       }),
 
     // ─── Kling AI Image Generation ─────────────────────────────────
@@ -1432,6 +1582,19 @@ export const appRouter = router({
         // Return generationId to let client poll later
         return { url: null, generationId, pending: true };
       }),
+
+    // ─── AI Stats & Quota ──────────────────────────────────────────
+    stats: adminProcedure.query(async ({ ctx }) => {
+      const stats = getAiStats();
+      const userId = ctx.user?.id?.toString() || "anonymous";
+      const quota = getUserQuotaInfo(userId);
+      return { ...stats, userQuota: quota };
+    }),
+
+    quota: adminProcedure.query(async ({ ctx }) => {
+      const userId = ctx.user?.id?.toString() || "anonymous";
+      return getUserQuotaInfo(userId);
+    }),
   }),
   // Newsletter router for managing subscriptions
   newsletter: router({

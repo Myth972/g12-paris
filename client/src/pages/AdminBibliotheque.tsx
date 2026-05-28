@@ -56,6 +56,7 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { useBlobUpload } from "@/hooks/useBlobUpload";
+import { useTranslation } from "react-i18next";
 
 const MOCK_CONTENTS = [
   { id: 1, title: "Bible d'Étude Vie Nouvelle", type: "Livre", theme: "Étude", status: "Publié", date: "24/04/2026" },
@@ -66,6 +67,7 @@ const MOCK_CONTENTS = [
 
 export default function AdminBibliotheque() {
   const [, setLocation] = useLocation();
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedType, setSelectedType] = useState<string>("all");
   const [selectedTheme, setSelectedTheme] = useState<string>("all");
@@ -116,9 +118,9 @@ export default function AdminBibliotheque() {
         setSetting.mutateAsync({ key: "page.offres.bulkDesc", value: offresBulkDesc }),
         setSetting.mutateAsync({ key: "page.offres.bulkBtn", value: offresBulkBtn }),
       ]);
-      toast.success("Textes de la page Offres enregistrés avec succès.");
+      toast.success(t('admin.bibliotheque.toastOffersSaved'));
     } catch (e) {
-      toast.error("Erreur lors de l'enregistrement des paramètres.");
+      toast.error(t('admin.bibliotheque.toastSettingsError'));
     }
   };
 
@@ -130,9 +132,9 @@ export default function AdminBibliotheque() {
         setSetting.mutateAsync({ key: "page.bibliotheque.themesBtn", value: biblioThemesBtn }),
         setSetting.mutateAsync({ key: "page.bibliotheque.themesLogo", value: biblioThemesLogo }),
       ]);
-      toast.success("Textes de la page Bibliothèque enregistrés avec succès.");
+      toast.success(t('admin.bibliotheque.toastBiblioSaved'));
     } catch (e) {
-      toast.error("Erreur lors de l'enregistrement des paramètres.");
+      toast.error(t('admin.bibliotheque.toastSettingsError'));
     }
   };
 
@@ -145,9 +147,9 @@ export default function AdminBibliotheque() {
     try {
       const result = await uploadFile({ file, folder: "gallery" });
       setBiblioThemesLogo(result.url);
-      toast.success("Nouveau logo importé. N'oubliez pas d'enregistrer.");
+      toast.success(t('admin.bibliotheque.toastNewLogo'));
     } catch (err: any) {
-      toast.error("Erreur lors de l'import : " + err.message);
+      toast.error(t('admin.bibliotheque.toastLogoError') + err.message);
     } finally {
       setIsUploadingLogo(false);
     }
@@ -169,7 +171,7 @@ export default function AdminBibliotheque() {
   const deleteMutation = trpc.articles.delete.useMutation({
     onSuccess: () => {
       utils.articles.adminList.invalidate();
-      toast.success("Contenu supprimé");
+      toast.success(t('admin.bibliotheque.toastDeleted'));
     },
     onError: (err) => toast.error(err.message),
   });
@@ -177,7 +179,7 @@ export default function AdminBibliotheque() {
   const updateMutation = trpc.articles.update.useMutation({
     onSuccess: () => {
       utils.articles.adminList.invalidate();
-      toast.success("Contenu mis à jour");
+      toast.success(t('admin.bibliotheque.toastUpdated'));
     },
     onError: (err) => toast.error(err.message),
   });
@@ -186,7 +188,7 @@ export default function AdminBibliotheque() {
     onSuccess: () => {
       utils.articles.adminList.invalidate();
       setSelectedItems([]);
-      toast.success(`${selectedItems.length} contenus supprimés`);
+      toast.success(t('admin.bibliotheque.toastBulkDeleted', { count: selectedItems.length }));
     },
     onError: (err) => toast.error(err.message),
   });
@@ -195,7 +197,7 @@ export default function AdminBibliotheque() {
     onSuccess: () => {
       utils.articles.adminList.invalidate();
       setSelectedItems([]);
-      toast.success(`${selectedItems.length} contenus publiés`);
+      toast.success(t('admin.bibliotheque.toastBulkPublished', { count: selectedItems.length }));
     },
     onError: (err) => toast.error(err.message),
   });
@@ -204,7 +206,7 @@ export default function AdminBibliotheque() {
     onSuccess: () => {
       utils.articles.adminList.invalidate();
       setSelectedItems([]);
-      toast.success(`${selectedItems.length} contenus dépubliés`);
+      toast.success(t('admin.bibliotheque.toastBulkUnpublished', { count: selectedItems.length }));
     },
     onError: (err) => toast.error(err.message),
   });
@@ -212,7 +214,7 @@ export default function AdminBibliotheque() {
   const deleteMediaMutation = trpc.gallery.delete.useMutation({
     onSuccess: () => {
       utils.gallery.list.invalidate();
-      toast.success("Média supprimé");
+      toast.success(t('admin.bibliotheque.toastMediaDeleted'));
     },
     onError: (err) => toast.error(err.message),
   });
@@ -226,15 +228,15 @@ export default function AdminBibliotheque() {
 
   const sendDigestMutation = trpc.newsletter.sendDigest.useMutation({
     onSuccess: (res) => {
-      toast.success(`Newsletter envoyée à ${res.count} abonnés`);
+      toast.success(t('admin.bibliotheque.toastNewsletterSent', { count: res.count }));
     },
-    onError: (err) => toast.error("Erreur lors de l'envoi: " + err.message),
+    onError: (err) => toast.error(t('admin.bibliotheque.toastNewsletterError') + err.message),
   });
 
   const deleteSubscriberMutation = trpc.newsletter.deleteSubscriber.useMutation({
     onSuccess: () => {
       utils.newsletter.listSubscribers.invalidate();
-      toast.success("Abonné supprimé");
+      toast.success(t('admin.bibliotheque.toastSubscriberDeleted'));
     },
     onError: (err) => toast.error(err.message),
   });
@@ -242,7 +244,7 @@ export default function AdminBibliotheque() {
   const createCategoryMutation = trpc.bibliotheque.createCategory.useMutation({
     onSuccess: () => {
       utils.bibliotheque.listCategories.invalidate();
-      toast.success("Catégorie créée");
+      toast.success(t('admin.bibliotheque.toastCategoryCreated'));
     },
     onError: (err) => toast.error(err.message),
   });
@@ -250,7 +252,7 @@ export default function AdminBibliotheque() {
   const deleteCategoryMutation = trpc.bibliotheque.deleteCategory.useMutation({
     onSuccess: () => {
       utils.bibliotheque.listCategories.invalidate();
-      toast.success("Catégorie supprimée");
+      toast.success(t('admin.bibliotheque.toastCategoryDeleted'));
     },
     onError: (err) => toast.error(err.message),
   });
@@ -258,7 +260,7 @@ export default function AdminBibliotheque() {
   const createThemeMutation = trpc.bibliotheque.createTheme.useMutation({
     onSuccess: () => {
       utils.bibliotheque.listThemes.invalidate();
-      toast.success("Thème créé");
+      toast.success(t('admin.bibliotheque.toastThemeCreated'));
     },
     onError: (err) => toast.error(err.message),
   });
@@ -266,7 +268,7 @@ export default function AdminBibliotheque() {
   const deleteThemeMutation = trpc.bibliotheque.deleteTheme.useMutation({
     onSuccess: () => {
       utils.bibliotheque.listThemes.invalidate();
-      toast.success("Thème supprimé");
+      toast.success(t('admin.bibliotheque.toastThemeDeleted'));
     },
     onError: (err) => toast.error(err.message),
   });
@@ -313,7 +315,7 @@ export default function AdminBibliotheque() {
   const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
 
   const handleDelete = async (id: number) => {
-    if (confirm("Voulez-vous vraiment supprimer ce contenu ?")) {
+    if (confirm(t('admin.bibliotheque.confirmDelete'))) {
       await deleteMutation.mutateAsync({ id });
     }
   };
@@ -334,7 +336,7 @@ export default function AdminBibliotheque() {
 
   const handleBulkDelete = async () => {
     if (selectedItems.length === 0) return;
-    if (confirm(`Voulez-vous vraiment supprimer ${selectedItems.length} contenus ?`)) {
+    if (confirm(t('admin.bibliotheque.confirmBulkDelete', { count: selectedItems.length }))) {
       for (const id of selectedItems) {
         await bulkDeleteMutation.mutateAsync({ id });
       }
@@ -371,7 +373,7 @@ export default function AdminBibliotheque() {
         mediaKey: result.key,
       });
       utils.gallery.list.invalidate();
-      toast.success("Fichier importé");
+      toast.success(t('admin.bibliotheque.toastFileImported'));
     } catch (err: any) {
       toast.error(err.message);
     }
@@ -393,13 +395,13 @@ export default function AdminBibliotheque() {
                   Administration
                 </span>
               </div>
-              <h1 className="text-2xl font-bold font-serif">Gestion Bibliothèque</h1>
+              <h1 className="text-2xl font-bold font-serif">{t('admin.bibliotheque.title')}</h1>
             </div>
           </div>
           <Button asChild className="rounded-xl shadow-lg shadow-primary/20">
             <Link href="/admin/bibliotheque/edition/new">
               <Plus className="w-4 h-4 mr-2" />
-              Nouveau Contenu
+              {t('admin.bibliotheque.newContent')}
             </Link>
           </Button>
         </div>
@@ -410,23 +412,23 @@ export default function AdminBibliotheque() {
           <TabsList className="bg-card border p-1 rounded-xl shadow-sm h-auto flex-wrap justify-start gap-2">
             <TabsTrigger value="contenus" className="gap-2 data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
               <FileText className="w-4 h-4" />
-              Contenus
+              {t('admin.bibliotheque.tabContents')}
             </TabsTrigger>
             <TabsTrigger value="medias" className="gap-2 data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
               <ImageIcon className="w-4 h-4" />
-              Médias
+              {t('admin.bibliotheque.tabMedias')}
             </TabsTrigger>
             <TabsTrigger value="categories" className="gap-2 data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
               <FolderTree className="w-4 h-4" />
-              Catégories & Thèmes
+              {t('admin.bibliotheque.tabCategories')}
             </TabsTrigger>
             <TabsTrigger value="offres" className="gap-2 data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
               <Gift className="w-4 h-4" />
-              Offres & Packs
+              {t('admin.bibliotheque.tabOffers')}
             </TabsTrigger>
             <TabsTrigger value="newsletter" className="gap-2 data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
               <Mail className="w-4 h-4" />
-              Newsletter
+              {t('admin.bibliotheque.tabNewsletter')}
             </TabsTrigger>
           </TabsList>
 
@@ -436,7 +438,7 @@ export default function AdminBibliotheque() {
               <div className="relative flex-1 w-full">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input 
-                  placeholder="Rechercher un titre, un auteur..." 
+                  placeholder={t('admin.bibliotheque.searchPlaceholder')} 
                   className="pl-9"
                   value={searchQuery}
                   onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
@@ -445,30 +447,30 @@ export default function AdminBibliotheque() {
               <div className="flex gap-2 w-full md:w-auto flex-wrap">
                 <Select value={selectedType} onValueChange={(v) => { setSelectedType(v); setCurrentPage(1); }}>
                   <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Type" />
+                    <SelectValue placeholder={t('admin.bibliotheque.colType')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Tous les types</SelectItem>
+                    <SelectItem value="all">{t('admin.bibliotheque.filterAllTypes')}</SelectItem>
                     {types.map((t: string) => <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>)}
                   </SelectContent>
                 </Select>
                 <Select value={selectedTheme} onValueChange={(v) => { setSelectedTheme(v); setCurrentPage(1); }}>
                   <SelectTrigger className="w-[140px]">
-                    <SelectValue placeholder="Thème" />
+                    <SelectValue placeholder={t('admin.bibliotheque.colTheme')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Tous les thèmes</SelectItem>
+                    <SelectItem value="all">{t('admin.bibliotheque.filterAllThemes')}</SelectItem>
                     {themes.map((t: string) => <SelectItem key={t} value={t} className="capitalize">{t}</SelectItem>)}
                   </SelectContent>
                 </Select>
                 <Select value={sortField} onValueChange={(v: any) => setSortField(v)}>
                   <SelectTrigger className="w-[130px]">
-                    <SelectValue placeholder="Trier par" />
+                    <SelectValue placeholder={t('admin.bibliotheque.sortBy')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="createdAt">Date</SelectItem>
-                    <SelectItem value="title">Titre</SelectItem>
-                    <SelectItem value="price">Prix</SelectItem>
+                    <SelectItem value="createdAt">{t('admin.bibliotheque.sortDate')}</SelectItem>
+                    <SelectItem value="title">{t('admin.bibliotheque.sortTitle')}</SelectItem>
+                    <SelectItem value="price">{t('admin.bibliotheque.sortPrice')}</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button variant="outline" size="icon" onClick={() => setSortDirection(d => d === "asc" ? "desc" : "asc")}>
@@ -482,22 +484,22 @@ export default function AdminBibliotheque() {
 
             {selectedItems.length > 0 && (
               <div className="flex items-center gap-4 bg-primary/10 border border-primary/30 rounded-xl p-4">
-                <span className="text-sm font-medium">{selectedItems.length} élément(s) sélectionné(s)</span>
+                <span className="text-sm font-medium">{t('admin.bibliotheque.selectedCount', { count: selectedItems.length })}</span>
                 <div className="flex gap-2">
                   <Button size="sm" variant="outline" onClick={handleBulkPublish} disabled={bulkPublishMutation.isPending}>
                     {bulkPublishMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Check className="w-4 h-4 mr-1" />}
-                    Publier
+                    {t('admin.bibliotheque.publish')}
                   </Button>
                   <Button size="sm" variant="outline" onClick={handleBulkUnpublish} disabled={bulkUnpublishMutation.isPending}>
                     {bulkUnpublishMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <X className="w-4 h-4 mr-1" />}
-                    Dépublier
+                    {t('admin.bibliotheque.unpublish')}
                   </Button>
                   <Button size="sm" variant="destructive" onClick={handleBulkDelete} disabled={bulkDeleteMutation.isPending}>
                     {bulkDeleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Trash2 className="w-4 h-4 mr-1" />}
-                    Supprimer
+                    {t('admin.bibliotheque.delete')}
                   </Button>
                   <Button size="sm" variant="ghost" onClick={() => setSelectedItems([])}>
-                    Annuler
+                    {t('admin.dialogs.confirmDelete.cancel')}
                   </Button>
                 </div>
               </div>
@@ -514,13 +516,13 @@ export default function AdminBibliotheque() {
                           onCheckedChange={toggleSelectAll}
                         />
                       </th>
-                      <th className="px-6 py-4">Titre du contenu</th>
-                      <th className="px-6 py-4">Type</th>
-                      <th className="px-6 py-4">Thème</th>
-                      <th className="px-6 py-4">Prix</th>
-                      <th className="px-6 py-4">Statut</th>
-                      <th className="px-6 py-4">Date</th>
-                      <th className="px-6 py-4 text-right">Actions</th>
+                      <th className="px-6 py-4">{t('admin.bibliotheque.colTitle')}</th>
+                      <th className="px-6 py-4">{t('admin.bibliotheque.colType')}</th>
+                      <th className="px-6 py-4">{t('admin.bibliotheque.colTheme')}</th>
+                      <th className="px-6 py-4">{t('admin.bibliotheque.colPrice')}</th>
+                      <th className="px-6 py-4">{t('admin.bibliotheque.colStatus')}</th>
+                      <th className="px-6 py-4">{t('admin.bibliotheque.colDate')}</th>
+                      <th className="px-6 py-4 text-right">{t('admin.bibliotheque.colActions')}</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y">
@@ -528,13 +530,13 @@ export default function AdminBibliotheque() {
                       <tr>
                         <td colSpan={8} className="px-6 py-12 text-center text-muted-foreground">
                           <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
-                          Chargement des contenus...
+                          {t('admin.bibliotheque.loadingContents')}
                         </td>
                       </tr>
                     ) : paginatedItems.length === 0 ? (
                       <tr>
                         <td colSpan={8} className="px-6 py-12 text-center text-muted-foreground">
-                          Aucun contenu trouvé.
+                          {t('admin.bibliotheque.noContents')}
                         </td>
                       </tr>
                     ) : (
@@ -577,7 +579,7 @@ export default function AdminBibliotheque() {
                                 }
                                 variant="secondary"
                               >
-                                {item.published ? 'Publié' : 'Brouillon'}
+                                {item.published ? t('admin.bibliotheque.published') : t('admin.bibliotheque.draft')}
                               </Badge>
                             </td>
                             <td className="px-6 py-4 text-muted-foreground">
@@ -589,7 +591,7 @@ export default function AdminBibliotheque() {
                                   variant="ghost" 
                                   size="icon" 
                                   className="h-8 w-8"
-                                  title={item.published ? "Dépublier" : "Publir"}
+                                  title={item.published ? t('admin.bibliotheque.unpublish') : t('admin.bibliotheque.publish')}
                                   onClick={() => handleTogglePublish(item)}
                                 >
                                   {item.published ? <X className="w-4 h-4" /> : <Check className="w-4 h-4" />}
@@ -598,7 +600,7 @@ export default function AdminBibliotheque() {
                                   variant="ghost" 
                                   size="icon" 
                                   className="h-8 w-8"
-                                  title="Aperçu"
+                                  title={t('admin.bibliotheque.preview')}
                                   asChild
                                 >
                                   <Link href={`/bibliotheque/livre/${item.id}`} target="_blank">
@@ -614,19 +616,19 @@ export default function AdminBibliotheque() {
                                   <DropdownMenuContent align="end">
                                     <DropdownMenuItem asChild>
                                       <Link href={`/admin/bibliotheque/edition/${item.id}`} className="flex items-center cursor-pointer">
-                                        <Pencil className="w-4 h-4 mr-2" /> Éditer
+                                        <Pencil className="w-4 h-4 mr-2" /> {t('admin.bibliotheque.edit')}
                                       </Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem asChild>
                                       <Link href={`/bibliotheque/livre/${item.id}`} target="_blank" className="flex items-center cursor-pointer">
-                                        <Eye className="w-4 h-4 mr-2" /> Aperçu
+                                        <Eye className="w-4 h-4 mr-2" /> {t('admin.bibliotheque.preview')}
                                       </Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem 
                                       className="text-red-600 flex items-center cursor-pointer"
                                       onClick={() => handleDelete(item.id)}
                                     >
-                                      <Trash2 className="w-4 h-4 mr-2" /> Supprimer
+                                      <Trash2 className="w-4 h-4 mr-2" /> {t('admin.bibliotheque.delete')}
                                     </DropdownMenuItem>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
@@ -643,7 +645,7 @@ export default function AdminBibliotheque() {
               {totalPages > 1 && (
                 <div className="flex items-center justify-between px-6 py-4 border-t">
                   <div className="text-sm text-muted-foreground">
-                    Affichage de {(currentPage - 1) * itemsPerPage + 1} à {Math.min(currentPage * itemsPerPage, filteredItems.length)} sur {filteredItems.length} contenus
+                    {t('admin.bibliotheque.paginationShowing', { from: (currentPage - 1) * itemsPerPage + 1, to: Math.min(currentPage * itemsPerPage, filteredItems.length), total: filteredItems.length })}
                   </div>
                   <div className="flex items-center gap-2">
                     <Button 
@@ -693,7 +695,7 @@ export default function AdminBibliotheque() {
           {/* TAB 2: MEDIAS */}
           <TabsContent value="medias" className="m-0 space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-serif font-bold">Gestionnaire de Médias</h2>
+              <h2 className="text-2xl font-serif font-bold">{t('admin.bibliotheque.mediaManager')}</h2>
               <div className="flex gap-2">
                 <Input 
                   type="file" 
@@ -705,7 +707,7 @@ export default function AdminBibliotheque() {
                 <Button asChild disabled={isUploading}>
                   <label htmlFor="media-upload" className="cursor-pointer">
                     {isUploading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Plus className="w-4 h-4 mr-2" />}
-                    Importer des fichiers
+                    {t('admin.bibliotheque.importFiles')}
                   </label>
                 </Button>
               </div>
@@ -714,7 +716,7 @@ export default function AdminBibliotheque() {
             <div className="grid md:grid-cols-4 gap-6">
               <div className="md:col-span-1 space-y-4">
                 <div className="bg-card border rounded-xl p-4 shadow-sm">
-                  <h3 className="font-semibold mb-4 text-sm uppercase tracking-wider text-muted-foreground">Dossiers</h3>
+                  <h3 className="font-semibold mb-4 text-sm uppercase tracking-wider text-muted-foreground">{t('admin.bibliotheque.folders')}</h3>
                   <div className="space-y-1">
                     {['Toutes les images', 'Couvertures Livres', 'Miniatures Vidéos', 'PDF & Documents', 'Ressources Jeunesse'].map((folder, i) => (
                       <button key={i} className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${i === 0 ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'}`}>
@@ -730,7 +732,7 @@ export default function AdminBibliotheque() {
                   <div className="flex gap-4 mb-6">
                     <div className="relative flex-1">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input placeholder="Rechercher un média par nom ou tag..." className="pl-9" />
+                      <Input placeholder={t('admin.bibliotheque.searchMedia')} className="pl-9" />
                     </div>
                   </div>
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -740,7 +742,7 @@ export default function AdminBibliotheque() {
                       </div>
                     ) : (galleryData?.items || []).length === 0 ? (
                       <div className="col-span-full py-12 text-center text-muted-foreground">
-                        Aucun média trouvé.
+                        {t('admin.bibliotheque.noMedia')}
                       </div>
                     ) : (
                       galleryData?.items.map((media: any) => (
@@ -761,7 +763,7 @@ export default function AdminBibliotheque() {
                               variant="destructive" 
                               className="h-8 w-8 rounded-full"
                               onClick={() => {
-                                if (confirm("Supprimer ce média ?")) deleteMediaMutation.mutate({ id: media.id });
+                                if (confirm(t('admin.bibliotheque.confirmDeleteMedia'))) deleteMediaMutation.mutate({ id: media.id });
                               }}
                             >
                               <Trash2 className="w-4 h-4" />
@@ -782,26 +784,26 @@ export default function AdminBibliotheque() {
           {/* TAB 3: CATEGORIES */}
           <TabsContent value="categories" className="m-0 space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-serif font-bold">Catégories & Thèmes</h2>
+              <h2 className="text-2xl font-serif font-bold">{t('admin.bibliotheque.categoriesThemesTitle')}</h2>
               <div className="flex gap-2">
                 <Button 
                   variant="outline"
                   className="gap-2"
                   onClick={() => {
-                    const name = prompt("Nom du nouveau thème :");
+                    const name = prompt(t('admin.bibliotheque.themeNamePrompt'));
                     if (name) createThemeMutation.mutate({ name });
                   }}
                 >
-                  <Plus className="w-4 h-4" /> Nouveau Thème
+                  <Plus className="w-4 h-4" /> {t('admin.bibliotheque.newTheme')}
                 </Button>
                 <Button 
                   className="gap-2"
                   onClick={() => {
-                    const name = prompt("Nom de la nouvelle catégorie :");
+                    const name = prompt(t('admin.bibliotheque.categoryNamePrompt'));
                     if (name) createCategoryMutation.mutate({ name });
                   }}
                 >
-                  <Plus className="w-4 h-4" /> Nouvelle Catégorie
+                  <Plus className="w-4 h-4" /> {t('admin.bibliotheque.newCategory')}
                 </Button>
               </div>
             </div>
@@ -809,35 +811,35 @@ export default function AdminBibliotheque() {
             <div className="bg-card border rounded-xl p-6 shadow-sm mb-6 space-y-4">
               <div className="flex items-center justify-between border-b pb-4 mb-4">
                 <h3 className="font-bold text-lg flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-primary" /> Textes de la page Bibliothèque (Thématiques)
+                  <FileText className="w-5 h-5 text-primary" /> {t('admin.bibliotheque.biblioPageTexts')}
                 </h3>
                 <Button onClick={saveBiblioSettings} disabled={setSetting.isPending} size="sm" className="rounded-lg shadow-sm">
                   {setSetting.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                  Enregistrer les textes
+                  {t('admin.bibliotheque.saveTexts')}
                 </Button>
               </div>
 
               <div className="space-y-4 max-w-3xl">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Titre de la section Thématiques</label>
+                  <label className="text-sm font-medium">{t('admin.bibliotheque.themesSectionTitle')}</label>
                   <Input value={biblioThemesTitle} onChange={e => setBiblioThemesTitle(e.target.value)} />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Description</label>
+                  <label className="text-sm font-medium">{t('admin.bibliotheque.sectionDescription')}</label>
                   <Textarea value={biblioThemesDesc} onChange={e => setBiblioThemesDesc(e.target.value)} rows={2} />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Texte du bouton</label>
+                  <label className="text-sm font-medium">{t('admin.bibliotheque.buttonText')}</label>
                   <Input value={biblioThemesBtn} onChange={e => setBiblioThemesBtn(e.target.value)} />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Logo de la section</label>
+                  <label className="text-sm font-medium">{t('admin.bibliotheque.sectionLogo')}</label>
                   <div className="flex items-center gap-4 p-4 border rounded-xl bg-muted/10">
                     {biblioThemesLogo ? (
                       <div className="relative w-36 h-20 bg-slate-950 border rounded-lg flex items-center justify-center p-2 group overflow-hidden shrink-0">
                         <img 
                           src={biblioThemesLogo} 
-                          alt="Logo Section" 
+                          alt={t('admin.bibliotheque.sectionLogo')} 
                           className="max-w-full max-h-full object-contain"
                         />
                         <button
@@ -845,12 +847,12 @@ export default function AdminBibliotheque() {
                           onClick={() => setBiblioThemesLogo("")}
                           className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold"
                         >
-                          <Trash2 className="w-4 h-4 mr-1" /> Supprimer
+                          <Trash2 className="w-4 h-4 mr-1" /> {t('admin.bibliotheque.deleteLogo')}
                         </button>
                       </div>
                     ) : (
                       <div className="w-36 h-20 border border-dashed rounded-lg flex items-center justify-center text-muted-foreground text-xs bg-muted/20 shrink-0">
-                        Aucun logo
+                        {t('admin.bibliotheque.noLogo')}
                       </div>
                     )}
                     <div className="space-y-2">
@@ -866,16 +868,16 @@ export default function AdminBibliotheque() {
                         <Button asChild variant="outline" size="sm" disabled={isUploadingLogo}>
                           <label htmlFor="logo-section-upload" className="cursor-pointer flex items-center gap-2">
                             {isUploadingLogo ? <Loader2 className="w-4 h-4 animate-spin" /> : <ImageIcon className="w-4 h-4" />}
-                            Importer un logo
+                            {t('admin.bibliotheque.importLogo')}
                           </label>
                         </Button>
                         {biblioThemesLogo && (
                           <Button variant="ghost" size="sm" className="text-destructive h-8" onClick={() => setBiblioThemesLogo("")}>
-                            Supprimer
+                            {t('admin.bibliotheque.deleteLogo')}
                           </Button>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground">Format recommandé : PNG transparent. Taille max : 5Mo.</p>
+                      <p className="text-xs text-muted-foreground">{t('admin.bibliotheque.logoFormat')}</p>
                     </div>
                   </div>
                 </div>
@@ -885,7 +887,7 @@ export default function AdminBibliotheque() {
             <div className="grid md:grid-cols-2 gap-6">
               <div className="bg-card border rounded-xl p-6 shadow-sm">
                 <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                  <FolderTree className="w-5 h-5 text-primary" /> Types de Ressources
+                  <FolderTree className="w-5 h-5 text-primary" /> {t('admin.bibliotheque.resourceTypes')}
                 </h3>
                 <div className="space-y-3">
                   {types.map((cat: string, i: number) => (
@@ -901,7 +903,7 @@ export default function AdminBibliotheque() {
                           className="h-8 w-8 text-destructive"
                           onClick={() => {
                             const catObj = categoriesData?.find((c: any) => c.name === cat);
-                            if (catObj && confirm("Supprimer cette catégorie ?")) {
+                            if (catObj && confirm(t('admin.bibliotheque.confirmDeleteCategory'))) {
                               deleteCategoryMutation.mutate({ id: catObj.id });
                             }
                           }}
@@ -911,13 +913,13 @@ export default function AdminBibliotheque() {
                       </div>
                     </div>
                   ))}
-                  {types.length === 0 && <p className="text-sm text-muted-foreground italic">Aucune catégorie détectée.</p>}
+                  {types.length === 0 && <p className="text-sm text-muted-foreground italic">{t('admin.bibliotheque.noCategories')}</p>}
                 </div>
               </div>
               
               <div className="bg-card border rounded-xl p-6 shadow-sm">
                 <h3 className="font-bold text-lg mb-4 flex items-center gap-2">
-                  <Palette className="w-5 h-5 text-amber-500" /> Thèmes Spirituels
+                  <Palette className="w-5 h-5 text-amber-500" /> {t('admin.bibliotheque.spiritualThemes')}
                 </h3>
                 <div className="space-y-3">
                   {themes.map((theme: string, i: number) => (
@@ -936,7 +938,7 @@ export default function AdminBibliotheque() {
                           className="h-8 w-8 text-destructive"
                           onClick={() => {
                             const themeObj = themesData?.find((t: any) => t.name === theme);
-                            if (themeObj && confirm("Supprimer ce thème ?")) {
+                            if (themeObj && confirm(t('admin.bibliotheque.confirmDeleteTheme'))) {
                               deleteThemeMutation.mutate({ id: themeObj.id });
                             }
                           }}
@@ -946,7 +948,7 @@ export default function AdminBibliotheque() {
                       </div>
                     </div>
                   ))}
-                  {themes.length === 0 && <p className="text-sm text-muted-foreground italic">Aucun thème détecté.</p>}
+                  {themes.length === 0 && <p className="text-sm text-muted-foreground italic">{t('admin.bibliotheque.noThemes')}</p>}
                 </div>
               </div>
             </div>
@@ -955,11 +957,11 @@ export default function AdminBibliotheque() {
           {/* TAB 4: OFFRES */}
           <TabsContent value="offres" className="space-y-6 m-0">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-serif font-bold">Gestion des Offres & Packs</h2>
+              <h2 className="text-2xl font-serif font-bold">{t('admin.bibliotheque.offersTitle')}</h2>
               <Button asChild>
                 <Link href="/admin/bibliotheque/edition/new?type=offre">
                   <Plus className="w-4 h-4 mr-2" />
-                  Nouvelle Offre
+                  {t('admin.bibliotheque.newOffer')}
                 </Link>
               </Button>
             </div>
@@ -967,50 +969,50 @@ export default function AdminBibliotheque() {
             <div className="bg-card border rounded-xl p-6 shadow-sm mb-6 space-y-4">
               <div className="flex items-center justify-between border-b pb-4 mb-4">
                 <h3 className="font-bold text-lg flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-primary" /> Textes de la page
+                  <FileText className="w-5 h-5 text-primary" /> {t('admin.bibliotheque.pageTextsTitle')}
                 </h3>
                 <Button onClick={saveOffresSettings} disabled={setSetting.isPending} size="sm" className="rounded-lg shadow-sm">
                   {setSetting.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                  Enregistrer les textes
+                  {t('admin.bibliotheque.saveTexts')}
                 </Button>
               </div>
 
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-4">
-                  <h4 className="font-semibold text-sm text-muted-foreground uppercase">En-tête de la page</h4>
+                  <h4 className="font-semibold text-sm text-muted-foreground uppercase">{t('admin.bibliotheque.pageHeader')}</h4>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Badge (Petit texte en haut)</label>
+                    <label className="text-sm font-medium">{t('admin.bibliotheque.badgeLabel')}</label>
                     <Input value={offresBadge} onChange={e => setOffresBadge(e.target.value)} />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Titre Principal</label>
+                    <label className="text-sm font-medium">{t('admin.bibliotheque.mainTitle')}</label>
                     <Input value={offresTitle} onChange={e => setOffresTitle(e.target.value)} />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Description</label>
+                    <label className="text-sm font-medium">{t('admin.bibliotheque.offersDesc')}</label>
                     <Textarea value={offresDesc} onChange={e => setOffresDesc(e.target.value)} rows={3} />
                   </div>
                 </div>
 
                 <div className="space-y-4">
-                  <h4 className="font-semibold text-sm text-muted-foreground uppercase">Section "Commandes Groupées"</h4>
+                  <h4 className="font-semibold text-sm text-muted-foreground uppercase">{t('admin.bibliotheque.bulkSection')}</h4>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Titre de la section</label>
+                    <label className="text-sm font-medium">{t('admin.bibliotheque.bulkSectionTitle')}</label>
                     <Input value={offresBulkTitle} onChange={e => setOffresBulkTitle(e.target.value)} />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Description</label>
+                    <label className="text-sm font-medium">{t('admin.bibliotheque.offersDesc')}</label>
                     <Textarea value={offresBulkDesc} onChange={e => setOffresBulkDesc(e.target.value)} rows={3} />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Texte du bouton "Devis"</label>
+                    <label className="text-sm font-medium">{t('admin.bibliotheque.quoteBtnText')}</label>
                     <Input value={offresBulkBtn} onChange={e => setOffresBulkBtn(e.target.value)} />
                   </div>
                 </div>
               </div>
             </div>
 
-            <h3 className="font-bold text-xl mt-8 mb-4">Liste des Packs</h3>
+            <h3 className="font-bold text-xl mt-8 mb-4">{t('admin.bibliotheque.packsList')}</h3>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
 
               {articlesData?.items.filter((a: any) => a.category.startsWith("bibliothèque:offre")).map((offre: any) => {
@@ -1021,7 +1023,7 @@ export default function AdminBibliotheque() {
                 return (
                   <div key={offre.id} className="bg-card border rounded-xl p-6 shadow-sm relative">
                     {isPopular && (
-                      <Badge className="absolute top-4 right-4">Populaire</Badge>
+                      <Badge className="absolute top-4 right-4">{t('admin.bibliotheque.popular')}</Badge>
                     )}
                     <h3 className="font-bold text-lg mb-2">{offre.title}</h3>
                     <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{offre.excerpt}</p>
@@ -1029,7 +1031,7 @@ export default function AdminBibliotheque() {
                     <div className="flex gap-2">
                       <Button variant="outline" size="sm" asChild className="flex-1">
                         <Link href={`/admin/bibliotheque/edition/${offre.id}`}>
-                          <Pencil className="w-4 h-4 mr-2" /> Modifier
+                          <Pencil className="w-4 h-4 mr-2" /> {t('admin.bibliotheque.editOffer')}
                         </Link>
                       </Button>
                       <Button variant="outline" size="icon" className="text-destructive" onClick={() => handleDelete(offre.id)}>
@@ -1041,7 +1043,7 @@ export default function AdminBibliotheque() {
               })}
               {articlesData?.items.filter((a: any) => a.category.startsWith("bibliothèque:offre")).length === 0 && (
                 <div className="col-span-full py-12 text-center border rounded-xl border-dashed">
-                  <p className="text-muted-foreground">Aucune offre configurée.</p>
+                  <p className="text-muted-foreground">{t('admin.bibliotheque.noOffers')}</p>
                 </div>
               )}
             </div>
@@ -1050,7 +1052,7 @@ export default function AdminBibliotheque() {
           {/* TAB 5: NEWSLETTER */}
           <TabsContent value="newsletter" className="m-0 space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-serif font-bold">Éditeur de Newsletter</h2>
+              <h2 className="text-2xl font-serif font-bold">{t('admin.bibliotheque.newsletterEditor')}</h2>
               <Button 
                 className="gap-2 bg-primary text-white hover:bg-primary/90 rounded-xl shadow-md px-6"
                 onClick={() => sendDigestMutation.mutate({ 
@@ -1060,7 +1062,7 @@ export default function AdminBibliotheque() {
                 disabled={sendDigestMutation.isPending || !subscribers?.length}
               >
                 <Mail className="w-4 h-4" /> 
-                {sendDigestMutation.isPending ? "Envoi..." : "Envoyer la campagne"}
+                {sendDigestMutation.isPending ? t('admin.bibliotheque.sending') : t('admin.bibliotheque.sendCampaign')}
               </Button>
             </div>
             
@@ -1068,15 +1070,15 @@ export default function AdminBibliotheque() {
               <div className="lg:col-span-2">
                 <div className="bg-card border rounded-xl p-6 shadow-sm space-y-4">
                   <div>
-                    <label className="text-sm font-medium mb-1 block">Objet de l'email</label>
+                    <label className="text-sm font-medium mb-1 block">{t('admin.bibliotheque.emailSubject')}</label>
                     <Input 
-                      placeholder="Découvrez nos nouveautés de la semaine..." 
+                      placeholder={t('admin.bibliotheque.emailSubjectPlaceholder')} 
                       value={newsletterSubject}
                       onChange={(e) => setNewsletterSubject(e.target.value)}
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-1 block">Abonnés ({subscribers?.length || 0})</label>
+                    <label className="text-sm font-medium mb-1 block">{t('admin.bibliotheque.subscribers')} ({subscribers?.length || 0})</label>
                     <div className="border rounded-xl max-h-64 overflow-y-auto bg-muted/10 p-2">
                       <Table>
                         <TableHeader>
@@ -1088,7 +1090,7 @@ export default function AdminBibliotheque() {
                         </TableHeader>
                         <TableBody>
                           {isLoadingSubs ? (
-                            <TableRow><TableCell colSpan={3} className="text-center py-4">Chargement...</TableCell></TableRow>
+                            <TableRow><TableCell colSpan={3} className="text-center py-4">{t('admin.loading')}</TableCell></TableRow>
                           ) : subscribers?.map((sub: any) => (
                             <TableRow key={sub.id}>
                               <TableCell className="py-2 text-xs">{sub.email}</TableCell>
@@ -1099,7 +1101,7 @@ export default function AdminBibliotheque() {
                                   size="icon" 
                                   className="h-6 w-6 text-destructive"
                                   onClick={() => {
-                                    if(confirm("Supprimer l'abonné ?")) 
+                                    if(confirm(t('admin.bibliotheque.confirmDeleteSubscriber'))) 
                                       deleteSubscriberMutation.mutate({ id: sub.id });
                                   }}
                                 >
@@ -1113,10 +1115,10 @@ export default function AdminBibliotheque() {
                     </div>
                   </div>
                   <div>
-                    <label className="text-sm font-medium mb-1 block">Contenu de la newsletter</label>
+                    <label className="text-sm font-medium mb-1 block">{t('admin.bibliotheque.newsletterContent')}</label>
                     <div className="border rounded-xl p-4 bg-muted/10 text-sm text-muted-foreground">
-                      <p>La newsletter automatique inclut les 3 derniers articles publiés de la bibliothèque.</p>
-                      <p className="mt-2">L'envoi est géré par Resend si configuré.</p>
+                      <p>{t('admin.bibliotheque.newsletterAutoDesc')}</p>
+                      <p className="mt-2">{t('admin.bibliotheque.newsletterResendDesc')}</p>
                     </div>
                   </div>
                 </div>
@@ -1124,21 +1126,21 @@ export default function AdminBibliotheque() {
               
               <div className="space-y-6">
                 <div className="bg-card border rounded-xl p-6 shadow-sm">
-                  <h3 className="font-bold mb-4">Statistiques</h3>
+                  <h3 className="font-bold mb-4">{t('admin.bibliotheque.stats')}</h3>
                   <div className="space-y-4">
                     <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-                      <span className="text-muted-foreground">Abonnés actifs</span>
+                      <span className="text-muted-foreground">{t('admin.bibliotheque.activeSubscribers')}</span>
                       <span className="font-bold text-lg text-primary">{subscribers?.length || 0}</span>
                     </div>
                     <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-                      <span className="text-muted-foreground">Taux d'ouverture moy.</span>
+                      <span className="text-muted-foreground">{t('admin.bibliotheque.avgOpenRate')}</span>
                       <span className="font-bold text-lg text-green-500">--%</span>
                     </div>
                   </div>
                 </div>
                 
                 <div className="bg-card border rounded-xl p-6 shadow-sm">
-                  <h3 className="font-bold mb-4">Derniers envois</h3>
+                  <h3 className="font-bold mb-4">{t('admin.bibliotheque.recentSends')}</h3>
                   <div className="space-y-3">
                     {['Pack Étude Spécial', 'Nouveautés Avril', 'Sélection Pâques'].map((camp, i) => (
                       <div key={i} className="text-sm border-b pb-2 last:border-0 last:pb-0">

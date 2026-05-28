@@ -22,6 +22,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Trash2, Send, Mail } from "lucide-react";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 function formatDate(date: Date): string {
@@ -34,6 +35,7 @@ function formatDate(date: Date): string {
 
 export default function NewsletterAdmin() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const { t } = useTranslation();
   const [newsletterSubject, setNewsletterSubject] = useState("Les dernières actualités de G12 Paris");
   const utils = trpc.useUtils();
 
@@ -43,18 +45,18 @@ export default function NewsletterAdmin() {
   const deleteMutation = trpc.newsletter.deleteSubscriber.useMutation({
     onSuccess: () => {
       utils.newsletter.listSubscribers.invalidate();
-      toast.success("Abonné supprimé");
+      toast.success(t('admin.newsletterAdmin.toastDeleted'));
       setDeleteId(null);
     },
-    onError: () => toast.error("Erreur lors de la suppression"),
+    onError: () => toast.error(t('admin.newsletterAdmin.toastDeleteError')),
   });
 
   const sendDigestMutation = trpc.newsletter.sendDigest.useMutation({
     onSuccess: res => {
-      toast.success(`Newsletter envoyée à ${res.count} abonnés`);
+      toast.success(t('admin.newsletterAdmin.toastSent', { count: res.count }));
     },
     onError: e => {
-      toast.error("Erreur: " + e.message);
+      toast.error(t('admin.newsletterAdmin.toastSendError') + e.message);
     },
   });
 
@@ -67,15 +69,14 @@ export default function NewsletterAdmin() {
             Newsletter
           </h2>
           <p className="text-sm text-muted-foreground">
-            {subscribers?.length ?? 0} abonné
-            {(subscribers?.length ?? 0) > 1 ? "s" : ""}
+            {subscribers?.length ?? 0} subscriber{(subscribers?.length ?? 0) !== 1 ? 's' : ''}
           </p>
         </div>
         <div className="flex gap-2 items-center">
           <div className="w-64">
             <input 
               type="text" 
-              placeholder="Objet de l'email..."
+              placeholder={t('admin.newsletterAdmin.emailSubjectPlaceholder')}
               className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
               value={newsletterSubject}
               onChange={(e) => setNewsletterSubject(e.target.value)}
@@ -91,8 +92,8 @@ export default function NewsletterAdmin() {
           >
             <Send className="w-4 h-4 mr-1" />
             {sendDigestMutation.isPending
-              ? "Envoi..."
-              : "Envoyer"}
+              ? t('admin.newsletterAdmin.sending')
+              : t('admin.newsletterAdmin.send')}
           </Button>
         </div>
       </div>
@@ -108,20 +109,20 @@ export default function NewsletterAdmin() {
           <div className="text-center py-16">
             <Mail className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
             <h3 className="font-serif font-semibold text-foreground mb-1">
-              Aucun abonné
+              {t('admin.newsletterAdmin.noSubscribers')}
             </h3>
             <p className="text-sm text-muted-foreground">
-              Personne ne s'est encore abonné à la newsletter.
+              {t('admin.newsletterAdmin.noSubscribersDesc')}
             </p>
           </div>
         ) : (
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Email</TableHead>
-                <TableHead>Nom</TableHead>
-                <TableHead>Date d'inscription</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{t('admin.newsletterAdmin.colEmail')}</TableHead>
+                <TableHead>{t('admin.newsletterAdmin.colName')}</TableHead>
+                <TableHead>{t('admin.newsletterAdmin.colDate')}</TableHead>
+                <TableHead className="text-right">{t('admin.newsletterAdmin.colActions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -133,7 +134,7 @@ export default function NewsletterAdmin() {
                       sub.name
                     ) : (
                       <span className="text-muted-foreground italic">
-                        Non renseigné
+                        {t('admin.newsletterAdmin.notProvided')}
                       </span>
                     )}
                   </TableCell>
@@ -163,21 +164,20 @@ export default function NewsletterAdmin() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer cet abonné ?</AlertDialogTitle>
+            <AlertDialogTitle>{t('admin.newsletterAdmin.deleteTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Cette action est irréversible. L'utilisateur ne recevra plus la
-              newsletter.
+              {t('admin.newsletterAdmin.deleteDesc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogCancel>{t('admin.newsletterAdmin.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() =>
                 deleteId && deleteMutation.mutate({ id: deleteId })
               }
             >
-              Supprimer
+              {t('admin.newsletterAdmin.confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -84,6 +84,15 @@ async function startServer() {
     message: { error: "Too many requests" },
   });
 
+  // Rate limiter spécifique pour les endpoints IA (plus strict)
+  const aiRateLimiter = rateLimit({
+    windowMs: 60 * 1000,
+    max: process.env.NODE_ENV === "development" ? 60 : 20,
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Trop de requêtes IA. Réessayez dans 1 minute." },
+  });
+
   const csrfProtect: express.RequestHandler = (req, res, next) => {
     if (!["POST", "PUT", "PATCH", "DELETE"].includes(req.method)) {
       return next();
@@ -96,10 +105,16 @@ async function startServer() {
     return next();
   };
 
-  // tRPC API
+  // tRPC API — avec rate limiting IA spécifique
   app.use(
     "/api/trpc",
-    apiRateLimiter,
+    (req, res, next) => {
+      // Appliquer le rate limiter IA strict pour les endpoints IA
+      if (req.path.startsWith("/ai.")) {
+        return aiRateLimiter(req, res, next);
+      }
+      return apiRateLimiter(req, res, next);
+    },
     csrfProtect,
     createExpressMiddleware({
       router: appRouter,

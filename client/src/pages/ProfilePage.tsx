@@ -8,17 +8,19 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Shield, User, Lock, History, ArrowLeft, Save, Loader2, CheckCircle2 } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 export default function ProfilePage() {
   const { user, refresh } = useAuth();
   const [, setLocation] = useLocation();
   const [passwordData, setPasswordData] = useState({ current: "", new: "", confirm: "" });
+  const { t } = useTranslation();
   const [passwordMessage, setPasswordMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const notificationsQuery = trpc.notifications.myNotifications.useQuery();
   const updatePasswordMutation = trpc.users.updatePassword.useMutation({
     onSuccess: () => {
-      setPasswordMessage({ type: "success", text: "Mot de passe modifié avec succès !" });
+      setPasswordMessage({ type: "success", text: t('admin.profile.toastPasswordSuccess') });
       setPasswordData({ current: "", new: "", confirm: "" });
       setTimeout(() => setPasswordMessage(null), 3000);
     },
@@ -37,15 +39,15 @@ export default function ProfilePage() {
 
   const handlePasswordChange = () => {
     if (!passwordData.current || !passwordData.new || !passwordData.confirm) {
-      setPasswordMessage({ type: "error", text: "Veuillez remplir tous les champs" });
+      setPasswordMessage({ type: "error", text: t('admin.profile.toastFillAll') });
       return;
     }
     if (passwordData.new !== passwordData.confirm) {
-      setPasswordMessage({ type: "error", text: "Les mots de passe ne correspondent pas" });
+      setPasswordMessage({ type: "error", text: t('admin.profile.toastPasswordMismatch') });
       return;
     }
     if (passwordData.new.length < 4) {
-      setPasswordMessage({ type: "error", text: "Le mot de passe doit contenir au moins 4 caractères" });
+      setPasswordMessage({ type: "error", text: t('admin.profile.toastPasswordLength') });
       return;
     }
     updatePasswordMutation.mutate({
@@ -56,10 +58,10 @@ export default function ProfilePage() {
   };
 
   const roleLabels: Record<string, string> = {
-    admin: "Administrateur",
-    editeur: "Éditeur",
-    bibliotheque: "Bibliothèque",
-    user: "Utilisateur",
+    admin: t('admin.roles.admin'),
+    editeur: t('admin.roles.editeur'),
+    bibliotheque: t('admin.roles.bibliotheque'),
+    user: t('admin.roles.user'),
   };
 
   const roleColors: Record<string, string> = {
@@ -74,12 +76,12 @@ export default function ProfilePage() {
       <div className="container max-w-3xl">
         <Button variant="ghost" onClick={() => setLocation("/admin")} className="mb-6">
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Retour au dashboard
+          {t('admin.profile.backToDashboard')}
         </Button>
 
         <h1 className="text-2xl font-serif font-bold mb-6 flex items-center gap-2">
           <User className="w-6 h-6" />
-          Mon Profil
+          {t('admin.profile.title')}
         </h1>
 
         <div className="space-y-6">
@@ -88,31 +90,31 @@ export default function ProfilePage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Shield className="w-5 h-5" />
-                Informations du compte
+                {t('admin.profile.accountInfo')}
               </CardTitle>
               <CardDescription>
-                Vos informations personnelles
+                {t('admin.profile.accountInfoDesc')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between py-3 border-b">
-                <span className="text-muted-foreground">Nom</span>
-                <span className="font-medium">{user.name || "Non défini"}</span>
+                <span className="text-muted-foreground">{t('admin.profile.name')}</span>
+                <span className="font-medium">{user.name || t('admin.profile.nameNotSet')}</span>
               </div>
               <div className="flex items-center justify-between py-3 border-b">
-                <span className="text-muted-foreground">Email</span>
-                <span className="font-medium">{user.email || "Non défini"}</span>
+                <span className="text-muted-foreground">{t('admin.profile.email')}</span>
+                <span className="font-medium">{user.email || t('admin.profile.emailNotSet')}</span>
               </div>
               <div className="flex items-center justify-between py-3 border-b">
-                <span className="text-muted-foreground">Rôle</span>
+                <span className="text-muted-foreground">{t('admin.profile.role')}</span>
                 <Badge className={roleColors[user.role] || roleColors.user}>
                   {roleLabels[user.role] || "Utilisateur"}
                 </Badge>
               </div>
               <div className="flex items-center justify-between py-3">
-                <span className="text-muted-foreground">Dernière connexion</span>
+                <span className="text-muted-foreground">{t('admin.profile.lastLogin')}</span>
                 <span className="font-medium text-sm">
-                  {user.lastSignedIn ? new Date(user.lastSignedIn).toLocaleString("fr-FR") : "Jamais"}
+                  {user.lastSignedIn ? new Date(user.lastSignedIn).toLocaleString("fr-FR") : t('admin.profile.never')}
                 </span>
               </div>
             </CardContent>
@@ -123,15 +125,15 @@ export default function ProfilePage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Lock className="w-5 h-5" />
-                Changer le mot de passe
+                {t('admin.profile.changePassword')}
               </CardTitle>
               <CardDescription>
-                Laissez vide si vous ne voulez pas changer de mot de passe
+                {t('admin.profile.changePasswordDesc')}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="current">Mot de passe actuel</Label>
+                <Label htmlFor="current">{t('admin.profile.currentPassword')}</Label>
                 <Input
                   id="current"
                   type="password"
@@ -142,7 +144,7 @@ export default function ProfilePage() {
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="new">Nouveau mot de passe</Label>
+                  <Label htmlFor="new">{t('admin.profile.newPassword')}</Label>
                   <Input
                     id="new"
                     type="password"
@@ -152,7 +154,7 @@ export default function ProfilePage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="confirm">Confirmer</Label>
+                  <Label htmlFor="confirm">{t('admin.profile.confirmPassword')}</Label>
                   <Input
                     id="confirm"
                     type="password"
@@ -178,12 +180,12 @@ export default function ProfilePage() {
                 {updatePasswordMutation.isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Modification...
+                    {t('admin.profile.saving')}
                   </>
                 ) : (
                   <>
                     <Save className="w-4 h-4 mr-2" />
-                    Enregistrer
+                    {t('admin.profile.save')}
                   </>
                 )}
               </Button>
@@ -195,10 +197,10 @@ export default function ProfilePage() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <History className="w-5 h-5" />
-                Historique des notifications
+                {t('admin.profile.notifHistory')}
               </CardTitle>
               <CardDescription>
-                Vos récentes notifications reçues
+                {t('admin.profile.notifHistoryDesc')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -209,7 +211,7 @@ export default function ProfilePage() {
                 </div>
               ) : notificationsQuery.data?.items?.length === 0 ? (
                 <div className="py-8 text-center text-muted-foreground">
-                  Aucune notification pour le moment
+                  {t('admin.profile.noNotifications')}
                 </div>
               ) : (
                 <div className="space-y-3">

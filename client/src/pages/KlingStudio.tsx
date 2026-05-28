@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useBlobUpload } from "@/hooks/useBlobUpload";
+import { useTranslation } from "react-i18next";
 
 const ASPECT_RATIOS_IMAGE = ["16:9", "1:1", "9:16", "4:3", "3:4"] as const;
 const ASPECT_RATIOS_VIDEO = ["16:9", "1:1", "9:16"] as const;
@@ -40,6 +41,7 @@ const PROMPT_SUGGESTIONS = [
 
 export default function KlingStudio() {
   const { uploadFile, isUploading } = useBlobUpload();
+  const { t } = useTranslation();
   const [tab, setTab] = useState<"image" | "video">("image");
 
   // Image state
@@ -70,10 +72,10 @@ export default function KlingStudio() {
     onSuccess: data => {
       if (data.url) {
         setGeneratedImageUrl(data.url);
-        toast.success("Image générée avec succès !");
+        toast.success(t('admin.kling.toastImageGenerated'));
       }
     },
-    onError: e => toast.error("Erreur : " + e.message),
+    onError: e => toast.error(t('admin.kling.toastError') + e.message),
   });
 
   const generateVideoMutation = trpc.ai.generateVideo.useMutation({
@@ -81,18 +83,16 @@ export default function KlingStudio() {
       if (data.url) {
         setGeneratedVideoUrl(data.url);
         setVideoPending(false);
-        toast.success("Vidéo générée !");
+        toast.success(t('admin.kling.toastVideoGenerated'));
       } else if (data.pending && data.generationId) {
         setVideoPending(true);
         setVideoGenerationId(data.generationId);
-        toast.info(
-          "Génération en cours (~60s). Résultat disponible ci-dessous."
-        );
+        toast.info(t('admin.kling.toastGenerationPending'));
       }
     },
     onError: e => {
       setVideoPending(false);
-      toast.error("Erreur : " + e.message);
+      toast.error(t('admin.kling.toastError') + e.message);
     },
   });
 
@@ -104,10 +104,9 @@ export default function KlingStudio() {
           <Wand2 className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h2 className="text-xl font-serif font-bold">AI Media Studio</h2>
+          <h2 className="text-xl font-serif font-bold">{t('admin.kling.title')}</h2>
           <p className="text-xs text-muted-foreground">
-            Génération d'images (Flux) et vidéos IA (Kling v1.6 Pro) · Alimenté par
-            AIMLAPI
+            {t('admin.kling.desc')}
           </p>
         </div>
       </div>
@@ -116,11 +115,11 @@ export default function KlingStudio() {
         <TabsList className="mb-6">
           <TabsTrigger value="image" className="gap-2">
             <ImageIcon className="w-4 h-4" />
-            Image
+            {t('admin.kling.tabImage')}
           </TabsTrigger>
           <TabsTrigger value="video" className="gap-2">
             <Video className="w-4 h-4" />
-            Vidéo
+            {t('admin.kling.tabVideo')}
           </TabsTrigger>
         </TabsList>
 
@@ -131,12 +130,12 @@ export default function KlingStudio() {
             <div className="space-y-4">
               <div>
                 <Label className="text-sm font-medium mb-2 block">
-                  Description de l'image *
+                  {t('admin.kling.imageDesc')}
                 </Label>
                 <Textarea
                   value={imgPrompt}
                   onChange={e => setImgPrompt(e.target.value)}
-                  placeholder="Décrivez l'image que vous souhaitez générér..."
+                  placeholder={t('admin.kling.imagePlaceholder')}
                   rows={4}
                   className="resize-none"
                 />
@@ -157,19 +156,19 @@ export default function KlingStudio() {
 
               <div>
                 <Label className="text-sm font-medium mb-2 block">
-                  À éviter (négatif)
+                  {t('admin.kling.negativePrompt')}
                 </Label>
                 <Textarea
                   value={imgNegative}
                   onChange={e => setImgNegative(e.target.value)}
-                  placeholder="blurry, low quality, text, watermark..."
+                  placeholder={t('admin.kling.negativePlaceholder')}
                   rows={2}
                   className="resize-none"
                 />
               </div>
 
               <div>
-                <Label className="text-sm font-medium mb-2 block">Format</Label>
+                <Label className="text-sm font-medium mb-2 block">{t('admin.kling.format')}</Label>
                 <Select
                   value={imgRatio}
                   onValueChange={v => setImgRatio(v as any)}
@@ -209,12 +208,12 @@ export default function KlingStudio() {
                 {generateImageMutation.isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Génération en cours (~15s)…
+                    {t('admin.kling.generating')}
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4" />
-                    Générer l'image
+                    {t('admin.kling.generateImage')}
                   </>
                 )}
               </Button>
@@ -235,10 +234,10 @@ export default function KlingStudio() {
                       <Wand2 className="w-8 h-8 text-white animate-pulse" />
                     </div>
                     <p className="text-sm font-medium">
-                      Flux génère votre image…
+                      {t('admin.kling.fluxGenerates')}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Généralement 10–20 secondes
+                      {t('admin.kling.generally1020')}
                     </p>
                   </motion.div>
                 ) : generatedImageUrl ? (
@@ -250,7 +249,7 @@ export default function KlingStudio() {
                   >
                     <img
                       src={generatedImageUrl}
-                      alt="Image générée"
+                      alt={t('admin.kling.generatedImage')}
                       className="w-full h-auto object-contain max-h-96"
                     />
                     <div className="flex gap-2 p-3 border-t border-border bg-card">
@@ -260,11 +259,11 @@ export default function KlingStudio() {
                         className="flex-1 gap-1.5"
                         onClick={() => {
                           navigator.clipboard.writeText(generatedImageUrl);
-                          toast.success("URL copiée !");
+                          toast.success(t('admin.kling.toastCopied'));
                         }}
                       >
                         <Copy className="w-3.5 h-3.5" />
-                        Copier l'URL
+                        {t('admin.kling.copyUrl')}
                       </Button>
                       <Button size="sm" className="flex-1 gap-1.5" asChild>
                         <a
@@ -274,7 +273,7 @@ export default function KlingStudio() {
                           download
                         >
                           <Download className="w-3.5 h-3.5" />
-                          Télécharger
+                          {t('admin.kling.download')}
                         </a>
                       </Button>
                     </div>
@@ -287,7 +286,7 @@ export default function KlingStudio() {
                     className="text-center p-8 text-muted-foreground"
                   >
                     <ImageIcon className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                    <p className="text-sm">L'image apparaîtra ici</p>
+                    <p className="text-sm">{t('admin.kling.imageAppears')}</p>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -309,7 +308,7 @@ export default function KlingStudio() {
 
               <div>
                 <Label className="text-sm font-medium mb-2 block">
-                  Image (Optionnel - Image-to-Video)
+                  {t('admin.kling.tabImage')} (Optionnel - Image-to-Video)
                 </Label>
                 {vidImage ? (
                   <div className="relative border border-border rounded-lg overflow-hidden bg-muted">
@@ -335,26 +334,26 @@ export default function KlingStudio() {
                           const res = await uploadFile({ file, folder: "kling-refs" });
                           if (res) setVidImage(res.url);
                         } catch (err) {
-                          toast.error("Erreur d'upload de l'image");
+                          toast.error(t('admin.kling.toastUploadError'));
                         }
                       }}
                       disabled={isUploading}
                       className="text-xs cursor-pointer"
                     />
-                    <p className="text-[10px] text-muted-foreground">Upload depuis cet appareil vers Vercel, puis envoi à Kling.</p>
+                    <p className="text-[10px] text-muted-foreground">{t('admin.kling.uploadRefHelp')}</p>
                   </div>
                 )}
-                {isUploading && <p className="text-xs text-primary font-medium mt-1 animate-pulse flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> Upload en cours...</p>}
+                {isUploading && <p className="text-xs text-primary font-medium mt-1 animate-pulse flex items-center gap-1"><Loader2 className="w-3 h-3 animate-spin"/> {t('admin.kling.uploadingRef')}</p>}
               </div>
 
               <div>
                 <Label className="text-sm font-medium mb-2 block">
-                  Description de la vidéo *
+                  {t('admin.kling.videoDesc')}
                 </Label>
                 <Textarea
                   value={vidPrompt}
                   onChange={e => setVidPrompt(e.target.value)}
-                  placeholder="Ex: Lever de soleil sur Paris, nuages en mouvement, style cinématographique, couleurs chaudes..."
+                  placeholder={t('admin.kling.videoPlaceholder')}
                   rows={4}
                   className="resize-none"
                 />
@@ -374,12 +373,12 @@ export default function KlingStudio() {
 
               <div>
                 <Label className="text-sm font-medium mb-2 block">
-                  À éviter
+                  {t('admin.kling.negativePrompt')}
                 </Label>
                 <Textarea
                   value={vidNegative}
                   onChange={e => setVidNegative(e.target.value)}
-                  placeholder="blurry, shaky, low quality..."
+                  placeholder={t('admin.kling.negativePlaceholder')}
                   rows={2}
                   className="resize-none"
                 />
@@ -388,7 +387,7 @@ export default function KlingStudio() {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label className="text-sm font-medium mb-2 block">
-                    Durée
+                    {t('admin.kling.duration')}
                   </Label>
                   <Select
                     value={vidDuration}
@@ -405,7 +404,7 @@ export default function KlingStudio() {
                 </div>
                 <div>
                   <Label className="text-sm font-medium mb-2 block">
-                    Format
+                    {t('admin.kling.format')}
                   </Label>
                   <Select
                     value={vidRatio}
@@ -443,12 +442,12 @@ export default function KlingStudio() {
                 {generateVideoMutation.isPending ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    Génération (~60–90s)…
+                    {t('admin.kling.generatingVideo')}
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4" />
-                    Générer la vidéo
+                    {t('admin.kling.generateVideo')}
                   </>
                 )}
               </Button>
@@ -469,10 +468,10 @@ export default function KlingStudio() {
                       <Video className="w-8 h-8 text-white animate-pulse" />
                     </div>
                     <p className="text-sm font-medium">
-                      Kling génère votre vidéo…
+                      {t('admin.kling.klingGenerates')}
                     </p>
                     <p className="text-xs text-muted-foreground mt-1">
-                      Peut prendre jusqu'à 90 secondes
+                      {t('admin.kling.upTo90s')}
                     </p>
                   </motion.div>
                 ) : generatedVideoUrl ? (
@@ -497,11 +496,11 @@ export default function KlingStudio() {
                         className="flex-1 gap-1.5"
                         onClick={() => {
                           navigator.clipboard.writeText(generatedVideoUrl);
-                          toast.success("URL copiée !");
+                          toast.success(t('admin.kling.toastCopied'));
                         }}
                       >
                         <Copy className="w-3.5 h-3.5" />
-                        Copier l'URL
+                        {t('admin.kling.copyUrl')}
                       </Button>
                       <Button size="sm" className="flex-1 gap-1.5" asChild>
                         <a
@@ -511,7 +510,7 @@ export default function KlingStudio() {
                           download
                         >
                           <Download className="w-3.5 h-3.5" />
-                          Télécharger
+                          {t('admin.kling.download')}
                         </a>
                       </Button>
                     </div>
@@ -524,7 +523,7 @@ export default function KlingStudio() {
                     className="text-center p-8 text-muted-foreground"
                   >
                     <Video className="w-12 h-12 mx-auto mb-3 opacity-20" />
-                    <p className="text-sm">La vidéo apparaîtra ici</p>
+                    <p className="text-sm">{t('admin.kling.videoAppears')}</p>
                   </motion.div>
                 )}
               </AnimatePresence>

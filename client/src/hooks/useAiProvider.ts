@@ -28,8 +28,9 @@ export function useAiProvider() {
 
   useEffect(() => {
     const value = providerSetting.data;
-    if (value === "groq" || value === "google") {
-      setProvider(value);
+    const validProviders = AI_PROVIDERS.map(p => p.value);
+    if (value && validProviders.includes(value as AiProvider)) {
+      setProvider(value as AiProvider);
     }
   }, [providerSetting.data]);
 

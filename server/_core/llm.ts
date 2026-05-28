@@ -369,14 +369,31 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     payload.response_format = normalizedResponseFormat;
   }
 
-  const response = await fetch(apiUrl, {
-    method: "POST",
-    headers: {
-      "content-type": "application/json",
-      authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify(payload),
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
+
+  let response: Response;
+  try {
+    response = await fetch(apiUrl, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+  } catch (err: any) {
+    clearTimeout(timeout);
+    if (err.name === "AbortError") {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: `LLM invoke timeout (${provider}): requête annulée après 30s`,
+      });
+    }
+    throw err;
+  }
+  clearTimeout(timeout);
 
   if (!response.ok) {
     const errorText = await response.text();
@@ -387,4 +404,42 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
   }
 
   return (await response.json()) as InvokeResult;
+}
+
+// Providers fallback order
+const FALLBACK_ORDER: AiProvider[] = ["groq", "google", "minimax", "aimlapi"];
+
+/**
+ * invokeLLMWithFallback — tente le provider demandé, puis les autres en cas d'échec.
+ * Inclut un timeout de 30s par tentative et un retry automatique.
+ */
+export async function invokeLLMWithFallback(params: InvokeParams): Promise<InvokeResult> {
+  const preferredProvider = params.provider || ENV.preferredAiProvider || "groq";
+  
+  // Construire la liste des providers à essayer (préféré d'abord, puis fallback)
+  const providersToTry = [
+    preferredProvider,
+    ...FALLBACK_ORDER.filter(p => p !== preferredProvider),
+  ];
+
+  let lastError: Error | null = null;
+
+  for (const provider of providersToTry) {
+    try {
+      const result = await invokeLLM({ ...params, provider });
+      return result;
+    } catch (err: any) {
+      lastError = err;
+      console.warn(`[AI Fallback] Provider ${provider} failed: ${err.message}`);
+      // Si c'est une erreur de configuration (clé manquante), essayer le suivant
+      // Si c'est une erreur de timeout ou d'API, essayer le suivant aussi
+      continue;
+    }
+  }
+
+  // Tous les providers ont échoué
+  throw new TRPCError({
+    code: "INTERNAL_SERVER_ERROR",
+    message: `Tous les providers IA ont échoué. Dernière erreur: ${lastError?.message || "inconnue"}`,
+  });
 }

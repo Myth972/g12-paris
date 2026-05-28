@@ -1,9 +1,12 @@
-import { useState, useRef, useEffect } from "react";
-import { Search, Sparkles, Loader2, Send } from "lucide-react";
+import { useState } from "react";
+import { Search, Sparkles, Loader2, Send, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { trpc } from "@/lib/trpc";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
+import { Streamdown } from "streamdown";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { Link } from "wouter";
 import {
   Dialog,
   DialogContent,
@@ -16,6 +19,7 @@ export function AISearch() {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [hasSearched, setHasSearched] = useState(false);
+  const { user } = useAuth();
 
   const searchMutation = trpc.ai.search.useMutation();
   const statusQuery = trpc.ai.status.useQuery();
@@ -44,6 +48,11 @@ export function AISearch() {
               <DialogTitle className="font-serif text-2xl flex items-center gap-2">
                 <Sparkles className="w-5 h-5 text-primary" />
                 Ask G12
+                {!user && (
+                  <span className="ml-1 text-[10px] font-medium uppercase tracking-wider bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 px-2 py-0.5 rounded-full">
+                    Démo
+                  </span>
+                )}
                 <span className="ml-2 text-[10px] font-medium uppercase tracking-wider flex items-center gap-1">
                   <span
                     className={`inline-block w-2 h-2 rounded-full ${
@@ -62,8 +71,9 @@ export function AISearch() {
                 </span>
               </DialogTitle>
               <DialogDescription>
-                Posez une question à notre assistant IA sur les publications or
-                un sujet spirituel.
+                {user
+                  ? "Posez une question à notre assistant IA sur les publications ou un sujet spirituel."
+                  : "Posez une question simple. Connectez-vous pour des réponses complètes."}
               </DialogDescription>
             </DialogHeader>
 
@@ -73,9 +83,13 @@ export function AISearch() {
             >
               <Input
                 autoFocus
-                placeholder="Ex: Que dit la Bible sur l'amour ? ou Quels sont les derniers articles ?"
+                placeholder={user
+                  ? "Ex: Que dit la Bible sur l'amour ?"
+                  : "Ex: Que dit la Bible sur l'amour ? (mode démo)"
+                }
                 value={query}
                 onChange={e => setQuery(e.target.value)}
+                maxLength={user ? 500 : 200}
                 className="w-full text-base py-6 shadow-sm border-2 focus-visible:ring-primary h-14 pr-14"
               />
               <Button
@@ -91,6 +105,19 @@ export function AISearch() {
                 )}
               </Button>
             </form>
+
+            {!user && (
+              <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+                <Lock className="w-3 h-3" />
+                <span>
+                  Mode démo — réponses courtes.{" "}
+                  <Link href="/login" className="text-primary hover:underline" onClick={() => setOpen(false)}>
+                    Se connecter
+                  </Link>
+                  {" "}pour un accès complet.
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="bg-secondary/20 p-6 min-h-[250px] max-h-[500px] overflow-y-auto">
@@ -98,8 +125,9 @@ export function AISearch() {
               <div className="h-full flex flex-col items-center justify-center text-center text-muted-foreground pt-12 pb-8">
                 <Search className="w-12 h-12 mb-4 opacity-20" />
                 <p>
-                  L'assistant cherche dans nos articles et la sagesse biblique
-                  pour vous répondre.
+                  {user
+                    ? "L'assistant cherche dans nos articles et la sagesse biblique pour vous répondre."
+                    : "Posez une question simple en mode démonstration."}
                 </p>
               </div>
             ) : searchMutation.isPending ? (
@@ -119,13 +147,9 @@ export function AISearch() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="prose prose-sm md:prose-base dark:prose-invert max-w-none prose-p:leading-relaxed"
-                dangerouslySetInnerHTML={{
-                  // Very naive conversion of markdown paragraphs / bold text for quick display
-                  __html: searchMutation.data
-                    .replace(/\n\n/g, "<br/><br/>")
-                    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>"),
-                }}
-              />
+              >
+                <Streamdown>{searchMutation.data}</Streamdown>
+              </motion.div>
             ) : null}
           </div>
         </DialogContent>

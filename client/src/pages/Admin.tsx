@@ -28,6 +28,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useTranslation } from "react-i18next";
 import {
   Select,
   SelectContent,
@@ -69,6 +70,7 @@ import {
   User,
   LayoutDashboard,
   MessageCircle,
+  Globe,
 } from "lucide-react";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useAiProvider } from "@/hooks/useAiProvider";
@@ -83,6 +85,7 @@ const NewsletterAdmin = lazy(() => import("./NewsletterAdmin"));
 const KlingStudio = lazy(() => import("./KlingStudio"));
 const AIChatBox = lazy(() => import("@/components/AIChatBox").then(m => ({ default: m.AIChatBox })));
 const HomeContentManager = lazy(() => import("@/components/HomeContentManager"));
+const AIDashboard = lazy(() => import("@/components/AIDashboard"));
 
 import HomeHeroBackgroundSettings from "@/components/HomeHeroBackgroundSettings";
 import CulteHeroBackgroundSettings from "@/components/CulteHeroBackgroundSettings";
@@ -124,6 +127,7 @@ const NOTIF_TYPE_CONFIG = {
 // ─── Articles Tab ──────────────────────────────────────────────
 
 function ArticlesTab() {
+  const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const utils = trpc.useUtils();
@@ -132,18 +136,18 @@ function ArticlesTab() {
   const deleteMutation = trpc.articles.delete.useMutation({
     onSuccess: () => {
       utils.articles.adminList.invalidate();
-      toast.success("Article supprimé");
+      toast.success(t('admin.articlesTab.toastDeleted'));
       setDeleteId(null);
     },
-    onError: () => toast.error("Erreur lors de la suppression"),
+    onError: () => toast.error(t('admin.articlesTab.toastDeleteError')),
   });
 
   const togglePublish = trpc.articles.update.useMutation({
     onSuccess: () => {
       utils.articles.adminList.invalidate();
-      toast.success("Statut mis à jour");
+      toast.success(t('admin.articlesTab.toastStatusUpdated'));
     },
-    onError: () => toast.error("Erreur lors de la mise à jour"),
+    onError: () => toast.error(t('admin.articlesTab.toastStatusError')),
   });
 
   const articles = data?.items ?? [];
@@ -152,12 +156,12 @@ function ArticlesTab() {
     <>
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm text-muted-foreground">
-          {data?.total ?? 0} article{(data?.total ?? 0) > 1 ? "s" : ""} au total
+          {t('admin.articlesTab.totalCount', { count: data?.total ?? 0 })}
         </p>
         <Button size="sm" asChild>
           <Link href="/admin/article/new">
             <Plus className="w-4 h-4 mr-1" />
-            Nouvel article
+            {t('admin.articlesTab.newArticle')}
           </Link>
         </Button>
       </div>
@@ -173,15 +177,15 @@ function ArticlesTab() {
           <div className="text-center py-16">
             <Newspaper className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
             <h3 className="font-serif font-semibold text-foreground mb-1">
-              Aucun article
+              {t('admin.articlesTab.noArticles')}
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Créez votre premier article pour commencer.
+              {t('admin.articlesTab.noArticlesDesc')}
             </p>
             <Button size="sm" asChild>
               <Link href="/admin/article/new">
                 <Plus className="w-4 h-4 mr-1" />
-                Créer un article
+                {t('admin.articlesTab.createFirst')}
               </Link>
             </Button>
           </div>
@@ -189,11 +193,11 @@ function ArticlesTab() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[40%]">Titre</TableHead>
-                <TableHead>Catégorie</TableHead>
-                <TableHead>Statut</TableHead>
-                <TableHead>Date</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="w-[40%]">{t('admin.articlesTab.columnTitle')}</TableHead>
+                <TableHead>{t('admin.articlesTab.columnCategory')}</TableHead>
+                <TableHead>{t('admin.articlesTab.columnStatus')}</TableHead>
+                <TableHead>{t('admin.articlesTab.columnDate')}</TableHead>
+                <TableHead className="text-right">{t('admin.articlesTab.columnActions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -227,7 +231,7 @@ function ArticlesTab() {
                       variant={article.published ? "default" : "secondary"}
                       className="text-xs"
                     >
-                      {article.published ? "Publié" : "Brouillon"}
+                      {article.published ? t('admin.articlesTab.published') : t('admin.articlesTab.draft')}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
@@ -239,7 +243,7 @@ function ArticlesTab() {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8"
-                        title={article.published ? "Dépublier" : "Publier"}
+                        title={article.published ? t('admin.articlesTab.unpublish') : t('admin.articlesTab.publish')}
                         onClick={() =>
                           togglePublish.mutate({
                             id: article.id,
@@ -287,21 +291,18 @@ function ArticlesTab() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer cet article ?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Cette action est irréversible. L'article sera définitivement
-              supprimé.
-            </AlertDialogDescription>
+            <AlertDialogTitle>{t('admin.dialogs.confirmDelete.title')}</AlertDialogTitle>
+          <AlertDialogDescription>{t('admin.dialogs.confirmDelete.desc')}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogCancel>{t('admin.dialogs.confirmDelete.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() =>
                 deleteId && deleteMutation.mutate({ id: deleteId })
               }
             >
-              Supprimer
+              {t('admin.dialogs.confirmDelete.confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -313,6 +314,7 @@ function ArticlesTab() {
 // ─── Notifications Tab ─────────────────────────────────────────
 
 function NotificationsTab() {
+  const { t } = useTranslation();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [newNotif, setNewNotif] = useState({
@@ -328,27 +330,27 @@ function NotificationsTab() {
   const createMutation = trpc.notifications.create.useMutation({
     onSuccess: () => {
       utils.notifications.adminList.invalidate();
-      toast.success("Notification envoyée");
+      toast.success(t('admin.notificationsTab.toastSent'));
       setShowCreateDialog(false);
       setNewNotif({ title: "", message: "", type: "info", linkUrl: "" });
     },
-    onError: () => toast.error("Erreur lors de l'envoi"),
+    onError: () => toast.error(t('admin.notificationsTab.toastSendError')),
   });
 
   const deleteMutation = trpc.notifications.delete.useMutation({
     onSuccess: () => {
       utils.notifications.adminList.invalidate();
-      toast.success("Notification supprimée");
+      toast.success(t('admin.notificationsTab.toastDeleted'));
       setDeleteId(null);
     },
-    onError: () => toast.error("Erreur lors de la suppression"),
+    onError: () => toast.error(t('admin.notificationsTab.toastDeleteError')),
   });
 
   const notifs = data?.items ?? [];
 
   const handleCreate = () => {
     if (!newNotif.title.trim() || !newNotif.message.trim()) {
-      toast.error("Veuillez remplir le titre et le message");
+      toast.error(t('admin.notificationsTab.fillRequired'));
       return;
     }
     createMutation.mutate({
@@ -363,12 +365,11 @@ function NotificationsTab() {
     <>
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm text-muted-foreground">
-          {data?.total ?? 0} notification{(data?.total ?? 0) > 1 ? "s" : ""}{" "}
-          envoyée{(data?.total ?? 0) > 1 ? "s" : ""}
+          {t('admin.notificationsTab.totalCount', { count: data?.total ?? 0 })}
         </p>
         <Button size="sm" onClick={() => setShowCreateDialog(true)}>
           <Send className="w-4 h-4 mr-1" />
-          Nouvelle notification
+          {t('admin.notificationsTab.sendNotification')}
         </Button>
       </div>
 
@@ -383,14 +384,14 @@ function NotificationsTab() {
           <div className="text-center py-16">
             <Bell className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
             <h3 className="font-serif font-semibold text-foreground mb-1">
-              Aucune notification
+              {t('admin.notifications.noNotifications')}
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Envoyez votre première notification aux utilisateurs.
+              {t('admin.notificationsTab.noNotificationsDesc')}
             </p>
             <Button size="sm" onClick={() => setShowCreateDialog(true)}>
               <Send className="w-4 h-4 mr-1" />
-              Envoyer une notification
+              {t('admin.notificationsTab.sendFirst')}
             </Button>
           </div>
         ) : (
@@ -429,7 +430,7 @@ function NotificationsTab() {
                     </p>
                     <div className="flex items-center gap-3 mt-1.5">
                       <span className="text-xs text-muted-foreground/70">
-                        {formatDate(notif.createdAt)} par{" "}
+                        {formatDate(notif.createdAt)} {t('admin.notificationsTab.by')}{" "}
                         {notif.authorName || "Admin"}
                       </span>
                       {notif.linkUrl && (
@@ -459,18 +460,18 @@ function NotificationsTab() {
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle className="font-serif">
-              Nouvelle notification
+              {t('admin.notificationsTab.dialogTitle')}
             </DialogTitle>
             <DialogDescription>
-              Envoyez une notification à tous les utilisateurs du site.
+              {t('admin.notificationsTab.dialogDesc')}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label htmlFor="notif-title">Titre *</Label>
+              <Label htmlFor="notif-title">{t('admin.notificationsTab.titleLabel')}</Label>
               <Input
                 id="notif-title"
-                placeholder="Titre de la notification..."
+                placeholder={t('admin.notificationsTab.titlePlaceholder')}
                 value={newNotif.title}
                 onChange={e =>
                   setNewNotif({ ...newNotif, title: e.target.value })
@@ -478,7 +479,7 @@ function NotificationsTab() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="notif-type">Type</Label>
+              <Label htmlFor="notif-type">{t('admin.notificationsTab.typeLabel')}</Label>
               <Select
                 value={newNotif.type}
                 onValueChange={v =>
@@ -497,10 +498,10 @@ function NotificationsTab() {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="notif-message">Message *</Label>
+              <Label htmlFor="notif-message">{t('admin.notificationsTab.messageLabel')}</Label>
               <Textarea
                 id="notif-message"
-                placeholder="Contenu de la notification..."
+                placeholder={t('admin.notificationsTab.messagePlaceholder')}
                 rows={3}
                 value={newNotif.message}
                 onChange={e =>
@@ -509,18 +510,17 @@ function NotificationsTab() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="notif-link">Lien (optionnel)</Label>
+              <Label htmlFor="notif-link">{t('admin.notificationsTab.linkLabel')}</Label>
               <Input
                 id="notif-link"
-                placeholder="/article/mon-article ou https://..."
+                placeholder={t('admin.notificationsTab.linkPlaceholder')}
                 value={newNotif.linkUrl}
                 onChange={e =>
                   setNewNotif({ ...newNotif, linkUrl: e.target.value })
                 }
               />
               <p className="text-xs text-muted-foreground">
-                URL vers laquelle l'utilisateur sera redirigé en cliquant sur la
-                notification.
+                {t('admin.notificationsTab.linkHelp')}
               </p>
             </div>
           </div>
@@ -529,11 +529,11 @@ function NotificationsTab() {
               variant="outline"
               onClick={() => setShowCreateDialog(false)}
             >
-              Annuler
+              {t('admin.dialogs.confirmDelete.cancel')}
             </Button>
             <Button onClick={handleCreate} disabled={createMutation.isPending}>
               <Send className="w-4 h-4 mr-1" />
-              {createMutation.isPending ? "Envoi..." : "Envoyer"}
+              {createMutation.isPending ? t('admin.notificationsTab.sending') : t('admin.notificationsTab.send')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -546,21 +546,20 @@ function NotificationsTab() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer cette notification ?</AlertDialogTitle>
+            <AlertDialogTitle>{t('admin.notificationsTab.deleteTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Cette action est irréversible. La notification sera définitivement
-              supprimée pour tous les utilisateurs.
+              {t('admin.notificationsTab.deleteDesc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogCancel>{t('admin.dialogs.confirmDelete.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() =>
                 deleteId && deleteMutation.mutate({ id: deleteId })
               }
             >
-              Supprimer
+              {t('admin.dialogs.confirmDelete.confirm')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -572,6 +571,7 @@ function NotificationsTab() {
 // ─── AI Assistant Tab ──────────────────────────────────────────
 
 function AIAssistantTab() {
+  const { t } = useTranslation();
   const {
     providers,
     provider,
@@ -611,7 +611,7 @@ function AIAssistantTab() {
       ]);
     },
     onError: error => {
-      toast.error("Erreur IA: " + error.message);
+      toast.error(t('admin.aiTab.errorPrefix') + error.message);
     },
   });
 
@@ -661,7 +661,7 @@ function AIAssistantTab() {
             onClick={() => testProvider(provider)}
             disabled={isTesting}
           >
-            {isTesting ? "Test..." : "Tester l'IA"}
+            {isTesting ? t('admin.aiTab.testing') : t('admin.aiTab.testIA')}
           </Button>
         </div>
       </div>
@@ -693,6 +693,7 @@ function AIAssistantTab() {
 // ─── Main Admin Page ───────────────────────────────────────────
 
 export default function Admin() {
+  const { t, i18n } = useTranslation();
   const { user, loading: authLoading } = useAuth({
     redirectOnUnauthenticated: true,
   });
@@ -727,13 +728,13 @@ if (authLoading) {
     return (
       <div className="container py-20 text-center">
         <Shield className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-        <h2 className="text-xl font-serif font-bold mb-2">Accès restreint</h2>
+        <h2 className="text-xl font-serif font-bold mb-2">{t('admin.restrictedAccess')}</h2>
         <p className="text-muted-foreground mb-6">
-          Cette page est réservée aux administrateurs.
+          {t('admin.restrictedAccessDesc')}
         </p>
         <Button variant="outline" onClick={() => setLocation("/")}>
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Retour à l'accueil
+          {t('admin.backToHome')}
         </Button>
       </div>
 );
@@ -749,18 +750,28 @@ if (authLoading) {
               <div className="flex items-center gap-2 mb-1">
                 <Shield className="w-5 h-5 text-primary" />
                 <span className="text-xs font-semibold uppercase tracking-wider text-primary font-sans">
-                  Administration
+                  {t('admin.title')}
                 </span>
                 <Badge variant="outline" className="text-xs">
-                  {isAdmin ? "Administrateur" : isEditeur ? "Éditeur" : isBibliotheque ? "Bibliothèque" : "Utilisateur"}
+                  {isAdmin ? t('admin.roles.admin') : isEditeur ? t('admin.roles.editeur') : isBibliotheque ? t('admin.roles.bibliotheque') : t('admin.roles.user')}
                 </Badge>
+<Button
+  variant="outline"
+  size="sm"
+  onClick={() => i18n.changeLanguage(i18n.language === "en" ? "fr" : "en")}
+  className="ml-2 flex items-center gap-1"
+  title="Changer la langue"
+>
+  <Globe className="w-4 h-4" />
+  {i18n.language === "en" ? "EN" : "FR"}
+</Button>
               </div>
               <h1 className="text-2xl font-serif font-bold text-foreground">
-                Tableau de bord
+                {t('admin.dashboard')}
               </h1>
               {user && (
-                <p className="text-sm text-muted-foreground mt-1">
-                  Connecté en tant que <span className="font-medium">{user.name || user.openId}</span>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {t('admin.connectedAs')} <span className="font-medium">{user.name || user.openId}</span>
                 </p>
               )}
             </div>
@@ -770,13 +781,13 @@ if (authLoading) {
                   <Button variant="ghost" size="sm" asChild>
                     <Link href="/admin/profile">
                       <User className="w-4 h-4 sm:mr-1" />
-                      <span className="hidden sm:inline">Mon Profil</span>
+                      <span className="hidden sm:inline">{t('admin.myProfile')}</span>
                     </Link>
                   </Button>
                   <Button variant="outline" size="sm" asChild>
                     <Link href="/admin/tutorial">
                       <HelpCircle className="w-4 h-4 sm:mr-1" />
-                      <span className="hidden sm:inline">Guide</span>
+                      <span className="hidden sm:inline">{t('admin.guide')}</span>
                     </Link>
                   </Button>
                 </>
@@ -784,7 +795,7 @@ if (authLoading) {
               <Button variant="outline" size="sm" asChild>
                 <Link href="/">
                   <ArrowLeft className="w-4 h-4 sm:mr-1" />
-                  <span className="hidden sm:inline">Site</span>
+                  <span className="hidden sm:inline">{t('admin.backToSite')}</span>
                 </Link>
               </Button>
             </div>
@@ -802,7 +813,7 @@ if (authLoading) {
               </div>
               <div>
                 <p className="text-2xl font-bold">{pubCount}</p>
-                <p className="text-xs text-muted-foreground">Articles publiés</p>
+                <p className="text-xs text-muted-foreground">{t('admin.stats.articles')}</p>
               </div>
             </div>
           </div>
@@ -813,7 +824,7 @@ if (authLoading) {
               </div>
               <div>
                 <p className="text-2xl font-bold">{nlCount}</p>
-                <p className="text-xs text-muted-foreground">Abonnés Newsletter</p>
+                <p className="text-xs text-muted-foreground">{t('admin.stats.subscribers')}</p>
               </div>
             </div>
           </div>
@@ -824,7 +835,7 @@ if (authLoading) {
               </div>
               <div>
                 <p className="text-2xl font-bold">{mediaCount}</p>
-                <p className="text-xs text-muted-foreground">Médias galerie</p>
+                <p className="text-xs text-muted-foreground">{t('admin.stats.gallery')}</p>
               </div>
             </div>
           </div>
@@ -835,7 +846,7 @@ if (authLoading) {
               </div>
               <div>
                 <p className="text-2xl font-bold">{catCount}</p>
-                <p className="text-xs text-muted-foreground">Catégories bibliothèque</p>
+                <p className="text-xs text-muted-foreground">{t('admin.stats.library')}</p>
               </div>
             </div>
           </div>
@@ -844,7 +855,7 @@ if (authLoading) {
 
       <div className="container pt-2">
         <h2 className="text-lg font-serif font-bold mb-4 flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-primary" /> Accès Rapide
+          <Sparkles className="w-5 h-5 text-primary" /> {t('admin.quickAccess.title')}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
           <Link href="/admin/bibliotheque">
@@ -852,7 +863,7 @@ if (authLoading) {
               <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
                 <Library className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold font-serif mb-2">Gestion Bibliothèque</h3>
+              <h3 className="text-xl font-bold font-serif mb-2">{t('admin.quickAccess.library')}</h3>
               <p className="text-sm text-muted-foreground">
                 Gérez vos livres, études bibliques, vidéos et ressources premium.
               </p>
@@ -865,7 +876,7 @@ if (authLoading) {
               <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-600 mb-4 group-hover:scale-110 transition-transform">
                 <Palette className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold font-serif mb-2">Design & Identité</h3>
+              <h3 className="text-xl font-bold font-serif mb-2">{t('admin.quickAccess.design')}</h3>
               <p className="text-sm text-muted-foreground">
                 Personnalisez les couleurs, polices, logos et le style visuel global.
               </p>
@@ -878,7 +889,7 @@ if (authLoading) {
               <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-600 mb-4 group-hover:scale-110 transition-transform">
                 <Plus className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold font-serif mb-2">Nouvel Article</h3>
+              <h3 className="text-xl font-bold font-serif mb-2">{t('admin.quickAccess.newArticle')}</h3>
               <p className="text-sm text-muted-foreground">
                 Rédigez un nouvel article pour le blog ou les actualités.
               </p>
@@ -893,50 +904,50 @@ if (authLoading) {
           <TabsList className="mb-6 flex overflow-x-auto h-auto w-full justify-start gap-2 pb-2 scrollbar-thin">
             <TabsTrigger value="articles" className="gap-2">
               <Newspaper className="w-4 h-4" />
-              Articles
+              {t('admin.tabs.articles')}
             </TabsTrigger>
             <TabsTrigger value="accueil" className="gap-2">
               <LayoutDashboard className="w-4 h-4" />
-              Accueil
+              {t('admin.tabs.home')}
             </TabsTrigger>
             {hasAdminAccess && (
               <>
             <TabsTrigger value="notifications" className="gap-2">
               <Bell className="w-4 h-4" />
-              Notifications
+              {t('admin.tabs.notifications')}
             </TabsTrigger>
             <TabsTrigger value="newsletter" className="gap-2">
               <Mail className="w-4 h-4" />
-              Newsletter
+              {t('admin.tabs.newsletter')}
             </TabsTrigger>
             <TabsTrigger value="ai" className="gap-2">
               <Sparkles className="w-4 h-4 text-primary" />
-              Assistant IA
+              {t('admin.tabs.ai')}
             </TabsTrigger>
             <TabsTrigger value="kling" className="gap-2">
               <Wand2 className="w-4 h-4 text-violet-500" />
-              Kling Studio
+              {t('admin.tabs.kling')}
             </TabsTrigger>
             <TabsTrigger value="users" className="gap-2">
               <Users className="w-4 h-4" />
-              Utilisateurs
+              {t('admin.tabs.users')}
             </TabsTrigger>
               </>
             )}
             <TabsTrigger value="pages" className="gap-2">
               <Newspaper className="w-4 h-4" />
-              Contenu des pages
+              {t('admin.tabs.pages')}
             </TabsTrigger>
             <TabsTrigger value="publications" className="gap-2">
               <BookOpen className="w-4 h-4" />
-              Publications & Versets
+              {t('admin.tabs.publications')}
             </TabsTrigger>
           </TabsList>
           <TabsContent value="articles">
             <ArticlesTab />
           </TabsContent>
           <TabsContent value="accueil">
-            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> Chargement...</div>}>
+            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
               <HomeContentManager />
             </Suspense>
           </TabsContent>
@@ -946,12 +957,15 @@ if (authLoading) {
             <NotificationsTab />
           </TabsContent>
           <TabsContent value="newsletter">
-            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> Chargement...</div>}>
+            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
               <NewsletterAdmin />
             </Suspense>
           </TabsContent>
           <TabsContent value="ai">
             <AIAssistantTab />
+            <div className="mt-8">
+              <AIDashboard />
+            </div>
           </TabsContent>
           <TabsContent value="kling" className="py-4">
             <KlingStudio />
@@ -962,7 +976,7 @@ if (authLoading) {
             </>
           )}
           <TabsContent value="pages">
-            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> Chargement du gestionnaire...</div>}>
+            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.main.loadingManager')}</div>}>
               <div className="space-y-8">
                 <HomeHeroBackgroundSettings />
                 <CulteHeroBackgroundSettings />
@@ -986,7 +1000,7 @@ if (authLoading) {
             </Suspense>
           </TabsContent>
           <TabsContent value="publications" className="space-y-8">
-            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> Chargement...</div>}>
+            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
                <GalleryManager />
                {isAdmin && <><div className="h-px bg-border my-8" /><VersesManager /></>}
             </Suspense>
@@ -999,6 +1013,7 @@ if (authLoading) {
 
 // ─── Users Tab Component ─────────────────────────────────────────
 function UsersTab() {
+  const { t } = useTranslation();
   const utils = trpc.useUtils();
   const { user } = useAuth();
 
@@ -1027,7 +1042,7 @@ function UsersTab() {
 
   const handleCreate = () => {
     if (!newUser.password) {
-      alert("Le mot de passe est obligatoire");
+      toast.error(t('admin.users.passwordRequired'));
       return;
     }
     createUserMutation.mutate({
@@ -1046,16 +1061,16 @@ function UsersTab() {
   };
 
   const handleDelete = (userId: number) => {
-    if (confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?")) {
+    if (confirm(t('admin.usersTab.confirmDelete'))) {
       deleteUserMutation.mutate({ userId });
     }
   };
 
   const roleLabels: Record<string, string> = {
-    admin: "Administrateur",
-    editeur: "Éditeur",
-    bibliotheque: "Bibliothèque",
-    user: "Utilisateur",
+    admin: t('admin.roles.admin'),
+    editeur: t('admin.roles.editeur'),
+    bibliotheque: t('admin.roles.bibliotheque'),
+    user: t('admin.roles.user'),
   };
 
   const roleColors: Record<string, string> = {
@@ -1069,8 +1084,8 @@ function UsersTab() {
     return (
       <div className="p-8 text-center">
         <AlertCircle className="w-12 h-12 mx-auto text-destructive mb-4" />
-        <h2 className="text-xl font-semibold">Accès refusé</h2>
-        <p className="text-muted-foreground">Vous n'avez pas les droits pour gérer les utilisateurs.</p>
+        <h2 className="text-xl font-semibold">{t('admin.usersTab.accessDenied')}</h2>
+        <p className="text-muted-foreground">{t('admin.usersTab.accessDeniedDesc')}</p>
       </div>
     );
   }
@@ -1079,12 +1094,12 @@ function UsersTab() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold">Gestion des utilisateurs</h2>
-          <p className="text-muted-foreground">Gérez les accès et les rôles des utilisateurs</p>
+          <h2 className="text-2xl font-bold">{t('admin.usersTab.title')}</h2>
+          <p className="text-muted-foreground">{t('admin.usersTab.description')}</p>
         </div>
         <Button onClick={() => setIsCreateOpen(true)}>
           <Plus className="w-4 h-4 mr-2" />
-          Ajouter un utilisateur
+          {t('admin.usersTab.addUser')}
         </Button>
       </div>
 
@@ -1092,11 +1107,11 @@ function UsersTab() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nom</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Rôle</TableHead>
-              <TableHead>Dernière connexion</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>{t('admin.usersTab.columnName')}</TableHead>
+              <TableHead>{t('admin.usersTab.columnEmail')}</TableHead>
+              <TableHead>{t('admin.usersTab.columnRole')}</TableHead>
+              <TableHead>{t('admin.usersTab.columnLastLogin')}</TableHead>
+              <TableHead className="text-right">{t('admin.usersTab.columnActions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -1109,13 +1124,13 @@ function UsersTab() {
             ) : users?.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                  Aucun utilisateur trouvé
+                  {t('admin.users.notFound')}
                 </TableCell>
               </TableRow>
             ) : (
               users?.map((u: any) => (
                 <TableRow key={u.id}>
-                  <TableCell className="font-medium">{u.name || "Sans nom"}</TableCell>
+                  <TableCell className="font-medium">{u.name || t('admin.usersTab.noName')}</TableCell>
                   <TableCell className="text-muted-foreground">{u.email || "-"}</TableCell>
                   <TableCell>
                     <Select
@@ -1127,17 +1142,17 @@ function UsersTab() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="user">Utilisateur</SelectItem>
-                        <SelectItem value="editeur">Éditeur</SelectItem>
-                        <SelectItem value="bibliotheque">Bibliothèque</SelectItem>
-                        <SelectItem value="admin">Administrateur</SelectItem>
+                        <SelectItem value="user">{t('admin.roles.user')}</SelectItem>
+                        <SelectItem value="editeur">{t('admin.roles.editeur')}</SelectItem>
+                        <SelectItem value="bibliotheque">{t('admin.roles.bibliotheque')}</SelectItem>
+                        <SelectItem value="admin">{t('admin.roles.admin')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {u.lastSignedIn
                       ? new Date(u.lastSignedIn).toLocaleDateString("fr-FR")
-                      : "Jamais"}
+                      : t('admin.usersTab.never')}
                   </TableCell>
                   <TableCell className="text-right">
                     <Button
@@ -1160,22 +1175,20 @@ function UsersTab() {
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Ajouter un utilisateur</DialogTitle>
-            <DialogDescription>
-              Créez un nouvel utilisateur avec un rôle spécifique
-            </DialogDescription>
+            <DialogTitle>{t('admin.users.createTitle')}</DialogTitle>
+              <DialogDescription>{t('admin.users.createDesc')}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Nom</Label>
+              <Label>{t('admin.usersTab.nameLabel')}</Label>
               <Input
                 value={newUser.name}
                 onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
-                placeholder="Nom de l'utilisateur"
+                placeholder={t('admin.usersTab.namePlaceholder')}
               />
             </div>
             <div className="space-y-2">
-              <Label>Email (optionnel)</Label>
+              <Label>{t('admin.usersTab.emailLabel')}</Label>
               <Input
                 type="email"
                 value={newUser.email}
@@ -1184,16 +1197,16 @@ function UsersTab() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Mot de passe</Label>
+              <Label>{t('admin.usersTab.passwordLabel')}</Label>
               <Input
                 type="password"
                 value={newUser.password}
                 onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                placeholder="Mot de passe pour la connexion"
+                placeholder={t('admin.usersTab.passwordPlaceholder')}
               />
             </div>
             <div className="space-y-2">
-              <Label>Rôle</Label>
+              <Label>{t('admin.usersTab.roleLabel')}</Label>
               <Select
                 value={newUser.role}
                 onValueChange={(role) => setNewUser({ ...newUser, role: role as any })}
@@ -1202,20 +1215,20 @@ function UsersTab() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="editeur">Éditeur</SelectItem>
-                  <SelectItem value="bibliotheque">Bibliothèque</SelectItem>
-                  <SelectItem value="user">Utilisateur</SelectItem>
-                  <SelectItem value="admin">Administrateur</SelectItem>
+                  <SelectItem value="editeur">{t('admin.roles.editeur')}</SelectItem>
+                  <SelectItem value="bibliotheque">{t('admin.roles.bibliotheque')}</SelectItem>
+                  <SelectItem value="user">{t('admin.roles.user')}</SelectItem>
+                  <SelectItem value="admin">{t('admin.roles.admin')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-              Annuler
-            </Button>
+                {t('admin.dialogs.confirmDelete.cancel')}
+              </Button>
             <Button onClick={handleCreate} disabled={!newUser.name}>
-              Créer
+              {t('admin.usersTab.create')}
             </Button>
           </DialogFooter>
         </DialogContent>
