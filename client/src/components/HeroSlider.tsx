@@ -25,6 +25,9 @@ export default function HeroSlider({
 }: HeroSliderProps) {
   const [current, setCurrent] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const goTo = useCallback(
     (index: number) => {
@@ -41,6 +44,25 @@ export default function HeroSlider({
     const id = setInterval(next, autoPlayInterval);
     return () => clearInterval(id);
   }, [next, autoPlayInterval, slides.length, isPaused]);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    setIsPaused(true);
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    const diff = touchStartX.current - touchEndX.current;
+    const threshold = 50;
+    if (Math.abs(diff) > threshold) {
+      if (diff > 0) next();
+      else prev();
+    }
+    setIsPaused(false);
+  }, [next, prev]);
 
   const titleRefs = useRef<(HTMLHeadingElement | null)[]>([]);
   const subtitleRefs = useRef<(HTMLParagraphElement | null)[]>([]);
@@ -62,7 +84,7 @@ export default function HeroSlider({
         el.style.setProperty("color", slide.textColor, "important");
         el.style.setProperty("text-shadow", "0 0 8px rgba(0,0,0,0.7), 0 0 3px rgba(255,255,255,0.3)", "important");
       } else {
-        el.style.color = "rgba(255,255,255,0.8)";
+        el.style.color = "rgba(255,255,255,0.9)";
         el.style.textShadow = "";
       }
     });
@@ -72,9 +94,13 @@ export default function HeroSlider({
 
   return (
     <div
-      className={`relative w-full overflow-hidden rounded-lg bg-muted ${className}`}
+      ref={containerRef}
+      className={`relative w-full overflow-hidden rounded-lg bg-muted touch-pan-y ${className}`}
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
       role="region"
       aria-label="Slider d'actualités"
     >
@@ -84,39 +110,39 @@ export default function HeroSlider({
         style={{ transform: `translateX(-${current * 100}%)` }}
       >
         {slides.map((slide, i) => (
-          <div
-            key={i}
-            className="relative w-full flex-shrink-0 aspect-[21/9] min-h-[160px] md:min-h-[260px] bg-muted flex items-center justify-center overflow-hidden"
-          >
+             <div
+               key={i}
+               className="relative w-full flex-shrink-0 aspect-[16/9] max-sm:aspect-[4/3] min-h-[280px] max-sm:min-h-[340px] bg-muted flex items-center justify-center overflow-hidden group"
+             >
             {/* Background image */}
             <img
               src={slide.imageUrl}
               alt={slide.title}
-              className="absolute inset-0 w-full h-full object-contain"
+              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               loading={i === 0 ? "eager" : "lazy"}
             />
             {/* Gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none" />
-            {/* Content */}
-            <div className="absolute bottom-0 left-0 right-0 p-3 sm:p-4 md:p-6">
-              <h2 ref={el => { titleRefs.current[i] = el; }} className="text-white text-sm sm:text-lg md:text-2xl lg:text-3xl font-bold font-serif leading-tight max-w-2xl drop-shadow-lg">
-                {slide.title}
-              </h2>
-              {slide.subtitle && (
-                <p ref={el => { subtitleRefs.current[i] = el; }} className="text-[11px] sm:text-xs md:text-sm mt-1 sm:mt-1.5 max-w-xl whitespace-pre-line">
-                  {slide.subtitle}
-                </p>
-              )}
-              {slide.ctaLabel && slide.ctaHref && (
-                <Button
-                  asChild
-                  size="sm"
-                  className="mt-1.5 sm:mt-2 md:mt-3 bg-white text-black hover:bg-white/90 border-0 rounded-full px-3 sm:px-4 shadow-lg text-[10px] sm:text-xs h-7 sm:h-8"
-                >
-                  <a href={slide.ctaHref}>{slide.ctaLabel}</a>
-                </Button>
-              )}
-            </div>
+             {/* Content */}
+             <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5 md:p-6">
+                <h2 ref={el => { titleRefs.current[i] = el; }} className="text-white text-[1.15rem] sm:text-lg md:text-2xl lg:text-3xl xl:text-4xl font-bold font-serif leading-[1.15] max-w-2xl drop-shadow-lg mb-2 sm:mb-3">
+                 {slide.title}
+               </h2>
+               {slide.subtitle && (
+                  <p ref={el => { subtitleRefs.current[i] = el; }} className="text-[0.825rem] sm:text-base md:text-lg leading-[1.6] mt-2 sm:mt-2.5 max-w-xl whitespace-pre-line">
+                   {slide.subtitle}
+                 </p>
+               )}
+               {slide.ctaLabel && slide.ctaHref && (
+                  <Button
+                    asChild
+                    size="sm"
+                    className="mt-3 sm:mt-4 md:mt-5 bg-white text-black hover:bg-white/90 border-0 rounded-full px-4 sm:px-6 shadow-lg text-xs sm:text-sm md:text-base font-semibold h-8 sm:h-9"
+                  >
+                    <a href={slide.ctaHref}>{slide.ctaLabel}</a>
+                  </Button>
+               )}
+             </div>
           </div>
         ))}
       </div>
@@ -141,21 +167,14 @@ export default function HeroSlider({
         </>
       )}
 
-      {/* Dots */}
       {slides.length > 1 && (
-        <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5">
-          {slides.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => goTo(i)}
-              className={`w-2 h-2 rounded-full transition-all duration-300 touch-manipulation ${
-                i === current
-                  ? "bg-white w-4"
-                  : "bg-white/50 hover:bg-white/70"
-              }`}
-              aria-label={`Aller au slide ${i + 1}`}
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 w-32 max-sm:w-28">
+          <div className="h-1 rounded-full bg-white/20 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-white transition-all duration-700 ease-out"
+              style={{ width: `${((current + 1) / slides.length) * 100}%` }}
             />
-          ))}
+          </div>
         </div>
       )}
     </div>

@@ -20,7 +20,7 @@ import {
   Upload,
   Loader2,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import PageTitleEditor from "@/components/PageTitleEditor";
 import PageTextEditor from "@/components/PageTextEditor";
 import { toast } from "sonner";
@@ -84,6 +84,10 @@ export default function PublicationDuJour() {
     video: videoItems[idx],
     index: idx,
   }));
+
+  const openImageInNewTab = useCallback((url: string) => {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }, []);
 
   const [editing, setEditing] = useState(false);
   const [draftRef, setDraftRef] = useState("");
@@ -388,27 +392,29 @@ export default function PublicationDuJour() {
                     className="relative w-full h-[450px] md:h-[600px] flex items-center"
                   >
                      {/* Image (Background Layer) */}
-                     {pair.image ? (
-                       <motion.div
-                         animate={motionEnabled ? { y: [0, -25, 0], scale: [1, 1.03, 1] } : {}}
-                         whileHover={motionEnabled ? { scale: 1.08, rotate: 3, zIndex: 30 } : {}}
-                         transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                         className={`absolute ${isEven ? 'left-0 md:left-4' : 'right-0 md:right-4'} top-0 md:top-10 w-[85%] md:w-[60%] h-[75%] md:h-[80%] z-0 rounded-2xl overflow-hidden shadow-2xl border-4 border-white/40 cursor-pointer group hover:shadow-primary/30 transition-shadow`}
-                       >
-                         <img
-                           src={pair.image.mediaUrl}
-                           alt={pair.image.title}
-                           className="w-full h-full object-cover select-none group-hover:scale-110 transition-transform duration-700"
-                           onContextMenu={(e) => e.preventDefault()}
-                           draggable={false}
-                           loading="lazy"
-                         />
-                         <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6 text-white">
-                           <p className="text-sm md:text-lg font-serif font-medium tracking-wide drop-shadow-md">
-                             {pair.image.title || `Image ${pair.index + 1}`}
-                           </p>
-                         </div>
-                       </motion.div>
+                      {pair.image ? (
+                        <motion.div
+                          animate={motionEnabled ? { y: [0, -25, 0], scale: [1, 1.03, 1] } : {}}
+                          whileHover={motionEnabled ? { scale: 1.08, rotate: 3, zIndex: 30 } : {}}
+                          whileTap={motionEnabled ? { scale: 0.95 } : {}}
+                          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+                          onClick={() => openImageInNewTab(pair.image!.mediaUrl)}
+                          className={`absolute ${isEven ? 'left-0 md:left-4' : 'right-0 md:right-4'} top-0 md:top-10 w-[85%] md:w-[60%] h-[75%] md:h-[80%] z-0 rounded-2xl overflow-hidden shadow-2xl border-4 border-white/40 cursor-pointer group hover:shadow-primary/30 transition-shadow active:scale-[0.97]`}
+                        >
+                          <img
+                            src={pair.image.mediaUrl}
+                            alt={pair.image.title}
+                            className="w-full h-full object-cover select-none group-hover:scale-110 transition-transform duration-700"
+                            onContextMenu={(e) => e.preventDefault()}
+                            draggable={false}
+                            loading="lazy"
+                          />
+                          <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-6 text-white pointer-events-none">
+                            <p className="text-sm md:text-lg font-serif font-medium tracking-wide drop-shadow-md">
+                              {pair.image.title || `Image ${pair.index + 1}`}
+                            </p>
+                          </div>
+                        </motion.div>
                      ) : (
                        <div className={`absolute ${isEven ? 'left-0' : 'right-0'} top-0 w-[85%] md:w-[60%] h-[75%] z-0 rounded-2xl border-4 border-white/40 bg-black/5 flex items-center justify-center text-muted-foreground`}>
                          Aucune image
@@ -416,33 +422,35 @@ export default function PublicationDuJour() {
                      )}
 
                      {/* Video (Foreground Layer) */}
-                     {pair.video ? (
-                       <motion.div
-                         animate={motionEnabled ? { y: [0, 25, 0], scale: [1, 1.05, 1], rotate: [0, 2, 0] } : {}}
-                         whileHover={motionEnabled ? { scale: 1.1, zIndex: 40 } : {}}
-                         transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
-                         className={`absolute ${isEven ? 'right-0 md:right-4' : 'left-0 md:left-4'} bottom-0 md:bottom-10 w-[90%] md:w-[55%] z-10 rounded-2xl overflow-hidden shadow-[0_25px_75px_rgba(0,0,0,0.4)] border-4 border-background bg-background cursor-pointer hover:shadow-primary/50 hover:border-primary/30 transition-all group`}
-                       >
-                         <div className="bg-background">
-                           <div className="px-4 py-2 flex items-center justify-between border-b border-border/10 bg-muted/30 group-hover:bg-primary/5 transition-colors">
-                             <span className="text-[10px] font-bold uppercase tracking-widest text-primary/80">
-                               Vidéo {pair.index + 1}
-                             </span>
-                           </div>
-                           <div className="p-1 md:p-2 bg-black">
-                             {pair.video.youtubeUrl ? (
-                               <YouTubeEmbed url={pair.video.youtubeUrl} />
-                             ) : pair.video.mediaUrl ? (
-                               <video
-                                 src={pair.video.mediaUrl}
-                                 controls
-                                 muted
-                                 className="w-full aspect-video object-contain"
-                               />
-                             ) : null}
-                           </div>
-                         </div>
-                       </motion.div>
+                      {pair.video ? (
+                        <motion.div
+                          animate={motionEnabled ? { y: [0, 25, 0], scale: [1, 1.05, 1], rotate: [0, 2, 0] } : {}}
+                          whileHover={motionEnabled ? { scale: 1.1, zIndex: 40 } : {}}
+                          whileTap={motionEnabled ? { scale: 0.95 } : {}}
+                          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+                          className={`absolute ${isEven ? 'right-0 md:right-4' : 'left-0 md:left-4'} bottom-0 md:bottom-10 w-[90%] md:w-[55%] z-10 rounded-2xl overflow-hidden shadow-[0_25px_75px_rgba(0,0,0,0.4)] border-4 border-background bg-background cursor-pointer hover:shadow-primary/50 hover:border-primary/30 transition-all group active:scale-[0.97]`}
+                        >
+                          <div className="bg-background">
+                            <div className="px-4 py-2 flex items-center justify-between border-b border-border/10 bg-muted/30 group-hover:bg-primary/5 transition-colors">
+                              <span className="text-[10px] font-bold uppercase tracking-widest text-primary/80">
+                                Vidéo {pair.index + 1}
+                              </span>
+                            </div>
+                            <div className="p-1 md:p-2 bg-black">
+                              {pair.video.youtubeUrl ? (
+                                <YouTubeEmbed url={pair.video.youtubeUrl} />
+                              ) : pair.video.mediaUrl ? (
+                                <video
+                                  src={pair.video.mediaUrl}
+                                  controls
+                                  playsInline
+                                  muted
+                                  className="w-full aspect-video object-contain"
+                                />
+                              ) : null}
+                            </div>
+                          </div>
+                        </motion.div>
                      ) : (
                        <div className={`absolute ${isEven ? 'right-0' : 'left-0'} bottom-0 w-[90%] md:w-[55%] z-10 rounded-2xl border-4 border-background bg-muted flex items-center justify-center aspect-video text-muted-foreground shadow-xl`}>
                          Aucune vidéo

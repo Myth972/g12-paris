@@ -17,7 +17,7 @@ import { trpc } from "@/lib/trpc";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "./LanguageSwitcher";
 
-const NAV_LINKS = [
+const NAV_LINKS: { href: string; labelKey: string; defaultLabel: string; icon?: boolean }[] = [
   { href: "/", labelKey: "nav.home", defaultLabel: "Accueil" },
   { href: "/publication-du-jour", labelKey: "nav.dailyPost", defaultLabel: "Publication du jour" },
   { href: "/galeries", labelKey: "nav.galleries", defaultLabel: "Galeries" },
