@@ -34,8 +34,9 @@ const AdminBibliothequeEditor = lazy(() => import("./pages/AdminBibliothequeEdit
 const AdminDesign = lazy(() => import("./pages/AdminDesign"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
-
-import { AISearch } from "./components/AISearch";
+const AISearch = lazy(() => import("./components/AISearch").then(m => ({ default: m.AISearch })));
+const MoJSTestPage = lazy(() => import("./pages/MoJSTestPage"));
+const ILoveYouJesus = lazy(() => import("./pages/ILoveYouJesus"));
 
 function PageLoader() {
   return (
@@ -51,7 +52,9 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
       <SiteHeader />
       <main className="flex-1">{children}</main>
       <SiteFooter />
-      <AISearch />
+      <Suspense fallback={null}>
+        <AISearch />
+      </Suspense>
     </div>
   );
 }
@@ -130,6 +133,14 @@ function Router() {
           <PublicLayout>
             <CulteEnLignePage />
           </PublicLayout>
+        </Route>
+        <Route path="/test-mojs">
+          <PublicLayout>
+            <MoJSTestPage />
+          </PublicLayout>
+        </Route>
+        <Route path="/iloveyoujesus">
+          <ILoveYouJesus />
         </Route>
         <Route path="/login" component={Login} />
 

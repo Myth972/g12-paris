@@ -1,5 +1,3 @@
-import { COOKIE_NAME } from "../shared/const.js";
-import { getSessionCookieOptions } from "./_core/cookies.js";
 import { systemRouter } from "./_core/systemRouter.js";
 import {
   publicProcedure,
@@ -39,6 +37,7 @@ import {
   markAllNotificationsAsRead,
   getFeaturedGalleryItems,
   getAllGalleryItems,
+  getGalleryItemById,
   createGalleryItem,
   updateGalleryItem,
   deleteGalleryItem,
@@ -61,10 +60,36 @@ import {
   listThemes,
   createTheme,
   deleteTheme,
+  getDb,
+  listAllUsers,
+  createUser,
+  updateUserRole,
+  deleteUser,
+  getUserById,
+  verifyUserPasswordById,
+  updateUserPassword,
+  listAnnouncements,
+  adminListAnnouncements,
+  createAnnouncement,
+  updateAnnouncement,
+  deleteAnnouncement,
+  findUserByUsernameAndPassword,
+  upsertUser,
+  findUserByPassword,
 } from "./db.js";
-import { storagePut } from "./storage.js";
+import { storagePut, getSignedUrl } from "./storage.js";
 import { nanoid } from "nanoid";
 import { themeRouter } from "./themeRouter.js";
+import { withCache, clearCache } from "./_core/cache.js";
+import { siteSettings, announcements, subscribers, articles } from "../drizzle/schema.js";
+import { eq, desc, asc, and, like } from "drizzle-orm";
+import { ENV } from "./_core/env.js";
+import { invokeLLM, invokeLLMWithFallback } from "./_core/llm.js";
+import { getProviderInfo } from "../shared/aiProviders.js";
+import { sdk } from "./_core/sdk.js";
+import { COOKIE_NAME, ONE_YEAR_MS } from "../shared/const.js";
+import { getSessionCookieOptions } from "./_core/cookies.js";
+import { sendWelcomeEmail, sendWeeklyDigest, sendCustomNewsletter } from "./_core/newsletter.js";
 
 const zod = {
   object: <T extends z.ZodRawShape>(shape: T) => z.object(shape).strict(),
@@ -140,9 +165,9 @@ export const appRouter = router({
     sendNewsletter: adminProcedure
       .input(zod.object({ subject: z.string().min(1).max(200), content: z.string().min(1) }))
       .mutation(async ({ input }) => {
-        const { getDb } = await import("./db.js");
-        const { subscribers } = await import("../drizzle/schema.js");
-        const db = await getDb();
+        
+        
+        const db = getDb();
         
         const allSubscribers = await db.select().from(subscribers);
         if (allSubscribers.length === 0) {
@@ -150,7 +175,7 @@ export const appRouter = router({
         }
         
         const emails = allSubscribers.map((s: any) => s.email);
-        const { sendCustomNewsletter } = await import("./_core/newsletter.js");
+        
         return sendCustomNewsletter(emails, input.subject, input.content);
       }),
   }),
@@ -162,14 +187,14 @@ export const appRouter = router({
         password: z.string() 
       }))
       .mutation(async ({ input, ctx }) => {
-        const { ENV } = await import("./_core/env.js");
+        
         
         let openId: string;
         let name: string;
         
         // Si username fourni, chercher par username + password
         if (input.username) {
-          const { findUserByUsernameAndPassword } = await import("./db.js");
+          
           const user = await findUserByUsernameAndPassword(input.username, input.password);
           
           if (!user) {
@@ -187,7 +212,7 @@ export const appRouter = router({
           openId = "admin-local";
           name = "Administrateur";
           
-          const { upsertUser } = await import("./db.js");
+          
           await upsertUser({
             openId,
             name,
@@ -196,7 +221,7 @@ export const appRouter = router({
           });
         } else {
           // Chercher un utilisateur avec ce mot de passe ( backward compat)
-          const { findUserByPassword } = await import("./db.js");
+          
           const user = await findUserByPassword(input.password);
           
           if (!user) {
@@ -210,11 +235,11 @@ export const appRouter = router({
           name = user.name || "Utilisateur";
         }
 
-        const { sdk } = await import("./_core/sdk.js");
+        
         const sessionToken = await sdk.createSessionToken(openId, { name });
 
-        const { getSessionCookieOptions } = await import("./_core/cookies.js");
-        const { ONE_YEAR_MS, COOKIE_NAME } = await import("../shared/const.js");
+        
+        
         const cookieOptions = getSessionCookieOptions(ctx.req);
 
         (ctx.res as any).cookie(COOKIE_NAME, sessionToken, {
@@ -244,7 +269,7 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ input }) => {
-        const { ENV } = await import("./_core/env.js");
+        
         if (!ENV.blobToken) {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
@@ -310,7 +335,7 @@ export const appRouter = router({
       )
       .mutation(async ({ input }) => {
         const buffer = Buffer.from(input.base64, "base64");
-        const { storagePut } = await import("./storage.js");
+        
         const folder = input.folder.replace(/\\/g, "/").replace(/^\/+|\/+$/g, "");
         const key = `${folder}/${Date.now()}-${input.filename}`;
         
@@ -328,13 +353,13 @@ export const appRouter = router({
     signedUrl: adminProcedure
       .input(zod.object({ key: z.string(), ttl: z.number().optional() }))
       .mutation(async ({ input }) => {
-        const { getSignedUrl } = await import("./storage.js");
+        
         return getSignedUrl(input.key, input.ttl ?? 3600);
       }),
     bulkSignedUrls: adminProcedure
       .input(zod.object({ keys: z.array(z.string()), ttl: z.number().optional() }))
       .mutation(async ({ input }) => {
-        const { getSignedUrl } = await import("./storage.js");
+        
         const ttl = input.ttl ?? 3600;
         const results = await Promise.all(
           input.keys.map((k) => getSignedUrl(k, ttl))
@@ -360,7 +385,7 @@ export const appRouter = router({
       )
       .query(async ({ input }) => {
         const { limit = 12, offset = 0, category, search, minPrice, maxPrice, type, theme, sort } = input ?? {};
-        const { listPublishedArticles, countPublishedArticles } = await import("./db.js");
+        
         const [items, total] = await Promise.all([
           listPublishedArticles(limit, offset, { category, search, minPrice, maxPrice, type, theme, sort }),
           countPublishedArticles({ category, search, minPrice, maxPrice, type, theme }),
@@ -588,12 +613,13 @@ export const appRouter = router({
           .object({
             limit: z.number().min(1).max(100).default(20),
             offset: z.number().min(0).default(0),
+            category: z.string().optional(),
           })
           .optional()
       )
       .query(async ({ input }) => {
-        const { limit = 20, offset = 0 } = input ?? {};
-        const items = await getAllGalleryItems(limit, offset, true);
+        const { limit = 20, offset = 0, category } = input ?? {};
+        const items = await getAllGalleryItems(limit, offset, true, category);
         return { items };
       }),
 
@@ -619,15 +645,28 @@ export const appRouter = router({
           type: z.enum(["image", "video"]),
           mediaUrl: z.string().min(1),
           mediaKey: z.string().optional(),
+          coverImageUrl: z.string().optional(),
+          coverImageKey: z.string().optional(),
           youtubeUrl: z.string().optional(),
           verseId: z.number().optional(),
+          category: z.string().optional().default("general"),
           displayOrder: z.number().default(0),
           featured: z.boolean().default(false),
           loop: z.boolean().optional().default(false),
         })
       )
-      .mutation(async ({ input }) => {
-        return createGalleryItem(input);
+      .mutation(async ({ ctx, input }) => {
+        const item = await createGalleryItem(input);
+        if (input.featured) {
+          await createNotification({
+            title: `Nouveau média à la une : ${input.title}`,
+            message: `"${input.title}" a été publié dans les publications du jour.`,
+            type: "nouveauté",
+            linkUrl: "/publication-du-jour",
+            authorId: ctx.user.id,
+          });
+        }
+        return item;
       }),
 
     delete: adminProcedure
@@ -645,10 +684,36 @@ export const appRouter = router({
           featured: z.boolean().optional(),
           loop: z.boolean().optional(),
           verseId: z.number().nullable().optional(),
+          category: z.string().optional(),
+          coverImageUrl: z.string().optional(),
+          coverImageKey: z.string().optional(),
+          mediaUrl: z.string().optional(),
+          mediaKey: z.string().optional(),
+          youtubeUrl: z.string().optional(),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
         const { id, ...data } = input;
+        const current = await getGalleryItemById(id);
+        if (data.featured === true && current && !current.featured) {
+          const title = data.title || current.title;
+          await createNotification({
+            title: `Média mis à la une : ${title}`,
+            message: `"${title}" est maintenant en vedette dans les publications du jour.`,
+            type: "nouveauté",
+            linkUrl: "/publication-du-jour",
+            authorId: ctx.user.id,
+          });
+        } else if (data.visible === true && current && !current.visible) {
+          const title = data.title || current.title;
+          await createNotification({
+            title: `Nouveau média publié : ${title}`,
+            message: `"${title}" a été publié dans la galerie.`,
+            type: "nouveauté",
+            linkUrl: "/galeries",
+            authorId: ctx.user.id,
+          });
+        }
         return updateGalleryItem(id, data);
       }),
 
@@ -703,10 +768,13 @@ export const appRouter = router({
         return getBiblicalVerseById(input.id);
       }),
 
-    adminList: adminProcedure.query(async () => {
-      const items = await listBiblicalVerses();
-      return { items };
-    }),
+    adminList: adminProcedure
+      .input(z.object({ limit: z.number().default(50), offset: z.number().default(0) }).optional())
+      .query(async ({ input }) => {
+        const { limit = 50, offset = 0 } = input ?? {};
+        const items = await listBiblicalVerses(limit, offset);
+        return { items };
+      }),
 
     update: adminProcedure
       .input(
@@ -852,14 +920,14 @@ export const appRouter = router({
   }),
   ai: router({
     status: publicProcedure.query(async () => {
-      const { ENV } = await import("./_core/env.js");
-      const { getDb } = await import("./db.js");
-      const db = await getDb();
+      
+      
+      const db = getDb();
       let provider: "google" | "groq" | "minimax" | "aimlapi" | undefined = ENV.preferredAiProvider as any;
 
       if (db) {
-        const { siteSettings } = await import("../drizzle/schema.js");
-        const { eq } = await import("drizzle-orm");
+        
+        
         const rows = await db
           .select()
           .from(siteSettings)
@@ -900,12 +968,11 @@ export const appRouter = router({
         const inputTokens = input.messages.reduce((sum, m) => sum + estimateTokens(m.content), 0);
         checkUserQuota(userId, inputTokens);
 
-        const { getDb } = await import("./db.js");
-        const db = await getDb();
+        const db = getDb();
         let provider: "google" | "groq" | "minimax" | "aimlapi" | undefined;
         if (db) {
-          const { siteSettings } = await import("../drizzle/schema.js");
-          const { eq } = await import("drizzle-orm");
+          
+          
           const rows = await db
             .select()
             .from(siteSettings)
@@ -914,7 +981,7 @@ export const appRouter = router({
           const value = rows[0]?.value;
           provider = value as any;
         }
-        const { invokeLLMWithFallback } = await import("./_core/llm.js");
+        
         const startTime = Date.now();
         try {
           const response = await invokeLLMWithFallback({
@@ -956,13 +1023,12 @@ export const appRouter = router({
     testProvider: adminProcedure
       .input(zod.object({ provider: z.enum(["google", "groq", "minimax", "aimlapi"]).optional() }))
       .mutation(async ({ input }) => {
-        const { getDb } = await import("./db.js");
-        const db = await getDb();
+        const db = getDb();
         let provider = input.provider;
         
         if (!provider && db) {
-          const { siteSettings } = await import("../drizzle/schema.js");
-          const { eq } = await import("drizzle-orm");
+          
+          
           const rows = await db
             .select()
             .from(siteSettings)
@@ -971,13 +1037,13 @@ export const appRouter = router({
           provider = rows[0]?.value as any;
         }
 
-        const { invokeLLM } = await import("./_core/llm.js");
+        
         const response = await invokeLLM({
           messages: [{ role: "user", content: "Dis 'OK' si tu fonctionnes." }],
           provider: provider as any,
         });
         
-        const { getProviderInfo } = await import("../shared/aiProviders.js");
+        
         const info = getProviderInfo(provider as any || "groq");
         
         return { 
@@ -999,12 +1065,11 @@ export const appRouter = router({
         const userId = ctx.user?.id?.toString() || "anonymous";
         checkUserQuota(userId, estimateTokens(input.title) + 200);
 
-        const { getDb } = await import("./db.js");
-        const db = await getDb();
+        const db = getDb();
         let provider: "google" | "groq" | "minimax" | "aimlapi" | undefined;
         if (db) {
-          const { siteSettings } = await import("../drizzle/schema.js");
-          const { eq } = await import("drizzle-orm");
+          
+          
           const rows = await db
             .select()
             .from(siteSettings)
@@ -1013,7 +1078,7 @@ export const appRouter = router({
           const value = rows[0]?.value;
           provider = value as any;
         }
-        const { invokeLLMWithFallback } = await import("./_core/llm.js");
+        
         const prompt = `Rédige une description courte (2-3 phrases) et percutante pour un contenu de type "${input.contentType}" intitulé "${input.title}". Le ton doit être inspirant et spirituel.`;
         const startTime = Date.now();
         try {
@@ -1062,12 +1127,11 @@ export const appRouter = router({
         const userId = ctx.user?.id?.toString() || "anonymous";
         checkUserQuota(userId, 500);
 
-        const { getDb } = await import("./db.js");
-        const db = await getDb();
+        const db = getDb();
         let provider: "google" | "groq" | "minimax" | "aimlapi" | undefined;
         if (db) {
-          const { siteSettings } = await import("../drizzle/schema.js");
-          const { eq } = await import("drizzle-orm");
+          
+          
           const rows = await db
             .select()
             .from(siteSettings)
@@ -1076,7 +1140,7 @@ export const appRouter = router({
           const value = rows[0]?.value;
           provider = value as any;
         }
-        const { invokeLLMWithFallback } = await import("./_core/llm.js");
+        
 
         let prompt = "";
         if (input?.reference) {
@@ -1173,12 +1237,11 @@ export const appRouter = router({
         const userId = ctx.user?.id?.toString() || "anonymous";
         checkUserQuota(userId, estimateTokens(input.title + input.content) + 300);
 
-        const { getDb } = await import("./db.js");
-        const db = await getDb();
+        const db = getDb();
         let provider: "google" | "groq" | "minimax" | "aimlapi" | undefined;
         if (db) {
-          const { siteSettings } = await import("../drizzle/schema.js");
-          const { eq } = await import("drizzle-orm");
+          
+          
           const rows = await db
             .select()
             .from(siteSettings)
@@ -1187,7 +1250,7 @@ export const appRouter = router({
           const value = rows[0]?.value;
           provider = value as any;
         }
-        const { invokeLLMWithFallback } = await import("./_core/llm.js");
+        
         const prompt = `En tant qu'érudit biblique, suggère le verset biblique le plus pertinent pour accompagner l'article suivant :
         Titre : "${input.title}"
         Contenu : "${input.content.substring(0, 1000)}..."
@@ -1276,12 +1339,11 @@ export const appRouter = router({
         const userId = ctx.user?.id?.toString() || "anonymous";
         checkUserQuota(userId, estimateTokens(input.text) + 200);
 
-        const { getDb } = await import("./db.js");
-        const db = await getDb();
+        const db = getDb();
         let provider: "google" | "groq" | "minimax" | "aimlapi" | undefined;
         if (db) {
-          const { siteSettings } = await import("../drizzle/schema.js");
-          const { eq } = await import("drizzle-orm");
+          
+          
           const rows = await db
             .select()
             .from(siteSettings)
@@ -1290,7 +1352,7 @@ export const appRouter = router({
           const value = rows[0]?.value;
           provider = value as any;
         }
-        const { invokeLLMWithFallback } = await import("./_core/llm.js");
+        
         const languageName =
           input.targetLanguage === "en" ? "anglais" : "espagnol";
         const prompt = `Voici un texte en français (qui peut contenir du HTML). Traduis-le en ${languageName} en gardant exactement la même structure HTML s'il y en a. Renvoie UNIQUEMENT la traduction, sans aucun commentaire ou texte avant ou après :\n\n${input.text}`;
@@ -1352,13 +1414,12 @@ export const appRouter = router({
           checkUserQuota(userId, estimateTokens(input.query) + 500);
         }
 
-        const { getDb } = await import("./db.js");
-        const db = await getDb();
+        const db = getDb();
 
         let contextText = "";
         if (db) {
-          const { articles } = await import("../drizzle/schema.js");
-          const { eq } = await import("drizzle-orm");
+          
+          
           // Mode démo: 3 articles | Connecté: 10 articles
           const limit = isAuthenticated ? 10 : 3;
           const rows = await db
@@ -1379,11 +1440,11 @@ export const appRouter = router({
             .join("\n\n");
         }
 
-        const { invokeLLMWithFallback } = await import("./_core/llm.js");
+        
         let provider: "google" | "groq" | "minimax" | "aimlapi" | undefined;
         if (db) {
-          const { siteSettings } = await import("../drizzle/schema.js");
-          const { eq } = await import("drizzle-orm");
+          
+          
           const rows = await db
             .select()
             .from(siteSettings)
@@ -1450,7 +1511,7 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ input }) => {
-        const { ENV } = await import("./_core/env.js");
+        
         if (!ENV.aimlApiKey) {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
@@ -1509,7 +1570,7 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ input }) => {
-        const { ENV } = await import("./_core/env.js");
+        
         if (!ENV.aimlApiKey) {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
@@ -1606,10 +1667,10 @@ export const appRouter = router({
         })
       )
       .mutation(async ({ input }) => {
-        const { getDb } = await import("./db.js");
-        const { subscribers } = await import("../drizzle/schema.js");
-        const { eq } = await import("drizzle-orm");
-        const db = await getDb();
+        
+        
+        
+        const db = getDb();
 
         const existing = await db
           .select()
@@ -1630,27 +1691,28 @@ export const appRouter = router({
         });
 
         // Try to send a welcome email if Resend is configured
-        const { sendWelcomeEmail } = await import("./_core/newsletter.js");
+        
         await sendWelcomeEmail(input.email, input.name);
 
         return { success: true };
       }),
 
-    listSubscribers: adminProcedure.query(async () => {
-      const { getDb } = await import("./db.js");
-      const { subscribers } = await import("../drizzle/schema.js");
-      const { desc } = await import("drizzle-orm");
-      const db = await getDb();
-      return db.select().from(subscribers).orderBy(desc(subscribers.createdAt));
-    }),
+    listSubscribers: adminProcedure
+      .input(z.object({ limit: z.number().default(100), offset: z.number().default(0) }).optional())
+      .query(async ({ input }) => {
+        const db = getDb();
+        const { limit = 100, offset = 0 } = input ?? {};
+        const items = await db.select().from(subscribers).orderBy(desc(subscribers.createdAt)).limit(limit).offset(offset);
+        return { items };
+      }),
 
     deleteSubscriber: adminProcedure
       .input(zod.object({ id: z.number() }))
       .mutation(async ({ input }) => {
-        const { getDb } = await import("./db.js");
-        const { subscribers } = await import("../drizzle/schema.js");
-        const { eq } = await import("drizzle-orm");
-        const db = await getDb();
+        
+        
+        
+        const db = getDb();
         await db.delete(subscribers).where(eq(subscribers.id, input.id));
         return { success: true };
       }),
@@ -1661,10 +1723,7 @@ export const appRouter = router({
         category: z.string().optional()
       }).optional())
       .mutation(async ({ input }) => {
-        const { getDb } = await import("./db.js");
-        const { subscribers, articles } = await import("../drizzle/schema.js");
-        const { desc, eq, and, like } = await import("drizzle-orm");
-        const db = await getDb();
+        const db = getDb();
 
         const allSubscribers = await db.select().from(subscribers);
         if (allSubscribers.length === 0) {
@@ -1703,7 +1762,7 @@ export const appRouter = router({
 
         const emails = allSubscribers.map((s: any) => s.email);
 
-        const { sendWeeklyDigest } = await import("./_core/newsletter.js");
+        
         await sendWeeklyDigest(emails, latestArticles as any, input?.subject);
 
         return { success: true, count: emails.length };
@@ -1711,41 +1770,36 @@ export const appRouter = router({
   }),
 
   siteSettings: router({
-    // Public: get a setting by key
     get: publicProcedure
       .input(zod.object({ key: z.string() }))
       .query(async ({ input }) => {
-        const { getDb } = await import("./db.js");
-        const { siteSettings } = await import("../drizzle/schema.js");
-        const { eq } = await import("drizzle-orm");
-        const db = await getDb();
-        if (!db) return null;
-        const rows = await db
-          .select()
-          .from(siteSettings)
-          .where(eq(siteSettings.key, input.key))
-          .limit(1);
-        return rows[0]?.value ?? null;
+        return withCache(`site:${input.key}`, async () => {
+          const db = getDb();
+          if (!db) return null;
+          const rows = await db
+            .select()
+            .from(siteSettings)
+            .where(eq(siteSettings.key, input.key))
+            .limit(1);
+          return rows[0]?.value ?? null;
+        }, 30_000);
       }),
 
-    // Public: get all settings
     getAll: publicProcedure.query(async () => {
-      const { getDb } = await import("./db.js");
-      const { siteSettings } = await import("../drizzle/schema.js");
-      const db = await getDb();
-      if (!db) return {};
-      const rows = await db.select().from(siteSettings);
-      return Object.fromEntries(rows.map((r: any) => [r.key, r.value]));
+      return withCache("site:all", async () => {
+        const db = getDb();
+        if (!db) return {};
+        const rows = await db.select().from(siteSettings);
+        return Object.fromEntries(rows.map((r: any) => [r.key, r.value]));
+      }, 30_000);
     }),
 
-    // Admin: set a setting
     set: adminProcedure
       .input(zod.object({ key: z.string(), value: z.string() }))
       .mutation(async ({ input }) => {
-        const { getDb } = await import("./db.js");
-        const { siteSettings } = await import("../drizzle/schema.js");
-        const { eq } = await import("drizzle-orm");
-        const db = await getDb();
+        clearCache(`site:${input.key}`);
+        clearCache("site:all");
+        const db = getDb();
         if (!db)
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
@@ -1787,10 +1841,10 @@ export const appRouter = router({
         const { url } = await storagePut(fileKey, buffer, input.contentType);
 
         // Save to site_settings
-        const { getDb } = await import("./db.js");
-        const { siteSettings } = await import("../drizzle/schema.js");
-        const { eq } = await import("drizzle-orm");
-        const db = await getDb();
+        
+        
+        
+        const db = getDb();
         if (!db)
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
@@ -1828,10 +1882,10 @@ export const appRouter = router({
         const fileKey = `site/home-hero-${Date.now()}.${ext}`;
         const { url } = await storagePut(fileKey, buffer, input.contentType);
 
-        const { getDb } = await import("./db.js");
-        const { siteSettings } = await import("../drizzle/schema.js");
-        const { eq } = await import("drizzle-orm");
-        const db = await getDb();
+        
+        
+        
+        const db = getDb();
         if (!db)
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
@@ -1871,10 +1925,10 @@ export const appRouter = router({
         const fileKey = `site/culte-hero-${Date.now()}.${ext}`;
         const { url } = await storagePut(fileKey, buffer, input.contentType);
 
-        const { getDb } = await import("./db.js");
-        const { siteSettings } = await import("../drizzle/schema.js");
-        const { eq } = await import("drizzle-orm");
-        const db = await getDb();
+        
+        
+        
+        const db = getDb();
         if (!db)
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
@@ -1914,10 +1968,10 @@ export const appRouter = router({
         const fileKey = `site/culte-banner-${Date.now()}.${ext}`;
         const { url } = await storagePut(fileKey, buffer, input.contentType);
 
-        const { getDb } = await import("./db.js");
-        const { siteSettings } = await import("../drizzle/schema.js");
-        const { eq } = await import("drizzle-orm");
-        const db = await getDb();
+        
+        
+        
+        const db = getDb();
         if (!db)
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
@@ -1948,14 +2002,14 @@ return { url };
   // ─── User Management ───────────────────────────────────────────
   users: router({
     list: adminProcedure.query(async () => {
-      const { listAllUsers } = await import("./db.js");
+      
       return listAllUsers();
     }),
 
     get: adminProcedure
       .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
-        const { getUserById } = await import("./db.js");
+        
         const user = await getUserById(input.id);
         if (!user) {
           throw new TRPCError({ code: "NOT_FOUND", message: "Utilisateur non trouvé" });
@@ -1974,7 +2028,7 @@ return { url };
         })
       )
       .mutation(async ({ input }) => {
-        const { createUser } = await import("./db.js");
+        
         return createUser({
           openId: input.openId,
           name: input.name,
@@ -1993,7 +2047,7 @@ return { url };
         })
       )
       .mutation(async ({ input }) => {
-        const { updateUserRole } = await import("./db.js");
+        
         await updateUserRole(input.userId, input.role);
         return { success: true };
       }),
@@ -2001,7 +2055,7 @@ return { url };
     delete: adminProcedure
       .input(z.object({ userId: z.number() }))
       .mutation(async ({ input }) => {
-        const { deleteUser } = await import("./db.js");
+        
         try {
           await deleteUser(input.userId);
           return { success: true };
@@ -2030,7 +2084,7 @@ return { url };
           });
         }
 
-        const { getUserById, verifyUserPasswordById, updateUserPassword } = await import("./db.js");
+        
         const user = await getUserById(input.userId);
 
         if (!user) {
@@ -2059,14 +2113,14 @@ return { url };
     list: publicProcedure
       .input(z.object({ type: z.string().optional() }).optional())
       .query(async ({ input }) => {
-        const { listAnnouncements } = await import("./db.js");
+        
         return listAnnouncements(input?.type);
       }),
 
     adminList: adminProcedure
       .input(z.object({ type: z.string().optional() }).optional())
       .query(async ({ input }) => {
-        const { adminListAnnouncements } = await import("./db.js");
+        
         return adminListAnnouncements(input?.type);
       }),
 
@@ -2087,7 +2141,7 @@ return { url };
         titleColor: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
-        const { createAnnouncement } = await import("./db.js");
+        
         return createAnnouncement(input);
       }),
 
@@ -2110,7 +2164,7 @@ return { url };
         titleColor: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
-        const { updateAnnouncement } = await import("./db.js");
+        
         const { id, ...data } = input;
         return updateAnnouncement(id, data);
       }),
@@ -2118,7 +2172,7 @@ return { url };
     delete: adminProcedure
       .input(z.object({ id: z.number() }))
       .mutation(async ({ input }) => {
-        const { deleteAnnouncement } = await import("./db.js");
+        
         return deleteAnnouncement(input.id);
       }),
   }),

@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Globe } from "lucide-react";
@@ -8,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export default function LanguageSwitcher() {
+const LanguageSwitcher = memo(function LanguageSwitcher() {
   const { i18n } = useTranslation();
 
   const changeLanguage = (lng: string) => {
@@ -47,4 +48,6 @@ export default function LanguageSwitcher() {
       </DropdownMenuContent>
     </DropdownMenu>
   );
-}
+});
+
+export default LanguageSwitcher;

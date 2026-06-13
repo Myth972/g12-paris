@@ -24,7 +24,7 @@ export default function SiteFooter() {
             <Link href="/" className="flex items-center gap-3">
               <span className="g12-logo">
                 <img
-                  src="/logo.png"
+                  src="/logo.webp"
                   alt="G12 Paris Médias"
                   className="h-10 w-10 rounded-full object-cover border border-primary-foreground/20"
                 />

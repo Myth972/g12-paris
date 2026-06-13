@@ -39,8 +39,9 @@ export default function NewsletterAdmin() {
   const [newsletterSubject, setNewsletterSubject] = useState("Les dernières actualités de G12 Paris");
   const utils = trpc.useUtils();
 
-  const { data: subscribers, isLoading } =
+  const { data: subscribersData, isLoading } =
     trpc.newsletter.listSubscribers.useQuery();
+  const subscribers = subscribersData?.items;
 
   const deleteMutation = trpc.newsletter.deleteSubscriber.useMutation({
     onSuccess: () => {

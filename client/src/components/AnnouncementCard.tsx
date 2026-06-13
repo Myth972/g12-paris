@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, memo } from "react";
 import { Calendar, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +22,7 @@ interface AnnouncementCardProps {
   className?: string;
 }
 
-export default function AnnouncementCard({
+const AnnouncementCard = memo(function AnnouncementCard({
   announcement,
   className = "",
 }: AnnouncementCardProps) {
@@ -164,4 +164,6 @@ export default function AnnouncementCard({
       </div>
     </div>
   );
-}
+});
+
+export default AnnouncementCard;

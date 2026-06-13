@@ -72,7 +72,7 @@ export default function SiteHeader() {
           <Link href="/" className="flex items-center gap-3 group">
             <span className="g12-logo">
               <img
-                src="/logo.png"
+                src="/logo.webp"
                 alt="G12 Paris Médias"
                 className="h-10 w-10 rounded-full object-cover shadow-sm group-hover:shadow-md transition-shadow"
               />

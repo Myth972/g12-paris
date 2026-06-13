@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, memo } from "react";
 
 interface YouTubeEmbedProps {
   url: string;
@@ -20,7 +20,7 @@ function extractYouTubeId(url: string): string | null {
   return null;
 }
 
-export default function YouTubeEmbed({
+const YouTubeEmbed = memo(function YouTubeEmbed({
   url,
   loop = false,
   className = "",
@@ -47,6 +47,7 @@ export default function YouTubeEmbed({
       />
     </div>
   );
-}
+});
 
+export default YouTubeEmbed;
 export { extractYouTubeId };

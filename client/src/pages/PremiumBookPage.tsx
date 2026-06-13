@@ -115,7 +115,7 @@ export default function PremiumBookPage() {
                 </div>
               )}
               <img
-                src={book.coverImageUrl || "/premium_bible.png"}
+                src={book.coverImageUrl || "/premium_bible.webp"}
                 alt={book.title}
                 className="w-full h-full object-cover object-center transition-transform duration-700 hover:scale-105 select-none"
                 onContextMenu={(e) => e.preventDefault()}

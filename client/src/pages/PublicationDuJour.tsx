@@ -2,7 +2,7 @@ import { trpc } from "@/lib/trpc";
 import { useMotionEnabled } from "@/hooks/useMotionEnabled";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useBlobUpload } from "@/hooks/useBlobUpload";
-import PageContentDisplay from "@/components/PageContentDisplay";
+
 import YouTubeEmbed from "@/components/YouTubeEmbed";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -183,11 +183,6 @@ export default function PublicationDuJour() {
         animate={motionEnabled ? undefined : "visible"}
         viewport={motionEnabled ? { once: true } : undefined}
       >
-        {/* Admin-managed page content */}
-        <motion.section variants={sectionVars} className="container pb-16">
-          <PageContentDisplay pageId="publication-du-jour" mode="cards" />
-        </motion.section>
-
         {/* Verset du Jour - Redesigned for Premium glassmorphism feel */}
         {verseError ? null : verseLoading ? (
           <motion.section variants={sectionVars} className="container pb-16 relative z-50">
@@ -233,7 +228,7 @@ export default function PublicationDuJour() {
                     <img
                       src={verseImage}
                       alt="Verset du Jour"
-                      className="w-full h-auto max-h-80 object-cover"
+                      className="w-full h-auto"
                     />
                   </div>
                 )}
@@ -445,6 +440,7 @@ export default function PublicationDuJour() {
                                   controls
                                   playsInline
                                   muted
+                                  loop={pair.video.loop}
                                   className="w-full aspect-video object-contain"
                                 />
                               ) : null}

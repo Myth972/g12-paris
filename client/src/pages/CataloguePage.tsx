@@ -249,7 +249,7 @@ export default function CataloguePage() {
                     <Link key={book.id} href={`/bibliotheque/livre/${book.id}`} className="group flex flex-col h-full">
                       <div className="rounded-xl overflow-hidden mb-4 bg-muted aspect-square relative border border-border/50 group-hover:border-primary/30 transition-all shadow-sm group-hover:shadow-md group-hover:-translate-y-1">
                         <img
-                          src={book.coverImageUrl || "/premium_bible.png"}
+                          src={book.coverImageUrl || "/premium_bible.webp"}
                           alt={book.title}
                           className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-110"
                         />

@@ -36,7 +36,7 @@ export default function BibliothequePage() {
     title: book.title,
     author: (JSON.parse(book.meta || "{}") as any).author || "Auteur inconnu",
     price: book.price ? `${(book.price / 100).toFixed(2)} €` : "Gratuit",
-    image: book.coverImageUrl || "/premium_bible.png"
+    image: book.coverImageUrl || "/premium_bible.webp"
   }));
 
   const handleSync = async () => {
@@ -56,7 +56,7 @@ export default function BibliothequePage() {
       {/* Hero Banner Premium */}
       <section className="relative overflow-hidden bg-slate-950 py-20 lg:py-32">
         <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800" />
-        <div className="absolute inset-0 bg-[url('/premium_bible.png')] bg-cover bg-center opacity-20 mix-blend-overlay" />
+        <div className="absolute inset-0 bg-[url('/premium_bible.webp')] bg-cover bg-center opacity-20 mix-blend-overlay" />
         
         <div className="container relative z-10">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -90,7 +90,7 @@ export default function BibliothequePage() {
             <div className="hidden lg:block relative">
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950 to-transparent z-10" />
               <img 
-                src="/premium_bible.png" 
+                src="/premium_bible.webp" 
                 alt="Bible Premium" 
                 className="w-full h-auto rounded-lg shadow-2xl transform -rotate-6 hover:rotate-0 transition-transform duration-700 hover:scale-105"
               />

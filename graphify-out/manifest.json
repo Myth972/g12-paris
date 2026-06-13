@@ -1,0 +1,1117 @@
+{
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\.opencode\\opencode.json": {
+    "mtime": 1780603098.4436946,
+    "ast_hash": "1efe24ecf938911d4f23e4b1c6ec91f7",
+    "semantic_hash": "1efe24ecf938911d4f23e4b1c6ec91f7"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\.opencode\\package.json": {
+    "mtime": 1780603118.73895,
+    "ast_hash": "d3ab821609ec487b22aa5b0027f5f400",
+    "semantic_hash": "d3ab821609ec487b22aa5b0027f5f400"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\.opencode\\plugins\\graphify.js": {
+    "mtime": 1780517927.439566,
+    "ast_hash": "32b67963417a30cb80544e0b2a56a98d",
+    "semantic_hash": "32b67963417a30cb80544e0b2a56a98d"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\api\\index.ts": {
+    "mtime": 1775920015.0587392,
+    "ast_hash": "ebd3e2132c8ae9da44d3e4afc121b347",
+    "semantic_hash": "ebd3e2132c8ae9da44d3e4afc121b347"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\public\\.well-known\\appspecific\\com.chrome.devtools.json": {
+    "mtime": 1775593281.0216928,
+    "ast_hash": "8a80554c91d9fca8acb82f023de02f11",
+    "semantic_hash": "8a80554c91d9fca8acb82f023de02f11"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\public\\__manus__\\debug-collector.js": {
+    "mtime": 1773438808.2455113,
+    "ast_hash": "23ae18fff847f8c4b48a91254f519abe",
+    "semantic_hash": "23ae18fff847f8c4b48a91254f519abe"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\public\\manifest.json": {
+    "mtime": 1775297119.741861,
+    "ast_hash": "9299923e582176ed10547996e5736336",
+    "semantic_hash": "9299923e582176ed10547996e5736336"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\public\\sw.js": {
+    "mtime": 1775769498.9677646,
+    "ast_hash": "5417ccdee95e2aa967637faa3edf1e1e",
+    "semantic_hash": "5417ccdee95e2aa967637faa3edf1e1e"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\App.tsx": {
+    "mtime": 1780264609.318388,
+    "ast_hash": "bea645d6da640324612cae95e6d95509",
+    "semantic_hash": "bea645d6da640324612cae95e6d95509"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\_core\\hooks\\useAuth.ts": {
+    "mtime": 1773438808.289179,
+    "ast_hash": "7096d8d0ca396d0753e70634054d1b5d",
+    "semantic_hash": "7096d8d0ca396d0753e70634054d1b5d"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\AIChatBox.tsx": {
+    "mtime": 1777833526.9610226,
+    "ast_hash": "435d575bc6f85cae0818fb648dd6c1c4",
+    "semantic_hash": "435d575bc6f85cae0818fb648dd6c1c4"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\AIDashboard.tsx": {
+    "mtime": 1780004206.6590166,
+    "ast_hash": "10c877e569ba7d86bf74d85365cb822b",
+    "semantic_hash": "10c877e569ba7d86bf74d85365cb822b"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\AIProviderSelect.tsx": {
+    "mtime": 1775593281.0744808,
+    "ast_hash": "badc627adf37f56996b83ff6d4086203",
+    "semantic_hash": "badc627adf37f56996b83ff6d4086203"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\AISearch.tsx": {
+    "mtime": 1780004947.949457,
+    "ast_hash": "619c37179ef4fafd0f7f8bafb9a60346",
+    "semantic_hash": "619c37179ef4fafd0f7f8bafb9a60346"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\AnnouncementCard.tsx": {
+    "mtime": 1780264609.319392,
+    "ast_hash": "6d6656ccaf2c40a1fa25920c08e16d46",
+    "semantic_hash": "6d6656ccaf2c40a1fa25920c08e16d46"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ArticleCard.tsx": {
+    "mtime": 1779664757.1582503,
+    "ast_hash": "f0e2e6bb8eb64f147201accb051928c6",
+    "semantic_hash": "f0e2e6bb8eb64f147201accb051928c6"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\CulteBannerSettings.tsx": {
+    "mtime": 1776026707.9490075,
+    "ast_hash": "d3877b2e47f4c641284c9e1014dcde7d",
+    "semantic_hash": "d3877b2e47f4c641284c9e1014dcde7d"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\CulteHeroBackgroundSettings.tsx": {
+    "mtime": 1776030587.1339893,
+    "ast_hash": "c5bdc9bf323454af48778bbd0818a8f5",
+    "semantic_hash": "c5bdc9bf323454af48778bbd0818a8f5"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\CulteVideoSettings.tsx": {
+    "mtime": 1779145632.855941,
+    "ast_hash": "aa4f8a8097d464c4db3d31f87eafe3c2",
+    "semantic_hash": "aa4f8a8097d464c4db3d31f87eafe3c2"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\DashboardLayout.tsx": {
+    "mtime": 1773438808.3712666,
+    "ast_hash": "fd2ed1f265467853b713911c8ebabac9",
+    "semantic_hash": "fd2ed1f265467853b713911c8ebabac9"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\DashboardLayoutSkeleton.tsx": {
+    "mtime": 1773438808.3793802,
+    "ast_hash": "98019ca8b87c8012fcf5ad2b7dff4f78",
+    "semantic_hash": "98019ca8b87c8012fcf5ad2b7dff4f78"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\DevDeviceToggle.tsx": {
+    "mtime": 1776108598.626062,
+    "ast_hash": "68b673a518b5c68a46fee3f74c77100b",
+    "semantic_hash": "68b673a518b5c68a46fee3f74c77100b"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ErrorBoundary.tsx": {
+    "mtime": 1773172275.7902403,
+    "ast_hash": "92d65c611d7e8336eb920329b0e0ffad",
+    "semantic_hash": "92d65c611d7e8336eb920329b0e0ffad"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\GalleryManager.tsx": {
+    "mtime": 1779487967.8958118,
+    "ast_hash": "88b4fb44fd43452a36972823f979d47a",
+    "semantic_hash": "88b4fb44fd43452a36972823f979d47a"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\HeroSlider.tsx": {
+    "mtime": 1780264609.3203866,
+    "ast_hash": "594d1b406471e974882e8e1b9cbec644",
+    "semantic_hash": "594d1b406471e974882e8e1b9cbec644"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\HomeContentManager.tsx": {
+    "mtime": 1779741119.0676937,
+    "ast_hash": "916b1be6f89f4543ef38992db2df5ffe",
+    "semantic_hash": "916b1be6f89f4543ef38992db2df5ffe"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\HomeHeroBackgroundSettings.tsx": {
+    "mtime": 1776026663.9877093,
+    "ast_hash": "d9d6012970df2d7b2ba43dbe64c3bb45",
+    "semantic_hash": "d9d6012970df2d7b2ba43dbe64c3bb45"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\LanguageSwitcher.tsx": {
+    "mtime": 1780264609.3213878,
+    "ast_hash": "54ee2e1f04532b01d4e53ab07039346f",
+    "semantic_hash": "54ee2e1f04532b01d4e53ab07039346f"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ManusDialog.tsx": {
+    "mtime": 1773172275.792214,
+    "ast_hash": "13c9de7c368297ddbfc5bb321793060c",
+    "semantic_hash": "13c9de7c368297ddbfc5bb321793060c"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\Map.tsx": {
+    "mtime": 1773172275.7942421,
+    "ast_hash": "651182e03ca936c68d60b16db8e3e0c0",
+    "semantic_hash": "651182e03ca936c68d60b16db8e3e0c0"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\NotificationBell.tsx": {
+    "mtime": 1780264609.3224156,
+    "ast_hash": "e610cb0a291659e534f625be2cff3efb",
+    "semantic_hash": "e610cb0a291659e534f625be2cff3efb"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\PageContentDisplay.tsx": {
+    "mtime": 1779309270.8184621,
+    "ast_hash": "78a47a1cd18e29f7179570c4f254c7e4",
+    "semantic_hash": "78a47a1cd18e29f7179570c4f254c7e4"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\PageContentManager.tsx": {
+    "mtime": 1776026622.5907896,
+    "ast_hash": "1db2eb52e402a0ae70ab60ebb83742b6",
+    "semantic_hash": "1db2eb52e402a0ae70ab60ebb83742b6"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\PageTextEditor.tsx": {
+    "mtime": 1777833526.961567,
+    "ast_hash": "c5c22e98462aa83505e272185fca204f",
+    "semantic_hash": "c5c22e98462aa83505e272185fca204f"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\PageTitleEditor.tsx": {
+    "mtime": 1777166941.7445748,
+    "ast_hash": "eb34a0715a5bac072d5754db2ca28626",
+    "semantic_hash": "eb34a0715a5bac072d5754db2ca28626"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\RichTextEditor.tsx": {
+    "mtime": 1779034132.7503705,
+    "ast_hash": "f816c5520752a92fbc9bd35a49e9398d",
+    "semantic_hash": "f816c5520752a92fbc9bd35a49e9398d"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\SiteFooter.tsx": {
+    "mtime": 1780264609.3233898,
+    "ast_hash": "958ff02b0be22a0649bda24f3b3314fc",
+    "semantic_hash": "958ff02b0be22a0649bda24f3b3314fc"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\SiteHeader.tsx": {
+    "mtime": 1780264609.3233898,
+    "ast_hash": "208c9eeb208ce7b4d607a75884acee60",
+    "semantic_hash": "208c9eeb208ce7b4d607a75884acee60"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\VersesManager.tsx": {
+    "mtime": 1779492572.3083298,
+    "ast_hash": "201c47ed79af8dd185bd711d88b5a109",
+    "semantic_hash": "201c47ed79af8dd185bd711d88b5a109"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\YouTubeEmbed.tsx": {
+    "mtime": 1780264609.3253875,
+    "ast_hash": "d0ca8be3369e23d4d2745d361b9abe9d",
+    "semantic_hash": "d0ca8be3369e23d4d2745d361b9abe9d"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\accordion.tsx": {
+    "mtime": 1773172275.8097653,
+    "ast_hash": "1ab9c0ae828da7b2bd5cfd6e778d78a2",
+    "semantic_hash": "1ab9c0ae828da7b2bd5cfd6e778d78a2"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\alert-dialog.tsx": {
+    "mtime": 1773172275.8117666,
+    "ast_hash": "cb21a28172d7b2dcfa779c4d9e3e6138",
+    "semantic_hash": "cb21a28172d7b2dcfa779c4d9e3e6138"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\alert.tsx": {
+    "mtime": 1773172275.8137672,
+    "ast_hash": "27d39141a507b20ed52b7af644850375",
+    "semantic_hash": "27d39141a507b20ed52b7af644850375"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\aspect-ratio.tsx": {
+    "mtime": 1773172275.8157673,
+    "ast_hash": "7abbbe7b04b98a307c559cfb5e301b34",
+    "semantic_hash": "7abbbe7b04b98a307c559cfb5e301b34"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\avatar.tsx": {
+    "mtime": 1773172275.8177683,
+    "ast_hash": "1e9aaa62ec5c90a723736a7bff9c2ddc",
+    "semantic_hash": "1e9aaa62ec5c90a723736a7bff9c2ddc"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\badge.tsx": {
+    "mtime": 1773172275.8197684,
+    "ast_hash": "a4ff272d429bab415f27f7fd01a1e2b9",
+    "semantic_hash": "a4ff272d429bab415f27f7fd01a1e2b9"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\breadcrumb.tsx": {
+    "mtime": 1773172275.8217666,
+    "ast_hash": "9e6bacc6f3debbf5be602ed566d63ead",
+    "semantic_hash": "9e6bacc6f3debbf5be602ed566d63ead"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\button-group.tsx": {
+    "mtime": 1773172275.823767,
+    "ast_hash": "b322685a0ae3c9fbf6f0f77e28ddec98",
+    "semantic_hash": "b322685a0ae3c9fbf6f0f77e28ddec98"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\button.tsx": {
+    "mtime": 1773438808.6213694,
+    "ast_hash": "e6abb66b0bb4abbe73509cd2954dd008",
+    "semantic_hash": "e6abb66b0bb4abbe73509cd2954dd008"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\calendar.tsx": {
+    "mtime": 1773172275.8267677,
+    "ast_hash": "1b38a476e71cda6c914c55321dd5d25f",
+    "semantic_hash": "1b38a476e71cda6c914c55321dd5d25f"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\card.tsx": {
+    "mtime": 1773172275.828768,
+    "ast_hash": "99de711a6f221ab31430f0c2437b2465",
+    "semantic_hash": "99de711a6f221ab31430f0c2437b2465"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\carousel.tsx": {
+    "mtime": 1773172275.8307662,
+    "ast_hash": "9f51cba1d05ddea3c414d36a6ae8b1b9",
+    "semantic_hash": "9f51cba1d05ddea3c414d36a6ae8b1b9"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\chart.tsx": {
+    "mtime": 1773172275.8327675,
+    "ast_hash": "0c66aa31bcedfb55e613b3317f7ff0b3",
+    "semantic_hash": "0c66aa31bcedfb55e613b3317f7ff0b3"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\checkbox.tsx": {
+    "mtime": 1773172275.8347669,
+    "ast_hash": "8f82bb39d34a8bf92aa948c446df00c9",
+    "semantic_hash": "8f82bb39d34a8bf92aa948c446df00c9"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\collapsible.tsx": {
+    "mtime": 1773172275.8367698,
+    "ast_hash": "dad375a28987cdb7c87d3d7ec6808177",
+    "semantic_hash": "dad375a28987cdb7c87d3d7ec6808177"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\command.tsx": {
+    "mtime": 1773172275.8387678,
+    "ast_hash": "75ddb5d9ae577bc27c9341cc7d0fb818",
+    "semantic_hash": "75ddb5d9ae577bc27c9341cc7d0fb818"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\context-menu.tsx": {
+    "mtime": 1773172275.8407671,
+    "ast_hash": "dfcba980e3d6886dfc184fb37ab2cc5b",
+    "semantic_hash": "dfcba980e3d6886dfc184fb37ab2cc5b"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\dialog.tsx": {
+    "mtime": 1778014247.9392333,
+    "ast_hash": "2dce69be64e7a93740d8545b82b53603",
+    "semantic_hash": "2dce69be64e7a93740d8545b82b53603"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\drawer.tsx": {
+    "mtime": 1773172275.8437672,
+    "ast_hash": "d7b4764fe25f89c1d8d3bb88fdab1afe",
+    "semantic_hash": "d7b4764fe25f89c1d8d3bb88fdab1afe"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\dropdown-menu.tsx": {
+    "mtime": 1773172275.8457663,
+    "ast_hash": "6cf8b9db80e1f8af1c37d0a35d4978c4",
+    "semantic_hash": "6cf8b9db80e1f8af1c37d0a35d4978c4"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\empty.tsx": {
+    "mtime": 1773172275.8477695,
+    "ast_hash": "54f1416fa023c63f09affafe7d5ff9b6",
+    "semantic_hash": "54f1416fa023c63f09affafe7d5ff9b6"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\field.tsx": {
+    "mtime": 1773172275.8497655,
+    "ast_hash": "9824be7e1cc6368357e86c3c60007401",
+    "semantic_hash": "9824be7e1cc6368357e86c3c60007401"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\form.tsx": {
+    "mtime": 1773172275.8517654,
+    "ast_hash": "2f69f5e6d4c448aeb9260682e3a79705",
+    "semantic_hash": "2f69f5e6d4c448aeb9260682e3a79705"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\hover-card.tsx": {
+    "mtime": 1773172275.8537674,
+    "ast_hash": "2a806abe96058eafe372e1f8b264551f",
+    "semantic_hash": "2a806abe96058eafe372e1f8b264551f"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\input-group.tsx": {
+    "mtime": 1773172275.855765,
+    "ast_hash": "ae21ac400a0e8cdf226cff0485ab2b09",
+    "semantic_hash": "ae21ac400a0e8cdf226cff0485ab2b09"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\input-otp.tsx": {
+    "mtime": 1773172275.8577657,
+    "ast_hash": "764264a5fc6fd69ff74b365811e07736",
+    "semantic_hash": "764264a5fc6fd69ff74b365811e07736"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\input.tsx": {
+    "mtime": 1773438808.8141093,
+    "ast_hash": "ade31338298ab4a6e154cb5d88006719",
+    "semantic_hash": "ade31338298ab4a6e154cb5d88006719"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\item.tsx": {
+    "mtime": 1773172275.861766,
+    "ast_hash": "d3a7444d0fb49f8fa91b57f7140603e2",
+    "semantic_hash": "d3a7444d0fb49f8fa91b57f7140603e2"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\kbd.tsx": {
+    "mtime": 1773172275.8638206,
+    "ast_hash": "4882ae0a88c1dfaf741f2f727949bcf2",
+    "semantic_hash": "4882ae0a88c1dfaf741f2f727949bcf2"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\label.tsx": {
+    "mtime": 1773172275.8648262,
+    "ast_hash": "2d01ac52b1b7c4d01c9d09c02f08ba2c",
+    "semantic_hash": "2d01ac52b1b7c4d01c9d09c02f08ba2c"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\menubar.tsx": {
+    "mtime": 1773172275.86682,
+    "ast_hash": "d978677aeb111d048dae2ec26feb30a3",
+    "semantic_hash": "d978677aeb111d048dae2ec26feb30a3"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\navigation-menu.tsx": {
+    "mtime": 1773172275.8688178,
+    "ast_hash": "fff71d119629f4384576abc8c86db98e",
+    "semantic_hash": "fff71d119629f4384576abc8c86db98e"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\pagination.tsx": {
+    "mtime": 1773172275.8708272,
+    "ast_hash": "607b8b7f4d58c3077249e56192760a64",
+    "semantic_hash": "607b8b7f4d58c3077249e56192760a64"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\popover.tsx": {
+    "mtime": 1773172275.8728175,
+    "ast_hash": "09c92993acdba8f315704862f18cc9ff",
+    "semantic_hash": "09c92993acdba8f315704862f18cc9ff"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\progress.tsx": {
+    "mtime": 1773172275.8748138,
+    "ast_hash": "7979073b46fefa5f90a4215fdff5ba5a",
+    "semantic_hash": "7979073b46fefa5f90a4215fdff5ba5a"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\radio-group.tsx": {
+    "mtime": 1773172275.8767707,
+    "ast_hash": "a61efebb67265d71632fb9524729469e",
+    "semantic_hash": "a61efebb67265d71632fb9524729469e"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\resizable.tsx": {
+    "mtime": 1773172275.8787663,
+    "ast_hash": "4fad111fafa45ae68c9a0a22465b7ec5",
+    "semantic_hash": "4fad111fafa45ae68c9a0a22465b7ec5"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\scroll-area.tsx": {
+    "mtime": 1773172275.8797698,
+    "ast_hash": "c1a85e10b1d17c2e2badb0b2a5eb2b22",
+    "semantic_hash": "c1a85e10b1d17c2e2badb0b2a5eb2b22"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\select.tsx": {
+    "mtime": 1773172275.8817637,
+    "ast_hash": "8ca4147f64684089c60554f09933fba0",
+    "semantic_hash": "8ca4147f64684089c60554f09933fba0"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\separator.tsx": {
+    "mtime": 1773172275.8837638,
+    "ast_hash": "c5a8b5405f8d5fa8dfa3d4eabe3a2bc4",
+    "semantic_hash": "c5a8b5405f8d5fa8dfa3d4eabe3a2bc4"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\sheet.tsx": {
+    "mtime": 1773172275.8857665,
+    "ast_hash": "23fc89561f842f153c4740aaab2600ac",
+    "semantic_hash": "23fc89561f842f153c4740aaab2600ac"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\sidebar.tsx": {
+    "mtime": 1773438808.912717,
+    "ast_hash": "2381edb06ed8bec815f608c6e088e1fe",
+    "semantic_hash": "2381edb06ed8bec815f608c6e088e1fe"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\skeleton.tsx": {
+    "mtime": 1773172275.889764,
+    "ast_hash": "6da3e59043b0ae683f9302d318d19d16",
+    "semantic_hash": "6da3e59043b0ae683f9302d318d19d16"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\slider.tsx": {
+    "mtime": 1773172275.8917644,
+    "ast_hash": "da245cc3e54230e124635e33784f89b5",
+    "semantic_hash": "da245cc3e54230e124635e33784f89b5"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\sonner.tsx": {
+    "mtime": 1773172275.8927648,
+    "ast_hash": "73849904af65861ceede653f824aa552",
+    "semantic_hash": "73849904af65861ceede653f824aa552"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\spinner.tsx": {
+    "mtime": 1773172275.8947878,
+    "ast_hash": "4799669575bae50e8c2b5a1764cb8c89",
+    "semantic_hash": "4799669575bae50e8c2b5a1764cb8c89"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\switch.tsx": {
+    "mtime": 1773172275.8967855,
+    "ast_hash": "341211b469df84e5d9e8d65e87970871",
+    "semantic_hash": "341211b469df84e5d9e8d65e87970871"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\table.tsx": {
+    "mtime": 1773172275.898783,
+    "ast_hash": "1b0da9795f8741a283b46cbd16918492",
+    "semantic_hash": "1b0da9795f8741a283b46cbd16918492"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\tabs.tsx": {
+    "mtime": 1779658093.436402,
+    "ast_hash": "f037b54408d6e5fac329100a886f4993",
+    "semantic_hash": "f037b54408d6e5fac329100a886f4993"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\textarea.tsx": {
+    "mtime": 1773438808.9434834,
+    "ast_hash": "ed130a5e05096ba7579313a4373eb029",
+    "semantic_hash": "ed130a5e05096ba7579313a4373eb029"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\toggle-group.tsx": {
+    "mtime": 1773172275.903784,
+    "ast_hash": "8941a113e6b85b26dba6091d97b478ba",
+    "semantic_hash": "8941a113e6b85b26dba6091d97b478ba"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\toggle.tsx": {
+    "mtime": 1773172275.905784,
+    "ast_hash": "4fbb6228d377028844d88001b88774ff",
+    "semantic_hash": "4fbb6228d377028844d88001b88774ff"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\components\\ui\\tooltip.tsx": {
+    "mtime": 1773172275.9082966,
+    "ast_hash": "4739c9ad1c3b9f06058205e11a3bcd59",
+    "semantic_hash": "4739c9ad1c3b9f06058205e11a3bcd59"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\const.ts": {
+    "mtime": 1773178994.6413126,
+    "ast_hash": "e8984247445353bb70918f11786e1a56",
+    "semantic_hash": "e8984247445353bb70918f11786e1a56"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\contexts\\ThemeContext.tsx": {
+    "mtime": 1779830015.2809384,
+    "ast_hash": "ae74a9777d07bcbda8d73ebf67e4926a",
+    "semantic_hash": "ae74a9777d07bcbda8d73ebf67e4926a"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\hooks\\useAiProvider.ts": {
+    "mtime": 1780003951.736555,
+    "ast_hash": "7346fbb2c365d6f492b9d0966c227adb",
+    "semantic_hash": "7346fbb2c365d6f492b9d0966c227adb"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\hooks\\useBlobUpload.ts": {
+    "mtime": 1777833526.9621043,
+    "ast_hash": "35bd5f9ce450c8964dde3e03584a289b",
+    "semantic_hash": "35bd5f9ce450c8964dde3e03584a289b"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\hooks\\useComposition.ts": {
+    "mtime": 1773172275.9203174,
+    "ast_hash": "16bbb7a4775b78704034802eb6d8ea5b",
+    "semantic_hash": "16bbb7a4775b78704034802eb6d8ea5b"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\hooks\\useDevDeviceMode.tsx": {
+    "mtime": 1776108734.3395412,
+    "ast_hash": "c66d2d1d6c267d205786b39e12659ec2",
+    "semantic_hash": "c66d2d1d6c267d205786b39e12659ec2"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\hooks\\useMobile.tsx": {
+    "mtime": 1773172275.9223168,
+    "ast_hash": "b8c573c05d1d83956a7ec166c87b8075",
+    "semantic_hash": "b8c573c05d1d83956a7ec166c87b8075"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\hooks\\useMotionEnabled.tsx": {
+    "mtime": 1776108590.8391082,
+    "ast_hash": "01cace39d670c5e278094f6477969b94",
+    "semantic_hash": "01cace39d670c5e278094f6477969b94"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\hooks\\usePersistFn.ts": {
+    "mtime": 1773172275.923317,
+    "ast_hash": "693f129cc13fa61de95d481e6f7939c2",
+    "semantic_hash": "693f129cc13fa61de95d481e6f7939c2"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\i18n.ts": {
+    "mtime": 1779656004.346296,
+    "ast_hash": "c54806fb1fb0d82042283ce1ed621614",
+    "semantic_hash": "c54806fb1fb0d82042283ce1ed621614"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\lib\\trpc.ts": {
+    "mtime": 1773172275.9293177,
+    "ast_hash": "46d2d65e51eece392c98fd30d7ab209d",
+    "semantic_hash": "46d2d65e51eece392c98fd30d7ab209d"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\lib\\utils.ts": {
+    "mtime": 1773172275.930316,
+    "ast_hash": "d9837f38cc05303254571985e3164050",
+    "semantic_hash": "d9837f38cc05303254571985e3164050"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\locales\\en.json": {
+    "mtime": 1780000385.2527356,
+    "ast_hash": "100e7b289f4fc768e438903d2fbbc08e",
+    "semantic_hash": "100e7b289f4fc768e438903d2fbbc08e"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\locales\\es.json": {
+    "mtime": 1779656045.8067963,
+    "ast_hash": "0c8b9503b4954c0e91ed09e4f7ed0e3a",
+    "semantic_hash": "0c8b9503b4954c0e91ed09e4f7ed0e3a"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\locales\\fr.json": {
+    "mtime": 1780000326.1166427,
+    "ast_hash": "935c0c96d1e6c9395c5275e9408cacbf",
+    "semantic_hash": "935c0c96d1e6c9395c5275e9408cacbf"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\main.tsx": {
+    "mtime": 1779656010.9258132,
+    "ast_hash": "ba0c4c9fe23574c9d8cb255be7a3b0a8",
+    "semantic_hash": "ba0c4c9fe23574c9d8cb255be7a3b0a8"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\AboutVisionPage.tsx": {
+    "mtime": 1778017008.0824573,
+    "ast_hash": "08c8b8526a28826621e06c88272787a8",
+    "semantic_hash": "08c8b8526a28826621e06c88272787a8"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\Admin.tsx": {
+    "mtime": 1780264609.326048,
+    "ast_hash": "721906a8263326e7a6e688cc774ae0b8",
+    "semantic_hash": "721906a8263326e7a6e688cc774ae0b8"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\AdminBibliotheque.tsx": {
+    "mtime": 1780264609.3270555,
+    "ast_hash": "dae14b7837d49b65a604b391bafa675f",
+    "semantic_hash": "dae14b7837d49b65a604b391bafa675f"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\AdminBibliothequeEditor.tsx": {
+    "mtime": 1780002553.570864,
+    "ast_hash": "a047bcac933ee9359168ee9abbaf6398",
+    "semantic_hash": "a047bcac933ee9359168ee9abbaf6398"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\AdminDesign.tsx": {
+    "mtime": 1780000885.9670668,
+    "ast_hash": "5ea156a966d5695dab643a091a4b0ef2",
+    "semantic_hash": "5ea156a966d5695dab643a091a4b0ef2"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\AdminTutorial.tsx": {
+    "mtime": 1779995816.0761623,
+    "ast_hash": "d738f10e9db365c94296e3eb93e62dcf",
+    "semantic_hash": "d738f10e9db365c94296e3eb93e62dcf"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\ArticleDetail.tsx": {
+    "mtime": 1779229431.2285962,
+    "ast_hash": "ded3adb2b6ad5aa37de9a6a63b81f170",
+    "semantic_hash": "ded3adb2b6ad5aa37de9a6a63b81f170"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\ArticleEditor.tsx": {
+    "mtime": 1780002171.2509022,
+    "ast_hash": "82f7d0a3473d61c5adb5ae9e0bbbdc7f",
+    "semantic_hash": "82f7d0a3473d61c5adb5ae9e0bbbdc7f"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\BiblicalThemesPage.tsx": {
+    "mtime": 1778017475.8605566,
+    "ast_hash": "9f654b675c86a841ae06ced159867f44",
+    "semantic_hash": "9f654b675c86a841ae06ced159867f44"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\BibliothequePage.tsx": {
+    "mtime": 1780264609.328054,
+    "ast_hash": "16d187e3c78fa93bda3cfc440cd60c3c",
+    "semantic_hash": "16d187e3c78fa93bda3cfc440cd60c3c"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\CartCheckoutPage.tsx": {
+    "mtime": 1780264609.3290544,
+    "ast_hash": "fb0abfc6568f2a3a5e40fa21ce0207ac",
+    "semantic_hash": "fb0abfc6568f2a3a5e40fa21ce0207ac"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\CataloguePage.tsx": {
+    "mtime": 1780264609.3311565,
+    "ast_hash": "4c7a8ac9114ce348a600f37e4c82db51",
+    "semantic_hash": "4c7a8ac9114ce348a600f37e4c82db51"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\CategoryPage.tsx": {
+    "mtime": 1778017460.3786588,
+    "ast_hash": "e23c7cb95e779748c19d2e33166cb1b6",
+    "semantic_hash": "e23c7cb95e779748c19d2e33166cb1b6"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\ComponentShowcase.tsx": {
+    "mtime": 1773438809.319818,
+    "ast_hash": "f4a827f1ef5107596cbf98ce839da299",
+    "semantic_hash": "f4a827f1ef5107596cbf98ce839da299"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\CulteEnLignePage.tsx": {
+    "mtime": 1779661591.138797,
+    "ast_hash": "e4d8332f320b78b9612ab21456dcf8c3",
+    "semantic_hash": "e4d8332f320b78b9612ab21456dcf8c3"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\GalleriesPage.tsx": {
+    "mtime": 1779664768.211586,
+    "ast_hash": "002241dfc172873971c975ccc0875872",
+    "semantic_hash": "002241dfc172873971c975ccc0875872"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\Home.tsx": {
+    "mtime": 1779741122.5139122,
+    "ast_hash": "2e9e015b1d296b840786b7453eabf9c5",
+    "semantic_hash": "2e9e015b1d296b840786b7453eabf9c5"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\KlingStudio.tsx": {
+    "mtime": 1780002251.2053804,
+    "ast_hash": "33d8e96bce87a99c8d0d5ba668b4add7",
+    "semantic_hash": "33d8e96bce87a99c8d0d5ba668b4add7"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\Login.tsx": {
+    "mtime": 1779144283.858243,
+    "ast_hash": "92d008e8b1f6daa96385da3a3e5f2f10",
+    "semantic_hash": "92d008e8b1f6daa96385da3a3e5f2f10"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\NewsletterAdmin.tsx": {
+    "mtime": 1780264609.3321602,
+    "ast_hash": "46525189b81d02afeaa54dbafaeb3017",
+    "semantic_hash": "46525189b81d02afeaa54dbafaeb3017"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\NotFound.tsx": {
+    "mtime": 1773172275.949317,
+    "ast_hash": "ee6791f7959d2123bd51b17e94b915a3",
+    "semantic_hash": "ee6791f7959d2123bd51b17e94b915a3"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\OffersPacksPage.tsx": {
+    "mtime": 1779144276.6622937,
+    "ast_hash": "7b25590fda9956362809cda92dc739e7",
+    "semantic_hash": "7b25590fda9956362809cda92dc739e7"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\PageTest.tsx": {
+    "mtime": 1779714348.1284616,
+    "ast_hash": "60722116f14db3c3cda20a9d94a1c087",
+    "semantic_hash": "60722116f14db3c3cda20a9d94a1c087"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\PremiumBookPage.tsx": {
+    "mtime": 1780264609.3341565,
+    "ast_hash": "df5467104f163fa07d9b65a3f372671c",
+    "semantic_hash": "df5467104f163fa07d9b65a3f372671c"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\ProfilePage.tsx": {
+    "mtime": 1780000504.0312366,
+    "ast_hash": "e1cc1134842c66a2a5261b726decf655",
+    "semantic_hash": "e1cc1134842c66a2a5261b726decf655"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\PublicationDuJour.tsx": {
+    "mtime": 1780143489.024722,
+    "ast_hash": "e09b3cce070cf06ff578c235bd83ff1c",
+    "semantic_hash": "e09b3cce070cf06ff578c235bd83ff1c"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\StudiesResourcesPage.tsx": {
+    "mtime": 1778017550.6139233,
+    "ast_hash": "29b7f35c9581e33832cab2f5db46b71b",
+    "semantic_hash": "29b7f35c9581e33832cab2f5db46b71b"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\backup\\PublicationDuJour.tsx": {
+    "mtime": 1779492609.4889913,
+    "ast_hash": "bf305a097330f8c1fc11f986200838b5",
+    "semantic_hash": "bf305a097330f8c1fc11f986200838b5"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\backup\\VersesManager.tsx": {
+    "mtime": 1779492572.3083298,
+    "ast_hash": "201c47ed79af8dd185bd711d88b5a109",
+    "semantic_hash": "201c47ed79af8dd185bd711d88b5a109"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\backup\\db.ts": {
+    "mtime": 1779491415.7822452,
+    "ast_hash": "bbae79be2535f17c53874e0fa015cf06",
+    "semantic_hash": "bbae79be2535f17c53874e0fa015cf06"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\backup\\routers.ts": {
+    "mtime": 1779492529.2864692,
+    "ast_hash": "e98843857fa4f41358d13f5cc5f1c3fc",
+    "semantic_hash": "e98843857fa4f41358d13f5cc5f1c3fc"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\backup\\schema.ts": {
+    "mtime": 1779491394.6894433,
+    "ast_hash": "953b403a64ce5ec1095c4d0c84c7b698",
+    "semantic_hash": "953b403a64ce5ec1095c4d0c84c7b698"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\src\\pages\\backup\\tsconfig.json": {
+    "mtime": 1779491613.8701725,
+    "ast_hash": "d6ee7a2577680b3e53adb9371dc54485",
+    "semantic_hash": "d6ee7a2577680b3e53adb9371dc54485"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\components.json": {
+    "mtime": 1771359522.5669353,
+    "ast_hash": "3cd4ec12955c1b7b8651fff5ded96534",
+    "semantic_hash": "3cd4ec12955c1b7b8651fff5ded96534"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\create-tables.ts": {
+    "mtime": 1773438809.399794,
+    "ast_hash": "d9170ddb18f3bc0c0029ad04e345216b",
+    "semantic_hash": "d9170ddb18f3bc0c0029ad04e345216b"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\deploy.ps1": {
+    "mtime": 1777840881.8786516,
+    "ast_hash": "f34bcf4c53553182016cbef25da19fe5",
+    "semantic_hash": "f34bcf4c53553182016cbef25da19fe5"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\drizzle-migrations\\0000_sharp_sumo.sql": {
+    "mtime": 1773268424.1858976,
+    "ast_hash": "c43a7d7332ec74eb6796bd6676487d3e",
+    "semantic_hash": "c43a7d7332ec74eb6796bd6676487d3e"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\drizzle-migrations\\0001_little_hemingway.sql": {
+    "mtime": 1775079246.506142,
+    "ast_hash": "a751185834fb7078c1e95abe5ae6188a",
+    "semantic_hash": "a751185834fb7078c1e95abe5ae6188a"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\drizzle-migrations\\0002_cooing_the_spike.sql": {
+    "mtime": 1777170822.4289813,
+    "ast_hash": "089552b43dbfc6a933348c21310a9cb4",
+    "semantic_hash": "089552b43dbfc6a933348c21310a9cb4"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\drizzle-migrations\\0003_dear_screwball.sql": {
+    "mtime": 1777833526.9712856,
+    "ast_hash": "3bc405c913620dc5525ede3b1f7f0dd5",
+    "semantic_hash": "3bc405c913620dc5525ede3b1f7f0dd5"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\drizzle-migrations\\0004_good_black_bird.sql": {
+    "mtime": 1777840891.694252,
+    "ast_hash": "a9c2a62ebf615c68a67f9964e28320e7",
+    "semantic_hash": "a9c2a62ebf615c68a67f9964e28320e7"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\drizzle-migrations\\meta\\0000_snapshot.json": {
+    "mtime": 1773438809.4455132,
+    "ast_hash": "f1a7757125d84857b9dc8bd61819d0d4",
+    "semantic_hash": "f1a7757125d84857b9dc8bd61819d0d4"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\drizzle-migrations\\meta\\0001_snapshot.json": {
+    "mtime": 1775593281.834699,
+    "ast_hash": "f8dd61d514539a87c8b48b9e88cc2a8b",
+    "semantic_hash": "f8dd61d514539a87c8b48b9e88cc2a8b"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\drizzle-migrations\\meta\\0002_snapshot.json": {
+    "mtime": 1777170822.425951,
+    "ast_hash": "9a94e75a297c3e66c7ef46ae96f35c49",
+    "semantic_hash": "9a94e75a297c3e66c7ef46ae96f35c49"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\drizzle-migrations\\meta\\0003_snapshot.json": {
+    "mtime": 1777833526.972297,
+    "ast_hash": "0cfae1cd9843a41fc5d0a4f132d166e5",
+    "semantic_hash": "0cfae1cd9843a41fc5d0a4f132d166e5"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\drizzle-migrations\\meta\\0004_snapshot.json": {
+    "mtime": 1777840891.6936471,
+    "ast_hash": "914f0cd7a4698c26aa51173163001e3f",
+    "semantic_hash": "914f0cd7a4698c26aa51173163001e3f"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\drizzle-migrations\\meta\\_journal.json": {
+    "mtime": 1777840891.6936471,
+    "ast_hash": "adb8f59720cff7f09b34de77c61e75b1",
+    "semantic_hash": "adb8f59720cff7f09b34de77c61e75b1"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\drizzle.config.ts": {
+    "mtime": 1773178166.0039122,
+    "ast_hash": "9e7d47e0006737b471fe7d804554036c",
+    "semantic_hash": "9e7d47e0006737b471fe7d804554036c"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\drizzle\\0000_keen_romulus.sql": {
+    "mtime": 1773172275.9573207,
+    "ast_hash": "d94e39e998351f2d989e0ca91da0bcfb",
+    "semantic_hash": "d94e39e998351f2d989e0ca91da0bcfb"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\drizzle\\0001_serious_talisman.sql": {
+    "mtime": 1773172275.9613147,
+    "ast_hash": "afd2c403e43e8356fcd1919bc14196a0",
+    "semantic_hash": "afd2c403e43e8356fcd1919bc14196a0"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\drizzle\\0002_wandering_maddog.sql": {
+    "mtime": 1773172275.9633226,
+    "ast_hash": "9742c64bc8660fd9345b399f3bcf912c",
+    "semantic_hash": "9742c64bc8660fd9345b399f3bcf912c"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\drizzle\\0003_little_serpent_society.sql": {
+    "mtime": 1773172275.96532,
+    "ast_hash": "a292a1b7eca6821cefbd5d0bb2b2b2b0",
+    "semantic_hash": "a292a1b7eca6821cefbd5d0bb2b2b2b0"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\drizzle\\0004_quiet_lucky_pierre.sql": {
+    "mtime": 1773172275.9673202,
+    "ast_hash": "0d8fd82dcb8679fd77a3f048d808fb2f",
+    "semantic_hash": "0d8fd82dcb8679fd77a3f048d808fb2f"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\drizzle\\0005_visible_gallery.sql": {
+    "mtime": 1779487879.9801857,
+    "ast_hash": "c198c96a906cea17f8a1ac872ad06117",
+    "semantic_hash": "c198c96a906cea17f8a1ac872ad06117"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\drizzle\\0006_verse_image.sql": {
+    "mtime": 1779491401.829331,
+    "ast_hash": "3cfbc91cc2a004019b53b20855ee3be7",
+    "semantic_hash": "3cfbc91cc2a004019b53b20855ee3be7"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\drizzle\\meta\\0000_snapshot.json": {
+    "mtime": 1773438809.4792283,
+    "ast_hash": "ca627e150f975a208a51091bf700d128",
+    "semantic_hash": "ca627e150f975a208a51091bf700d128"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\drizzle\\meta\\0001_snapshot.json": {
+    "mtime": 1773438809.4889312,
+    "ast_hash": "01cd8e09319756947219d3af7e108add",
+    "semantic_hash": "01cd8e09319756947219d3af7e108add"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\drizzle\\meta\\0002_snapshot.json": {
+    "mtime": 1773438809.498212,
+    "ast_hash": "7dee59580d88810d95022c82b5cc9c3a",
+    "semantic_hash": "7dee59580d88810d95022c82b5cc9c3a"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\drizzle\\meta\\0003_snapshot.json": {
+    "mtime": 1773438809.5088367,
+    "ast_hash": "6a641fe4260d334d11306e85e5cb4fc4",
+    "semantic_hash": "6a641fe4260d334d11306e85e5cb4fc4"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\drizzle\\meta\\0004_snapshot.json": {
+    "mtime": 1773438809.5179818,
+    "ast_hash": "cadd87024260403bd26a85fa275974c9",
+    "semantic_hash": "cadd87024260403bd26a85fa275974c9"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\drizzle\\meta\\_journal.json": {
+    "mtime": 1773438809.474229,
+    "ast_hash": "f7da86379f2b9614a8ae196459485513",
+    "semantic_hash": "f7da86379f2b9614a8ae196459485513"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\drizzle\\migrations\\20240601_add_user_theme.ts": {
+    "mtime": 1779315476.2967713,
+    "ast_hash": "9996c1ead5280e36b2ba94e0ba3d44ef",
+    "semantic_hash": "9996c1ead5280e36b2ba94e0ba3d44ef"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\drizzle\\relations.ts": {
+    "mtime": 1773172275.9693196,
+    "ast_hash": "a28675b96e43f38658fb1f293fbec3f2",
+    "semantic_hash": "a28675b96e43f38658fb1f293fbec3f2"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\drizzle\\schema.ts": {
+    "mtime": 1780264609.3356638,
+    "ast_hash": "f76850f5d7979905a5b98e939af9dedf",
+    "semantic_hash": "f76850f5d7979905a5b98e939af9dedf"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\install_opencode_continue_ollama.ps1": {
+    "mtime": 1777406998.360074,
+    "ast_hash": "c87434f236e9c71a658862344b5a7b15",
+    "semantic_hash": "c87434f236e9c71a658862344b5a7b15"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\package.json": {
+    "mtime": 1780516378.6903708,
+    "ast_hash": "311da28f7a8ff6ec4227e576e5c8dc4c",
+    "semantic_hash": "311da28f7a8ff6ec4227e576e5c8dc4c"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\playwright.config.ts": {
+    "mtime": 1780434728.9675968,
+    "ast_hash": "977d0e5108e558d9818c2d6a31f9853f",
+    "semantic_hash": "977d0e5108e558d9818c2d6a31f9853f"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\server\\_core\\aiQuota.ts": {
+    "mtime": 1780004006.7292116,
+    "ast_hash": "fd9c754ec935626af7a8aaccb34700da",
+    "semantic_hash": "fd9c754ec935626af7a8aaccb34700da"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\server\\_core\\cache.ts": {
+    "mtime": 1780264609.4396703,
+    "ast_hash": "8b815cd97c20b15531c9b66c86769b7e",
+    "semantic_hash": "8b815cd97c20b15531c9b66c86769b7e"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\server\\_core\\context.ts": {
+    "mtime": 1773526130.13695,
+    "ast_hash": "887154f9d120aeffc8d3ad20aa7c14de",
+    "semantic_hash": "887154f9d120aeffc8d3ad20aa7c14de"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\server\\_core\\cookies.ts": {
+    "mtime": 1775920167.24409,
+    "ast_hash": "958da67ca55f7120ab09e21b10893675",
+    "semantic_hash": "958da67ca55f7120ab09e21b10893675"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\server\\_core\\env.ts": {
+    "mtime": 1775943849.648796,
+    "ast_hash": "cae6cf4dfaf2a029d93f30cf5102070c",
+    "semantic_hash": "cae6cf4dfaf2a029d93f30cf5102070c"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\server\\_core\\index.ts": {
+    "mtime": 1780003966.1529365,
+    "ast_hash": "c95790247fb98475a4b655832460bf24",
+    "semantic_hash": "c95790247fb98475a4b655832460bf24"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\server\\_core\\llm.ts": {
+    "mtime": 1780003988.8853736,
+    "ast_hash": "a8b2f9edd18aa42b30e296be4341eb31",
+    "semantic_hash": "a8b2f9edd18aa42b30e296be4341eb31"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\server\\_core\\newsletter.ts": {
+    "mtime": 1778014340.0356088,
+    "ast_hash": "c10ea0ecff4b89ce45c18c93ef97a068",
+    "semantic_hash": "c10ea0ecff4b89ce45c18c93ef97a068"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\server\\_core\\sdk.ts": {
+    "mtime": 1775920060.8626285,
+    "ast_hash": "7e75d6d994fd1f3ca140ae3c3d50728c",
+    "semantic_hash": "7e75d6d994fd1f3ca140ae3c3d50728c"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\server\\_core\\systemRouter.ts": {
+    "mtime": 1775685049.2211883,
+    "ast_hash": "0acad933fcbd1fb11e495cc951d254e7",
+    "semantic_hash": "0acad933fcbd1fb11e495cc951d254e7"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\server\\_core\\trpc.ts": {
+    "mtime": 1779143075.3020496,
+    "ast_hash": "e9a9bd759d8a18771539097519511327",
+    "semantic_hash": "e9a9bd759d8a18771539097519511327"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\server\\_core\\types\\cookie.d.ts": {
+    "mtime": 1773172276.0480435,
+    "ast_hash": "c9efbbd9ae2bd240020f4d3c0bd3414d",
+    "semantic_hash": "c9efbbd9ae2bd240020f4d3c0bd3414d"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\server\\_core\\types\\manusTypes.ts": {
+    "mtime": 1773172276.0500412,
+    "ast_hash": "e5a782d4234a13c84742a093c8c78f0c",
+    "semantic_hash": "e5a782d4234a13c84742a093c8c78f0c"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\server\\_core\\vite.ts": {
+    "mtime": 1773172276.0420437,
+    "ast_hash": "098b8ab19206db575bc4b325f53b01bd",
+    "semantic_hash": "098b8ab19206db575bc4b325f53b01bd"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\server\\articles.test.ts": {
+    "mtime": 1773438982.0074298,
+    "ast_hash": "35dc49968f389b82722089d5ed9e9a0f",
+    "semantic_hash": "35dc49968f389b82722089d5ed9e9a0f"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\server\\auth.logout.test.ts": {
+    "mtime": 1773438985.379001,
+    "ast_hash": "b723ef2878f8ad044f6012e989b87579",
+    "semantic_hash": "b723ef2878f8ad044f6012e989b87579"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\server\\db.ts": {
+    "mtime": 1780264609.340263,
+    "ast_hash": "5135136e33a24068e76b0ebf1bd2944b",
+    "semantic_hash": "5135136e33a24068e76b0ebf1bd2944b"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\server\\notifications.test.ts": {
+    "mtime": 1773438969.0031526,
+    "ast_hash": "af73c01d5a71a82434db768e62c34f14",
+    "semantic_hash": "af73c01d5a71a82434db768e62c34f14"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\server\\pageContent.test.ts": {
+    "mtime": 1773438983.3603022,
+    "ast_hash": "4090158b5104932bad04d4ff064cd9b2",
+    "semantic_hash": "4090158b5104932bad04d4ff064cd9b2"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\server\\routers.ts": {
+    "mtime": 1780264609.3422623,
+    "ast_hash": "f24cb229f4f5fbd4bac31bb4708405bb",
+    "semantic_hash": "f24cb229f4f5fbd4bac31bb4708405bb"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\server\\storage.ts": {
+    "mtime": 1779319026.7195475,
+    "ast_hash": "c6c6cbd6bd734342b689b072b3fbb9eb",
+    "semantic_hash": "c6c6cbd6bd734342b689b072b3fbb9eb"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\server\\themeRouter.ts": {
+    "mtime": 1780006671.9011652,
+    "ast_hash": "3e68d280bab7ceec91b3c405ac89642a",
+    "semantic_hash": "3e68d280bab7ceec91b3c405ac89642a"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\shared\\_core\\errors.ts": {
+    "mtime": 1773172276.0620406,
+    "ast_hash": "9bd08bc80e6d83fb179424dd09fdee9e",
+    "semantic_hash": "9bd08bc80e6d83fb179424dd09fdee9e"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\shared\\aiProviders.ts": {
+    "mtime": 1777171402.5580914,
+    "ast_hash": "f060242d80ac9a59c38a61519b0c33d1",
+    "semantic_hash": "f060242d80ac9a59c38a61519b0c33d1"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\shared\\const.ts": {
+    "mtime": 1773438809.9643638,
+    "ast_hash": "a23abe0cf4ae381eeb77d026bfbc168d",
+    "semantic_hash": "a23abe0cf4ae381eeb77d026bfbc168d"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\shared\\n8n-integration.ts": {
+    "mtime": 1780264609.440669,
+    "ast_hash": "1ecb3929dd1635455a14a8a3527165d1",
+    "semantic_hash": "1ecb3929dd1635455a14a8a3527165d1"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\shared\\types.ts": {
+    "mtime": 1773172276.0580504,
+    "ast_hash": "2da783db5cefa32c4eda2b2657a8c8b5",
+    "semantic_hash": "2da783db5cefa32c4eda2b2657a8c8b5"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\tests\\components\\article.test.ts": {
+    "mtime": 1780516371.9859247,
+    "ast_hash": "43644354567ee41016343b50c0ca5367",
+    "semantic_hash": "43644354567ee41016343b50c0ca5367"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\tests\\components\\header.test.ts": {
+    "mtime": 1780516369.761867,
+    "ast_hash": "539f273754e8d2afddaa450ef18e4861",
+    "semantic_hash": "539f273754e8d2afddaa450ef18e4861"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\tests\\e2e\\admin.test.ts": {
+    "mtime": 1780516362.243505,
+    "ast_hash": "3259ba64a52fdcc9d345d9ae21cc4f66",
+    "semantic_hash": "3259ba64a52fdcc9d345d9ae21cc4f66"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\tests\\e2e\\articles.test.ts": {
+    "mtime": 1780516359.9469936,
+    "ast_hash": "08d2f45538d1c109331e996bf6d5bd0a",
+    "semantic_hash": "08d2f45538d1c109331e996bf6d5bd0a"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\tests\\e2e\\auth.test.ts": {
+    "mtime": 1780516357.092791,
+    "ast_hash": "29b3a9e33f70757e044b12c6023642b8",
+    "semantic_hash": "29b3a9e33f70757e044b12c6023642b8"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\tests\\e2e\\home.test.ts": {
+    "mtime": 1780437413.1987748,
+    "ast_hash": "96c48bd988eea3e3d1d508e28b2171dd",
+    "semantic_hash": "96c48bd988eea3e3d1d508e28b2171dd"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\tests\\e2e\\media.test.ts": {
+    "mtime": 1780516367.5789747,
+    "ast_hash": "67b1736f908a094e9a6dd266d29a6902",
+    "semantic_hash": "67b1736f908a094e9a6dd266d29a6902"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\tests\\e2e\\responsive.test.ts": {
+    "mtime": 1780516365.3234031,
+    "ast_hash": "a900515957b8271f05126696455a6cf1",
+    "semantic_hash": "a900515957b8271f05126696455a6cf1"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\tests\\setup\\fixtures.ts": {
+    "mtime": 1780516339.5465796,
+    "ast_hash": "2762bf32b3cb30013749d32a3690d673",
+    "semantic_hash": "2762bf32b3cb30013749d32a3690d673"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\tests\\setup\\global.setup.ts": {
+    "mtime": 1780435654.3131483,
+    "ast_hash": "24f7e939efb50f937313a5d2b911c15e",
+    "semantic_hash": "24f7e939efb50f937313a5d2b911c15e"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\tsconfig.json": {
+    "mtime": 1780517768.3992376,
+    "ast_hash": "2c19d5bbe47a69f71d09b7973cd6e165",
+    "semantic_hash": "2c19d5bbe47a69f71d09b7973cd6e165"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\vercel.json": {
+    "mtime": 1779060928.800709,
+    "ast_hash": "c7fe8e9ec039b28402a5893bf389d4dd",
+    "semantic_hash": "c7fe8e9ec039b28402a5893bf389d4dd"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\vite.config.ts": {
+    "mtime": 1780264609.3422623,
+    "ast_hash": "78e74b76d3c12caa79f8c1bee8438f48",
+    "semantic_hash": "78e74b76d3c12caa79f8c1bee8438f48"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\vitest.config.dev.ts": {
+    "mtime": 1773438810.5579455,
+    "ast_hash": "da7a008f94cbe08bdc77a3aa02e5250d",
+    "semantic_hash": "da7a008f94cbe08bdc77a3aa02e5250d"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\vitest.config.ts": {
+    "mtime": 1773438810.5630064,
+    "ast_hash": "dada4b06d83d6d1b159493807a9f726b",
+    "semantic_hash": "dada4b06d83d6d1b159493807a9f726b"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\vitest.setup.ts": {
+    "mtime": 1773438810.5685985,
+    "ast_hash": "d0d09555e586789fac9cd534a245ceed",
+    "semantic_hash": "d0d09555e586789fac9cd534a245ceed"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\N8N_SETUP_SUMMARY.txt": {
+    "mtime": 1780264609.426119,
+    "ast_hash": "9c2bcc2f0b401a94c491ac4b91238d06",
+    "semantic_hash": "9c2bcc2f0b401a94c491ac4b91238d06"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\client\\index.html": {
+    "mtime": 1779229418.4454112,
+    "ast_hash": "cf9d0d5d696115a403d1a3e5c14458c0",
+    "semantic_hash": "cf9d0d5d696115a403d1a3e5c14458c0"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\docker-compose.yml": {
+    "mtime": 1780264609.4341447,
+    "ast_hash": "e53cfb5f28a286f172c41f2dcf89ef9e",
+    "semantic_hash": "e53cfb5f28a286f172c41f2dcf89ef9e"
+  },
+  "C:\\Users\\Myth972\\Documents\\g12-paris-infos-medias-main\\playwright-report\\index.html": {
+    "mtime": 1780516401.4788396,
+    "ast_hash": "7f7143458c208fd5eec78ccac89931bc",
+    "semantic_hash": "7f7143458c208fd5eec78ccac89931bc"
+  }
+}

@@ -5,6 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { defineConfig, type Plugin, type ViteDevServer } from "vite";
 import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
+import { visualizer } from "rollup-plugin-visualizer";
 
 // =============================================================================
 // Manus Debug Collector - Vite Plugin
@@ -151,14 +152,7 @@ function vitePluginManusDebugCollector(): Plugin {
 }
 
 const enableManusDebugCollector = process.env.MANUS_DEBUG_COLLECTOR === "true";
-
-const plugins = [
-  react(),
-  tailwindcss(),
-  jsxLocPlugin(),
-  vitePluginManusRuntime(),
-  ...(enableManusDebugCollector ? [vitePluginManusDebugCollector()] : []),
-];
+const enableBundleAnalyzer = process.env.ANALYZE === "true";
 
 export default defineConfig({
   plugins: [
@@ -167,6 +161,7 @@ export default defineConfig({
     jsxLocPlugin(),
     vitePluginManusRuntime(),
     ...(enableManusDebugCollector ? [vitePluginManusDebugCollector()] : []),
+    ...(enableBundleAnalyzer ? [visualizer({ filename: "dist/stats.html", open: true, gzipSize: true, brotliSize: true })] : []),
   ],
     resolve: {
     alias: {
@@ -192,6 +187,8 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    cssMinify: "esbuild",
+    reportCompressedSize: false,
     rollupOptions: {
       output: {
         manualChunks: (id) => {
@@ -246,7 +243,7 @@ export default defineConfig({
         },
       },
     },
-    chunkSizeWarningLimit: 1000,
+    chunkSizeWarningLimit: 500,
   },
   optimizeDeps: {
     exclude: ['es-toolkit'],

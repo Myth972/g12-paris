@@ -7,9 +7,6 @@ import {
 } from "drizzle-orm/sqlite-core";
 import { sql } from "drizzle-orm";
 
-/**
- * Core user table backing auth flow.
- */
 export const users = sqliteTable("users", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   openId: text("openId").notNull().unique(),
@@ -17,7 +14,7 @@ export const users = sqliteTable("users", {
   email: text("email"),
   loginMethod: text("loginMethod"),
   role: text("role").default("user").notNull(),
-  password: text("password"), // Mot de passe optionnel (pour connexion locale)
+  password: text("password"),
   createdAt: integer("createdAt", { mode: "timestamp" })
     .default(sql`(strftime('%s', 'now'))`)
     .notNull(),
@@ -32,9 +29,6 @@ export const users = sqliteTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-/**
- * Articles table for news content.
- */
 export const articles = sqliteTable("articles", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   title: text("title").notNull(),
@@ -48,23 +42,25 @@ export const articles = sqliteTable("articles", {
   category: text("category").default("actualité").notNull(),
   published: integer("published", { mode: "boolean" }).default(false).notNull(),
   authorId: integer("authorId").notNull(),
-  price: integer("price"), // Price in cents
-  meta: text("meta"), // JSON for extra data (author, publisher, etc.)
-  affiliateUrl: text("affiliateUrl"), // External affiliate purchase link (Amazon, etc.)
+  price: integer("price"),
+  meta: text("meta"),
+  affiliateUrl: text("affiliateUrl"),
   createdAt: integer("createdAt", { mode: "timestamp" })
     .default(sql`(strftime('%s', 'now'))`)
     .notNull(),
   updatedAt: integer("updatedAt", { mode: "timestamp" })
     .default(sql`(strftime('%s', 'now'))`)
     .notNull(),
-});
+}, (table) => [
+  index("idx_articles_published").on(table.published),
+  index("idx_articles_author").on(table.authorId),
+  index("idx_articles_category").on(table.category),
+  index("idx_articles_created").on(table.createdAt),
+]);
 
 export type Article = typeof articles.$inferSelect;
 export type InsertArticle = typeof articles.$inferInsert;
 
-/**
- * Notifications table.
- */
 export const notifications = sqliteTable("notifications", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   title: text("title").notNull(),
@@ -75,14 +71,14 @@ export const notifications = sqliteTable("notifications", {
   createdAt: integer("createdAt", { mode: "timestamp" })
     .default(sql`(strftime('%s', 'now'))`)
     .notNull(),
-});
+}, (table) => [
+  index("idx_notifications_author").on(table.authorId),
+  index("idx_notifications_created").on(table.createdAt),
+]);
 
 export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = typeof notifications.$inferInsert;
 
-/**
- * Tracks which user has read which notification.
- */
 export const notificationReads = sqliteTable("notification_reads", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   notificationId: integer("notificationId").notNull(),
@@ -90,22 +86,26 @@ export const notificationReads = sqliteTable("notification_reads", {
   readAt: integer("readAt", { mode: "timestamp" })
     .default(sql`(strftime('%s', 'now'))`)
     .notNull(),
-});
+}, (table) => [
+  index("idx_notifreads_notification").on(table.notificationId),
+  index("idx_notifreads_user").on(table.userId),
+  index("idx_notifreads_user_notif").on(table.userId, table.notificationId),
+]);
 
 export type NotificationRead = typeof notificationReads.$inferSelect;
 export type InsertNotificationRead = typeof notificationReads.$inferInsert;
 
-/**
- * Gallery items (images and videos) for the "Publication du jour" page.
- */
 export const galleryItems = sqliteTable("gallery_items", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   title: text("title").notNull(),
   type: text("type").notNull(),
   mediaUrl: text("mediaUrl").notNull(),
   mediaKey: text("mediaKey"),
+  coverImageUrl: text("coverImageUrl"),
+  coverImageKey: text("coverImageKey"),
   youtubeUrl: text("youtubeUrl"),
   verseId: integer("verseId"),
+  category: text("category").default("general"),
   displayOrder: integer("displayOrder").default(0).notNull(),
   visible: integer("visible", { mode: "boolean" }).default(true).notNull(),
   featured: integer("featured", { mode: "boolean" }).default(false).notNull(),
@@ -116,14 +116,15 @@ export const galleryItems = sqliteTable("gallery_items", {
   updatedAt: integer("updatedAt", { mode: "timestamp" })
     .default(sql`(strftime('%s', 'now'))`)
     .notNull(),
-});
+}, (table) => [
+  index("idx_gallery_featured").on(table.featured),
+  index("idx_gallery_visible").on(table.visible),
+  index("idx_gallery_verse").on(table.verseId),
+]);
 
 export type GalleryItem = typeof galleryItems.$inferSelect;
 export type InsertGalleryItem = typeof galleryItems.$inferInsert;
 
-/**
- * Biblical verses with summaries.
- */
 export const biblicalVerses = sqliteTable("biblical_verses", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   reference: text("reference").notNull(),
@@ -138,9 +139,6 @@ export const biblicalVerses = sqliteTable("biblical_verses", {
 export type BiblicalVerse = typeof biblicalVerses.$inferSelect;
 export type InsertBiblicalVerse = typeof biblicalVerses.$inferInsert;
 
-/**
- * Page content customization for all pages.
- */
 export const pageContent = sqliteTable("page_content", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   pageId: text("pageId").notNull(),
@@ -167,7 +165,12 @@ export const pageContent = sqliteTable("page_content", {
   updatedAt: integer("updatedAt", { mode: "timestamp" })
     .default(sql`(strftime('%s', 'now'))`)
     .notNull(),
-});
+}, (table) => [
+  index("idx_pagecontent_pageid").on(table.pageId),
+  index("idx_pagecontent_featured").on(table.featuredHome),
+  index("idx_pagecontent_visible").on(table.visible),
+  index("idx_pagecontent_author").on(table.authorId),
+]);
 
 export type PageContent = typeof pageContent.$inferSelect;
 export type InsertPageContent = typeof pageContent.$inferInsert;
@@ -196,9 +199,6 @@ export const siteSettings = sqliteTable("site_settings", {
 export type SiteSetting = typeof siteSettings.$inferSelect;
 export type InsertSiteSetting = typeof siteSettings.$inferInsert;
 
-/**
- * Categories for articles and media.
- */
 export const categories = sqliteTable("categories", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
@@ -212,9 +212,6 @@ export const categories = sqliteTable("categories", {
 export type Category = typeof categories.$inferSelect;
 export type InsertCategory = typeof categories.$inferInsert;
 
-/**
- * Themes for articles and media, linked to categories.
- */
 export const themes = sqliteTable("themes", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),
@@ -224,7 +221,9 @@ export const themes = sqliteTable("themes", {
   createdAt: integer("createdAt", { mode: "timestamp" })
     .default(sql`(strftime('%s', 'now'))`)
     .notNull(),
-});
+}, (table) => [
+  index("idx_themes_category").on(table.categoryId),
+]);
 
 export type Theme = typeof themes.$inferSelect;
 export type InsertTheme = typeof themes.$inferInsert;
@@ -234,16 +233,16 @@ export const userTheme = sqliteTable("user_theme", {
   userId: integer("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
   theme: text("theme").notNull().default("light"),
   updatedAt: integer("updatedAt", { mode: "timestamp" }).default(sql`(strftime('%s', 'now'))`).notNull(),
-});
+}, (table) => [
+  index("idx_usertheme_user").on(table.userId),
+]);
+
 export type UserTheme = typeof userTheme.$inferSelect;
 export type InsertUserTheme = typeof userTheme.$inferInsert;
 
-/**
- * Announcements & Flash events for the home page.
- */
 export const announcements = sqliteTable("announcements", {
   id: integer("id").primaryKey({ autoIncrement: true }),
-  type: text("type").notNull().default("announcement"), // "announcement" | "flash-event"
+  type: text("type").notNull().default("announcement"),
   title: text("title").notNull(),
   description: text("description").default("").notNull(),
   mediaUrl: text("mediaUrl").notNull(),
@@ -252,7 +251,7 @@ export const announcements = sqliteTable("announcements", {
   location: text("location"),
   ctaLabel: text("ctaLabel"),
   ctaHref: text("ctaHref"),
-  variant: text("variant").default("poster"), // "poster" | "default" | "compact"
+  variant: text("variant").default("poster"),
   displayOrder: integer("displayOrder").default(0).notNull(),
   visible: integer("visible", { mode: "boolean" }).default(true).notNull(),
   textColor: text("textColor"),
@@ -263,7 +262,11 @@ export const announcements = sqliteTable("announcements", {
   updatedAt: integer("updatedAt", { mode: "timestamp" })
     .default(sql`(strftime('%s', 'now'))`)
     .notNull(),
-});
+}, (table) => [
+  index("idx_announcements_visible").on(table.visible),
+  index("idx_announcements_type").on(table.type),
+  index("idx_announcements_displayorder").on(table.displayOrder),
+]);
 
 export type Announcement = typeof announcements.$inferSelect;
 export type InsertAnnouncement = typeof announcements.$inferInsert;

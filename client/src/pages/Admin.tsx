@@ -705,7 +705,7 @@ export default function Admin() {
   const { data: catData } = trpc.bibliotheque.listCategories.useQuery();
 
   const pubCount = articlesData?.items?.filter((a: any) => a.published).length ?? 0;
-  const nlCount = nlData?.length ?? 0;
+  const nlCount = nlData?.items?.length ?? 0;
   const mediaCount = galleryListData?.items?.length ?? 0;
   const catCount = catData?.length ?? 0;
 
@@ -983,11 +983,6 @@ if (authLoading) {
                 <CulteBannerSettings />
                 <CulteVideoSettings />
                 <PageContentManager pageId="home" pageName="Accueil" />
-                <PageContentManager
-                  pageId="publication-du-jour"
-                  pageName="Publication du jour"
-                />
-                <PageContentManager pageId="galeries" pageName="Galeries" />
                 <PageContentManager
                   pageId="culte-en-ligne"
                   pageName="Culte en ligne"

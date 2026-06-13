@@ -40,6 +40,17 @@ AWS_REGION=eu-west-1
 AWS_S3_BUCKET=your-bucket-name
 
 # ------------------------------------------
+# n8n Workflow Automation
+# ------------------------------------------
+N8N_HOST=localhost
+N8N_PORT=5678
+N8N_PROTOCOL=http
+N8N_DB_PASSWORD=n8n-secure-password
+N8N_WEBHOOK_URL=http://localhost:5678
+N8N_API_KEY=n8n_api_your_api_key_here
+N8N_BASE_URL=http://localhost:5678
+
+# ------------------------------------------
 # Développement
 # ------------------------------------------
 DEV=true

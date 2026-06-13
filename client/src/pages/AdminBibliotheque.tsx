@@ -163,7 +163,8 @@ export default function AdminBibliotheque() {
   // Data fetching
   const { data: articlesData, isLoading } = trpc.articles.adminList.useQuery();
   const { data: galleryData, isLoading: isLoadingMedias } = trpc.gallery.list.useQuery();
-  const { data: subscribers, isLoading: isLoadingSubs } = trpc.newsletter.listSubscribers.useQuery();
+  const { data: subscribersData, isLoading: isLoadingSubs } = trpc.newsletter.listSubscribers.useQuery();
+  const subscribers = subscribersData?.items;
   const { data: categoriesData } = trpc.bibliotheque.listCategories.useQuery();
   const { data: themesData } = trpc.bibliotheque.listThemes.useQuery();
 

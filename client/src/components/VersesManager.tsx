@@ -83,7 +83,8 @@ export default function VersesManager() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    createMutation.mutate(formData);
+    const { imageUrl: _, ...cleanData } = formData;
+    createMutation.mutate(cleanData);
   };
 
   const handleEditSubmit = (e: React.FormEvent) => {

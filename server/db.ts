@@ -1,4 +1,4 @@
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, and, sql, asc, notInArray, inArray } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/libsql";
 import { createClient } from "@libsql/client";
 import {
@@ -13,8 +13,11 @@ import {
   themes,
   type InsertCategory,
   type InsertTheme,
+  galleryItems,
+  biblicalVerses,
+  pageContent,
+  announcements,
 } from "../drizzle/schema.js";
-import { notInArray, inArray } from "drizzle-orm";
 import { ENV } from "./_core/env.js";
 import { TRPCError } from "@trpc/server";
 
@@ -29,7 +32,7 @@ function assertDb(db: unknown): asserts db {
 
 let _db: any = null;
 
-export async function getDb() {
+export function getDb() {
   if (
     !_db &&
     (process.env.DATABASE_URL ||
@@ -58,7 +61,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
     });
   }
 
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
 
   try {
@@ -85,7 +88,6 @@ export async function upsertUser(user: InsertUser): Promise<void> {
       updateSet.lastSignedIn = user.lastSignedIn;
     }
 
-    // Always update updatedAt on upsert if it exists in schema
     const now = new Date();
     values.updatedAt = now;
     updateSet.updatedAt = now;
@@ -117,7 +119,7 @@ export async function upsertUser(user: InsertUser): Promise<void> {
 }
 
 export async function getUserByOpenId(openId: string) {
-  const db = await getDb();
+  const db = getDb();
   if (!db) {
     console.warn("[Database] Cannot get user: database not available");
     return undefined;
@@ -137,7 +139,7 @@ export async function getUserByOpenId(openId: string) {
 export async function createArticle(
   data: Omit<InsertArticle, "id" | "createdAt" | "updatedAt">
 ) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
 
   const [row] = await db.insert(articles).values(data).returning();
@@ -148,7 +150,7 @@ export async function updateArticle(
   id: number,
   data: Partial<Omit<InsertArticle, "id" | "createdAt" | "updatedAt">>
 ) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
 
   await db.update(articles).set(data).where(eq(articles.id, id));
@@ -161,7 +163,7 @@ export async function updateArticle(
 }
 
 export async function deleteArticle(id: number) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
 
   await db.delete(articles).where(eq(articles.id, id));
@@ -169,7 +171,7 @@ export async function deleteArticle(id: number) {
 }
 
 export async function getArticleById(id: number) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
 
   const rows = await db
@@ -187,7 +189,7 @@ export async function getArticleById(id: number) {
 }
 
 export async function getArticleBySlug(slug: string) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
 
   const rows = await db
@@ -217,13 +219,12 @@ export async function listPublishedArticles(
     sort?: string;
   } = {}
 ) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
 
   const conditions = [eq(articles.published, true)];
   
   if (filters.category && filters.category !== "all") {
-    // Use LIKE for flexible category matching (e.g. bibliothèque:offre matches bibliothèque:offre:)
     if (filters.category === "bibliothèque") {
        conditions.push(sql`${articles.category} LIKE 'bibliothèque:%'`);
     } else {
@@ -258,7 +259,6 @@ export async function listPublishedArticles(
   } else if (filters.sort === "price_desc") {
     orderBy = desc(articles.price);
   } else if (filters.sort === "popular") {
-    // Si on n'a pas de champ viewCount, on trie par date pour l'instant
     orderBy = desc(articles.createdAt);
   }
 
@@ -285,7 +285,7 @@ export async function countPublishedArticles(filters: {
   type?: string;
   theme?: string;
 } = {}) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
 
   const conditions = [eq(articles.published, true)];
@@ -328,7 +328,7 @@ export async function countPublishedArticles(filters: {
 }
 
 export async function listAllArticles(limit = 50, offset = 0) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
 
   const rows = await db
@@ -346,7 +346,7 @@ export async function listAllArticles(limit = 50, offset = 0) {
 }
 
 export async function countAllArticles() {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
 
   const rows = await db.select({ count: sql<number>`count(*)` }).from(articles);
@@ -358,7 +358,7 @@ export async function countAllArticles() {
 export async function createNotification(
   data: Omit<InsertNotification, "id" | "createdAt">
 ) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
 
   const [row] = await db.insert(notifications).values(data).returning();
@@ -366,10 +366,9 @@ export async function createNotification(
 }
 
 export async function deleteNotification(id: number) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
 
-  // Delete associated reads first
   await db
     .delete(notificationReads)
     .where(eq(notificationReads.notificationId, id));
@@ -378,7 +377,7 @@ export async function deleteNotification(id: number) {
 }
 
 export async function listNotifications(limit = 50, offset = 0) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
 
   const rows = await db
@@ -399,7 +398,7 @@ export async function listNotifications(limit = 50, offset = 0) {
 }
 
 export async function countNotifications() {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
 
   const rows = await db
@@ -409,10 +408,9 @@ export async function countNotifications() {
 }
 
 export async function getUserNotifications(userId: number, limit = 20) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
 
-  // Get all notifications with read status for this user
   const rows = await db
     .select({
       notification: notifications,
@@ -440,106 +438,64 @@ export async function getUserNotifications(userId: number, limit = 20) {
 }
 
 export async function countUnreadNotifications(userId: number) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
 
-  // Get IDs of notifications this user has read
-  const readRows = await db
-    .select({ notificationId: notificationReads.notificationId })
-    .from(notificationReads)
-    .where(eq(notificationReads.userId, userId));
+  const rows = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(notifications)
+    .leftJoin(
+      notificationReads,
+      and(
+        eq(notificationReads.notificationId, notifications.id),
+        eq(notificationReads.userId, userId)
+      )
+    )
+    .where(sql`${notificationReads.id} IS NULL`);
 
-  const readIds = readRows.map((r: any) => r.notificationId);
-
-  let countRows;
-  if (readIds.length > 0) {
-    countRows = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(notifications)
-      .where(notInArray(notifications.id, readIds));
-  } else {
-    countRows = await db
-      .select({ count: sql<number>`count(*)` })
-      .from(notifications);
-  }
-
-  return countRows[0]?.count ?? 0;
+  return rows[0]?.count ?? 0;
 }
 
 export async function markNotificationAsRead(
   notificationId: number,
   userId: number
 ) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
 
-  // Check if already read
-  const existing = await db
-    .select()
-    .from(notificationReads)
-    .where(
-      and(
-        eq(notificationReads.notificationId, notificationId),
-        eq(notificationReads.userId, userId)
-      )
-    )
-    .limit(1);
-
-  if (existing.length > 0) return { success: true, alreadyRead: true };
-
-  await db.insert(notificationReads).values({
-    notificationId,
-    userId,
-  });
-
-  return { success: true, alreadyRead: false };
+  try {
+    await db.insert(notificationReads).values({
+      notificationId,
+      userId,
+    });
+    return { success: true, alreadyRead: false };
+  } catch {
+    return { success: true, alreadyRead: true };
+  }
 }
 
 export async function markAllNotificationsAsRead(userId: number) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
 
-  // Get all notification IDs
-  const allNotifs = await db
-    .select({ id: notifications.id })
-    .from(notifications);
-  const allIds = allNotifs.map((n: any) => n.id);
+  const result = await db.run(sql`
+    INSERT INTO notification_reads (notificationId, userId, readAt)
+    SELECT id, ${userId}, strftime('%s', 'now')
+    FROM notifications
+    WHERE id NOT IN (
+      SELECT notificationId FROM notification_reads WHERE userId = ${userId}
+    )
+  `);
 
-  if (allIds.length === 0) return { success: true, count: 0 };
-
-  // Get already read IDs
-  const readRows = await db
-    .select({ notificationId: notificationReads.notificationId })
-    .from(notificationReads)
-    .where(
-      and(
-        eq(notificationReads.userId, userId),
-        inArray(notificationReads.notificationId, allIds)
-      )
-    );
-
-  const readIds = new Set(readRows.map((r: any) => r.notificationId));
-  const unreadIds = allIds.filter((id: any) => !readIds.has(id));
-
-  if (unreadIds.length === 0) return { success: true, count: 0 };
-
-  await db.insert(notificationReads).values(
-    unreadIds.map((notificationId: any) => ({
-      notificationId,
-      userId,
-    }))
-  );
-
-  return { success: true, count: unreadIds.length };
+  const count = result.meta?.rows_written ?? 0;
+  return { success: true, count };
 }
 
 // ─── Gallery helpers ────────────────────────────────────────────
 
 export async function getFeaturedGalleryItems() {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
-
-  const { galleryItems, biblicalVerses } = await import("../drizzle/schema.js");
 
   const rows = await db
     .select({
@@ -550,7 +506,7 @@ export async function getFeaturedGalleryItems() {
     .leftJoin(biblicalVerses, eq(galleryItems.verseId, biblicalVerses.id))
     .where(eq(galleryItems.featured, true))
     .orderBy(galleryItems.displayOrder)
-    .limit(4);
+    .limit(50);
 
   return rows.map((r: any) => ({
     ...r.item,
@@ -558,15 +514,28 @@ export async function getFeaturedGalleryItems() {
   }));
 }
 
-export async function getAllGalleryItems(limit = 50, offset = 0, visibleOnly = true) {
-  const db = await getDb();
+export async function getGalleryItemById(id: number) {
+  const db = getDb();
   assertDb(db);
 
-  const { galleryItems, biblicalVerses } = await import("../drizzle/schema.js");
+  const [row] = await db
+    .select()
+    .from(galleryItems)
+    .where(eq(galleryItems.id, id))
+    .limit(1);
+  return row ?? null;
+}
+
+export async function getAllGalleryItems(limit = 50, offset = 0, visibleOnly = true, category?: string) {
+  const db = getDb();
+  assertDb(db);
 
   const conditions = [];
   if (visibleOnly) {
     conditions.push(eq(galleryItems.visible, true));
+  }
+  if (category) {
+    conditions.push(eq(galleryItems.category, category));
   }
 
   const rows = await db
@@ -588,20 +557,16 @@ export async function getAllGalleryItems(limit = 50, offset = 0, visibleOnly = t
 }
 
 export async function createGalleryItem(data: any) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
-
-  const { galleryItems } = await import("../drizzle/schema.js");
 
   const [row] = await db.insert(galleryItems).values(data).returning();
   return row;
 }
 
-export async function updateGalleryItem(id: number, data: Partial<{ title: string; visible: boolean; featured: boolean; loop: boolean; verseId: number | null }>) {
-  const db = await getDb();
+export async function updateGalleryItem(id: number, data: Partial<{ title: string; visible: boolean; featured: boolean; loop: boolean; verseId: number | null; category: string; mediaUrl: string; mediaKey: string; youtubeUrl: string; coverImageUrl: string; coverImageKey: string }>) {
+  const db = getDb();
   assertDb(db);
-
-  const { galleryItems } = await import("../drizzle/schema.js");
 
   const [row] = await db
     .update(galleryItems)
@@ -612,20 +577,16 @@ export async function updateGalleryItem(id: number, data: Partial<{ title: strin
 }
 
 export async function deleteGalleryItem(id: number) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
-
-  const { galleryItems } = await import("../drizzle/schema.js");
 
   await db.delete(galleryItems).where(eq(galleryItems.id, id));
   return { success: true };
 }
 
 export async function getFeaturedHomeContent() {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
-
-  const { pageContent } = await import("../drizzle/schema.js");
 
   const rows = await db
     .select()
@@ -641,20 +602,16 @@ export async function getFeaturedHomeContent() {
 // ─── Biblical Verse helpers ─────────────────────────────────────
 
 export async function createBiblicalVerse(data: any) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
-
-  const { biblicalVerses } = await import("../drizzle/schema.js");
 
   const [row] = await db.insert(biblicalVerses).values(data).returning();
   return row;
 }
 
 export async function getBiblicalVerseById(id: number) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
-
-  const { biblicalVerses } = await import("../drizzle/schema.js");
 
   const rows = await db
     .select()
@@ -665,10 +622,8 @@ export async function getBiblicalVerseById(id: number) {
 }
 
 export async function getLatestBiblicalVerse() {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
-
-  const { biblicalVerses } = await import("../drizzle/schema.js");
 
   const rows = await db
     .select()
@@ -678,16 +633,16 @@ export async function getLatestBiblicalVerse() {
   return rows[0] || null;
 }
 
-export async function listBiblicalVerses() {
-  const db = await getDb();
+export async function listBiblicalVerses(limit = 50, offset = 0) {
+  const db = getDb();
   assertDb(db);
-
-  const { biblicalVerses } = await import("../drizzle/schema.js");
 
   const rows = await db
     .select()
     .from(biblicalVerses)
-    .orderBy(desc(biblicalVerses.createdAt));
+    .orderBy(desc(biblicalVerses.createdAt))
+    .limit(limit)
+    .offset(offset);
   return rows;
 }
 
@@ -700,10 +655,8 @@ export async function updateBiblicalVerse(
     imageUrl: string | null;
   }>
 ) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
-
-  const { biblicalVerses } = await import("../drizzle/schema.js");
 
   const sanitized: Record<string, unknown> = {};
   if (data.reference !== undefined) sanitized.reference = data.reference;
@@ -720,17 +673,13 @@ export async function updateBiblicalVerse(
 }
 
 export async function deleteBiblicalVerse(id: number) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
 
-  const { biblicalVerses, galleryItems } = await import("../drizzle/schema.js");
-
-  // First update gallery_items to clear the verseId
   await db
     .update(galleryItems)
     .set({ verseId: null })
     .where(eq(galleryItems.verseId, id));
-  // Then delete the verse
   await db.delete(biblicalVerses).where(eq(biblicalVerses.id, id));
 
   return { success: true };
@@ -739,10 +688,8 @@ export async function deleteBiblicalVerse(id: number) {
 // ─── Page Content helpers ───────────────────────────────────────
 
 export async function getPageContent(pageId: string) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
-
-  const { pageContent } = await import("../drizzle/schema.js");
 
   const rows = await db
     .select()
@@ -754,20 +701,16 @@ export async function getPageContent(pageId: string) {
 }
 
 export async function createPageContent(data: any) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
-
-  const { pageContent } = await import("../drizzle/schema.js");
 
   const [row] = await db.insert(pageContent).values(data).returning();
   return row;
 }
 
 export async function updatePageContent(id: number, data: any) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
-
-  const { pageContent } = await import("../drizzle/schema.js");
 
   await db.update(pageContent).set(data).where(eq(pageContent.id, id));
   const rows = await db
@@ -779,20 +722,16 @@ export async function updatePageContent(id: number, data: any) {
 }
 
 export async function deletePageContent(id: number) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
-
-  const { pageContent } = await import("../drizzle/schema.js");
 
   await db.delete(pageContent).where(eq(pageContent.id, id));
   return { success: true };
 }
 
 export async function listPageContent(pageId: string, limit = 50, offset = 0) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
-
-  const { pageContent } = await import("../drizzle/schema.js");
 
   const rows = await db
     .select()
@@ -806,10 +745,8 @@ export async function listPageContent(pageId: string, limit = 50, offset = 0) {
 }
 
 export async function countPageContent(pageId: string) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
-
-  const { pageContent } = await import("../drizzle/schema.js");
 
   const rows = await db
     .select({ count: sql<number>`count(*)` })
@@ -822,31 +759,29 @@ export async function countPageContent(pageId: string) {
 // ─── Categories & Themes helpers ────────────────────────────────
 
 export async function listCategories() {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
   return db.select().from(categories).orderBy(categories.name);
 }
 
 export async function createCategory(data: InsertCategory) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
-  // Explicitly omit id so SQLite can auto-increment it
   const { id: _id, ...insertData } = data as any;
   const [row] = await db.insert(categories).values(insertData).returning();
   return row;
 }
 
 export async function deleteCategory(id: number) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
-  // Delete associated themes first
   await db.delete(themes).where(eq(themes.categoryId, id));
   await db.delete(categories).where(eq(categories.id, id));
   return { success: true };
 }
 
 export async function listThemes(categoryId?: number) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
   let query = db.select().from(themes);
   if (categoryId) {
@@ -856,16 +791,15 @@ export async function listThemes(categoryId?: number) {
 }
 
 export async function createTheme(data: InsertTheme) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
-  // Explicitly omit id so SQLite can auto-increment it
   const { id: _id, ...insertData } = data as any;
   const [row] = await db.insert(themes).values(insertData).returning();
   return row;
 }
 
 export async function deleteTheme(id: number) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
   await db.delete(themes).where(eq(themes.id, id));
   return { success: true };
@@ -874,7 +808,7 @@ export async function deleteTheme(id: number) {
 // ─── User Functions ───────────────────────────────────────────────
 
 export async function findUserByPassword(password: string) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
 
   const result = await db
@@ -897,7 +831,7 @@ export async function findUserByPassword(password: string) {
 }
 
 export async function findUserByUsernameAndPassword(username: string, password: string) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
 
   const result = await db
@@ -920,7 +854,7 @@ export async function findUserByUsernameAndPassword(username: string, password: 
 }
 
 export async function updateUserPassword(userId: number, password: string) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
 
   await db
@@ -930,7 +864,7 @@ export async function updateUserPassword(userId: number, password: string) {
 }
 
 export async function getUserById(id: number) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
 
   const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
@@ -938,7 +872,7 @@ export async function getUserById(id: number) {
 }
 
 export async function verifyUserPasswordById(userId: number, password: string) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
 
   const result = await db
@@ -956,13 +890,13 @@ export async function verifyUserPasswordById(userId: number, password: string) {
 }
 
 export async function listAllUsers() {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
   return db.select().from(users).orderBy(desc(users.createdAt));
 }
 
 export async function createUser(data: { openId: string; name: string; email?: string; role: string; password?: string; loginMethod?: string }) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
   const [row] = await db.insert(users).values({
     openId: data.openId,
@@ -978,7 +912,7 @@ export async function createUser(data: { openId: string; name: string; email?: s
 }
 
 export async function updateUserRole(userId: number, role: string) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
 
   const validRoles = ["user", "admin", "editeur", "bibliotheque"];
@@ -990,13 +924,17 @@ export async function updateUserRole(userId: number, role: string) {
 }
 
 export async function deleteUser(id: number) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
 
-  const adminCount = await db.select().from(users).where(eq(users.role, "admin"));
+  const [adminCountRow] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(users)
+    .where(eq(users.role, "admin"));
+  const adminCount = adminCountRow?.count ?? 0;
   const user = await getUserById(id);
   
-  if (user?.role === "admin" && adminCount.length === 1) {
+  if (user?.role === "admin" && adminCount <= 1) {
     throw new Error("Impossible de supprimer le dernier administrateur");
   }
 
@@ -1005,7 +943,7 @@ export async function deleteUser(id: number) {
 }
 
 export async function upsertUserFromAuth(data: { openId: string; name: string; role: string; lastSignedIn?: Date }) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
 
   const existing = await db.select().from(users).where(eq(users.openId, data.openId)).limit(1);
@@ -1034,10 +972,8 @@ export async function upsertUserFromAuth(data: { openId: string; name: string; r
 // ─── Announcements CRUD ─────────────────────────────────────────
 
 export async function listAnnouncements(type?: string) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
-  const { announcements } = await import("../drizzle/schema.js");
-  const { eq, asc } = await import("drizzle-orm");
 
   const conditions = [eq(announcements.visible, true)];
   if (type) conditions.push(eq(announcements.type, type));
@@ -1050,10 +986,8 @@ export async function listAnnouncements(type?: string) {
 }
 
 export async function adminListAnnouncements(type?: string) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
-  const { announcements } = await import("../drizzle/schema.js");
-  const { eq, desc, and } = await import("drizzle-orm");
 
   const conditions: any[] = [];
   if (type) conditions.push(eq(announcements.type, type));
@@ -1066,28 +1000,26 @@ export async function adminListAnnouncements(type?: string) {
 }
 
 export async function createAnnouncement(data: any) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
-  const { announcements } = await import("../drizzle/schema.js");
+
   const [row] = await db.insert(announcements).values(data).returning();
   return row;
 }
 
 export async function updateAnnouncement(id: number, data: any) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
-  const { announcements } = await import("../drizzle/schema.js");
-  const { eq } = await import("drizzle-orm");
+
   await db.update(announcements).set({ ...data, updatedAt: new Date() }).where(eq(announcements.id, id));
   const [row] = await db.select().from(announcements).where(eq(announcements.id, id)).limit(1);
   return row;
 }
 
 export async function deleteAnnouncement(id: number) {
-  const db = await getDb();
+  const db = getDb();
   assertDb(db);
-  const { announcements } = await import("../drizzle/schema.js");
-  const { eq } = await import("drizzle-orm");
+
   await db.delete(announcements).where(eq(announcements.id, id));
   return { success: true };
 }

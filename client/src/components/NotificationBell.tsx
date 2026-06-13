@@ -20,7 +20,7 @@ import {
   Calendar,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { useState, useMemo } from "react";
+import { useState, useMemo, memo } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -84,7 +84,7 @@ function getDayLabel(date: Date): string {
   });
 }
 
-export default function NotificationBell() {
+const NotificationBell = memo(function NotificationBell() {
   const [open, setOpen] = useState(false);
   const [, setLocation] = useLocation();
   const utils = trpc.useUtils();
@@ -102,6 +102,9 @@ export default function NotificationBell() {
 
   const markAllAsRead = trpc.notifications.markAllAsRead.useMutation({
     onSuccess: () => {
+      utils.notifications.myNotifications.invalidate();
+    },
+    onError: () => {
       utils.notifications.myNotifications.invalidate();
     },
   });
@@ -315,4 +318,6 @@ export default function NotificationBell() {
       </PopoverContent>
     </Popover>
   );
-}
+});
+
+export default NotificationBell;

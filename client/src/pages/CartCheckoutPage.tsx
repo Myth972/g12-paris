@@ -11,7 +11,7 @@ export default function CartCheckoutPage() {
       type: "Cuir noir",
       price: 89.90,
       quantity: 1,
-      image: "/premium_bible.png"
+      image: "/premium_bible.webp"
     },
     {
       id: 2,
@@ -19,7 +19,7 @@ export default function CartCheckoutPage() {
       type: "Livre broché",
       price: 15.50,
       quantity: 2,
-      image: "/premium_bible.png"
+      image: "/premium_bible.webp"
     }
   ];
 

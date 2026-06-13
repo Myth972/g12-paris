@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, memo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -18,7 +18,7 @@ interface HeroSliderProps {
   className?: string;
 }
 
-export default function HeroSlider({
+const HeroSlider = memo(function HeroSlider({
   slides,
   autoPlayInterval = 5000,
   className = "",
@@ -179,4 +179,6 @@ export default function HeroSlider({
       )}
     </div>
   );
-}
+});
+
+export default HeroSlider;

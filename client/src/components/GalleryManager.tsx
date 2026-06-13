@@ -37,6 +37,7 @@ import {
   Video,
   BookOpen,
   Crown,
+  Pencil,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -46,21 +47,39 @@ interface GalleryFormData {
   title: string;
   type: "image" | "video";
   mediaUrl: string;
+  mediaKey?: string;
+  coverImageUrl?: string;
+  coverImageKey?: string;
   youtubeUrl?: string;
   verseId?: number | null;
+  category: string;
   featured: boolean;
   loop: boolean;
 }
 
+function getYouTubeThumbnail(url: string) {
+  const match = url.match(
+    /(?:youtube\.com\/(?:watch\?v=|embed\/|v\/)|youtu\.be\/)([a-zA-Z0-9_-]+)/
+  );
+  return match ? `https://img.youtube.com/vi/${match[1]}/mqdefault.jpg` : null;
+}
+
+type FilterType = "all" | "image" | "video";
+
 export default function GalleryManager() {
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [filterType, setFilterType] = useState<FilterType>("all");
   const [contentType, setContentType] = useState<"image" | "video">("image");
   const [formData, setFormData] = useState<GalleryFormData>({
     title: "",
     type: "image",
     mediaUrl: "",
+    coverImageUrl: "",
+    coverImageKey: "",
     youtubeUrl: "",
     verseId: null,
+    category: "general",
     featured: true,
     loop: false,
   });
@@ -70,7 +89,9 @@ export default function GalleryManager() {
   const { data: versesData } = trpc.verses.adminList.useQuery();
   const { uploadFile, isUploading } = useBlobUpload();
 
-  const items = galleryData?.items ?? [];
+  const items = (galleryData?.items ?? []).filter((item: any) =>
+    filterType === "all" ? true : item.type === filterType
+  );
   const verses = versesData?.items ?? [];
 
   const createMutation = trpc.gallery.create.useMutation({
@@ -91,6 +112,8 @@ export default function GalleryManager() {
       utils.gallery.list.invalidate();
       utils.gallery.featured.invalidate();
       toast.success("Média mis à jour");
+      setOpen(false);
+      resetForm();
     },
     onError: err => toast.error("Erreur : " + err.message),
   });
@@ -110,12 +133,36 @@ export default function GalleryManager() {
       title: "",
       type: "image",
       mediaUrl: "",
+      mediaKey: "",
+      coverImageUrl: "",
+      coverImageKey: "",
       youtubeUrl: "",
       verseId: null,
+      category: "general",
       featured: true,
       loop: false,
     });
     setContentType("image");
+    setEditingId(null);
+  };
+
+  const startEdit = (item: any) => {
+    setEditingId(item.id);
+    setFormData({
+      title: item.title || "",
+      type: item.type || "image",
+      mediaUrl: item.mediaUrl || "",
+      mediaKey: item.mediaKey || "",
+      coverImageUrl: item.coverImageUrl || "",
+      coverImageKey: item.coverImageKey || "",
+      youtubeUrl: item.youtubeUrl || "",
+      verseId: item.verseId || null,
+      category: item.category || "general",
+      featured: item.featured ?? true,
+      loop: item.loop ?? false,
+    });
+    setContentType(item.type || "image");
+    setOpen(true);
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -127,7 +174,7 @@ export default function GalleryManager() {
         file,
         folder: "gallery",
       });
-      setFormData(prev => ({ ...prev, mediaUrl: result.url }));
+      setFormData(prev => ({ ...prev, mediaUrl: result.url, mediaKey: result.key || "" }));
       toast.success("Fichier uploadé avec succès");
     } catch (error) {
       toast.error(
@@ -152,11 +199,34 @@ export default function GalleryManager() {
       return;
     }
 
-    createMutation.mutate({
-      ...formData,
-      type: contentType,
-      verseId: formData.verseId || undefined,
-    });
+    if (editingId) {
+      updateMutation.mutate({
+        id: editingId,
+        title: formData.title,
+        verseId: formData.verseId === null ? null : formData.verseId || undefined,
+        category: formData.category,
+        featured: formData.featured,
+        loop: formData.loop,
+        coverImageUrl: formData.coverImageUrl || undefined,
+        coverImageKey: formData.coverImageKey || undefined,
+        mediaUrl: formData.mediaUrl || undefined,
+        mediaKey: formData.mediaKey || undefined,
+        youtubeUrl: formData.youtubeUrl || undefined,
+      });
+    } else {
+      createMutation.mutate({
+        title: formData.title,
+        type: contentType,
+        mediaUrl: formData.mediaUrl,
+        coverImageUrl: formData.coverImageUrl || undefined,
+        coverImageKey: formData.coverImageKey || undefined,
+        youtubeUrl: formData.youtubeUrl || undefined,
+        verseId: formData.verseId || undefined,
+        category: formData.category,
+        featured: formData.featured,
+        loop: formData.loop,
+      });
+    }
   };
 
   return (
@@ -181,7 +251,9 @@ export default function GalleryManager() {
           <DialogContent className="max-w-xl">
             <form onSubmit={handleSubmit}>
               <DialogHeader>
-                <DialogTitle>Ajouter à la galerie</DialogTitle>
+                <DialogTitle>
+                  {editingId ? "Modifier le média" : "Ajouter à la galerie"}
+                </DialogTitle>
               </DialogHeader>
 
               <Tabs
@@ -195,6 +267,15 @@ export default function GalleryManager() {
                 </TabsList>
 
                 <TabsContent value="image" className="space-y-4 pt-4">
+                  {editingId && formData.mediaUrl && (
+                    <div className="mb-3 rounded-lg overflow-hidden border border-border/50">
+                      <img
+                        src={formData.mediaUrl}
+                        alt="Aperçu"
+                        className="w-full h-32 object-cover"
+                      />
+                    </div>
+                  )}
                   <div className="space-y-2">
                     <Label>Upload d'image</Label>
                     <Input
@@ -216,6 +297,16 @@ export default function GalleryManager() {
                         setFormData({ ...formData, youtubeUrl: e.target.value })
                       }
                     />
+                    {formData.youtubeUrl && (
+                      <img
+                        src={getYouTubeThumbnail(formData.youtubeUrl) || ""}
+                        alt="Aperçu YouTube"
+                        className="w-full h-24 object-cover rounded-lg mt-2"
+                        onError={e => {
+                          (e.target as HTMLImageElement).style.display = "none";
+                        }}
+                      />
+                    )}
                   </div>
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">
@@ -235,6 +326,28 @@ export default function GalleryManager() {
                       onChange={handleFileUpload}
                       disabled={isUploading}
                     />
+                  </div>
+
+                  <div className="space-y-2 pt-2 border-t border-border/40">
+                    <Label>Image de couverture / vignette</Label>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={async e => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const result = await uploadFile({ file, folder: "gallery/covers" });
+                        setFormData(prev => ({ ...prev, coverImageUrl: result.url, coverImageKey: result.key || "" }));
+                      }}
+                      disabled={isUploading}
+                    />
+                    {formData.coverImageUrl && (
+                      <img
+                        src={formData.coverImageUrl}
+                        alt="Aperçu couverture"
+                        className="w-full h-24 object-cover rounded-lg mt-2"
+                      />
+                    )}
                   </div>
                 </TabsContent>
               </Tabs>
@@ -292,6 +405,26 @@ export default function GalleryManager() {
                   </Select>
                 </div>
 
+                <div className="space-y-2">
+                  <Label>Catégorie thématique</Label>
+                  <Select
+                    value={formData.category}
+                    onValueChange={v =>
+                      setFormData({ ...formData, category: v })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner une catégorie" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="general">Général</SelectItem>
+                      <SelectItem value="foi">🙏 Foi</SelectItem>
+                      <SelectItem value="louange">🎵 Louange</SelectItem>
+                      <SelectItem value="esperance">✨ Espérance</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <div className="flex items-center space-x-2 pt-2">
                   <Switch
                     id="featured-mode"
@@ -310,22 +443,44 @@ export default function GalleryManager() {
                 <Button
                   variant="outline"
                   type="button"
-                  onClick={() => setOpen(false)}
+                  onClick={() => {
+                    setOpen(false);
+                    resetForm();
+                  }}
                 >
                   Annuler
                 </Button>
                 <Button
                   type="submit"
-                    disabled={
-                      createMutation.isPending || isUploading
-                    }
+                  disabled={
+                    createMutation.isPending || updateMutation.isPending || isUploading
+                  }
                 >
-                  {createMutation.isPending ? "Création..." : "Ajouter"}
+                  {editingId
+                    ? updateMutation.isPending ? "Enregistrement..." : "Enregistrer"
+                    : createMutation.isPending ? "Création..." : "Ajouter"}
                 </Button>
               </DialogFooter>
             </form>
           </DialogContent>
         </Dialog>
+      </div>
+
+      {/* Type filter */}
+      <div className="flex items-center gap-2 pb-2">
+        {(["all", "image", "video"] as const).map(t => (
+          <button
+            key={t}
+            onClick={() => setFilterType(t)}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+              filterType === t
+                ? "bg-primary text-primary-foreground shadow-sm"
+                : "bg-muted/60 text-muted-foreground hover:bg-muted border border-border/40"
+            }`}
+          >
+            {t === "all" ? "Tous" : t === "image" ? "📷 Images" : "🎥 Vidéos"}
+          </button>
+        ))}
       </div>
 
       <div className="bg-card rounded-xl border border-border overflow-hidden">
@@ -340,103 +495,133 @@ export default function GalleryManager() {
             <p className="font-medium">Aucun média</p>
           </div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Média</TableHead>
-                <TableHead>Titre</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Visible</TableHead>
-                <TableHead>À la une</TableHead>
-                <TableHead>Verset lié</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {items.map((item: any) => (
-                <TableRow key={item.id}>
-                  <TableCell>
-                    {item.type === "image" ? (
-                      <img
-                        src={item.mediaUrl}
-                        alt={item.title}
-                        className="w-16 h-12 object-cover rounded"
-                      />
-                    ) : item.youtubeUrl ? (
-                      <div className="w-16 h-12 bg-muted rounded flex items-center justify-center text-xs">
-                        YT
-                      </div>
-                    ) : (
-                      <video
-                        src={item.mediaUrl}
-                        className="w-16 h-12 object-cover rounded"
-                      />
-                    )}
-                  </TableCell>
-                  <TableCell className="font-medium">{item.title}</TableCell>
-                  <TableCell>
-                    {item.type === "image" ? (
-                      <ImageIcon className="w-4 h-4 text-muted-foreground" />
-                    ) : (
-                      <Video className="w-4 h-4 text-muted-foreground" />
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {item.visible !== false ? (
-                      <Eye className="w-4 h-4 text-green-500" />
-                    ) : (
-                      <EyeOff className="w-4 h-4 text-muted-foreground" />
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {item.featured && (
-                      <Crown className="w-4 h-4 text-amber-500" />
-                    )}
-                  </TableCell>
-                  <TableCell>
-                    {item.verseId ? (
-                      <BookOpen className="w-4 h-4 text-primary" />
-                    ) : (
-                      "-"
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        title={item.visible !== false ? "Masquer" : "Afficher"}
-                        onClick={() =>
-                          updateMutation.mutate({
-                            id: item.id,
-                            visible: item.visible === false ? true : false,
-                          })
-                        }
-                      >
-                        {item.visible !== false ? (
-                          <EyeOff className="w-4 h-4" />
-                        ) : (
-                          <Eye className="w-4 h-4" />
-                        )}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
-                        onClick={() => {
-                          if (confirm("Supprimer ce média ?"))
-                            deleteMutation.mutate({ id: item.id });
-                        }}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Média</TableHead>
+                  <TableHead>Titre</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Visible</TableHead>
+                  <TableHead>À la une</TableHead>
+                  <TableHead>Catégorie</TableHead>
+                  <TableHead>Verset lié</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {items.map((item: any) => (
+                  <TableRow key={item.id}>
+                    <TableCell>
+                      {item.type === "image" ? (
+                        <img
+                          src={item.mediaUrl}
+                          alt={item.title}
+                          className="w-16 h-12 object-cover rounded"
+                        />
+                      ) : item.youtubeUrl ? (
+                        <img
+                          src={getYouTubeThumbnail(item.youtubeUrl) || ""}
+                          alt={item.title}
+                          className="w-16 h-12 object-cover rounded bg-muted"
+                          onError={e => {
+                            (e.target as HTMLImageElement).style.display = "none";
+                            (e.target as HTMLImageElement).parentElement!.classList.add("flex", "items-center", "justify-center", "bg-muted");
+                            (e.target as HTMLImageElement).parentElement!.innerHTML = '<span class="text-xs text-muted-foreground">YT</span>';
+                          }}
+                        />
+                      ) : (
+                        <video
+                          src={item.mediaUrl}
+                          className="w-16 h-12 object-cover rounded bg-muted"
+                          preload="metadata"
+                        />
+                      )}
+                    </TableCell>
+                    <TableCell className="font-medium max-w-[200px] truncate">
+                      {item.title}
+                    </TableCell>
+                    <TableCell>
+                      {item.type === "image" ? (
+                        <ImageIcon className="w-4 h-4 text-muted-foreground" />
+                      ) : (
+                        <Video className="w-4 h-4 text-muted-foreground" />
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {item.visible !== false ? (
+                        <Eye className="w-4 h-4 text-green-500" />
+                      ) : (
+                        <EyeOff className="w-4 h-4 text-muted-foreground" />
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {item.featured && (
+                        <Crown className="w-4 h-4 text-amber-500" />
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground whitespace-nowrap">
+                        {item.category === "foi" && "🙏 Foi"}
+                        {item.category === "louange" && "🎵 Louange"}
+                        {item.category === "esperance" && "✨ Espérance"}
+                        {(!item.category || item.category === "general") && "Général"}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {item.verseId ? (
+                        <BookOpen className="w-4 h-4 text-primary" />
+                      ) : (
+                        "-"
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          title="Modifier"
+                          onClick={() => startEdit(item)}
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          title={item.visible !== false ? "Masquer" : "Afficher"}
+                          onClick={() =>
+                            updateMutation.mutate({
+                              id: item.id,
+                              visible: item.visible === false ? true : false,
+                            })
+                          }
+                        >
+                          {item.visible !== false ? (
+                            <EyeOff className="w-4 h-4" />
+                          ) : (
+                            <Eye className="w-4 h-4" />
+                          )}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                          onClick={() => {
+                            if (confirm("Supprimer ce média ?"))
+                              deleteMutation.mutate({ id: item.id });
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </div>
     </div>
