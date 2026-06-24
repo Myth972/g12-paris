@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar, Play } from "lucide-react";
 import { Link } from "wouter";
 import { memo } from "react";
+import TiltCard from "@/components/TiltCard";
 
 interface ArticleCardProps {
   article: {
@@ -32,8 +33,12 @@ const ArticleCard = memo(function ArticleCard({
 }: ArticleCardProps) {
   return (
     <Link href={`/article/${article.slug}`} className="block">
-      <article
-        className={`group relative bg-card rounded-xl overflow-hidden border border-border/50 hover:border-border hover:shadow-lg active:shadow-lg active:scale-[0.99] transition-all duration-300 touch-manipulation ${
+      <TiltCard
+        as="article"
+        maxTilt={10}
+        scale={1.03}
+        shine={true}
+        className={`group rounded-xl overflow-hidden border border-border/50 hover:border-border hover:shadow-lg active:shadow-lg active:scale-[0.99] transition-shadow duration-300 touch-manipulation bg-card ${
           featured ? "md:col-span-2 md:row-span-2" : ""
         }`}
       >
@@ -110,7 +115,7 @@ const ArticleCard = memo(function ArticleCard({
             )}
           </div>
         </div>
-      </article>
+      </TiltCard>
     </Link>
   );
 });

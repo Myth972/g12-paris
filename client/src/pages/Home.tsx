@@ -3,13 +3,19 @@ import { trpc } from "@/lib/trpc";
 import ArticleCard from "@/components/ArticleCard";
 import HeroSlider, { type Slide } from "@/components/HeroSlider";
 import AnnouncementCard, { type Announcement } from "@/components/AnnouncementCard";
+import { Reveal, staggerContainer, staggerItem } from "@/components/Reveal";
+import FloatingParticles from "@/components/FloatingParticles";
+import TiltCard from "@/components/TiltCard";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import PageTitleEditor from "@/components/PageTitleEditor";
 import PageTextEditor from "@/components/PageTextEditor";
-import { Newspaper, ChevronRight, Church, BookOpen, Mic2, Calendar } from "lucide-react";
+import { motion } from "framer-motion";
+import { Newspaper, ChevronRight, Church, BookOpen, Mic2, Calendar, Users, FileText, Image, Clock } from "lucide-react";
+import AnimatedCounter from "@/components/AnimatedCounter";
+import { useVisualEnabled } from "@/hooks/useVisualSetting";
 import { useState, useMemo, useEffect } from "react";
 
 const announcementIcons = [Church, Mic2, BookOpen];
@@ -88,8 +94,18 @@ const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, categor
   }, []);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative">
+      {/* Floating particles background */}
+      <FloatingParticles
+        className="fixed inset-0 w-full h-full z-0"
+        particleCount={40}
+        speed={0.25}
+        shape="star"
+        color="#FCD34D"
+      />
+
       {/* Hero section */}
+      <Reveal variant="fadeDown" duration={0.7}>
       <section className="relative bg-gradient-to-b from-primary/[0.03] to-transparent py-12 md:py-[180px] min-h-[420px] md:min-h-[520px] overflow-hidden flex items-center">
         {heroBgUrl && (
           <div
@@ -127,15 +143,19 @@ const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, categor
           </div>
         </div>
       </section>
+      </Reveal>
 
       {/* MetaSlider — informations WhatsApp */}
       {whatsappSlides.length > 0 && (
+        <Reveal variant="fadeUp" delay={0.15}>
         <section className="container pt-2 sm:pt-3 pb-1 sm:pb-2">
           <HeroSlider slides={whatsappSlides} />
         </section>
+        </Reveal>
       )}
 
       {/* Annonces — grille 3 colonnes */}
+      <Reveal variant="fadeUp" delay={0.1}>
       <section className="container py-3 sm:py-4">
         <div className="flex items-center gap-1.5 mb-2 sm:mb-3">
           <div className="w-4 h-0.5 bg-primary rounded-full" />
@@ -155,14 +175,18 @@ const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, categor
                     {item.badge || "Annonce"}
                   </span>
                 </div>
-                <AnnouncementCard announcement={item} />
+                <TiltCard maxTilt={8} scale={1.02} shine={false}>
+                  <AnnouncementCard announcement={item} />
+                </TiltCard>
               </div>
             );
           })}
         </div>
       </section>
+      </Reveal>
 
       {/* Événements flash */}
+      <Reveal variant="fadeUp" delay={0.15}>
       <section className="container py-3 sm:py-4 border-t border-border/20">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 mb-2 sm:mb-3">
           <div className="flex items-center gap-1.5">
@@ -178,7 +202,9 @@ const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, categor
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3">
           {flashEvents.map((event, i) => (
-            <AnnouncementCard key={event.title + i} announcement={event} />
+            <TiltCard key={event.title + i} maxTilt={8} scale={1.02} shine={false}>
+              <AnnouncementCard announcement={event} />
+            </TiltCard>
           ))}
         </div>
 
@@ -196,8 +222,24 @@ const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, categor
           </Button>
         </div>
       </section>
+      </Reveal>
+
+      {/* Stats section */}
+      {useVisualEnabled("visuals.stats.enabled") && (
+      <Reveal variant="fadeUp" delay={0.1}>
+      <section className="container py-16 border-t border-border/30">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
+          <AnimatedCounter to={data?.total ?? 0} suffix="+" label="Articles publiés" />
+          <AnimatedCounter to={850} suffix="+" label="Abonnés newsletter" />
+          <AnimatedCounter to={5} suffix="+" label="Années d'existence" />
+          <AnimatedCounter to={120} suffix="+" label="Vidéos & galeries" />
+        </div>
+      </section>
+      </Reveal>
+      )}
 
       {/* Articles grid */}
+      <Reveal variant="fadeUp" delay={0.1}>
       <section className="container pb-16 border-t border-border/30 pt-16">
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -229,15 +271,22 @@ const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, categor
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <motion.div
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-80px" }}
+            >
               {articles.map((article: any, index: number) => (
-                <ArticleCard
-                  key={article.id}
-                  article={article}
-                  featured={index === 0 && page === 0}
-                />
+                <motion.div key={article.id} variants={staggerItem}>
+                  <ArticleCard
+                    article={article}
+                    featured={index === 0 && page === 0}
+                  />
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
 
             {/* Pagination */}
             {total > limit && (
@@ -267,6 +316,7 @@ const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, categor
           </>
         )}
       </section>
+      </Reveal>
     </div>
   );
 }

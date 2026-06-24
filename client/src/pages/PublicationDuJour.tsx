@@ -23,6 +23,7 @@ import {
 import { useState, useCallback } from "react";
 import PageTitleEditor from "@/components/PageTitleEditor";
 import PageTextEditor from "@/components/PageTextEditor";
+import FloatingParticles from "@/components/FloatingParticles";
 import { toast } from "sonner";
 
 const containerVars = {
@@ -119,7 +120,14 @@ export default function PublicationDuJour() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/30">
+    <div className="min-h-screen bg-slate-50/30 relative">
+      <FloatingParticles
+        className="fixed inset-0 w-full h-full z-0"
+        particleCount={30}
+        speed={0.2}
+        shape="star"
+        color="#FCD34D"
+      />
       {/* Title with modern fade-in */}
       <motion.section
         initial={{ opacity: 0, y: -20 }}

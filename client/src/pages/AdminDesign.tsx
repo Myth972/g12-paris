@@ -80,13 +80,19 @@ export default function AdminDesign() {
   const [logoDark, setLogoDark] = useState("");
   const [defaultBanner, setDefaultBanner] = useState("");
 
+  const [conventionPrimaryColor, setConventionPrimaryColor] = useState("#DC2626");
+  const [conventionLogoUrl, setConventionLogoUrl] = useState("");
+  const [conventionBgUrl, setConventionBgUrl] = useState("");
+
   const { uploadFile } = useBlobUpload();
   const [uploading, setUploading] = useState<string | null>(null);
   const logoLightRef = useRef<HTMLInputElement>(null);
   const logoDarkRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
+  const conventionLogoRef = useRef<HTMLInputElement>(null);
+  const conventionBgRef = useRef<HTMLInputElement>(null);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logoLight' | 'logoDark' | 'banner') => {
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logoLight' | 'logoDark' | 'banner' | 'conventionLogo' | 'conventionBg') => {
     const file = e.target.files?.[0];
     if (!file) return;
     
@@ -96,6 +102,8 @@ export default function AdminDesign() {
       if (type === 'logoLight') setLogoLight(result.url);
       if (type === 'logoDark') setLogoDark(result.url);
       if (type === 'banner') setDefaultBanner(result.url);
+      if (type === 'conventionLogo') setConventionLogoUrl(result.url);
+      if (type === 'conventionBg') setConventionBgUrl(result.url);
       toast.success(t('admin.design.toastImageUploaded'));
     } catch {
       toast.error(t('admin.design.toastImageError'));
@@ -121,6 +129,10 @@ export default function AdminDesign() {
       if (settingsQuery.data["design.logoLight"]) setLogoLight(settingsQuery.data["design.logoLight"] as string);
       if (settingsQuery.data["design.logoDark"]) setLogoDark(settingsQuery.data["design.logoDark"] as string);
       if (settingsQuery.data["design.defaultBanner"]) setDefaultBanner(settingsQuery.data["design.defaultBanner"] as string);
+
+      if (settingsQuery.data["convention.primaryColor"]) setConventionPrimaryColor(settingsQuery.data["convention.primaryColor"] as string);
+      if (settingsQuery.data["convention.logoUrl"]) setConventionLogoUrl(settingsQuery.data["convention.logoUrl"] as string);
+      if (settingsQuery.data["convention.bgUrl"]) setConventionBgUrl(settingsQuery.data["convention.bgUrl"] as string);
     }
   }, [settingsQuery.data]);
 
@@ -141,6 +153,9 @@ export default function AdminDesign() {
         setSetting.mutateAsync({ key: "design.logoLight", value: logoLight }),
         setSetting.mutateAsync({ key: "design.logoDark", value: logoDark }),
         setSetting.mutateAsync({ key: "design.defaultBanner", value: defaultBanner }),
+        setSetting.mutateAsync({ key: "convention.primaryColor", value: conventionPrimaryColor }),
+        setSetting.mutateAsync({ key: "convention.logoUrl", value: conventionLogoUrl }),
+        setSetting.mutateAsync({ key: "convention.bgUrl", value: conventionBgUrl }),
       ]);
       toast.success(t('admin.design.toastSaved'));
     } catch (e) {
@@ -697,6 +712,64 @@ export default function AdminDesign() {
               <Input id="default-banner-url" name="defaultBanner" placeholder={t('admin.design.orPasteUrl')} value={defaultBanner} onChange={(e) => setDefaultBanner(e.target.value)} />
               <p className="text-xs text-muted-foreground mt-1">{t('admin.design.bannerHelp')}</p>
             </div>
+          </div>
+        </section>
+        {/* Section Convention G12 France */}
+        <section className="bg-card border rounded-2xl p-6 md:p-8 shadow-sm">
+          <h2 className="text-xl font-bold font-serif flex items-center gap-2 border-b pb-4 mb-6">
+            <Shield className="w-5 h-5 text-primary" /> Personnalisation Convention G12 France
+          </h2>
+          <div className="grid md:grid-cols-2 gap-8 mb-8">
+            <div className="space-y-3">
+              <label htmlFor="convention-logo-url" className="text-sm font-medium">Logo de la Convention</label>
+              <div 
+                className="border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors cursor-pointer bg-slate-50 relative overflow-hidden"
+                onClick={() => conventionLogoRef.current?.click()}
+                aria-label="Upload logo convention"
+              >
+                {conventionLogoUrl ? (
+                  <img src={conventionLogoUrl} alt="Logo Convention" className="max-h-24 object-contain" />
+                ) : (
+                  <>
+                    {uploading === 'conventionLogo' ? <Loader2 className="w-8 h-8 text-muted-foreground mb-2 animate-spin" /> : <ImageIcon className="w-8 h-8 text-muted-foreground mb-2" />}
+                    <span className="text-sm font-medium text-foreground">{uploading === 'conventionLogo' ? t('admin.design.uploading') : t('admin.design.browseOrDrag')}</span>
+                  </>
+                )}
+              </div>
+              <input type="file" ref={conventionLogoRef} className="hidden" accept="image/*" onChange={(e) => handleUpload(e, 'conventionLogo')} id="convention-logo-upload" name="conventionLogoUpload" />
+              <Input id="convention-logo-url" name="conventionLogoUrl" placeholder={t('admin.design.orPasteUrl')} value={conventionLogoUrl} onChange={(e) => setConventionLogoUrl(e.target.value)} className="text-xs" />
+            </div>
+            
+            <div className="space-y-3">
+              <label htmlFor="convention-bg-url" className="text-sm font-medium">Image d'arrière-plan (Haut de page)</label>
+              <div 
+                className="border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors cursor-pointer bg-slate-50 relative overflow-hidden"
+                onClick={() => conventionBgRef.current?.click()}
+                aria-label="Upload background convention"
+              >
+                {conventionBgUrl ? (
+                  <img src={conventionBgUrl} alt="Background Convention" className="absolute inset-0 w-full h-full object-cover opacity-50" />
+                ) : (
+                  <>
+                    {uploading === 'conventionBg' ? <Loader2 className="w-8 h-8 text-muted-foreground mb-2 animate-spin" /> : <ImageIcon className="w-8 h-8 text-muted-foreground mb-2" />}
+                    <span className="text-sm font-medium text-foreground">{uploading === 'conventionBg' ? t('admin.design.uploading') : t('admin.design.browseOrDrag')}</span>
+                  </>
+                )}
+              </div>
+              <input type="file" ref={conventionBgRef} className="hidden" accept="image/*" onChange={(e) => handleUpload(e, 'conventionBg')} id="convention-bg-upload" name="conventionBgUpload" />
+              <Input id="convention-bg-url" name="conventionBgUrl" placeholder={t('admin.design.orPasteUrl')} value={conventionBgUrl} onChange={(e) => setConventionBgUrl(e.target.value)} className="text-xs" />
+            </div>
+          </div>
+          
+          <div className="space-y-3">
+            <label htmlFor="convention-primary-color" className="text-sm font-medium">Couleur Principale (Boutons, Textes accentués)</label>
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-lg shadow-inner cursor-pointer border ring-2 ring-transparent hover:ring-primary transition-all overflow-hidden relative">
+                <input id="convention-primary-color-picker" name="conventionPrimaryColorPicker" type="color" value={conventionPrimaryColor} onChange={(e) => setConventionPrimaryColor(e.target.value)} className="absolute inset-0 w-20 h-20 -top-2 -left-2 cursor-pointer" />
+              </div>
+              <Input id="convention-primary-color" name="conventionPrimaryColor" value={conventionPrimaryColor} onChange={(e) => setConventionPrimaryColor(e.target.value)} className="font-mono text-sm uppercase max-w-[200px]" />
+            </div>
+            <p className="text-xs text-muted-foreground">Applique une touche de couleur spécifique sur la page Convention.</p>
           </div>
         </section>
 

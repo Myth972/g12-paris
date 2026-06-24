@@ -7,6 +7,8 @@ import { ArrowLeft, Calendar, User, Share2, Mail } from "lucide-react";
 import { useLocation, useParams } from "wouter";
 import { Streamdown } from "streamdown";
 import { toast } from "sonner";
+import ReadingProgressBar from "@/components/ReadingProgressBar";
+import ScrollToTopButton from "@/components/ScrollToTopButton";
 
 function formatDate(date: Date): string {
   return new Date(date).toLocaleDateString("fr-FR", {
@@ -72,6 +74,8 @@ export default function ArticleDetail() {
 
   return (
     <article className="pb-16">
+      <ReadingProgressBar />
+      <ScrollToTopButton />
       {/* Back button */}
       <div className="container max-w-6xl mx-auto pt-6">
         <Button

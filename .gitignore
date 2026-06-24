@@ -116,3 +116,6 @@ backup-*
 .manus-logs/
 .npm-cache/
 TODO_PENDING.md
+
+# Local dev tools
+components/ai-chat-widget/

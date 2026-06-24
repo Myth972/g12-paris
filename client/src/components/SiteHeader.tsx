@@ -17,11 +17,20 @@ import { trpc } from "@/lib/trpc";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "./LanguageSwitcher";
 
-const NAV_LINKS: { href: string; labelKey: string; defaultLabel: string; icon?: boolean }[] = [
+type NavLink = { href?: string; labelKey: string; defaultLabel: string; icon?: boolean; subItems?: { href: string; labelKey: string; defaultLabel: string }[] };
+
+const NAV_LINKS: NavLink[] = [
   { href: "/", labelKey: "nav.home", defaultLabel: "Accueil" },
   { href: "/publication-du-jour", labelKey: "nav.dailyPost", defaultLabel: "Publication du jour" },
   { href: "/galeries", labelKey: "nav.galleries", defaultLabel: "Galeries" },
-  { href: "/culte-en-ligne", labelKey: "nav.onlineService", defaultLabel: "Culte en ligne" },
+  { 
+    labelKey: "nav.onlineService", 
+    defaultLabel: "Culte en ligne",
+    subItems: [
+      { href: "/culte-en-ligne", labelKey: "nav.onlineServiceDirect", defaultLabel: "Culte du dimanche" },
+      { href: "/culte-en-ligne/convention", labelKey: "nav.convention", defaultLabel: "Convention G12" }
+    ]
+  },
   { href: "/bibliotheque", labelKey: "nav.library", defaultLabel: "Bibliothèque" },
 ];
 
@@ -90,13 +99,43 @@ export default function SiteHeader() {
           {/* Desktop nav */}
           <nav className="hidden lg:flex items-center gap-1">
             {NAV_LINKS.map(link => {
+              if (link.subItems) {
+                const isActive = link.subItems.some(sub => 
+                  location === sub.href || location.startsWith(sub.href + "/")
+                );
+                return (
+                  <DropdownMenu key={link.labelKey}>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        className={`px-3 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${
+                          isActive
+                            ? "text-primary bg-primary/5"
+                            : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                        }`}
+                      >
+                        {t(link.labelKey, link.defaultLabel)}
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-48">
+                      {link.subItems.map(sub => (
+                        <DropdownMenuItem key={sub.href} asChild>
+                          <Link href={sub.href} className="w-full cursor-pointer">
+                            {t(sub.labelKey, sub.defaultLabel)}
+                          </Link>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                );
+              }
+
               const isActive =
                 location === link.href ||
-                (link.href !== "/" && location.startsWith(link.href));
+                (link.href && link.href !== "/" && location.startsWith(link.href));
               return (
                 <Link
                   key={link.href}
-                  href={link.href}
+                  href={link.href!}
                   className={`px-3 py-2 text-sm font-medium rounded-md transition-colors flex items-center gap-1.5 ${
                     isActive
                       ? "text-primary bg-primary/5"
@@ -216,13 +255,40 @@ export default function SiteHeader() {
           <nav className="lg:hidden w-full pb-6 border-t border-border/40 pt-3 flex flex-col animate-in slide-in-from-top-2 duration-200">
             <div className="space-y-1 mb-6">
               {NAV_LINKS.map(link => {
+                if (link.subItems) {
+                  return (
+                    <div key={link.labelKey} className="space-y-1">
+                      <div className="px-4 py-2 text-sm font-semibold text-muted-foreground uppercase tracking-wider">
+                        {t(link.labelKey, link.defaultLabel)}
+                      </div>
+                      {link.subItems.map(sub => {
+                        const isSubActive = location === sub.href || location.startsWith(sub.href + "/");
+                        return (
+                          <Link
+                            key={sub.href}
+                            href={sub.href}
+                            onClick={() => setMobileOpen(false)}
+                            className={`block px-4 py-3 pl-8 text-base font-medium rounded-md transition-colors touch-manipulation flex items-center gap-2 ${
+                              isSubActive
+                                ? "text-primary bg-primary/5"
+                                : "text-muted-foreground hover:text-foreground hover:bg-accent active:bg-accent/80"
+                            }`}
+                          >
+                            {t(sub.labelKey, sub.defaultLabel)}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  );
+                }
+
                 const isActive =
                   location === link.href ||
-                  (link.href !== "/" && location.startsWith(link.href));
+                  (link.href && link.href !== "/" && location.startsWith(link.href));
                 return (
                   <Link
                     key={link.href}
-                    href={link.href}
+                    href={link.href!}
                     onClick={() => setMobileOpen(false)}
                     className={`block px-4 py-3 text-base font-medium rounded-md transition-colors touch-manipulation flex items-center gap-2 ${
                       isActive

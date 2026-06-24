@@ -28,6 +28,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useBlobUpload } from "@/hooks/useBlobUpload";
+import FloatingParticles from "@/components/FloatingParticles";
 
 function getYouTubeThumbnail(url: string) {
   const match = url.match(
@@ -157,7 +158,14 @@ export default function GalleriesPage() {
   }, []);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen relative">
+      <FloatingParticles
+        className="fixed inset-0 w-full h-full z-0"
+        particleCount={30}
+        speed={0.2}
+        shape="star"
+        color="#FCD34D"
+      />
       {/* Hero section */}
       <motion.section
         initial={{ opacity: 0, y: -20 }}

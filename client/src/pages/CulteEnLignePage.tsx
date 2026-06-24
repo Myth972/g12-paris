@@ -2,9 +2,11 @@ import { useState } from "react";
 import PageContentDisplay from "@/components/PageContentDisplay";
 import PageTitleEditor from "@/components/PageTitleEditor";
 import PageTextEditor from "@/components/PageTextEditor";
+import { Reveal } from "@/components/Reveal";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Play, Share2, ExternalLink, Copy, Check } from "lucide-react";
+import { Link } from "wouter";
 
 export default function CulteEnLignePage() {
   const settingsQuery = trpc.siteSettings.getAll.useQuery();
@@ -40,6 +42,7 @@ export default function CulteEnLignePage() {
   return (
     <div className="min-h-screen">
       {/* Hero section */}
+      <Reveal variant="fadeDown" duration={0.7}>
       <section className="relative bg-gradient-to-b from-primary/[0.03] to-transparent py-8 sm:py-12 md:py-16 overflow-hidden">
         {heroBgUrl && (
           <div
@@ -81,12 +84,22 @@ export default function CulteEnLignePage() {
               defaultText="Participez à nos services de culte en ligne et vivez une expérience spirituelle depuis n'importe où."
               className="mt-2 sm:mt-4 text-foreground/70 dark:text-foreground/80 text-sm sm:text-base leading-relaxed max-w-lg"
             />
+            
+            <div className="mt-6">
+              <Button asChild className="gap-2 bg-gradient-to-r from-red-600 to-red-800 hover:from-red-700 hover:to-red-900 text-white shadow-lg shadow-red-900/20">
+                <Link href="/culte-en-ligne/convention">
+                  Accéder à la Convention G12 France
+                </Link>
+              </Button>
+            </div>
           </div>
         </div>
       </section>
+      </Reveal>
 
       {/* Banner Section (Déplacée ici pour une meilleure hiérarchie) */}
       {settingsQuery.data?.culteBannerUrl && (
+        <Reveal variant="scaleUp" delay={0.2}>
         <section className="container px-4 sm:px-0 -mt-8 sm:-mt-12 relative z-20 mb-8 sm:mb-12 flex justify-center animate-in fade-in slide-in-from-bottom-4 duration-1000">
           <img
             src={settingsQuery.data.culteBannerUrl as string}
@@ -94,10 +107,12 @@ export default function CulteEnLignePage() {
             className="rounded-xl sm:rounded-2xl shadow-lg sm:shadow-2xl shadow-primary/20 transition-transform hover:scale-[1.02] duration-500 w-full max-w-md sm:max-w-[500px] lg:max-w-[700px] h-auto"
           />
         </section>
+        </Reveal>
       )}
 
       {/* Video Section */}
       {(youtubeVideoId || liveEnabled) && (
+        <Reveal variant="fadeUp" delay={0.1}>
         <section className="container pb-8 px-4 sm:px-0">
           <div className="max-w-3xl mx-auto">
             {/* Video Player */}
@@ -151,12 +166,15 @@ export default function CulteEnLignePage() {
             </div>
           </div>
         </section>
+        </Reveal>
       )}
 
       {/* Content section */}
+      <Reveal variant="fadeUp" delay={0.15}>
       <section className="container pb-12 sm:pb-16 pt-0 px-4 sm:px-0">
         <PageContentDisplay pageId="culte-en-ligne" layout="split" />
       </section>
+      </Reveal>
     </div>
   );
 }

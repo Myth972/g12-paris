@@ -1,6 +1,8 @@
 import { Link } from "wouter";
 import PageTitleEditor from "@/components/PageTitleEditor";
 import PageTextEditor from "@/components/PageTextEditor";
+import { Reveal, staggerContainer, staggerItem } from "@/components/Reveal";
+import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { BookOpen, BookMarked, Library, Users, ArrowRight, RefreshCw } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -54,6 +56,7 @@ export default function BibliothequePage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Banner Premium */}
+      <Reveal variant="fadeDown" duration={0.7}>
       <section className="relative overflow-hidden bg-slate-950 py-20 lg:py-32">
         <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800" />
         <div className="absolute inset-0 bg-[url('/premium_bible.webp')] bg-cover bg-center opacity-20 mix-blend-overlay" />
@@ -98,15 +101,24 @@ export default function BibliothequePage() {
           </div>
         </div>
       </section>
+      </Reveal>
 
       {/* Quick Access */}
+      <Reveal variant="fadeUp" delay={0.1}>
       <section className="py-8 bg-muted/30 border-b">
         <div className="container">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <motion.div
+            className="grid grid-cols-2 md:grid-cols-4 gap-4"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-40px" }}
+          >
             {quickAccess.map((item, idx) => {
               const Icon = item.icon;
               return (
-                <Link key={idx} href={item.href}>
+                <motion.div key={idx} variants={staggerItem}>
+                <Link href={item.href}>
                   <Card className="hover:border-primary/50 hover:shadow-md transition-all cursor-pointer group bg-card">
                     <CardContent className="p-6 flex flex-col items-center text-center gap-3">
                       <div className="p-3 rounded-full bg-primary/10 text-primary group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground transition-all">
@@ -116,13 +128,16 @@ export default function BibliothequePage() {
                     </CardContent>
                   </Card>
                 </Link>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         </div>
       </section>
+      </Reveal>
 
       {/* Inspiring Verse */}
+      <Reveal variant="scaleUp" delay={0.1}>
       <section className="py-16 bg-primary/5">
         <div className="container max-w-6xl text-center">
           <blockquote className="space-y-4">
@@ -135,8 +150,10 @@ export default function BibliothequePage() {
           </blockquote>
         </div>
       </section>
+      </Reveal>
 
       {/* Nouveautés & Bestsellers */}
+      <Reveal variant="fadeUp" delay={0.1}>
       <section className="py-16 md:py-24">
         <div className="container">
           <div className="flex justify-between items-end mb-10">
@@ -163,9 +180,16 @@ export default function BibliothequePage() {
             </div>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+          <motion.div
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-80px" }}
+          >
             {featuredBooks.map((book: any) => (
-              <Link key={book.id} href={`/bibliotheque/livre/${book.id}`} className="group">
+              <motion.div key={book.id} variants={staggerItem}>
+              <Link href={`/bibliotheque/livre/${book.id}`} className="group">
                 <div className="rounded-xl overflow-hidden mb-4 bg-muted aspect-[3/4] relative">
                   <img 
                     src={book.image} 
@@ -182,12 +206,15 @@ export default function BibliothequePage() {
                 <p className="text-muted-foreground text-sm mb-2">{book.author}</p>
                 <p className="font-semibold text-primary">{book.price}</p>
               </Link>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
+      </Reveal>
 
       {/* Sélections Thématiques CTA */}
+      <Reveal variant="fadeUp" delay={0.1}>
       <section className="py-12 md:py-16 relative overflow-hidden bg-primary text-primary-foreground">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1455390582262-044cdead2708?q=80&w=2000')] bg-cover bg-center opacity-10 mix-blend-overlay z-0" />
         
@@ -221,6 +248,7 @@ export default function BibliothequePage() {
           )}
         </div>
       </section>
+      </Reveal>
     </div>
   );
 }

@@ -61,6 +61,9 @@ async function startServer() {
     return token;
   };
 
+  // Servir le widget de démo
+  app.use("/widget", express.static(path.join(process.cwd(), "components/ai-chat-widget")));
+
   // Serve uploaded files
   app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
@@ -104,6 +107,79 @@ async function startServer() {
     }
     return next();
   };
+
+  // REST API pour le widget chat (format simple)
+  app.post("/api/chat", aiRateLimiter, async (req, res) => {
+    try {
+      const { messages } = req.body;
+      if (!messages || !Array.isArray(messages)) {
+        return res.status(400).json({ error: "messages array required" });
+      }
+
+      const { getDb } = await import("../db.js");
+      const { invokeLLMWithFallback } = await import("./llm.js");
+      const { siteSettings } = await import("../../drizzle/schema.js");
+      const { eq, desc, asc } = await import("drizzle-orm");
+      const { checkUserQuota, estimateTokens, logAiUsage } = await import("./aiQuota.js");
+
+      const db = getDb();
+      if (!db) {
+        return res.status(500).json({ error: "DB unavailable" });
+      }
+
+      // Vérifier si le chatbot est activé (en dev, toujours autorisé)
+      if (process.env.NODE_ENV !== "development") {
+        const chatbotSetting = await db.select().from(siteSettings).where(eq(siteSettings.key, "chatbot_enabled")).limit(1);
+        if (chatbotSetting[0]?.value !== "true") {
+          return res.status(403).json({ error: "Le chatbot est désactivé." });
+        }
+      }
+
+      // Récupérer le provider
+      const providerRows = await db.select().from(siteSettings).where(eq(siteSettings.key, "aiProvider")).limit(1);
+      const provider = providerRows[0]?.value as any;
+
+      // Récupérer le contexte du site
+      const { articles, biblicalVerses, announcements } = await import("../../drizzle/schema.js");
+      const [recentArticles, latestVerse, upcomingAnnouncements] = await Promise.all([
+        db.select({ title: articles.title, slug: articles.slug, excerpt: articles.excerpt, category: articles.category })
+          .from(articles).where(eq(articles.published, true)).orderBy(desc(articles.createdAt)).limit(5),
+        db.select().from(biblicalVerses).orderBy(desc(biblicalVerses.createdAt)).limit(1),
+        db.select({ title: announcements.title, description: announcements.description, eventDate: announcements.eventDate, location: announcements.location })
+          .from(announcements).where(eq(announcements.visible, true)).orderBy(asc(announcements.displayOrder)).limit(3),
+      ]);
+
+      const siteContext = `Tu es l'assistant virtuel de G12 Paris Infos Médias.
+CONTEXTE DU SITE :
+- Articles : ${recentArticles.map((a: any) => `"${a.title}" (${a.category})`).join(", ")}
+- Verset du jour : ${latestVerse[0] ? `"${latestVerse[0].reference}"` : "Aucun"}
+- Événements : ${upcomingAnnouncements.map((a: any) => `"${a.title}"${a.eventDate ? ` le ${a.eventDate}` : ""}`).join(", ") || "Aucun"}
+Règles : Réponds en français, sois chaleureux et concis.`;
+
+      const startTime = Date.now();
+      const userId = "widget-anonymous";
+      const inputTokens = messages.reduce((sum: number, m: any) => sum + estimateTokens(m.content), 0);
+
+      const messagesWithSystem = [
+        { role: "system" as const, content: siteContext },
+        ...messages.map((m: any) => ({ role: m.role as "user" | "assistant", content: m.content })),
+      ];
+
+      const response = await invokeLLMWithFallback({ messages: messagesWithSystem, provider });
+      const assistantMessage = response.choices[0].message.content as string;
+      const outputTokens = estimateTokens(assistantMessage);
+
+      logAiUsage({
+        timestamp: new Date(), userId, provider: provider || "groq", model: response.model,
+        endpoint: "api.chat", inputTokens, outputTokens, totalTokens: inputTokens + outputTokens,
+        success: true, durationMs: Date.now() - startTime,
+      });
+
+      return res.json({ content: assistantMessage });
+    } catch (err: any) {
+      return res.status(500).json({ error: err.message || "Server error" });
+    }
+  });
 
   // tRPC API — avec rate limiting IA spécifique
   app.use(

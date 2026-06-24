@@ -1,11 +1,14 @@
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import { Reveal, staggerContainer, staggerItem } from "@/components/Reveal";
+import { motion } from "framer-motion";
 import { Eye, Target, Heart, BookOpen } from "lucide-react";
 
 export default function AboutVisionPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
+      <Reveal variant="fadeDown" duration={0.7}>
       <section className="relative py-24 lg:py-32 overflow-hidden bg-slate-900">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1491841550275-ad7854e35ca6?q=80&w=2000')] bg-cover bg-center opacity-30 mix-blend-overlay" />
         <div className="absolute inset-0 bg-gradient-to-t from-slate-900 via-slate-900/80 to-transparent" />
@@ -22,8 +25,10 @@ export default function AboutVisionPage() {
           </p>
         </div>
       </section>
+      </Reveal>
 
       {/* Mission & Pourquoi */}
+      <Reveal variant="fadeUp" delay={0.1}>
       <section className="py-20">
         <div className="container max-w-5xl">
           <div className="grid md:grid-cols-2 gap-12 lg:gap-20 items-center">
@@ -55,14 +60,22 @@ export default function AboutVisionPage() {
           </div>
         </div>
       </section>
+      </Reveal>
 
       {/* Nos Valeurs */}
+      <Reveal variant="fadeUp" delay={0.1}>
       <section className="py-20 bg-muted/30 border-t">
         <div className="container max-w-6xl text-center">
           <h2 className="text-3xl font-serif font-bold mb-16">Nos Valeurs Fondamentales</h2>
           
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-card p-8 rounded-2xl border shadow-sm hover:border-primary/50 transition-colors">
+          <motion.div
+            className="grid md:grid-cols-3 gap-8"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-60px" }}
+          >
+            <motion.div className="bg-card p-8 rounded-2xl border shadow-sm hover:border-primary/50 transition-colors" variants={staggerItem}>
               <div className="w-16 h-16 bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <BookOpen className="w-8 h-8" />
               </div>
@@ -70,9 +83,9 @@ export default function AboutVisionPage() {
               <p className="text-muted-foreground">
                 Nous nous engageons à diffuser des ressources qui respectent l'autorité et l'inerrance de la Parole de Dieu. La Bible est notre boussole absolue.
               </p>
-            </div>
+            </motion.div>
             
-            <div className="bg-card p-8 rounded-2xl border shadow-sm hover:border-primary/50 transition-colors">
+            <motion.div className="bg-card p-8 rounded-2xl border shadow-sm hover:border-primary/50 transition-colors" variants={staggerItem}>
               <div className="w-16 h-16 bg-amber-500/10 text-amber-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <Eye className="w-8 h-8" />
               </div>
@@ -80,9 +93,9 @@ export default function AboutVisionPage() {
               <p className="text-muted-foreground">
                 Que ce soit dans le choix du cuir d'une Bible ou dans le service client, nous visons l'excellence pour honorer Dieu dans tout ce que nous faisons.
               </p>
-            </div>
+            </motion.div>
             
-            <div className="bg-card p-8 rounded-2xl border shadow-sm hover:border-primary/50 transition-colors">
+            <motion.div className="bg-card p-8 rounded-2xl border shadow-sm hover:border-primary/50 transition-colors" variants={staggerItem}>
               <div className="w-16 h-16 bg-red-500/10 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
                 <Heart className="w-8 h-8" />
               </div>
@@ -90,12 +103,14 @@ export default function AboutVisionPage() {
               <p className="text-muted-foreground">
                 Notre but ultime est d'édifier le Corps du Christ. Nous travaillons en partenariat avec les églises locales pour équiper les saints.
               </p>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
+      </Reveal>
 
       {/* CTA */}
+      <Reveal variant="fadeUp" delay={0.1}>
       <section className="py-24 relative text-center">
         <div className="container max-w-3xl">
           <h2 className="text-3xl font-serif font-bold mb-6">Prêt à approfondir votre foi ?</h2>
@@ -112,6 +127,7 @@ export default function AboutVisionPage() {
           </div>
         </div>
       </section>
+      </Reveal>
     </div>
   );
 }

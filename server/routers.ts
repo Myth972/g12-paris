@@ -81,7 +81,7 @@ import { storagePut, getSignedUrl } from "./storage.js";
 import { nanoid } from "nanoid";
 import { themeRouter } from "./themeRouter.js";
 import { withCache, clearCache } from "./_core/cache.js";
-import { siteSettings, announcements, subscribers, articles } from "../drizzle/schema.js";
+import { siteSettings, announcements, subscribers, articles, biblicalVerses, galleryItems } from "../drizzle/schema.js";
 import { eq, desc, asc, and, like } from "drizzle-orm";
 import { ENV } from "./_core/env.js";
 import { invokeLLM, invokeLLMWithFallback } from "./_core/llm.js";
@@ -250,11 +250,7 @@ export const appRouter = router({
         return { success: true };
       }),
     logout: publicProcedure.mutation(({ ctx }) => {
-      const cookieOptions = getSessionCookieOptions(ctx.req);
-      (ctx.res as any).clearCookie(COOKIE_NAME, {
-        ...cookieOptions,
-        maxAge: -1,
-      });
+      (ctx.res as any).clearCookie(COOKIE_NAME);
       return { success: true } as const;
     }),
   }),
@@ -1019,7 +1015,164 @@ export const appRouter = router({
           throw err;
         }
       }),
-    
+
+    chatbot: publicProcedure
+      .input(
+        zod.object({
+          messages: z.array(
+            zod.object({
+              role: z.enum(["user", "assistant"]),
+              content: z.string().max(4000),
+            })
+          ).max(30),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const db = getDb();
+        if (!db) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Base de données indisponible",
+          });
+        }
+
+        // Vérifier si le chatbot est activé (en dev, toujours autorisé)
+        if (process.env.NODE_ENV !== "development") {
+          const chatbotSetting = await db
+            .select()
+            .from(siteSettings)
+            .where(eq(siteSettings.key, "chatbot_enabled"))
+            .limit(1);
+          if (chatbotSetting[0]?.value !== "true") {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: "Le chatbot est actuellement désactivé.",
+            });
+          }
+        }
+
+        const userId = ctx.user?.id?.toString() || "anonymous";
+        const inputTokens = input.messages.reduce(
+          (sum, m) => sum + estimateTokens(m.content),
+          0
+        );
+        checkUserQuota(userId, inputTokens + 500);
+
+        // Récupérer le provider actif
+        let provider: "google" | "groq" | "minimax" | "aimlapi" | undefined;
+        const providerRows = await db
+          .select()
+          .from(siteSettings)
+          .where(eq(siteSettings.key, "aiProvider"))
+          .limit(1);
+        provider = providerRows[0]?.value as any;
+
+        // Récupérer le contexte du site
+        const [recentArticles, latestVerse, upcomingAnnouncements] =
+          await Promise.all([
+            db
+              .select({
+                title: articles.title,
+                slug: articles.slug,
+                excerpt: articles.excerpt,
+                category: articles.category,
+              })
+              .from(articles)
+              .where(eq(articles.published, true))
+              .orderBy(desc(articles.createdAt))
+              .limit(5),
+            db
+              .select()
+              .from(biblicalVerses)
+              .orderBy(desc(biblicalVerses.createdAt))
+              .limit(1),
+            db
+              .select({
+                title: announcements.title,
+                description: announcements.description,
+                eventDate: announcements.eventDate,
+                location: announcements.location,
+              })
+              .from(announcements)
+              .where(eq(announcements.visible, true))
+              .orderBy(asc(announcements.displayOrder))
+              .limit(3),
+          ]);
+
+        // Construire le system prompt avec contexte
+        const siteContext = `
+Tu es l'assistant virtuel de G12 Paris Infos Médias, un site d'informations et de ressources spirituelles.
+
+CONTEXTE DU SITE :
+- Derniers articles publiés :
+${recentArticles.map((a: { title: string; category: string; excerpt: string | null }) => `  • "${a.title}" (${a.category}) — ${a.excerpt?.substring(0, 100) || "Pas de résumé"}`).join("\n")}
+
+- Verset du jour :
+${latestVerse[0] ? `  "${latestVerse[0].reference}" — "${latestVerse[0].text}"` : "  Aucun verset disponible"}
+
+- Événements à venir :
+${upcomingAnnouncements.length > 0 ? upcomingAnnouncements.map((a: { title: string; description: string; eventDate: string | null; location: string | null }) => `  • "${a.title}"${a.eventDate ? ` le ${a.eventDate}` : ""}${a.location ? ` à ${a.location}` : ""}`).join("\n") : "  Aucun événement à venir"}
+
+RÈGLES :
+- Réponds toujours en français.
+- Sois chaleureux, concis et utile.
+- Utilise le contexte du site pour enrichir tes réponses.
+- Si on te pose une question sur les articles, les versets ou les événements, utilise les informations ci-dessus.
+- Pour des questions spirituelles profondes, propose des versets pertinents.
+- Si tu ne connais pas la réponse, honnêtement dis-le.
+- Termine par une question ou suggestion pour continuer la conversation.
+`.trim();
+
+        const startTime = Date.now();
+        try {
+          const messagesWithSystem = [
+            { role: "system" as const, content: siteContext },
+            ...input.messages.map(
+              (m) => ({ role: m.role as "user" | "assistant", content: m.content })
+            ),
+          ];
+
+          const response = await invokeLLMWithFallback({
+            messages: messagesWithSystem,
+            provider,
+          });
+
+          const assistantMessage =
+            response.choices[0].message.content as string;
+          const outputTokens = estimateTokens(assistantMessage);
+
+          logAiUsage({
+            timestamp: new Date(),
+            userId,
+            provider: provider || "groq",
+            model: response.model,
+            endpoint: "ai.chatbot",
+            inputTokens,
+            outputTokens,
+            totalTokens: inputTokens + outputTokens,
+            success: true,
+            durationMs: Date.now() - startTime,
+          });
+
+          return assistantMessage;
+        } catch (err: any) {
+          logAiUsage({
+            timestamp: new Date(),
+            userId,
+            provider: provider || "groq",
+            model: "unknown",
+            endpoint: "ai.chatbot",
+            inputTokens,
+            outputTokens: 0,
+            totalTokens: inputTokens,
+            success: false,
+            error: err.message,
+            durationMs: Date.now() - startTime,
+          });
+          throw err;
+        }
+      }),
+
     testProvider: adminProcedure
       .input(zod.object({ provider: z.enum(["google", "groq", "minimax", "aimlapi"]).optional() }))
       .mutation(async ({ input }) => {

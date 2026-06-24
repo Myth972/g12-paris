@@ -41,6 +41,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import {
   Plus,
   Pencil,
@@ -71,6 +72,7 @@ import {
   LayoutDashboard,
   MessageCircle,
   Globe,
+  Layout,
 } from "lucide-react";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useAiProvider } from "@/hooks/useAiProvider";
@@ -86,6 +88,7 @@ const KlingStudio = lazy(() => import("./KlingStudio"));
 const AIChatBox = lazy(() => import("@/components/AIChatBox").then(m => ({ default: m.AIChatBox })));
 const HomeContentManager = lazy(() => import("@/components/HomeContentManager"));
 const AIDashboard = lazy(() => import("@/components/AIDashboard"));
+const CMSManager = lazy(() => import("@/components/CMSManager"));
 
 import HomeHeroBackgroundSettings from "@/components/HomeHeroBackgroundSettings";
 import CulteHeroBackgroundSettings from "@/components/CulteHeroBackgroundSettings";
@@ -581,6 +584,23 @@ function AIAssistantTab() {
     isTesting,
   } = useAiProvider();
 
+  // Chatbot toggle
+  const chatbotQuery = trpc.siteSettings.get.useQuery({ key: "chatbot_enabled" });
+  const chatbotMutation = trpc.siteSettings.set.useMutation({
+    onSuccess: () => {
+      chatbotQuery.refetch();
+      toast.success("Paramètre chatbot mis à jour");
+    },
+  });
+  const isChatbotEnabled = chatbotQuery.data === "true";
+
+  const toggleChatbot = () => {
+    chatbotMutation.mutate({
+      key: "chatbot_enabled",
+      value: isChatbotEnabled ? "false" : "true",
+    });
+  };
+
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "system",
@@ -623,6 +643,24 @@ function AIAssistantTab() {
 
   return (
     <div className="max-w-6xl mx-auto flex flex-col gap-4">
+      {/* Chatbot Toggle */}
+      <div className="flex items-center justify-between p-4 rounded-lg border bg-card">
+        <div className="flex items-center gap-3">
+          <MessageCircle className="w-5 h-5 text-primary" />
+          <div>
+            <h4 className="text-sm font-medium">Chatbot public</h4>
+            <p className="text-xs text-muted-foreground">
+              Active ou désactive le chatbot visible par les visiteurs du site
+            </p>
+          </div>
+        </div>
+        <Switch
+          checked={isChatbotEnabled}
+          onCheckedChange={toggleChatbot}
+          disabled={chatbotQuery.isLoading || chatbotMutation.isPending}
+        />
+      </div>
+
       <div className="flex items-start justify-between gap-4 mb-2">
         <div className="flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-primary" />
@@ -884,6 +922,20 @@ if (authLoading) {
           </Link>
           )}
 
+          {isAdmin && (
+          <Link href="/admin/visuals">
+            <div className="bg-card border border-border p-6 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50">
+              <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center text-purple-600 mb-4 group-hover:scale-110 transition-transform">
+                <Sparkles className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-bold font-serif mb-2">Visuels</h3>
+              <p className="text-sm text-muted-foreground">
+                Gérez les animations, particules, effets de survol et transitions.
+              </p>
+            </div>
+          </Link>
+          )}
+
           <Link href="/admin/article/new">
             <div className="bg-card border border-border p-6 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50">
               <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-600 mb-4 group-hover:scale-110 transition-transform">
@@ -942,6 +994,10 @@ if (authLoading) {
               <BookOpen className="w-4 h-4" />
               {t('admin.tabs.publications')}
             </TabsTrigger>
+            <TabsTrigger value="cms" className="gap-2">
+              <Layout className="w-4 h-4 text-emerald-500" />
+              CMS
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="articles">
             <ArticlesTab />
@@ -998,6 +1054,11 @@ if (authLoading) {
             <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
                <GalleryManager />
                {isAdmin && <><div className="h-px bg-border my-8" /><VersesManager /></>}
+            </Suspense>
+          </TabsContent>
+          <TabsContent value="cms">
+            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
+              <CMSManager />
             </Suspense>
           </TabsContent>
         </Tabs>

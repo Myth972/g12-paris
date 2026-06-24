@@ -9,6 +9,8 @@ import SiteHeader from "./components/SiteHeader";
 import SiteFooter from "./components/SiteFooter";
 import { Loader2 } from "lucide-react";
 import DevDeviceToggle from "./components/DevDeviceToggle";
+import PageTransition from "./components/PageTransition";
+import GlowCursor from "./components/GlowCursor";
 
 // Lazy-loaded pages
 const Home = lazy(() => import("./pages/Home"));
@@ -29,12 +31,15 @@ const OffersPacksPage = lazy(() => import("./pages/OffersPacksPage"));
 const AboutVisionPage = lazy(() => import("./pages/AboutVisionPage"));
 const CartCheckoutPage = lazy(() => import("./pages/CartCheckoutPage"));
 const CulteEnLignePage = lazy(() => import("./pages/CulteEnLignePage"));
+const ConventionG12FrancePage = lazy(() => import("./pages/ConventionG12FrancePage"));
 const AdminBibliotheque = lazy(() => import("./pages/AdminBibliotheque"));
 const AdminBibliothequeEditor = lazy(() => import("./pages/AdminBibliothequeEditor"));
 const AdminDesign = lazy(() => import("./pages/AdminDesign"));
+const AdminVisuals = lazy(() => import("./pages/AdminVisuals"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const AISearch = lazy(() => import("./components/AISearch").then(m => ({ default: m.AISearch })));
+const ChatBot = lazy(() => import("./components/ChatBot").then(m => ({ default: m.ChatBot })));
 const MoJSTestPage = lazy(() => import("./pages/MoJSTestPage"));
 const ILoveYouJesus = lazy(() => import("./pages/ILoveYouJesus"));
 
@@ -50,10 +55,13 @@ function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen flex flex-col">
       <SiteHeader />
-      <main className="flex-1">{children}</main>
+      <main className="flex-1">
+        <PageTransition>{children}</PageTransition>
+      </main>
       <SiteFooter />
       <Suspense fallback={null}>
         <AISearch />
+        <ChatBot />
       </Suspense>
     </div>
   );
@@ -129,6 +137,11 @@ function Router() {
             <CartCheckoutPage />
           </PublicLayout>
         </Route>
+        <Route path="/culte-en-ligne/convention">
+          <PublicLayout>
+            <ConventionG12FrancePage />
+          </PublicLayout>
+        </Route>
         <Route path="/culte-en-ligne">
           <PublicLayout>
             <CulteEnLignePage />
@@ -152,6 +165,7 @@ function Router() {
         <Route path="/admin/bibliotheque" component={AdminBibliotheque} />
         <Route path="/admin/bibliotheque/edition/:id" component={AdminBibliothequeEditor} />
         <Route path="/admin/design" component={AdminDesign} />
+        <Route path="/admin/visuals" component={AdminVisuals} />
 
         {/* Fallback */}
         <Route path="/404" component={NotFound} />
@@ -209,6 +223,7 @@ function AppWithTheme() {
     <ThemeProvider defaultTheme={defaultTheme} switchable={enableThemeToggle}>
       <DynamicDesign />
       <TooltipProvider>
+        <GlowCursor />
         <Toaster />
         <Router />
         {import.meta.env.DEV && <DevDeviceToggle />}
