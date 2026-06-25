@@ -69,6 +69,7 @@ import {
   ImageIcon,
   TrendingUp,
   User,
+  Bot,
   LayoutDashboard,
   MessageCircle,
   Globe,
@@ -931,6 +932,20 @@ if (authLoading) {
               <h3 className="text-xl font-bold font-serif mb-2">Visuels</h3>
               <p className="text-sm text-muted-foreground">
                 Gérez les animations, particules, effets de survol et transitions.
+              </p>
+            </div>
+          </Link>
+          )}
+
+          {isAdmin && (
+          <Link href="/admin/agents">
+            <div className="bg-card border border-border p-6 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50">
+              <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-600 mb-4 group-hover:scale-110 transition-transform">
+                <Bot className="w-6 h-6" />
+              </div>
+              <h3 className="text-xl font-bold font-serif mb-2">Agents</h3>
+              <p className="text-sm text-muted-foreground">
+                Exécutez et surveillez les agents automatisés (YouTube, etc.).
               </p>
             </div>
           </Link>

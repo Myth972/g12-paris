@@ -20,10 +20,13 @@ export const ENV = {
   minimaxApiKey: process.env.MINIMAX_API_KEY ?? "",
   aimlApiKey: process.env.AIMLAPI_KEY ?? "",
   blobToken: findBlobToken(),
+  ollamaBaseUrl: process.env.OLLAMA_BASE_URL ?? "http://localhost:11434",
+  ollamaModel: process.env.OLLAMA_MODEL ?? "",
   preferredAiProvider:
     (process.env.PREFERRED_AI_PROVIDER as
       | "google"
       | "groq"
       | "minimax"
-      | "aimlapi") ?? "groq",
+      | "aimlapi"
+      | "ollama") ?? "groq",
 };

@@ -1,6 +1,26 @@
 import { TRPCError } from "@trpc/server";
 import { ENV } from "./env.js";
 
+let detectedOllamaModel: string | null = null;
+
+async function detectOllamaModel(): Promise<string> {
+  if (detectedOllamaModel) return detectedOllamaModel;
+  const prefer = ["llama3.2:3b", "llama3.2", "llama3.1", "llama3", "dolphin-llama3", "qwen2.5", "deepseek-r1"];
+  try {
+    const res = await fetch(`${ENV.ollamaBaseUrl}/api/tags`, { signal: AbortSignal.timeout(3000) });
+    if (res.ok) {
+      const data = await res.json() as { models?: { name: string }[] };
+      const names = data.models?.map(m => m.name) ?? [];
+      for (const preferred of prefer) {
+        const match = names.find(n => n.startsWith(preferred));
+        if (match) { detectedOllamaModel = match; return match; }
+      }
+      if (names.length > 0) { detectedOllamaModel = names[0]; return names[0]; }
+    }
+  } catch {}
+  return "llama3.2:3b";
+}
+
 export type Role = "system" | "user" | "assistant" | "tool" | "function";
 
 export type TextContent = {
@@ -319,6 +339,11 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
         code: "INTERNAL_SERVER_ERROR",
         message: "GROQ_API_KEY is not configured",
       });
+  } else if (provider === "ollama") {
+    apiUrl = `${ENV.ollamaBaseUrl}/v1/chat/completions`;
+    apiKey = "ollama";
+    model = model || ENV.ollamaModel || await detectOllamaModel();
+    // Pas de vérification de clé — Ollama fonctionne sans authentification en local
   } else {
     // Google / Gemini fallback
     apiUrl = "https://forge.manus.im/v1/chat/completions";
@@ -407,7 +432,7 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
 }
 
 // Providers fallback order
-const FALLBACK_ORDER: AiProvider[] = ["groq", "google", "minimax", "aimlapi"];
+const FALLBACK_ORDER: AiProvider[] = ["groq", "google", "minimax", "aimlapi", "ollama"];
 
 /**
  * invokeLLMWithFallback — tente le provider demandé, puis les autres en cas d'échec.

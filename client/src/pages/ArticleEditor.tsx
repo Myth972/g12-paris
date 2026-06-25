@@ -24,6 +24,9 @@ import {
   Shield,
   Loader2,
   Sparkles,
+  Wand2,
+  BookHeart,
+  SpellCheck,
 } from "lucide-react";
 import { useState, useEffect, useRef, useCallback, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from "react";
 import { useLocation, useParams } from "wouter";
@@ -160,6 +163,58 @@ export default function ArticleEditor() {
     },
     onError: err => toast.error(err.message || t('admin.articleEditor.toastGenError')),
   });
+
+  const improveTextMutation = trpc.ai.improveText.useMutation({
+    onSuccess: improved => {
+      toast.success("Texte amélioré avec succès");
+    },
+    onError: err => toast.error(err.message || "Erreur lors de l'amélioration"),
+  });
+
+  const spellCheckMutation = trpc.ai.spellCheck.useMutation({
+    onError: err => toast.error(err.message || "Erreur lors de la correction"),
+  });
+
+  const handleImproveExcerpt = (tone: "biblical" | "normal") => {
+    improveTextMutation.mutate(
+      { text: excerpt, tone, field: "excerpt" },
+      { onSuccess: (improved) => setExcerpt(improved) },
+    );
+  };
+
+  const handleImproveContent = (tone: "biblical" | "normal") => {
+    const plainText = content.replace(/<[^>]*>/g, "").trim();
+    if (!plainText) { toast.error("Le contenu est vide"); return; }
+    improveTextMutation.mutate(
+      { text: plainText, tone, field: "content" },
+      {
+        onSuccess: (improved) => {
+          setContent(`<p>${improved.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br/>')}</p>`);
+        },
+      },
+    );
+  };
+
+  const handleSpellCheckExcerpt = () => {
+    spellCheckMutation.mutate(
+      { text: excerpt },
+      { onSuccess: (corrected) => setExcerpt(corrected) },
+    );
+  };
+
+  const handleSpellCheckContent = () => {
+    const plainText = content.replace(/<[^>]*>/g, "").trim();
+    if (!plainText) { toast.error("Le contenu est vide"); return; }
+    spellCheckMutation.mutate(
+      { text: plainText },
+      {
+        onSuccess: (corrected) => {
+          setContent(`<p>${corrected.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br/>')}</p>`);
+          toast.success("Orthographe corrigée");
+        },
+      },
+    );
+  };
 
   const handleImageUpload = useCallback(
     async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -321,32 +376,70 @@ export default function ArticleEditor() {
               <Label className="text-sm font-semibold text-foreground">
                 {t('admin.articleEditor.excerpt')}
               </Label>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 text-xs gap-1.5 text-primary hover:text-primary hover:bg-primary/10 touch-manipulation self-start sm:self-auto"
-                disabled={generateExcerptMutation.isPending || !title}
-                onClick={() =>
-                  generateExcerptMutation.mutate({
-                    title,
-                    contentType: "article",
-                  })
-                }
-              >
-                {generateExcerptMutation.isPending ? (
-                  <Loader2 className="w-3 h-3 animate-spin" />
-                ) : (
-                  <Sparkles className="w-3 h-3" />
-                )}
-                <span className="hidden sm:inline">IA</span>
-              </Button>
+              <div className="flex items-center gap-1.5">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-xs gap-1 text-primary hover:text-primary hover:bg-primary/10"
+                  disabled={generateExcerptMutation.isPending || !title}
+                  onClick={() =>
+                    generateExcerptMutation.mutate({ title, contentType: "article" })
+                  }
+                >
+                  {generateExcerptMutation.isPending ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-3 h-3" />
+                  )}
+                  <span className="hidden sm:inline">Générer</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-xs gap-1 text-amber-600 hover:text-amber-600 hover:bg-amber-500/10"
+                  disabled={improveTextMutation.isPending || !excerpt}
+                  onClick={() => handleImproveExcerpt("biblical")}
+                >
+                  {improveTextMutation.isPending ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <BookHeart className="w-3 h-3" />
+                  )}
+                  <span className="hidden sm:inline">Biblique</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-xs gap-1 text-muted-foreground hover:text-foreground"
+                  disabled={improveTextMutation.isPending || !excerpt}
+                  onClick={() => handleImproveExcerpt("normal")}
+                >
+                  <Wand2 className="w-3 h-3" />
+                  <span className="hidden sm:inline">Améliorer</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-xs gap-1 text-blue-600 hover:text-blue-600 hover:bg-blue-500/10"
+                  disabled={spellCheckMutation.isPending || !excerpt}
+                  onClick={handleSpellCheckExcerpt}
+                >
+                  {spellCheckMutation.isPending ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <SpellCheck className="w-3 h-3" />
+                  )}
+                  <span className="hidden sm:inline">Corriger</span>
+                </Button>
+              </div>
             </div>
             <Textarea
               value={excerpt}
               onChange={e => setExcerpt(e.target.value)}
               placeholder={t('admin.articleEditor.excerptPlaceholder')}
               rows={2}
-              className="resize-none mobile-input text-sm"
+              className="resize-none mobile-input text-sm break-words"
+              spellCheck
             />
           </div>
 
@@ -550,20 +643,63 @@ export default function ArticleEditor() {
           </div>
 
           {/* Content */}
-          <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
-            <div className="px-4 sm:px-6 pt-4 sm:pt-5 pb-2">
-              <Label className="text-sm font-semibold text-foreground">
-                {t('admin.articleEditor.content')}
-              </Label>
-              <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
-                {t('admin.articleEditor.contentHelp')}
-              </p>
+          <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden break-words">
+            <div className="px-4 sm:px-6 pt-4 sm:pt-5 pb-2 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+              <div>
+                <Label className="text-sm font-semibold text-foreground">
+                  {t('admin.articleEditor.content')}
+                </Label>
+                <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
+                  {t('admin.articleEditor.contentHelp')}
+                </p>
+              </div>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-xs gap-1 text-amber-600 hover:text-amber-600 hover:bg-amber-500/10"
+                  disabled={improveTextMutation.isPending || !content}
+                  onClick={() => handleImproveContent("biblical")}
+                >
+                  {improveTextMutation.isPending ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <BookHeart className="w-3 h-3" />
+                  )}
+                  <span className="hidden sm:inline">Biblique</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-xs gap-1 text-muted-foreground hover:text-foreground"
+                  disabled={improveTextMutation.isPending || !content}
+                  onClick={() => handleImproveContent("normal")}
+                >
+                  <Wand2 className="w-3 h-3" />
+                  <span className="hidden sm:inline">Améliorer</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-xs gap-1 text-blue-600 hover:text-blue-600 hover:bg-blue-500/10"
+                  disabled={spellCheckMutation.isPending || !content}
+                  onClick={handleSpellCheckContent}
+                >
+                  {spellCheckMutation.isPending ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <SpellCheck className="w-3 h-3" />
+                  )}
+                  <span className="hidden sm:inline">Corriger</span>
+                </Button>
+              </div>
             </div>
             <RichTextEditor
               content={content}
               onChange={setContent}
               placeholder={t('admin.articleEditor.contentPlaceholder')}
               minHeight="300px sm:400px"
+              spellcheck={true}
             />
           </div>
 

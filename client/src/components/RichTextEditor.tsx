@@ -69,6 +69,7 @@ interface RichTextEditorProps {
   onChange: (html: string) => void;
   placeholder?: string;
   minHeight?: string;
+  spellcheck?: boolean;
 }
 
 function ToolbarButton({
@@ -106,6 +107,7 @@ export default function RichTextEditor({
   onChange,
   placeholder = "Rédigez votre contenu ici...",
   minHeight = "300px",
+  spellcheck = true,
 }: RichTextEditorProps) {
   const [linkUrl, setLinkUrl] = useState("");
   const [colorPickerOpen, setColorPickerOpen] = useState(false);
@@ -141,6 +143,7 @@ export default function RichTextEditor({
     editorProps: {
       attributes: {
         class: "prose prose-sm max-w-none focus:outline-none",
+        spellcheck: spellcheck ? "true" : "false",
         style: `min-height: ${minHeight}; padding: 1rem;`,
       },
     },

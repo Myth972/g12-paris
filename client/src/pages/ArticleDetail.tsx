@@ -155,7 +155,7 @@ export default function ArticleDetail() {
 
       {/* Content */}
       <div className="container max-w-6xl mx-auto">
-        <div className="prose-article">
+        <div className="prose-article break-words">
           <Streamdown>{article.content}</Streamdown>
         </div>
       </div>

@@ -96,7 +96,7 @@ const ArticleCard = memo(function ArticleCard({
 
           {article.excerpt && (
             <p
-              className={`mt-2 text-muted-foreground leading-relaxed line-clamp-2 ${featured ? "text-sm" : "text-xs"}`}
+              className={`mt-2 text-muted-foreground leading-relaxed line-clamp-2 break-words ${featured ? "text-sm" : "text-xs"}`}
             >
               {article.excerpt}
             </p>

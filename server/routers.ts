@@ -1174,7 +1174,7 @@ RÈGLES :
       }),
 
     testProvider: adminProcedure
-      .input(zod.object({ provider: z.enum(["google", "groq", "minimax", "aimlapi"]).optional() }))
+      .input(zod.object({ provider: z.enum(["google", "groq", "minimax", "aimlapi", "ollama"]).optional() }))
       .mutation(async ({ input }) => {
         const db = getDb();
         let provider = input.provider;
@@ -1261,6 +1261,119 @@ RÈGLES :
             model: "unknown", endpoint: "ai.generateDescription",
             inputTokens: estimateTokens(prompt), outputTokens: 0,
             totalTokens: estimateTokens(prompt), success: false,
+            error: err.message, durationMs: Date.now() - startTime,
+          });
+          throw err;
+        }
+      }),
+
+    improveText: adminProcedure
+      .input(
+        zod.object({
+          text: z.string().min(1),
+          tone: z.enum(["biblical", "normal"]),
+          field: z.enum(["excerpt", "content"]),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const userId = ctx.user?.id?.toString() || "anonymous";
+        const db = getDb();
+        let provider: "google" | "groq" | "minimax" | "aimlapi" | "ollama" | undefined;
+        if (db) {
+          const rows = await db
+            .select()
+            .from(siteSettings)
+            .where(eq(siteSettings.key, "aiProvider"))
+            .limit(1);
+          provider = rows[0]?.value as any;
+        }
+
+        const systemPrompt =
+          input.tone === "biblical"
+            ? "Tu es un assistant rédactionnel chrétien. Améliore le texte donné en lui donnant une tonalité spirituelle et biblique, avec des références aux Écritures si pertinent. Garde la structure et la longueur similaires."
+            : "Tu es un assistant rédactionnel expert en reformulation. Réécris le texte en substituant des mots, des phrases et des paragraphes pour le rendre unique et plus attrayant tout en transmettant fidèlement le message d'origine. Garde la structure et la longueur similaires.";
+
+        const fieldHint =
+          input.field === "excerpt"
+            ? " (résumé / description courte)"
+            : " (contenu principal)";
+
+        const prompt = `Améliore le texte suivant${fieldHint} :\n\n${input.text}`;
+        const startTime = Date.now();
+        checkUserQuota(userId, estimateTokens(input.text) + 200);
+
+        try {
+          const response = await invokeLLMWithFallback({
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: prompt },
+            ],
+            provider,
+          });
+          const improved = response.choices[0].message.content as string;
+          logAiUsage({
+            timestamp: new Date(), userId, provider: provider || "groq", model: response.model,
+            endpoint: "ai.improveText", inputTokens: estimateTokens(input.text),
+            outputTokens: estimateTokens(improved), totalTokens: estimateTokens(input.text) + estimateTokens(improved),
+            success: true, durationMs: Date.now() - startTime,
+          });
+          return improved;
+        } catch (err: any) {
+          logAiUsage({
+            timestamp: new Date(), userId, provider: provider || "groq",
+            model: "unknown", endpoint: "ai.improveText",
+            inputTokens: estimateTokens(input.text), outputTokens: 0,
+            totalTokens: estimateTokens(input.text), success: false,
+            error: err.message, durationMs: Date.now() - startTime,
+          });
+          throw err;
+        }
+      }),
+
+    spellCheck: adminProcedure
+      .input(z.object({ text: z.string().min(1) }))
+      .mutation(async ({ input, ctx }) => {
+        const userId = ctx.user?.id?.toString() || "anonymous";
+        const db = getDb();
+        let provider: "google" | "groq" | "minimax" | "aimlapi" | "ollama" | undefined;
+        if (db) {
+          const rows = await db
+            .select()
+            .from(siteSettings)
+            .where(eq(siteSettings.key, "aiProvider"))
+            .limit(1);
+          provider = rows[0]?.value as any;
+        }
+
+        const prompt = `Corrige uniquement les fautes d'orthographe, de grammaire et de conjugaison dans le texte suivant. Ne modifie PAS le style, le ton ou le contenu. Réponds uniquement avec le texte corrigé, sans commentaires.\n\n${input.text}`;
+        const startTime = Date.now();
+        checkUserQuota(userId, estimateTokens(input.text) + 100);
+
+        try {
+          const response = await invokeLLMWithFallback({
+            messages: [
+              {
+                role: "system",
+                content: "Tu es un correcteur orthographique français. Tu corriges uniquement les erreurs sans reformuler.",
+              },
+              { role: "user", content: prompt },
+            ],
+            provider,
+          });
+          const corrected = response.choices[0].message.content as string;
+          logAiUsage({
+            timestamp: new Date(), userId, provider: provider || "groq", model: response.model,
+            endpoint: "ai.spellCheck", inputTokens: estimateTokens(input.text),
+            outputTokens: estimateTokens(corrected), totalTokens: estimateTokens(input.text) + estimateTokens(corrected),
+            success: true, durationMs: Date.now() - startTime,
+          });
+          return corrected;
+        } catch (err: any) {
+          logAiUsage({
+            timestamp: new Date(), userId, provider: provider || "groq",
+            model: "unknown", endpoint: "ai.spellCheck",
+            inputTokens: estimateTokens(input.text), outputTokens: 0,
+            totalTokens: estimateTokens(input.text), success: false,
             error: err.message, durationMs: Date.now() - startTime,
           });
           throw err;
@@ -2327,6 +2440,24 @@ return { url };
       .mutation(async ({ input }) => {
         
         return deleteAnnouncement(input.id);
+      }),
+  }),
+  agents: router({
+    list: adminProcedure.query(async () => {
+      const { listAgents } = await import("./_core/agents.js");
+      return listAgents();
+    }),
+    run: adminProcedure
+      .input(z.object({ id: z.string().min(1) }))
+      .mutation(async ({ input }) => {
+        const { runAgent } = await import("./_core/agents.js");
+        return runAgent(input.id);
+      }),
+    logs: adminProcedure
+      .input(z.object({ limit: z.number().optional().default(50) }))
+      .query(async ({ input }) => {
+        const { getAgentLogs } = await import("./_core/agents.js");
+        return getAgentLogs(input.limit);
       }),
   }),
 });
