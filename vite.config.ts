@@ -164,21 +164,17 @@ export default defineConfig({
     ...(enableBundleAnalyzer ? [visualizer({ filename: "dist/stats.html", open: true, gzipSize: true, brotliSize: true })] : []),
   ],
     resolve: {
-    alias: {
-      "@": path.resolve(import.meta.dirname, "client", "src"),
-      "@shared": path.resolve(import.meta.dirname, "shared"),
-      "@assets": path.resolve(import.meta.dirname, "attached_assets"),
-      react: path.resolve(import.meta.dirname, "node_modules/react"),
-      "react-dom": path.resolve(import.meta.dirname, "node_modules/react-dom"),
-      "react/jsx-runtime": path.resolve(
-        import.meta.dirname,
-        "node_modules/react/jsx-runtime"
-      ),
-      "react/jsx-dev-runtime": path.resolve(
-        import.meta.dirname,
-        "node_modules/react/jsx-dev-runtime"
-      ),
-    },
+    alias: [
+      { find: "@", replacement: path.resolve(import.meta.dirname, "client", "src") },
+      { find: "@shared", replacement: path.resolve(import.meta.dirname, "shared") },
+      { find: "@assets", replacement: path.resolve(import.meta.dirname, "attached_assets") },
+      { find: "react", replacement: path.resolve(import.meta.dirname, "node_modules/react") },
+      { find: "react-dom", replacement: path.resolve(import.meta.dirname, "node_modules/react-dom") },
+      { find: "react/jsx-runtime", replacement: path.resolve(import.meta.dirname, "node_modules/react/jsx-runtime") },
+      { find: "react/jsx-dev-runtime", replacement: path.resolve(import.meta.dirname, "node_modules/react/jsx-dev-runtime") },
+      { find: /^shiki$/, replacement: path.resolve(import.meta.dirname, "client/src/lib/shiki-light.ts") },
+      { find: /^shiki\/engine\/javascript$/, replacement: "@shikijs/engine-javascript" },
+    ],
     dedupe: ["react", "react-dom"],
   },
   envDir: path.resolve(import.meta.dirname),
