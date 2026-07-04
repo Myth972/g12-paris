@@ -116,7 +116,7 @@ const AnnouncementCard = memo(function AnnouncementCard({
   return (
     <div className={`relative flex flex-col sm:flex-row gap-2 p-2 sm:p-3 rounded-lg bg-card border border-border/50 shadow-sm hover:shadow-md hover:border-border/80 transition-all duration-300 group ${className}`}>
       {/* Image */}
-      <div className="relative w-full sm:w-24 h-28 sm:h-20 rounded-md overflow-hidden flex-shrink-0 bg-muted flex items-center justify-center">
+      <div className="relative w-full sm:w-24 md:w-32 lg:w-36 h-28 sm:h-20 md:h-24 lg:h-28 rounded-md overflow-hidden flex-shrink-0 bg-muted flex items-center justify-center">
         <img
           src={imageUrl}
           alt={title}

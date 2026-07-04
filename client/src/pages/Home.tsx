@@ -241,8 +241,25 @@ const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, categor
       {/* Articles grid */}
       <Reveal variant="fadeUp" delay={0.1}>
       <section className="container pb-16 border-t border-border/30 pt-16">
+        {/* Section header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-2">
+            <Newspaper className="w-4 h-4 text-primary" />
+            <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-primary font-sans">
+              Articles récents
+            </span>
+          </div>
+          <Link
+            href="/categorie/actualité"
+            className="text-xs font-medium text-primary hover:text-primary/80 transition-colors flex items-center gap-1"
+          >
+            Voir tout
+            <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {Array.from({ length: 6 }).map((_, i) => (
               <div
                 key={i}

@@ -1,4 +1,4 @@
-import { Newspaper, Mail, Send } from "lucide-react";
+import { Newspaper, Mail, Send, Facebook, Instagram, Youtube } from "lucide-react";
 import { Link } from "wouter";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
@@ -55,7 +55,9 @@ export default function SiteFooter() {
                 { labelKey: "nav.dailyPost", defaultLabel: "Publication du jour", href: "/publication-du-jour" },
                 { labelKey: "nav.galleries", defaultLabel: "Galeries", href: "/galeries" },
                 { labelKey: "nav.onlineService", defaultLabel: "Culte en ligne", href: "/culte-en-ligne" },
+                { labelKey: "nav.convention", defaultLabel: "Convention G12 France", href: "/culte-en-ligne/convention" },
                 { labelKey: "nav.library", defaultLabel: "Bibliothèque", href: "/bibliotheque" },
+                { labelKey: "nav.vision", defaultLabel: "À propos / Vision", href: "/bibliotheque/vision" },
               ].map(cat => (
                 <li key={cat.href}>
                   <Link
@@ -109,10 +111,31 @@ export default function SiteFooter() {
           </div>
         </div>
 
-        <div className="border-t border-primary-foreground/10 mt-8 pt-6 text-center">
-          <p className="text-xs text-primary-foreground/50">
-            {t('footer.copyright', `© ${year} G12 Paris infos médias. Tous droits réservés.`)}
-          </p>
+        {/* Social links */}
+        <div className="border-t border-primary-foreground/10 mt-8 pt-6">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              {[
+                { href: "https://www.facebook.com/G12France/", icon: <Facebook className="w-5 h-5" />, label: "Facebook" },
+                { href: "https://www.instagram.com/cci.paris/", icon: <Instagram className="w-5 h-5" />, label: "Instagram" },
+                { href: "https://www.youtube.com/@media.mpecciparis", icon: <Youtube className="w-5 h-5" />, label: "YouTube" },
+              ].map(social => (
+                <a
+                  key={social.label}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary-foreground/50 hover:text-primary-foreground transition-colors"
+                  aria-label={social.label}
+                >
+                  {social.icon}
+                </a>
+              ))}
+            </div>
+            <p className="text-xs text-primary-foreground/50">
+              {t('footer.copyright', `© ${year} G12 Paris infos médias. Tous droits réservés.`)}
+            </p>
+          </div>
         </div>
       </div>
     </footer>
