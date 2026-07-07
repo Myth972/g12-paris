@@ -386,7 +386,7 @@ export default function AdminBibliotheque() {
       <div className="bg-card border-b sticky top-0 z-10">
         <div className="container py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => setLocation("/admin")}>
+            <Button variant="ghost" size="icon" onClick={() => setLocation("/admin")} aria-label="Retour">
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
@@ -474,10 +474,10 @@ export default function AdminBibliotheque() {
                     <SelectItem value="price">{t('admin.bibliotheque.sortPrice')}</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="outline" size="icon" onClick={() => setSortDirection(d => d === "asc" ? "desc" : "asc")}>
+                <Button variant="outline" size="icon" onClick={() => setSortDirection(d => d === "asc" ? "desc" : "asc")} aria-label="Inverser l'ordre">
                   {sortDirection === "asc" ? <ArrowUp className="w-4 h-4" /> : <ArrowDown className="w-4 h-4" />}
                 </Button>
-                <Button variant="outline" size="icon" onClick={() => { setSearchQuery(""); setSelectedType("all"); setSelectedTheme("all"); setCurrentPage(1); }}>
+                <Button variant="outline" size="icon" onClick={() => { setSearchQuery(""); setSelectedType("all"); setSelectedTheme("all"); setCurrentPage(1); }} aria-label="Réinitialiser les filtres">
                   <X className="w-4 h-4" />
                 </Button>
               </div>
@@ -593,6 +593,7 @@ export default function AdminBibliotheque() {
                                   size="icon" 
                                   className="h-8 w-8"
                                   title={item.published ? t('admin.bibliotheque.unpublish') : t('admin.bibliotheque.publish')}
+                                  aria-label={item.published ? t('admin.bibliotheque.unpublish') : t('admin.bibliotheque.publish')}
                                   onClick={() => handleTogglePublish(item)}
                                 >
                                   {item.published ? <X className="w-4 h-4" /> : <Check className="w-4 h-4" />}
@@ -602,6 +603,7 @@ export default function AdminBibliotheque() {
                                   size="icon" 
                                   className="h-8 w-8"
                                   title={t('admin.bibliotheque.preview')}
+                                  aria-label={t('admin.bibliotheque.preview')}
                                   asChild
                                 >
                                   <Link href={`/bibliotheque/livre/${item.id}`} target="_blank">
@@ -610,7 +612,7 @@ export default function AdminBibliotheque() {
                                 </Button>
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                                    <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Actions">
                                       <MoreVertical className="w-4 h-4" />
                                     </Button>
                                   </DropdownMenuTrigger>
@@ -756,7 +758,7 @@ export default function AdminBibliotheque() {
                             </div>
                           )}
                           <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                            <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full" onClick={() => window.open(media.mediaUrl, '_blank')}>
+                            <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full" onClick={() => window.open(media.mediaUrl, '_blank')} aria-label="Voir le média">
                               <Eye className="w-4 h-4" />
                             </Button>
                             <Button 
@@ -766,6 +768,7 @@ export default function AdminBibliotheque() {
                               onClick={() => {
                                 if (confirm(t('admin.bibliotheque.confirmDeleteMedia'))) deleteMediaMutation.mutate({ id: media.id });
                               }}
+                              aria-label="Supprimer le média"
                             >
                               <Trash2 className="w-4 h-4" />
                             </Button>
@@ -895,7 +898,7 @@ export default function AdminBibliotheque() {
                     <div key={i} className="flex items-center justify-between p-3 border rounded-lg hover:border-primary/50 transition-colors bg-muted/20">
                       <span className="font-medium capitalize">{cat}</span>
                       <div className="flex gap-2">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedType(cat)}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedType(cat)} aria-label={`Filtrer par ${cat}`}>
                           <Filter className="w-4 h-4" />
                         </Button>
                         <Button 
@@ -908,6 +911,7 @@ export default function AdminBibliotheque() {
                               deleteCategoryMutation.mutate({ id: catObj.id });
                             }
                           }}
+                          aria-label={`Supprimer la catégorie ${cat}`}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -930,7 +934,7 @@ export default function AdminBibliotheque() {
                         <span className="font-medium capitalize">{theme}</span>
                       </div>
                       <div className="flex gap-2">
-                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedTheme(theme)}>
+                        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setSelectedTheme(theme)} aria-label={`Filtrer par ${theme}`}>
                           <Filter className="w-4 h-4" />
                         </Button>
                         <Button 
@@ -943,6 +947,7 @@ export default function AdminBibliotheque() {
                               deleteThemeMutation.mutate({ id: themeObj.id });
                             }
                           }}
+                          aria-label={`Supprimer le thème ${theme}`}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -1035,7 +1040,7 @@ export default function AdminBibliotheque() {
                           <Pencil className="w-4 h-4 mr-2" /> {t('admin.bibliotheque.editOffer')}
                         </Link>
                       </Button>
-                      <Button variant="outline" size="icon" className="text-destructive" onClick={() => handleDelete(offre.id)}>
+                      <Button variant="outline" size="icon" className="text-destructive" onClick={() => handleDelete(offre.id)} aria-label="Supprimer l'offre">
                         <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
@@ -1105,6 +1110,7 @@ export default function AdminBibliotheque() {
                                     if(confirm(t('admin.bibliotheque.confirmDeleteSubscriber'))) 
                                       deleteSubscriberMutation.mutate({ id: sub.id });
                                   }}
+                                  aria-label="Supprimer l'abonné"
                                 >
                                   <Trash2 size={12} />
                                 </Button>

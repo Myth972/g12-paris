@@ -239,6 +239,7 @@ export default function VersesManager() {
                       type="button"
                       disabled={isUploading}
                       className="relative shrink-0"
+                      aria-label="Uploader une image"
                     >
                       {isUploading ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -341,6 +342,7 @@ export default function VersesManager() {
                       type="button"
                       disabled={isUploading}
                       className="relative shrink-0"
+                      aria-label="Uploader une image"
                     >
                       {isUploading ? (
                         <Loader2 className="w-4 h-4 animate-spin" />

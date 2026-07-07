@@ -35,6 +35,7 @@ import {
   countUnreadNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
+  countGalleryItems,
   getFeaturedGalleryItems,
   getAllGalleryItems,
   getGalleryItemById,
@@ -615,8 +616,11 @@ export const appRouter = router({
       )
       .query(async ({ input }) => {
         const { limit = 20, offset = 0, category } = input ?? {};
-        const items = await getAllGalleryItems(limit, offset, true, category);
-        return { items };
+        const [items, total] = await Promise.all([
+          getAllGalleryItems(limit, offset, true, category),
+          countGalleryItems(true, category),
+        ]);
+        return { items, total };
       }),
 
     listAdmin: adminProcedure

@@ -87,9 +87,9 @@ export default function SiteHeader() {
               />
             </span>
             <div className="hidden sm:block">
-              <h1 className="text-lg font-bold leading-tight tracking-tight text-foreground font-serif">
+              <span className="text-lg font-bold leading-tight tracking-tight text-foreground font-serif">
                 G12 Paris
-              </h1>
+              </span>
               <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground font-sans font-medium -mt-0.5">
                 infos médias
               </p>
@@ -239,6 +239,7 @@ export default function SiteHeader() {
                 size="icon"
                 className="lg:hidden ml-1 sm:ml-2 touch-manipulation"
                 onClick={() => setMobileOpen(!mobileOpen)}
+                aria-label="Menu de navigation"
               >
                 {mobileOpen ? (
                   <X className="w-5 h-5 sm:w-6 sm:h-6" />

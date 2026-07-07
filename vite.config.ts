@@ -4,7 +4,6 @@ import react from "@vitejs/plugin-react";
 import fs from "node:fs";
 import path from "node:path";
 import { defineConfig, type Plugin, type ViteDevServer } from "vite";
-import { vitePluginManusRuntime } from "vite-plugin-manus-runtime";
 import { visualizer } from "rollup-plugin-visualizer";
 
 // =============================================================================
@@ -151,6 +150,7 @@ function vitePluginManusDebugCollector(): Plugin {
   };
 }
 
+const isProduction = process.env.NODE_ENV === "production";
 const enableManusDebugCollector = process.env.MANUS_DEBUG_COLLECTOR === "true";
 const enableBundleAnalyzer = process.env.ANALYZE === "true";
 
@@ -159,7 +159,6 @@ export default defineConfig({
     react(),
     tailwindcss(),
     jsxLocPlugin(),
-    vitePluginManusRuntime(),
     ...(enableManusDebugCollector ? [vitePluginManusDebugCollector()] : []),
     ...(enableBundleAnalyzer ? [visualizer({ filename: "dist/stats.html", open: true, gzipSize: true, brotliSize: true })] : []),
   ],
@@ -221,19 +220,13 @@ export default defineConfig({
             ) {
               return "vendor-data";
             }
-            // 5. AI & Code Formatting
-            if (id.includes("shiki") || id.includes("streamdown")) {
+            // 5. AI & Code Formatting (shiki grammars + streamdown)
+            if (id.includes("@shikijs") || id.includes("streamdown")) {
               return "vendor-ai-highlight";
             }
             // 6. Diagrams & Visualizations (Isolés pour éviter les conflits d'initialisation)
-            if (id.includes("mermaid")) {
-              return "vendor-mermaid";
-            }
             if (id.includes("katex")) {
               return "vendor-katex";
-            }
-            if (id.includes("cytoscape")) {
-              return "vendor-visuals";
             }
           }
         },

@@ -109,7 +109,7 @@ export default function StudiesResourcesPage() {
                         <p className="text-xs text-muted-foreground">Document PDF • {pdf.size}</p>
                       </div>
                     </div>
-                    <Button size="icon" variant="ghost" className="rounded-full hover:bg-primary hover:text-white transition-all">
+                    <Button size="icon" variant="ghost" className="rounded-full hover:bg-primary hover:text-white transition-all" aria-label="Télécharger">
                       <Download className="w-5 h-5" />
                     </Button>
                   </div>

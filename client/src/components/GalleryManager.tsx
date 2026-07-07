@@ -582,6 +582,7 @@ export default function GalleryManager() {
                           size="icon"
                           className="h-8 w-8"
                           title="Modifier"
+                          aria-label="Modifier"
                           onClick={() => startEdit(item)}
                         >
                           <Pencil className="w-4 h-4" />
@@ -591,6 +592,7 @@ export default function GalleryManager() {
                           size="icon"
                           className="h-8 w-8"
                           title={item.visible !== false ? "Masquer" : "Afficher"}
+                          aria-label={item.visible !== false ? "Masquer" : "Afficher"}
                           onClick={() =>
                             updateMutation.mutate({
                               id: item.id,
@@ -612,6 +614,7 @@ export default function GalleryManager() {
                             if (confirm("Supprimer ce média ?"))
                               deleteMutation.mutate({ id: item.id });
                           }}
+                          aria-label="Supprimer"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>

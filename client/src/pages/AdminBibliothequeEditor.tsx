@@ -360,7 +360,7 @@ export default function AdminBibliothequeEditor() {
       <div className="bg-card border-b sticky top-0 z-20 shadow-sm">
         <div className="container py-2 sm:py-3 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <div className="flex items-center gap-2 sm:gap-4">
-            <Button variant="ghost" size="icon" className="touch-manipulation" onClick={() => setLocation("/admin/bibliotheque")}>
+            <Button variant="ghost" size="icon" className="touch-manipulation" onClick={() => setLocation("/admin/bibliotheque")} aria-label="Retour">
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
@@ -725,7 +725,7 @@ export default function AdminBibliothequeEditor() {
                   onKeyDown={addTag}
                   className="pr-10"
                 />
-                <Button type="button" size="icon" variant="ghost" className="absolute right-1 top-1 bottom-1 h-auto" onClick={(e) => addTag({ key: 'Enter', preventDefault: () => e.preventDefault() } as any)}>
+                <Button type="button" size="icon" variant="ghost" className="absolute right-1 top-1 bottom-1 h-auto" onClick={(e) => addTag({ key: 'Enter', preventDefault: () => e.preventDefault() } as any)} aria-label="Ajouter un tag">
                   <Plus className="w-4 h-4" />
                 </Button>
               </div>

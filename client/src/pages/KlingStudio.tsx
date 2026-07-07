@@ -318,6 +318,7 @@ export default function KlingStudio() {
                       size="icon"
                       className="absolute top-2 right-2 w-6 h-6 rounded-full"
                       onClick={() => setVidImage(null)}
+                      aria-label="Supprimer l'image de référence"
                     >
                       <X className="w-3 h-3" />
                     </Button>

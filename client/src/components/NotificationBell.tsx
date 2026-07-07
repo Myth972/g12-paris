@@ -143,6 +143,7 @@ const NotificationBell = memo(function NotificationBell() {
           variant="ghost"
           size="icon"
           className="relative h-9 w-9 hover:bg-accent/80 transition-colors"
+          aria-label="Notifications"
         >
           <AnimatePresence mode="wait">
             {unreadCount > 0 ? (

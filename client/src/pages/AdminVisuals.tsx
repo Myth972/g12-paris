@@ -155,6 +155,7 @@ export default function AdminVisuals() {
               variant="ghost"
               size="icon"
               onClick={() => setLocation("/admin")}
+              aria-label="Retour"
             >
               <ArrowLeft className="w-5 h-5" />
             </Button>

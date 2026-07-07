@@ -185,8 +185,8 @@ function WhatsAppSliderSection() {
                     )}
                   </div>
                   <div className="flex items-center gap-1 shrink-0 pt-0.5">
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-foreground/60 hover:text-foreground" onClick={() => handleEdit(item)}>{editIcon}</Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive/70 hover:text-destructive" onClick={() => { if (confirm("Supprimer ce slide ?")) deleteMutation.mutate({ id: item.id }); }}>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-foreground/60 hover:text-foreground" onClick={() => handleEdit(item)} aria-label="Modifier">{editIcon}</Button>
+                    <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive/70 hover:text-destructive" onClick={() => { if (confirm("Supprimer ce slide ?")) deleteMutation.mutate({ id: item.id }); }} aria-label="Supprimer">
                       <Trash2 className="w-3.5 h-3.5" />
                     </Button>
                   </div>
@@ -532,8 +532,8 @@ function ItemCard({ item, icon, onEdit, onDelete }: {
             )}
           </div>
           <div className="flex items-center gap-1 shrink-0 pt-0.5">
-            <Button variant="ghost" size="icon" className="h-7 w-7 text-foreground/60 hover:text-foreground" onClick={onEdit}>{editIcon}</Button>
-            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive/70 hover:text-destructive" onClick={onDelete}>
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-foreground/60 hover:text-foreground" onClick={onEdit} aria-label="Modifier">{editIcon}</Button>
+            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive/70 hover:text-destructive" onClick={onDelete} aria-label="Supprimer">
               <Trash2 className="w-3.5 h-3.5" />
             </Button>
           </div>

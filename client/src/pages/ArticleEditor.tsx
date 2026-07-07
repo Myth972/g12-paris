@@ -311,6 +311,7 @@ export default function ArticleEditor() {
                 size="icon"
                 className="touch-manipulation"
                 onClick={() => setLocation("/admin")}
+                aria-label="Retour"
               >
                 <ArrowLeft className="w-5 h-5" />
               </Button>
@@ -579,6 +580,7 @@ export default function ArticleEditor() {
                     setCoverImageUrl("");
                     setCoverImageKey("");
                   }}
+                  aria-label="Supprimer l'image de couverture"
                 >
                   <X className="w-4 h-4" />
                 </Button>

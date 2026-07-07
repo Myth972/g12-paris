@@ -248,6 +248,7 @@ function ArticlesTab() {
                         size="icon"
                         className="h-8 w-8"
                         title={article.published ? t('admin.articlesTab.unpublish') : t('admin.articlesTab.publish')}
+                        aria-label={article.published ? t('admin.articlesTab.unpublish') : t('admin.articlesTab.publish')}
                         onClick={() =>
                           togglePublish.mutate({
                             id: article.id,
@@ -266,6 +267,7 @@ function ArticlesTab() {
                         size="icon"
                         className="h-8 w-8"
                         asChild
+                        aria-label="Modifier l'article"
                       >
                         <Link href={`/admin/article/${article.id}`}>
                           <Pencil className="w-4 h-4" />
@@ -276,6 +278,7 @@ function ArticlesTab() {
                         size="icon"
                         className="h-8 w-8 text-destructive hover:text-destructive"
                         onClick={() => setDeleteId(article.id)}
+                        aria-label="Supprimer l'article"
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -449,6 +452,7 @@ function NotificationsTab() {
                     size="icon"
                     className="h-8 w-8 text-destructive hover:text-destructive flex-shrink-0"
                     onClick={() => setDeleteId(notif.id)}
+                    aria-label="Supprimer la notification"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -1232,6 +1236,7 @@ function UsersTab() {
                       className="text-destructive"
                       onClick={() => handleDelete(u.id)}
                       disabled={u.role === "admin"}
+                      aria-label="Supprimer l'utilisateur"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>

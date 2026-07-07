@@ -1,4 +1,4 @@
-import { eq, desc, and, sql, asc, notInArray, inArray } from "drizzle-orm";
+import { eq, desc, and, sql, asc, notInArray, inArray, count } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/libsql";
 import { createClient } from "@libsql/client";
 import {
@@ -554,6 +554,26 @@ export async function getAllGalleryItems(limit = 50, offset = 0, visibleOnly = t
     ...r.item,
     verse: r.verse,
   }));
+}
+
+export async function countGalleryItems(visibleOnly = true, category?: string) {
+  const db = getDb();
+  assertDb(db);
+
+  const conditions = [];
+  if (visibleOnly) {
+    conditions.push(eq(galleryItems.visible, true));
+  }
+  if (category) {
+    conditions.push(eq(galleryItems.category, category));
+  }
+
+  const [row] = await db
+    .select({ total: count() })
+    .from(galleryItems)
+    .where(conditions.length > 0 ? and(...conditions) : undefined);
+
+  return row?.total ?? 0;
 }
 
 export async function createGalleryItem(data: any) {

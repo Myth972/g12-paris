@@ -274,13 +274,13 @@ function NavigationEditor() {
                 checked={item.visible}
                 onCheckedChange={(v) => updateItem(index, "visible", v)}
               />
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => moveUp(index)} disabled={index === 0}>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => moveUp(index)} disabled={index === 0} aria-label="Monter">
                 <ChevronUp className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => moveDown(index)} disabled={index === nav.length - 1}>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => moveDown(index)} disabled={index === nav.length - 1} aria-label="Descendre">
                 <ChevronDown className="w-4 h-4" />
               </Button>
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeItem(index)}>
+              <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => removeItem(index)} aria-label="Supprimer">
                 <Trash2 className="w-4 h-4" />
               </Button>
             </div>

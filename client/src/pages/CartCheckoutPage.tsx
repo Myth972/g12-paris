@@ -68,9 +68,9 @@ export default function CartCheckoutPage() {
                   
                   <div className="sm:col-span-2 flex justify-center">
                     <div className="flex items-center border rounded-md">
-                      <button className="px-3 py-1 hover:bg-muted text-muted-foreground">-</button>
+                      <button className="px-3 py-1 hover:bg-muted text-muted-foreground" aria-label="Diminuer la quantité">-</button>
                       <span className="px-2 w-8 text-center text-sm font-medium">{item.quantity}</span>
-                      <button className="px-3 py-1 hover:bg-muted text-muted-foreground">+</button>
+                      <button className="px-3 py-1 hover:bg-muted text-muted-foreground" aria-label="Augmenter la quantité">+</button>
                     </div>
                   </div>
                   

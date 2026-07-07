@@ -97,6 +97,7 @@ export function AISearch() {
                 size="icon"
                 className="absolute right-2 h-10 w-10 text-primary-foreground"
                 disabled={!query.trim() || searchMutation.isPending}
+                aria-label="Rechercher"
               >
                 {searchMutation.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

@@ -18,7 +18,7 @@ import {
 import YouTubeEmbed from "@/components/YouTubeEmbed";
 import PageTitleEditor from "@/components/PageTitleEditor";
 import PageTextEditor from "@/components/PageTextEditor";
-import { ChevronRight, Quote, Heart, Sparkles, BookOpen, ImageIcon, Video, Pencil, Save, X, Loader2, Upload } from "lucide-react";
+import { ChevronRight, Quote, Heart, Sparkles, BookOpen, ImageIcon, Pencil, Save, X, Loader2, Upload } from "lucide-react";
 import { useState, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useMotionEnabled } from "@/hooks/useMotionEnabled";
@@ -81,9 +81,10 @@ export default function GalleriesPage() {
   const { data: featuredData } = trpc.gallery.featured.useQuery();
 
   const items = data?.items ?? [];
+  const total = data?.total ?? 0;
   const featured = featuredData ?? [];
-  const carouselItems = items.filter((i: any) => i.verse).slice(0, 8);
-  const pictureOfDay = featured.find((i: any) => i.type === "image" && i.verse) ?? null;
+  const carouselItems = featured.filter((i: any) => i.verse).slice(0, 8);
+  const pictureOfDay = featured.find((i: any) => i.type === "image" && i.verse) ?? featured.find((i: any) => i.verse) ?? featured[0] ?? null;
 
   const handleCategoryChange = useCallback((key: string) => {
     setActiveCategory(prev => prev === key ? "" : key);
@@ -122,6 +123,13 @@ export default function GalleriesPage() {
     onError: err => toast.error("Erreur verset : " + err.message),
   });
 
+  const createVerseMutation = trpc.verses.create.useMutation({
+    onSuccess: () => {
+      utils.gallery.featured.invalidate();
+    },
+    onError: err => toast.error("Erreur création verset : " + err.message),
+  });
+
   const startEditing = useCallback(() => {
     if (!pictureOfDay) return;
     setDraftTitle(pictureOfDay.title || "");
@@ -134,24 +142,40 @@ export default function GalleriesPage() {
     setEditing(true);
   }, [pictureOfDay]);
 
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
     if (!pictureOfDay) return;
+
+    let verseId: number | null = pictureOfDay.verse?.id ?? null;
+
+    if (draftVerseRef.trim() && draftVerseText.trim()) {
+      if (verseId) {
+        await updateVerseMutation.mutateAsync({
+          id: verseId,
+          text: draftVerseText,
+          reference: draftVerseRef,
+          summary: draftVerseSummary,
+        });
+      } else {
+        const newVerse = await createVerseMutation.mutateAsync({
+          text: draftVerseText,
+          reference: draftVerseRef,
+          summary: draftVerseSummary,
+        });
+        verseId = newVerse.id;
+      }
+    } else {
+      verseId = null;
+    }
+
     updateGalleryMutation.mutate({
       id: pictureOfDay.id,
       title: draftTitle,
       category: draftCategory,
       mediaUrl: draftMediaUrl || undefined,
       mediaKey: draftMediaKey || undefined,
+      verseId,
     });
-    if (pictureOfDay.verse?.id) {
-      updateVerseMutation.mutate({
-        id: pictureOfDay.verse.id,
-        text: draftVerseText,
-        reference: draftVerseRef,
-        summary: draftVerseSummary,
-      });
-    }
-  }, [pictureOfDay, draftTitle, draftCategory, draftVerseText, draftVerseRef, draftVerseSummary, updateGalleryMutation, updateVerseMutation]);
+  }, [pictureOfDay, draftTitle, draftCategory, draftVerseText, draftVerseRef, draftVerseSummary, draftMediaUrl, draftMediaKey, updateGalleryMutation, updateVerseMutation, createVerseMutation]);
 
   const cancelEditing = useCallback(() => {
     setEditing(false);
@@ -245,14 +269,19 @@ export default function GalleriesPage() {
                       )}
                       <div className="flex items-center gap-2">
                         <Input value={draftMediaUrl} onChange={e => setDraftMediaUrl(e.target.value)} placeholder="URL de l'image" className="flex-1 text-xs" />
-                        <Button variant="outline" size="icon" type="button" disabled={isUploading} className="relative shrink-0">
+                        <Button variant="outline" size="icon" type="button" disabled={isUploading} className="relative shrink-0" aria-label="Uploader une image">
                           {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
                           <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={async e => {
                             const file = e.target.files?.[0];
                             if (!file) return;
-                            const result = await uploadFile({ file, folder: "gallery" });
-                            setDraftMediaUrl(result.url);
-                            setDraftMediaKey(result.key || "");
+                            try {
+                              const result = await uploadFile({ file, folder: "gallery" });
+                              setDraftMediaUrl(result.url);
+                              setDraftMediaKey(result.key || "");
+                              toast.success("Image uploadée");
+                            } catch {
+                              toast.error("Erreur lors de l'upload");
+                            }
                           }} />
                         </Button>
                       </div>
@@ -581,7 +610,7 @@ export default function GalleriesPage() {
             </motion.div>
 
             {/* Pagination */}
-            {items.length >= limit && (
+            {total > limit && (
               <div className="flex items-center justify-center gap-3 mt-12">
                 <Button
                   variant="outline"
@@ -592,11 +621,12 @@ export default function GalleriesPage() {
                   Précédent
                 </Button>
                 <span className="text-sm text-muted-foreground px-3">
-                  Page {page + 1}
+                  Page {page + 1} / {Math.ceil(total / limit)}
                 </span>
                 <Button
                   variant="outline"
                   size="sm"
+                  disabled={offset + limit >= total}
                   onClick={() => setPage(p => p + 1)}
                 >
                   Suivant

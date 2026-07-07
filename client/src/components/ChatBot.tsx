@@ -106,6 +106,7 @@ export function ChatBot() {
                   size="icon"
                   className="h-8 w-8"
                   onClick={() => setIsOpen(false)}
+                  aria-label="Fermer"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -213,6 +214,7 @@ export function ChatBot() {
               size="icon"
               disabled={!input.trim() || isLoading}
               className="shrink-0 h-9 w-9"
+              aria-label="Envoyer"
             >
               {isLoading ? (
                 <Loader2 className="size-4 animate-spin" />

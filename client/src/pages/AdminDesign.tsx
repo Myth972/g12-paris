@@ -219,7 +219,7 @@ export default function AdminDesign() {
       <div className="bg-card border-b sticky top-0 z-10 shadow-sm">
         <div className="container py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => setLocation("/admin")}>
+            <Button variant="ghost" size="icon" onClick={() => setLocation("/admin")} aria-label="Retour">
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>

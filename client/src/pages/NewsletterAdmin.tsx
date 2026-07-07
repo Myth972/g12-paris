@@ -148,6 +148,7 @@ export default function NewsletterAdmin() {
                       size="icon"
                       className="text-destructive hover:text-destructive"
                       onClick={() => setDeleteId(sub.id)}
+                      aria-label="Supprimer l'abonné"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>
