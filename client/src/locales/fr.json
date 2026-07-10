@@ -533,7 +533,7 @@
       },
       "kling": {
         "title": "AI Media Studio",
-        "desc": "Génération d'images (Flux) et vidéos IA (Kling v1.6 Pro) · Alimenté par AIMLAPI",
+        "desc": "Génération d'images · Alimenté par Cloudflare Workers AI",
         "tabImage": "Image",
         "tabVideo": "Vidéo",
         "imageDesc": "Description de l'image *",

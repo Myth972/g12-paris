@@ -104,7 +104,7 @@ export default function KlingStudio() {
           <Wand2 className="w-5 h-5 text-white" />
         </div>
         <div>
-          <h2 className="text-xl font-serif font-bold">{t('admin.kling.title')}</h2>
+          <h2 className="text-xl font-serif font-bold">AI Media Studio</h2>
           <p className="text-xs text-muted-foreground">
             {t('admin.kling.desc')}
           </p>

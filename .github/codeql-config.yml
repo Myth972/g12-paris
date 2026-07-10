@@ -1,0 +1,35 @@
+name: "G12 Paris Infos Médias CodeQL Config"
+
+queries:
+  - uses: security-extended
+  - uses: security-and-quality
+
+paths:
+  - client/src
+  - server
+  - shared
+  - drizzle
+
+paths-ignore:
+  - "**/node_modules"
+  - "**/dist"
+  - "**/build"
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/*.spec.ts"
+  - "**/*.spec.tsx"
+  - "tests/**"
+  - "scripts/**"
+  - "uploads/**"
+  - "backups/**"
+  - "components/ai-chat-widget/**"
+
+query-filters:
+  - exclude:
+      problem.severity:
+        - warning
+      pattern: "**/*.test.ts"
+  - exclude:
+      problem.severity:
+        - warning
+      pattern: "**/*.test.tsx"

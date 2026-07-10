@@ -533,7 +533,7 @@
       },
       "kling": {
         "title": "AI Media Studio",
-        "desc": "Image generation (Flux) and AI videos (Kling v1.6 Pro) · Powered by AIMLAPI",
+        "desc": "Image generation · Powered by Cloudflare Workers AI",
         "tabImage": "Image",
         "tabVideo": "Video",
         "imageDesc": "Image description *",

@@ -90,6 +90,7 @@ const AIChatBox = lazy(() => import("@/components/AIChatBox").then(m => ({ defau
 const HomeContentManager = lazy(() => import("@/components/HomeContentManager"));
 const AIDashboard = lazy(() => import("@/components/AIDashboard"));
 const CMSManager = lazy(() => import("@/components/CMSManager"));
+const AIArticleWriter = lazy(() => import("./AIArticleWriter"));
 
 import HomeHeroBackgroundSettings from "@/components/HomeHeroBackgroundSettings";
 import CulteHeroBackgroundSettings from "@/components/CulteHeroBackgroundSettings";
@@ -232,8 +233,8 @@ function ArticlesTab() {
                   </TableCell>
                   <TableCell>
                     <Badge
-                      variant={article.published ? "default" : "secondary"}
-                      className="text-xs"
+                      variant={article.published ? "default" : "outline"}
+                      className={`text-xs ${!article.published ? "bg-white text-blue-600 border-blue-300" : ""}`}
                     >
                       {article.published ? t('admin.articlesTab.published') : t('admin.articlesTab.draft')}
                     </Badge>
@@ -993,11 +994,15 @@ if (authLoading) {
             </TabsTrigger>
             <TabsTrigger value="ai" className="gap-2">
               <Sparkles className="w-4 h-4 text-primary" />
-              {t('admin.tabs.ai')}
+              IA
+            </TabsTrigger>
+            <TabsTrigger value="ai-writer" className="gap-2">
+              <FileText className="w-4 h-4 text-amber-500" />
+              Rédaction IA
             </TabsTrigger>
             <TabsTrigger value="kling" className="gap-2">
               <Wand2 className="w-4 h-4 text-violet-500" />
-              {t('admin.tabs.kling')}
+              AI Media Studio
             </TabsTrigger>
             <TabsTrigger value="users" className="gap-2">
               <Users className="w-4 h-4" />
@@ -1041,6 +1046,11 @@ if (authLoading) {
             <div className="mt-8">
               <AIDashboard />
             </div>
+          </TabsContent>
+          <TabsContent value="ai-writer">
+            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> Chargement...</div>}>
+              <AIArticleWriter />
+            </Suspense>
           </TabsContent>
           <TabsContent value="kling" className="py-4">
             <KlingStudio />

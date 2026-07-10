@@ -37,6 +37,7 @@ const AdminBibliothequeEditor = lazy(() => import("./pages/AdminBibliothequeEdit
 const AdminDesign = lazy(() => import("./pages/AdminDesign"));
 const AdminVisuals = lazy(() => import("./pages/AdminVisuals"));
 const AdminAgents = lazy(() => import("./pages/AdminAgents"));
+const AIArticleWriter = lazy(() => import("./pages/AIArticleWriter"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const AISearch = lazy(() => import("./components/AISearch").then(m => ({ default: m.AISearch })));
@@ -168,6 +169,7 @@ function Router() {
         <Route path="/admin/design" component={AdminDesign} />
         <Route path="/admin/visuals" component={AdminVisuals} />
         <Route path="/admin/agents" component={AdminAgents} />
+        <Route path="/admin/ai-writer" component={AIArticleWriter} />
 
         {/* Fallback */}
         <Route path="/404" component={NotFound} />

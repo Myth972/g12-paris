@@ -1769,8 +1769,8 @@ RÈGLES :
         }
       }),
 
-    // ─── Kling AI Image Generation ─────────────────────────────────
-    generateImage: adminProcedure
+    // ─── AI Image Generation (Google Imagen) ──────────────────────
+generateImage: adminProcedure
       .input(
         z.object({
           prompt: z.string().min(1).max(1000),
@@ -1781,52 +1781,114 @@ RÈGLES :
         })
       )
       .mutation(async ({ input }) => {
-        
-        if (!ENV.aimlApiKey) {
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "AIMLAPI_KEY non configurée",
-          });
+        let imageUrl: string | undefined;
+
+        // Try Cloudflare Workers AI first
+        if (ENV.cloudflareApiToken && ENV.cloudflareAccountId) {
+          try {
+            const cfResponse = await fetch(
+              `https://api.cloudflare.com/client/v4/accounts/${ENV.cloudflareAccountId}/ai/run/@cf/black-forest-labs/flux-1-schnell`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${ENV.cloudflareApiToken}`,
+                },
+                body: JSON.stringify({ prompt: input.prompt.substring(0, 500) }),
+              }
+            );
+            if (cfResponse.ok) {
+              const cfData = (await cfResponse.json()) as any;
+              const base64 = cfData?.result?.image;
+              if (base64) imageUrl = `data:image/jpeg;base64,${base64}`;
+            }
+          } catch { /* fallback */ }
         }
 
-        // AIMLAPI Kling image generation endpoint
-        const response = await fetch(
-          "https://api.aimlapi.com/v1/images/generations",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${ENV.aimlApiKey}`,
-            },
-            body: JSON.stringify({
-              model: "flux/schnell",
-              prompt: input.prompt,
-              negative_prompt: input.negativePrompt || "",
-              aspect_ratio: input.aspectRatio,
-              n: 1,
-            }),
-          }
-        );
-
-        if (!response.ok) {
-          const err = await response.text();
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: `Kling API error: ${response.status} – ${err}`,
-          });
+        // Fallback: aimlapi
+        if (!imageUrl && ENV.aimlApiKey) {
+          try {
+            const aimlResponse = await fetch(
+              "https://api.aimlapi.com/v1/images/generations",
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${ENV.aimlApiKey}`,
+                },
+                body: JSON.stringify({
+                  model: "flux/schnell",
+                  prompt: input.prompt,
+                  aspect_ratio: input.aspectRatio === "16:9" ? "16:9" : "1:1",
+                  n: 1,
+                }),
+              }
+            );
+            if (aimlResponse.ok) {
+              const aimlData = (await aimlResponse.json()) as any;
+              imageUrl = aimlData?.data?.[0]?.url || aimlData?.images?.[0]?.url || aimlData?.url;
+            }
+          } catch { /* fall through */ }
         }
 
-        const data = (await response.json()) as any;
-        const imageUrl =
-          data?.data?.[0]?.url || data?.images?.[0]?.url || data?.url;
         if (!imageUrl) {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: `Pas d'image dans la réponse: ${JSON.stringify(data).substring(0, 200)}`,
+            message: "Aucune API d'image disponible",
           });
         }
         return { url: imageUrl };
       }),
+
+    // ─── Check API Credits ─────────────────────────────────────────
+    checkApiCredits: adminProcedure.query(async () => {
+      const results: Record<string, { ok: boolean; error?: string; credits?: string }> = {};
+
+      // AIMLAPI
+      results.aimlapi = { ok: !!ENV.aimlApiKey };
+      if (ENV.aimlApiKey) {
+        try {
+          const test = await fetch(
+            "https://api.aimlapi.com/v1/models",
+            { headers: { Authorization: `Bearer ${ENV.aimlApiKey}` }, signal: AbortSignal.timeout(5000) }
+          );
+          if (test.ok) results.aimlapi = { ok: true, credits: "Connexion OK" };
+          else {
+            const err = await test.text();
+            results.aimlapi = { ok: false, error: `HTTP ${test.status}: ${err.substring(0, 100)}` };
+          }
+        } catch (e: any) {
+          results.aimlapi = { ok: false, error: e.message };
+        }
+      } else {
+        results.aimlapi = { ok: false, error: "Clé non configurée" };
+      }
+
+      // Groq
+      results.groq = { ok: !!ENV.groqApiKey };
+      if (ENV.groqApiKey) {
+        try {
+          const resp = await fetch("https://api.groq.com/openai/v1/models", {
+            headers: { Authorization: `Bearer ${ENV.groqApiKey}` },
+            signal: AbortSignal.timeout(5000),
+          });
+          if (resp.ok) {
+            const data = await resp.json();
+            const models = data?.data?.length ?? 0;
+            results.groq = { ok: true, credits: `${models} modèles disponibles` };
+          } else {
+            const err = await resp.text();
+            results.groq = { ok: false, error: `HTTP ${resp.status}: ${err.substring(0, 100)}` };
+          }
+        } catch (e: any) {
+          results.groq = { ok: false, error: e.message };
+        }
+      } else {
+        results.groq = { ok: false, error: "Clé non configurée" };
+      }
+
+      return results;
+    }),
 
     // ─── Kling AI Video Generation ─────────────────────────────────
     generateVideo: adminProcedure
@@ -1926,6 +1988,278 @@ RÈGLES :
       const userId = ctx.user?.id?.toString() || "anonymous";
       return getUserQuotaInfo(userId);
     }),
+
+    // ─── AI Article Writer — Maker (génère l'article) ────────────
+    writeArticle: editeurProcedure
+      .input(
+        zod.object({
+          topic: z.string().min(3).max(1000),
+          keywords: z.string().max(500).optional(),
+          tone: z.enum(["informatif", "spirituel", "inspirationnel", "biblique"]).default("spirituel"),
+          language: z.enum(["fr", "en", "es"]).default("fr"),
+          category: z.string().max(100).default("actualité"),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const userId = ctx.user?.id?.toString() || "anonymous";
+        const estimatedTokens = 4000;
+        checkUserQuota(userId, estimatedTokens);
+
+        const db = getDb();
+        let provider;
+        if (db) {
+          const rows = await db
+            .select()
+            .from(siteSettings)
+            .where(eq(siteSettings.key, "aiProvider"))
+            .limit(1);
+          provider = rows[0]?.value as any;
+        }
+
+        const langLabel = input.language === "fr" ? "français" : input.language === "en" ? "anglais" : "espagnol";
+
+        const toneDesc = input.tone === "biblique" ? "centré sur les Écritures, exégétique" : input.tone === "spirituel" ? "édifiant, accessible, avec une perspective chrétienne" : input.tone === "inspirationnel" ? "motivant, encourageant, tourné vers l'action" : "informatif, journalistique, clair";
+
+        // ─── Phase 1 : MAKER — Génère l'article ───────────────
+        const makerSystem = `Tu es un rédacteur professionnel pour "G12 Paris Infos Médias", site chrétien d'actualités et de ressources spirituelles.
+
+Écris un article complet en ${langLabel} sur : "${input.topic}"
+${input.keywords ? `Mots-clés : ${input.keywords}` : ""}
+Ton : ${toneDesc}
+
+RÈGLES :
+- HTML simple : <h2>, <p>, <blockquote>, <em>, <strong>, <ul>/<li>
+- 800-1500 mots, introduction + conclusion
+- Références bibliques pertinentes
+- Conclusion encourageante
+
+JSON UNIQUEMENT :
+{
+  "title": "Titre accrocheur (60-80 car.)",
+  "excerpt": "Résumé 2-3 phrases (150-200 car.)",
+  "sections": ["Section 1", "Section 2", "Section 3"],
+  "content": "HTML complet",
+  "suggestedVerse": { "reference": "...", "text": "...", "summary": "..." },
+  "seo": { "metaDescription": "...", "tags": ["..."] }
+}`;
+
+        const startTime = Date.now();
+        let data: any;
+        try {
+          const response = await invokeLLMWithFallback({
+            messages: [
+              { role: "system", content: makerSystem },
+              { role: "user", content: `Écris un article ${input.tone} en ${langLabel} sur : "${input.topic}"` },
+            ],
+            provider,
+            responseFormat: { type: "json_object" },
+          });
+          const raw = response.choices[0].message.content as string;
+          data = JSON.parse(raw);
+        } catch (err: any) {
+          logAiUsage({
+            timestamp: new Date(), userId, provider: provider || "groq", model: "unknown",
+            endpoint: "ai.writeArticle.maker", inputTokens: estimatedTokens, outputTokens: 0,
+            totalTokens: estimatedTokens, success: false, error: err.message, durationMs: Date.now() - startTime,
+          });
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: `Échec de la génération: ${err.message}` });
+        }
+
+        // ─── Phase 2 : PAS DE CHECKER — Retour direct du Maker ──────────
+          const totalTokens = estimatedTokens;
+
+          logAiUsage({
+            timestamp: new Date(), userId, provider: provider || "groq", model: "maker-direct",
+            endpoint: "ai.writeArticle",
+            inputTokens: estimatedTokens,
+            outputTokens: totalTokens,
+            totalTokens,
+            success: true,
+            durationMs: Date.now() - startTime,
+          });
+
+          return {
+            title: data.title || "",
+            excerpt: data.excerpt || "",
+            content: data.content || "",
+            sections: data.sections || [],
+            suggestedVerse: data.suggestedVerse || null,
+            seo: data.seo || { metaDescription: "", tags: [] },
+            review: { approved: true, score: 10, issues: [], suggestions: [] },
+          };
+      }),
+
+    // ─── AI Article Feedback Loop — Améliore un article existant ────
+    improveArticle: editeurProcedure
+      .input(
+        zod.object({
+          title: z.string(),
+          excerpt: z.string().optional(),
+          content: z.string(),
+          feedback: z.string().min(3).max(2000),
+          tone: z.enum(["informatif", "spirituel", "inspirationnel", "biblique"]).default("spirituel"),
+          language: z.enum(["fr", "en", "es"]).default("fr"),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const userId = ctx.user?.id?.toString() || "anonymous";
+        const estimatedTokens = 2000;
+        checkUserQuota(userId, estimatedTokens);
+
+        const db = getDb();
+        let provider;
+        if (db) {
+          const rows = await db.select().from(siteSettings).where(eq(siteSettings.key, "aiProvider")).limit(1);
+          provider = rows[0]?.value as any;
+        }
+
+        const langLabel = input.language === "fr" ? "français" : input.language === "en" ? "anglais" : "espagnol";
+        const startTime = Date.now();
+
+        try {
+          const response = await invokeLLMWithFallback({
+            messages: [
+              { role: "system", content: `Tu améliores un article pour G12 Paris Infos Médias en ${langLabel}.
+
+Retourne UNIQUEMENT ce JSON :
+{
+  "title": "Titre amélioré ou inchangé",
+  "excerpt": "Résumé amélioré ou inchangé",
+  "content": "Contenu HTML amélioré",
+  "changelog": "Résumé des modifications apportées"
+}
+
+Feedback utilisateur : "${input.feedback}"
+${input.tone === "biblique" ? "Style exégétique, centré sur les Écritures." : input.tone === "spirituel" ? "Style édifiant, accessible." : input.tone === "inspirationnel" ? "Style motivant, encourageant." : "Style informatif, journalistique."}
+Applique le feedback sans dénaturer le fond.` },
+              { role: "user", content: `Titre: ${input.title}\nRésumé: ${input.excerpt || ""}\n\nContenu:\n${input.content.substring(0, 4000)}\n\nFeedback: ${input.feedback}` },
+            ],
+            provider,
+            responseFormat: { type: "json_object" },
+          });
+
+          const raw = response.choices[0].message.content as string;
+          const data = JSON.parse(raw);
+
+          logAiUsage({
+            timestamp: new Date(), userId, provider: provider || "groq", model: response.model,
+            endpoint: "ai.improveArticle", inputTokens: estimatedTokens,
+            outputTokens: estimateTokens(raw), totalTokens: estimatedTokens + estimateTokens(raw),
+            success: true, durationMs: Date.now() - startTime,
+          });
+
+          return { title: data.title || input.title, excerpt: data.excerpt || input.excerpt, content: data.content || input.content, changelog: data.changelog || "" };
+        } catch (err: any) {
+          logAiUsage({
+            timestamp: new Date(), userId, provider: provider || "groq", model: "unknown",
+            endpoint: "ai.improveArticle", inputTokens: estimatedTokens, outputTokens: 0,
+            totalTokens: estimatedTokens, success: false, error: err.message, durationMs: Date.now() - startTime,
+          });
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: `Échec de l'amélioration: ${err.message}` });
+        }
+      }),
+
+    // ─── Generate Article Cover Image ────────────────────────────
+    generateArticleCover: editeurProcedure
+      .input(
+        z.object({
+          title: z.string().min(1).max(500),
+          excerpt: z.string().optional(),
+          tone: z.enum(["informatif", "spirituel", "inspirationnel", "biblique"]).default("spirituel"),
+          verse: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const userId = ctx.user?.id?.toString() || "anonymous";
+        checkUserQuota(userId, 200);
+
+        const db = getDb();
+        let provider;
+        if (db) {
+          const rows = await db.select().from(siteSettings).where(eq(siteSettings.key, "aiProvider")).limit(1);
+          provider = rows[0]?.value as any;
+        }
+
+        const visualPrompt = `Tu génères un prompt pour une IA de génération d'image (Flux Schnell).
+
+Transforme ce titre d'article chrétien en un prompt visuel court et efficace (max 200 car.) :
+- Style : ${input.tone === "biblique" ? "art biblique, style classique" : input.tone === "spirituel" ? "lumineux, doux, spirituel" : input.tone === "inspirationnel" ? "moderne, dynamique, inspirant" : "journalistique, épuré, professionnel"}
+- Format : paysage 16:9
+- Le verset biblique "${input.verse || ""}" doit être intégré textuellement dans l'image, de façon élégante (typographie sobre, en bas ou au centre)
+- Pas de personnes identifiables (Jésus, etc.)
+
+Retourne UNIQUEMENT le prompt, pas de JSON.`;
+
+        try {
+          const llmResponse = await invokeLLMWithFallback({
+            messages: [
+              { role: "system", content: visualPrompt },
+              { role: "user", content: `Titre: "${input.title}"${input.excerpt ? `\nRésumé: ${input.excerpt}` : ""}` },
+            ],
+            provider,
+          });
+
+          const imagePrompt = llmResponse.choices[0].message.content as string;
+
+          let imageUrl: string | undefined;
+
+          // Try Cloudflare Workers AI first
+          if (ENV.cloudflareApiToken && ENV.cloudflareAccountId) {
+            try {
+              const cfResponse = await fetch(
+                `https://api.cloudflare.com/client/v4/accounts/${ENV.cloudflareAccountId}/ai/run/@cf/black-forest-labs/flux-1-schnell`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${ENV.cloudflareApiToken}`,
+                  },
+                  body: JSON.stringify({ prompt: imagePrompt.substring(0, 500) }),
+                }
+              );
+              if (cfResponse.ok) {
+                const cfData = (await cfResponse.json()) as any;
+                const base64 = cfData?.result?.image;
+                if (base64) imageUrl = `data:image/jpeg;base64,${base64}`;
+              }
+            } catch { /* fallback */ }
+          }
+
+          // Fallback: aimlapi
+          if (!imageUrl && ENV.aimlApiKey) {
+            try {
+              const aimlResponse = await fetch(
+                "https://api.aimlapi.com/v1/images/generations",
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${ENV.aimlApiKey}`,
+                  },
+                  body: JSON.stringify({
+                    model: "flux/schnell",
+                    prompt: imagePrompt.substring(0, 500),
+                    aspect_ratio: "16:9",
+                    n: 1,
+                  }),
+                }
+              );
+              if (aimlResponse.ok) {
+                const aimlData = (await aimlResponse.json()) as any;
+                imageUrl = aimlData?.data?.[0]?.url || aimlData?.images?.[0]?.url || aimlData?.url;
+              }
+            } catch { /* fall through */ }
+          }
+
+          if (!imageUrl) {
+            throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Aucune API d'image disponible" });
+          }
+
+          return { url: imageUrl, prompt: imagePrompt };
+        } catch (err: any) {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: `Échec de la génération d'image: ${err.message}` });
+        }
+      }),
   }),
   // Newsletter router for managing subscriptions
   newsletter: router({
