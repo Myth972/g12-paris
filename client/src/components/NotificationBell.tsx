@@ -110,11 +110,12 @@ const NotificationBell = memo(function NotificationBell() {
   });
 
   const items = data?.items ?? [];
+  type NotificationItem = (typeof items)[number];
   const unreadCount = data?.unreadCount ?? 0;
 
   const groupedNotifications = useMemo(() => {
-    const groups: Record<string, any[]> = {};
-    items.forEach((notif: any) => {
+    const groups: Record<string, NotificationItem[]> = {};
+    items.forEach(notif => {
       const label = getDayLabel(notif.createdAt);
       if (!groups[label]) groups[label] = [];
       groups[label].push(notif);
@@ -236,7 +237,7 @@ const NotificationBell = memo(function NotificationBell() {
                       </span>
                     </div>
                     <div className="divide-y divide-border/40">
-                      {groupItems.map((notif: any) => {
+                      {groupItems.map(notif => {
                         const config =
                           TYPE_CONFIG[notif.type as keyof typeof TYPE_CONFIG] ??
                           TYPE_CONFIG.info;

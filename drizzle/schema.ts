@@ -89,7 +89,7 @@ export const notificationReads = sqliteTable("notification_reads", {
 }, (table) => [
   index("idx_notifreads_notification").on(table.notificationId),
   index("idx_notifreads_user").on(table.userId),
-  index("idx_notifreads_user_notif").on(table.userId, table.notificationId),
+  uniqueIndex("idx_notifreads_user_notif").on(table.userId, table.notificationId),
 ]);
 
 export type NotificationRead = typeof notificationReads.$inferSelect;

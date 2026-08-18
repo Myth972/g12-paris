@@ -215,7 +215,7 @@ export default function ProfilePage() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {notificationsQuery.data?.items?.slice(0, 5).map((notif: any) => (
+                  {notificationsQuery.data?.items?.slice(0, 5).map(notif => (
                     <div
                       key={notif.id}
                       className={`flex items-center justify-between p-3 rounded-lg ${

@@ -87,7 +87,7 @@ Plateforme web pour publier des actualités, articles, médias et gérer du cont
 ├── scripts/                       # Scripts utilitaires (backup, cron, youtube)
 ├── uploads/                       # Fichiers uploadés localement
 ├── backups/                       # Archives de sauvegarde
-└── patches/                       # Patches pnpm (wouter)
+├── patches/                       # Patches pnpm (wouter)
 ```
 
 ## Coding Conventions
@@ -124,7 +124,7 @@ Plateforme web pour publier des actualités, articles, médias et gérer du cont
 
 ### Backend (Express + tRPC)
 - **Routes** : définies dans `server/routers.ts` via `router()` tRPC
-- **Middleware auth** : `publicProcedure`, `protectedProcedure`, `adminProcedure`, `editeurProcedure`, `bibliothequeProcedure`
+- **Middleware auth** : `publicProcedure`, `protectedProcedure`, `adminProcedure`, `editeurProcedure`, `bibliothequeProcedure`, `adminOnlyProcedure` (admin seul)
 - **Rôles** : `admin`, `editeur`, `bibliotheque`, `user`
 - **Contexte** : `TrpcContext` avec `req`, `res`, `user`
 - **Validation** : Zod schemas inline dans les procédures tRPC
@@ -166,8 +166,10 @@ pnpm run db:push          # Push schéma Drizzle vers DB
 - **Unit tests** : Vitest, fichiers `*.test.ts` dans `server/`
 - **E2E tests** : Playwright, fichiers dans `tests/e2e/`
 - **Setup** : `vitest.setup.ts` (Vitest), `tests/setup/global.setup.ts` (Playwright)
+- **DB de test** : base SQLite locale isolée par worker dans `%TEMP%` (schéma poussé via `pushSQLiteSchema` dans `vitest.setup.ts`), nettoyage automatique via `tests/setup/db.teardown.ts` (globalSetup Vitest)
 - **Config Vitest** : environment `node`, include `server/**/*.test.ts`
 - **Config Playwright** : projects (chromium, firefox, webkit, mobile), webServer auto-start
+- **Attention** : ne pas utiliser `drizzle-migrations/` pour créer la DB de test (schéma obsolète) ; utiliser le schéma de `drizzle/schema.ts`
 
 ## Key Patterns
 
@@ -240,3 +242,14 @@ Variables critiques (voir `.en.example`) :
 - **Theme** : thème clair/sombre géré via `next-themes` + `ThemeContext`
 - **i18n** : 3 langues supportées (français, anglais, espagnol)
 - **Patches** : wouter@3.7.1 est patché via `patches/wouter@3.7.1.patch`
+
+## Consignes utilisateur (workflow)
+
+- **Consultation préalable obligatoire** : avant toute tâche, lire les fichiers `SYNCHRONIZATION_GUIDE.md` et `TODO_PENDING.md` situés dans `C:\Users\Myth972\Documents\` (hors dépôt git).
+- **Fichiers jamais commités** : `SYNCHRONIZATION_GUIDE.md` et `TODO_PENDING.md` ne doivent JAMAIS être sur GitHub (info locale sensible).
+- **Rôle** : assistant expert front-end (React, Next.js, Vite, Tailwind, HTML/CSS/JS). Répondre en français clair, code propre et commenté, explications étape par étape, suggestions d'amélioration, analyse des erreurs avec technique de test Pairwise.
+- **Médias** : le projet gère les médias (images JPG/PNG/WebP/AVIF/SVG/GIF, audio MP3/WAV/OGG, vidéo MP4/WebM) + optimisation automatique + mo.js/Framer Motion/GSAP. Confirmer au début d'une session que les médias peuvent être gérés.
+- **Mémorisation** : garder un historique des actions effectuées (pour ne pas les répéter) et mémoriser les fichiers importants à modifier.
+- **« À plus tard »** : sauvegarder les tâches effectuées et restantes dans `C:\Users\Myth972\Documents\TODO_PENDING.md` pour reprendre plus tard.
+- **Commit + push** : uniquement après validation explicite de l'utilisateur. Après chaque modification validée → push vers GitHub → déploiement automatique Vercel. Commande sécurisée : `git add --all -- . ":!SYNCHRONIZATION_GUIDE.md" ":!TODO_PENDING.md"`.
+- **Méthode** : appliquer la méthode kanban (Backlog / À faire / En cours / À valider / Terminé) pour suivre l'avancement.

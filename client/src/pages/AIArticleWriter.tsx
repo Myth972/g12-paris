@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import {
@@ -42,6 +42,9 @@ import {
   ListChecks,
   XCircle,
   Image,
+  Wand2,
+  Upload,
+  X,
 } from "lucide-react";
 
 const TONES = [
@@ -125,6 +128,12 @@ export default function AIArticleWriter() {
   const [contrast, setContrast] = useState(100);
   const [showImageEditor, setShowImageEditor] = useState(false);
   const [selectedBiblicalPrompt, setSelectedBiblicalPrompt] = useState<string>("");
+  const [imageLoopPrompt, setImageLoopPrompt] = useState("");
+  const [imageLoopPhase, setImageLoopPhase] = useState<"idle" | "generating" | "editing" | "done">("idle");
+  const [imageLoopResult, setImageLoopResult] = useState<string | null>(null);
+  const [imageEditFeedback, setImageEditFeedback] = useState("");
+  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const BIBLICAL_PROMPTS = [
     "aube dorée, lumière céleste traversant des nuages, paysage paisible, style biblique",
@@ -171,6 +180,18 @@ export default function AIArticleWriter() {
       toast.success("Image de couverture générée !");
     },
     onError: (err) => toast.error(err.message),
+  });
+
+  const imageLoopMutation = trpc.ai.generateImageLoop.useMutation({
+    onSuccess: (data) => {
+      setImageLoopResult(data.url);
+      setImageLoopPhase("done");
+      toast.success(data.phase === "editing" ? "Image éditée avec succès !" : "Image générée !");
+    },
+    onError: (err) => {
+      setImageLoopPhase("idle");
+      toast.error(err.message);
+    },
   });
 
   const createMutation = trpc.articles.create.useMutation({
@@ -247,6 +268,39 @@ export default function AIArticleWriter() {
       tone: tone as "informatif" | "spirituel" | "inspirationnel" | "biblique",
       verse: verseText,
     });
+  };
+
+  const handleImageLoopGenerate = () => {
+    if (!imageLoopPrompt.trim()) return;
+    setImageLoopPhase("generating");
+    imageLoopMutation.mutate({
+      prompt: imageLoopPrompt.trim(),
+      referenceImage: uploadedImage || undefined,
+    });
+  };
+
+  const handleImageLoopEdit = () => {
+    if (!imageLoopResult || !imageEditFeedback.trim()) return;
+    setImageLoopPhase("editing");
+    imageLoopMutation.mutate({
+      prompt: imageLoopPrompt.trim(),
+      referenceImage: uploadedImage || undefined,
+      editFeedback: imageEditFeedback.trim(),
+    });
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => setUploadedImage(ev.target?.result as string);
+    reader.readAsDataURL(file);
+  };
+
+  const handleSetAsCover = () => {
+    if (!imageLoopResult) return;
+    setCoverImage(imageLoopResult);
+    toast.success("Image définie comme couverture !");
   };
 
   const currentPhaseIdx = PHASE_ORDER.indexOf(
@@ -779,6 +833,107 @@ export default function AIArticleWriter() {
                   </CardContent>
                 </Card>
               )}
+
+              {/* Image Loop — Génération + Édition */}
+              <Card className="border-purple-500/20">
+                <CardHeader>
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Wand2 className="w-4 h-4 text-purple-500" />
+                    Image Loop — Génération & Édition
+                  </CardTitle>
+                  <CardDescription>Génère, édite et associe une image de couverture</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {/* Upload */}
+                  <div className="flex items-center gap-3">
+                    <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileUpload} />
+                    <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} className="gap-2">
+                      <Upload className="w-3.5 h-3.5" />
+                      {uploadedImage ? "Changer l'image" : "Uploader une image"}
+                    </Button>
+                    {uploadedImage && (
+                      <div className="flex items-center gap-2">
+                        <img src={uploadedImage} alt="Référence" className="w-10 h-10 rounded object-cover border" />
+                        <X className="w-3.5 h-3.5 cursor-pointer text-muted-foreground hover:text-destructive" onClick={() => setUploadedImage(null)} />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Prompt */}
+                  <div className="space-y-2">
+                    <Label>Prompt de génération</Label>
+                    <Textarea
+                      placeholder="Décris l'image que tu veux générer..."
+                      value={imageLoopPrompt}
+                      onChange={(e) => setImageLoopPrompt(e.target.value)}
+                      rows={2}
+                    />
+                  </div>
+
+                  {/* Generate button */}
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleImageLoopGenerate}
+                      disabled={!imageLoopPrompt.trim() || imageLoopMutation.isPending}
+                      className="gap-2"
+                    >
+                      {imageLoopMutation.isPending && imageLoopPhase === "generating" ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Sparkles className="w-4 h-4" />
+                      )}
+                      Générer l'image
+                    </Button>
+                    {imageLoopResult && (
+                      <Button variant="outline" className="gap-2" onClick={handleSetAsCover}>
+                        <Image className="w-3.5 h-3.5" />
+                        Définir comme couverture
+                      </Button>
+                    )}
+                  </div>
+
+                  {/* Result */}
+                  {imageLoopResult && (
+                    <>
+                      <div className="relative rounded-xl overflow-hidden border">
+                        <img src={imageLoopResult} alt="Générée" className="w-full object-cover rounded-xl" style={{ maxHeight: "300px" }} />
+                      </div>
+
+                      {/* Edit feedback */}
+                      <div className="space-y-2">
+                        <Label>Modifier l'image</Label>
+                        <Textarea
+                          placeholder="Ex: Rendre plus lumineux, ajouter des nuages, changer le style..."
+                          value={imageEditFeedback}
+                          onChange={(e) => setImageEditFeedback(e.target.value)}
+                          rows={2}
+                        />
+                        <Button
+                          variant="secondary"
+                          onClick={handleImageLoopEdit}
+                          disabled={!imageEditFeedback.trim() || imageLoopMutation.isPending}
+                          className="gap-2"
+                        >
+                          {imageLoopMutation.isPending && imageLoopPhase === "editing" ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <RefreshCw className="w-4 h-4" />
+                          )}
+                          Appliquer les modifications
+                        </Button>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Phase indicator */}
+                  {imageLoopPhase !== "idle" && imageLoopPhase !== "done" && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      {imageLoopPhase === "generating" ? "Génération en cours..." : "Édition en cours..."}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
 
               {/* Actions */}
               <div className="flex flex-wrap gap-3">

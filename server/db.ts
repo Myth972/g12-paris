@@ -8,6 +8,7 @@ import {
   type InsertArticle,
   notifications,
   notificationReads,
+  type Notification,
   type InsertNotification,
   categories,
   themes,
@@ -31,6 +32,7 @@ function assertDb(db: unknown): asserts db {
 }
 
 let _db: any = null;
+let _client: any = null;
 
 export function getDb() {
   if (
@@ -42,6 +44,7 @@ export function getDb() {
       const url = process.env.DATABASE_URL || process.env.TURSO_DATABASE_URL!;
       const authToken = process.env.TURSO_AUTH_TOKEN;
       const client = createClient({ url, authToken });
+      _client = client;
       _db = drizzle(client);
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
@@ -49,6 +52,14 @@ export function getDb() {
     }
   }
   return _db;
+}
+
+export function closeDb() {
+  try {
+    _client?.close?.();
+  } catch {}
+  _client = null;
+  _db = null;
 }
 
 // ─── User helpers ───────────────────────────────────────────────
@@ -376,7 +387,10 @@ export async function deleteNotification(id: number) {
   return { success: true };
 }
 
-export async function listNotifications(limit = 50, offset = 0) {
+export async function listNotifications(
+  limit = 50,
+  offset = 0
+): Promise<(Notification & { authorName: string | null })[]> {
   const db = getDb();
   assertDb(db);
 
@@ -407,7 +421,12 @@ export async function countNotifications() {
   return rows[0]?.count ?? 0;
 }
 
-export async function getUserNotifications(userId: number, limit = 20) {
+export async function getUserNotifications(
+  userId: number,
+  limit = 20
+): Promise<
+  Array<Notification & { authorName: string | null; isRead: boolean; readAt: Date | null }>
+> {
   const db = getDb();
   assertDb(db);
 
@@ -429,7 +448,7 @@ export async function getUserNotifications(userId: number, limit = 20) {
     .orderBy(desc(notifications.createdAt))
     .limit(limit);
 
-  return rows.map((r: any) => ({
+  return rows.map((r: { notification: Notification; authorName: string | null; readAt: Date | null }) => ({
     ...r.notification,
     authorName: r.authorName,
     isRead: r.readAt !== null,
@@ -463,14 +482,45 @@ export async function markNotificationAsRead(
   const db = getDb();
   assertDb(db);
 
+  const notifExists = await db
+    .select({ id: notifications.id })
+    .from(notifications)
+    .where(eq(notifications.id, notificationId))
+    .limit(1);
+
+  if (notifExists.length === 0) {
+    throw new TRPCError({
+      code: "NOT_FOUND",
+      message: "Notification introuvable",
+    });
+  }
+
+  const existing = await db
+    .select()
+    .from(notificationReads)
+    .where(
+      and(
+        eq(notificationReads.notificationId, notificationId),
+        eq(notificationReads.userId, userId)
+      )
+    )
+    .limit(1);
+
+  if (existing.length > 0) {
+    return { success: true, alreadyRead: true };
+  }
+
   try {
     await db.insert(notificationReads).values({
       notificationId,
       userId,
     });
     return { success: true, alreadyRead: false };
-  } catch {
-    return { success: true, alreadyRead: true };
+  } catch (error) {
+    if ((error as { code?: string })?.code === "SQLITE_CONSTRAINT_UNIQUE") {
+      return { success: true, alreadyRead: true };
+    }
+    throw error;
   }
 }
 
@@ -487,7 +537,7 @@ export async function markAllNotificationsAsRead(userId: number) {
     )
   `);
 
-  const count = result.meta?.rows_written ?? 0;
+  const count = (result as any).rowsAffected ?? result.meta?.rows_written ?? 0;
   return { success: true, count };
 }
 

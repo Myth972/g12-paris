@@ -4,6 +4,7 @@ import {
   protectedProcedure,
   router,
   adminProcedure,
+  adminOnlyProcedure,
   editeurProcedure,
   bibliothequeProcedure,
 } from "./_core/trpc.js";
@@ -251,7 +252,8 @@ export const appRouter = router({
         return { success: true };
       }),
     logout: publicProcedure.mutation(({ ctx }) => {
-      (ctx.res as any).clearCookie(COOKIE_NAME);
+      const cookieOptions = getSessionCookieOptions(ctx.req);
+      (ctx.res as any).clearCookie(COOKIE_NAME, { ...cookieOptions, maxAge: -1 });
       return { success: true } as const;
     }),
   }),
@@ -574,7 +576,7 @@ export const appRouter = router({
         return { items, total };
       }),
 
-    create: adminProcedure
+    create: adminOnlyProcedure
       .input(
         zod.object({
           title: z.string().min(1).max(300),
@@ -592,7 +594,7 @@ export const appRouter = router({
         });
       }),
 
-    delete: adminProcedure
+    delete: adminOnlyProcedure
       .input(zod.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         return deleteNotification(input.id);
@@ -2157,6 +2159,81 @@ Applique le feedback sans dénaturer le fond.` },
           });
           throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: `Échec de l'amélioration: ${err.message}` });
         }
+      }),
+
+    // ─── AI Image Loop — Génération + Édition + Upload ──────────
+    generateImageLoop: editeurProcedure
+      .input(
+        z.object({
+          prompt: z.string().min(1).max(1000),
+          referenceImage: z.string().optional(),
+          editFeedback: z.string().optional(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const userId = ctx.user?.id?.toString() || "anonymous";
+        checkUserQuota(userId, 500);
+
+        const genImage = async (p: string): Promise<string | undefined> => {
+          // Try Cloudflare
+          if (ENV.cloudflareApiToken && ENV.cloudflareAccountId) {
+            try {
+              const res = await fetch(
+                `https://api.cloudflare.com/client/v4/accounts/${ENV.cloudflareAccountId}/ai/run/@cf/black-forest-labs/flux-1-schnell`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json", Authorization: `Bearer ${ENV.cloudflareApiToken}` },
+                  body: JSON.stringify({ prompt: p.substring(0, 500) }),
+                }
+              );
+              if (res.ok) {
+                const d = (await res.json()) as any;
+                if (d?.result?.image) return `data:image/jpeg;base64,${d.result.image}`;
+              }
+            } catch { /* fallback */ }
+          }
+          // Fallback aimlapi
+          if (ENV.aimlApiKey) {
+            try {
+              const res = await fetch("https://api.aimlapi.com/v1/images/generations", {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${ENV.aimlApiKey}` },
+                body: JSON.stringify({ model: "flux/schnell", prompt: p.substring(0, 500), aspect_ratio: "16:9", n: 1 }),
+              });
+              if (res.ok) {
+                const d = (await res.json()) as any;
+                return d?.data?.[0]?.url || d?.images?.[0]?.url || d?.url;
+              }
+            } catch { /* fall through */ }
+          }
+          return undefined;
+        };
+
+        const startTime = Date.now();
+        let phase = "generation";
+        let imageUrl: string | undefined;
+
+        // Phase 1: Generate
+        imageUrl = await genImage(input.prompt);
+        if (!imageUrl) {
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Échec de la génération d'image" });
+        }
+
+        // Phase 2: Edit if feedback provided
+        if (input.editFeedback) {
+          phase = "editing";
+          const editPrompt = `${input.prompt}. ${input.editFeedback}`;
+          const edited = await genImage(editPrompt);
+          if (edited) imageUrl = edited;
+        }
+
+        logAiUsage({
+          timestamp: new Date(), userId, provider: "cloudflare", model: "flux-1-schnell",
+          endpoint: "ai.generateImageLoop", inputTokens: 500, outputTokens: 0,
+          totalTokens: 500, success: true, durationMs: Date.now() - startTime,
+        });
+
+        return { url: imageUrl, phase };
       }),
 
     // ─── Generate Article Cover Image ────────────────────────────

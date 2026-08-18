@@ -57,6 +57,9 @@ const createRoleProcedure = (allowedRoles: string[]) =>
 export const adminProcedure = t.procedure.use(
   createRoleProcedure([ROLES.ADMIN, ROLES.EDITEUR, ROLES.BIBLIOTHEQUE])
 );
+export const adminOnlyProcedure = t.procedure.use(
+  createRoleProcedure([ROLES.ADMIN])
+);
 export const editeurProcedure = t.procedure.use(
   createRoleProcedure([ROLES.ADMIN, ROLES.EDITEUR])
 );

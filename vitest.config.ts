@@ -9,6 +9,7 @@ export default defineConfig(
       include: ["server/**/*.test.ts"],
       globals: true,
       setupFiles: ["./vitest.setup.ts"],
+      globalSetup: ["./tests/setup/db.teardown.ts"],
     },
     resolve: {
       alias: {
