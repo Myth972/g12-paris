@@ -44,6 +44,7 @@ const AISearch = lazy(() => import("./components/AISearch").then(m => ({ default
 const ChatBot = lazy(() => import("./components/ChatBot").then(m => ({ default: m.ChatBot })));
 const MoJSTestPage = lazy(() => import("./pages/MoJSTestPage"));
 const ILoveYouJesus = lazy(() => import("./pages/ILoveYouJesus"));
+const ArticleDesignDemo = lazy(() => import("./pages/ArticleDesignDemo"));
 
 function PageLoader() {
   return (
@@ -152,6 +153,11 @@ function Router() {
         <Route path="/test-mojs">
           <PublicLayout>
             <MoJSTestPage />
+          </PublicLayout>
+        </Route>
+        <Route path="/article-design-demo">
+          <PublicLayout>
+            <ArticleDesignDemo />
           </PublicLayout>
         </Route>
         <Route path="/iloveyoujesus">

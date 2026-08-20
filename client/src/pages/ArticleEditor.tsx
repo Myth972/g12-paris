@@ -27,6 +27,7 @@ import {
   Wand2,
   BookHeart,
   SpellCheck,
+  List,
 } from "lucide-react";
 import { useState, useEffect, useRef, useCallback, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from "react";
 import { useLocation, useParams } from "wouter";
@@ -35,6 +36,7 @@ import { AIProviderSelect } from "@/components/AIProviderSelect";
 import { useAiProvider } from "@/hooks/useAiProvider";
 import { useBlobUpload } from "@/hooks/useBlobUpload";
 import { useTranslation } from "react-i18next";
+import { extractHeadings } from "@/lib/articleHeadings";
 
 const CATEGORIES = [
   { value: "actualité", label: "Actualité" },
@@ -703,6 +705,29 @@ export default function ArticleEditor() {
               minHeight="300px sm:400px"
               spellcheck={true}
             />
+            {extractHeadings(content).length > 0 && (
+              <div className="border-t border-border/60 bg-muted/20 px-4 sm:px-6 py-3">
+                <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">
+                  <List className="w-3.5 h-3.5" />
+                  Sommaire affiché sur l'article
+                </p>
+                <ul className="space-y-1">
+                  {extractHeadings(content).map(h => (
+                    <li
+                      key={h.id}
+                      className="text-xs sm:text-sm text-muted-foreground truncate"
+                      style={{ paddingLeft: `${(h.level - 2) * 16}px` }}
+                    >
+                      {h.level === 2 ? "▪" : "·"} {h.title}
+                    </li>
+                  ))}
+                </ul>
+                <p className="text-[11px] text-muted-foreground/60 mt-2">
+                  Utilisez « Titre 2 » / « Titre 3 » dans la barre d'outils pour
+                  structurer l'article et générer le sommaire automatiquement.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Actions */}

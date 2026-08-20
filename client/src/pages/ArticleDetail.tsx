@@ -1,15 +1,27 @@
 import { trpc } from "@/lib/trpc";
 import YouTubeEmbed from "@/components/YouTubeEmbed";
 import ArticleCard from "@/components/ArticleCard";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Calendar, User, Share2, Clock, ChevronRight } from "lucide-react";
+import {
+  ArrowLeft,
+  Calendar,
+  User,
+  Share2,
+  Clock,
+  ChevronRight,
+  List,
+} from "lucide-react";
 import { useLocation, useParams, Link } from "wouter";
 import { Streamdown } from "streamdown";
 import { toast } from "sonner";
 import ReadingProgressBar from "@/components/ReadingProgressBar";
 import ScrollToTopButton from "@/components/ScrollToTopButton";
+import {
+  extractHeadings,
+  injectHeadingIds,
+  type TocSection,
+} from "@/lib/articleHeadings";
 
 function formatDate(date: Date): string {
   return new Date(date).toLocaleDateString("fr-FR", {
@@ -28,16 +40,46 @@ function estimateReadingTime(title: string, content: string): string {
 
 function getCategoryColor(category: string): string {
   const colors: Record<string, string> = {
-    "actualité": "bg-blue-500/90",
-    "culte": "bg-purple-500/90",
-    "enseignement": "bg-emerald-500/90",
-    "témoignage": "bg-amber-500/90",
-    "musique": "bg-rose-500/90",
-    "prière": "bg-indigo-500/90",
-    "événement": "bg-orange-500/90",
-    "annonce": "bg-teal-500/90",
+    "actualité": "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+    "culte": "bg-purple-500/10 text-purple-600 dark:text-purple-400",
+    "enseignement": "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+    "témoignage": "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+    "musique": "bg-rose-500/10 text-rose-600 dark:text-rose-400",
+    "prière": "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
+    "événement": "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+    "annonce": "bg-teal-500/10 text-teal-600 dark:text-teal-400",
   };
-  return colors[category.toLowerCase()] || "bg-primary/90";
+  return colors[category.toLowerCase()] || "bg-primary/10 text-primary";
+}
+
+/* ---------- Proposition 4 : sommaire auto-généré ---------- */
+function ArticleToc({ sections }: { sections: TocSection[] }) {
+  if (sections.length === 0) return null;
+  return (
+    <nav
+      aria-label="Sommaire"
+      className="hidden lg:block sticky top-24 self-start"
+    >
+      <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
+        <List className="w-3.5 h-3.5" />
+        Sommaire
+      </p>
+      <ul className="space-y-2.5 text-sm">
+        {sections.map((section) => (
+          <li key={section.id}>
+            <a
+              href={`#${section.id}`}
+              className={`text-muted-foreground hover:text-primary transition-colors leading-snug ${
+                section.level === 3 ? "ml-3 text-[13px]" : ""
+              }`}
+            >
+              {section.title}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
 }
 
 export default function ArticleDetail() {
@@ -65,6 +107,11 @@ export default function ArticleDetail() {
   const relatedArticles = (relatedData?.items ?? []).filter(
     (a: any) => a.slug !== params.slug
   ).slice(0, 3);
+
+  const sections = article ? extractHeadings(article.content) : [];
+  const contentHtml = article
+    ? injectHeadingIds(article.content, sections)
+    : "";
 
   const handleShare = async () => {
     try {
@@ -110,6 +157,8 @@ export default function ArticleDetail() {
     );
   }
 
+  const hasToc = sections.length > 0;
+
   return (
     <article className="pb-16">
       <ReadingProgressBar />
@@ -128,66 +177,70 @@ export default function ArticleDetail() {
         </Button>
       </div>
 
-      {/* Header */}
-      <header className="container max-w-5xl mx-auto pt-4 pb-8 px-4">
+      {/* ---------- Proposition 1 : héros épuré ---------- */}
+      <header className="container max-w-5xl mx-auto pt-4 pb-8 px-4 text-center">
         <div className="max-w-3xl mx-auto">
-          <Badge
-            variant="secondary"
-            className={`mb-4 font-bold uppercase tracking-widest text-[10px] text-white border-0 shadow-sm ${getCategoryColor(article.category)}`}
+          <span
+            className={`inline-flex items-center rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-widest ${getCategoryColor(article.category)}`}
           >
             {article.category}
-          </Badge>
+          </span>
 
-          <h1 className="text-2xl md:text-4xl lg:text-5xl font-serif font-bold text-foreground leading-tight">
+          <h1 className="mt-5 font-serif font-bold leading-tight text-[clamp(1.75rem,4vw,3.5rem)] text-foreground">
             {article.title}
           </h1>
 
           {article.excerpt && (
-            <p className="mt-4 text-base md:text-lg text-muted-foreground leading-relaxed whitespace-pre-wrap break-words">
+            <p className="mt-5 text-base md:text-lg text-muted-foreground leading-relaxed max-w-prose mx-auto whitespace-pre-wrap break-words">
               {article.excerpt}
             </p>
           )}
 
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-6 text-sm text-muted-foreground">
+          {/* Méta centrée avec points · */}
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-x-2 gap-y-2 text-sm text-muted-foreground">
             {article.authorName && (
-              <span className="flex items-center gap-1.5">
-                <User className="w-4 h-4" />
-                {article.authorName}
-              </span>
+              <>
+                <span className="flex items-center gap-1.5">
+                  <User className="w-4 h-4" />
+                  {article.authorName}
+                </span>
+                <span>·</span>
+              </>
             )}
             <span className="flex items-center gap-1.5">
               <Calendar className="w-4 h-4" />
               {formatDate(article.createdAt)}
             </span>
+            <span>·</span>
             <span className="flex items-center gap-1.5">
               <Clock className="w-4 h-4" />
               {estimateReadingTime(article.title, article.content)}
             </span>
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={handleShare}
-              className="ml-auto text-muted-foreground"
+              className="ml-2 rounded-full text-muted-foreground"
             >
-              <Share2 className="w-4 h-4 mr-1" />
+              <Share2 className="w-3.5 h-3.5 mr-1.5" />
               Partager
             </Button>
           </div>
         </div>
       </header>
 
-      {/* Separator */}
+      {/* Séparateur décoratif */}
       <div className="container max-w-5xl mx-auto px-4">
         <div className="max-w-3xl mx-auto">
           <div className="border-t border-border/60" />
         </div>
       </div>
 
-      {/* Cover image */}
+      {/* Cover image (micro-détail : ombre douce, coins arrondis) */}
       {article.coverImageUrl && (
         <div className="container max-w-5xl mx-auto mt-8 mb-10 px-4">
           <figure>
-            <div className="rounded-xl overflow-hidden shadow-lg select-none">
+            <div className="rounded-2xl overflow-hidden shadow-sm select-none">
               <img
                 src={article.coverImageUrl}
                 alt={article.title}
@@ -210,14 +263,24 @@ export default function ArticleDetail() {
         </div>
       )}
 
-      {/* Content */}
+      {/* ---------- Propositions 3 & 4 : typographie premium + sommaire ---------- */}
       <div className="container max-w-5xl mx-auto px-4">
-        <div className="prose-article break-words">
-          <Streamdown>{article.content}</Streamdown>
+        <div
+          className={
+            hasToc
+              ? "grid lg:grid-cols-[220px_1fr] gap-8 items-start"
+              : ""
+          }
+        >
+          {hasToc && <ArticleToc sections={sections} />}
+
+          <div className="prose-article break-words">
+            <Streamdown>{contentHtml}</Streamdown>
+          </div>
         </div>
       </div>
 
-      {/* Related articles */}
+      {/* ---------- Proposition 5 : articles similaires + fin épurée ---------- */}
       {relatedArticles.length > 0 && (
         <section className="container max-w-5xl mx-auto mt-16 px-4">
           <div className="border-t border-border/60 pt-10">
@@ -233,7 +296,7 @@ export default function ArticleDetail() {
                 <ChevronRight className="w-3.5 h-3.5" />
               </Link>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {relatedArticles.map((ra: any) => (
                 <ArticleCard key={ra.id} article={ra} />
               ))}
@@ -242,7 +305,7 @@ export default function ArticleDetail() {
         </section>
       )}
 
-      {/* Bottom navigation */}
+      {/* Fin d'article : navigation discrète */}
       <div className="container max-w-5xl mx-auto mt-12 px-4">
         <div className="border-t border-border/60 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <Button variant="outline" size="sm" asChild>
