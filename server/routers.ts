@@ -87,7 +87,7 @@ import { siteSettings, announcements, subscribers, articles, biblicalVerses, gal
 import { eq, desc, asc, and, like } from "drizzle-orm";
 import { ENV } from "./_core/env.js";
 import { invokeLLM, invokeLLMWithFallback } from "./_core/llm.js";
-import { getProviderInfo } from "../shared/aiProviders.js";
+import { getProviderInfo, type AiProvider } from "../shared/aiProviders.js";
 import { sdk } from "./_core/sdk.js";
 import { COOKIE_NAME, ONE_YEAR_MS } from "../shared/const.js";
 import { getSessionCookieOptions } from "./_core/cookies.js";
@@ -457,6 +457,7 @@ export const appRouter = router({
         const slug = generateSlug(input.title);
         return createArticle({
           ...input,
+          excerpt: input.excerpt?.slice(0, 1000),
           slug,
           authorId: ctx.user.id,
         });
@@ -490,6 +491,9 @@ export const appRouter = router({
           });
         }
         const updateData: Record<string, unknown> = { ...data };
+        if (data.excerpt) {
+          updateData.excerpt = data.excerpt.slice(0, 1000);
+        }
         if (data.title && data.title !== existing.title) {
           updateData.slug = generateSlug(data.title);
         }
@@ -940,7 +944,7 @@ export const appRouter = router({
       }
 
       const hasGroq = Boolean(ENV.groqApiKey);
-      const hasGoogle = Boolean((ENV as any).forgeApiKey || ENV.googleApiKey);
+      const hasGoogle = Boolean(ENV.googleApiKey);
 
       const ok =
         provider === "groq"
@@ -1212,6 +1216,177 @@ RÈGLES :
           response: response.choices[0].message.content 
         };
       }),
+
+    updateProviders: adminProcedure.mutation(async () => {
+      const { isProviderConfigured } = await import("./_core/llm.js");
+      const {
+        recordProviderFailure,
+        recordProviderSuccess,
+        getProviderHealth,
+      } = await import("./_core/providerHealth.js");
+
+      const { listEnabledProviders } = await import("./_core/apiProviders.js");
+      const providers = await listEnabledProviders();
+      const results: Array<{
+        provider: string;
+        configured: boolean;
+        ok: boolean;
+        model?: string;
+        modelReplaced?: boolean;
+        modelFrom?: string;
+        obsolete?: boolean;
+        error?: string;
+        status?: string;
+      }> = [];
+
+      for (const provider of providers) {
+        const configured = await isProviderConfigured(provider);
+        if (!configured) {
+          recordProviderFailure(provider, "config", "Clé API non configurée");
+          results.push({
+            provider,
+            configured: false,
+            ok: false,
+            status: getProviderHealth(provider).status,
+            error: "Clé API non configurée",
+          });
+          continue;
+        }
+
+        // Vérification d'obsolescence du modèle
+        const { resolveModel, fetchActiveModels } = await import("./_core/modelRegistry.js");
+        const { getApiKey } = await import("./_core/apiKeys.js");
+        const apiKey = (await getApiKey(provider)) || "";
+        const defaultModel = resolveModel(provider).model;
+        let obsolete = false;
+        let activeModels: string[] = [];
+        if (provider === "groq" || provider === "aimlapi") {
+          activeModels = await fetchActiveModels(provider, apiKey);
+          if (activeModels.length > 0 && !activeModels.includes(defaultModel)) {
+            obsolete = true;
+            console.warn(
+              `[AI Model] ${provider}: "${defaultModel}" absent de la liste live des modèles actifs`
+            );
+          }
+        }
+
+        try {
+          const response = await invokeLLM({
+            messages: [{ role: "user", content: "Dis 'OK' si tu fonctionnes." }],
+            provider,
+            maxTokens: 10,
+          });
+          recordProviderSuccess(provider);
+          const info = getProviderInfo(provider);
+          const resolved = resolveModel(provider, response.model);
+          results.push({
+            provider,
+            configured: true,
+            ok: true,
+            model: response.model || info.model,
+            modelReplaced: resolved.replaced,
+            modelFrom: resolved.replaced ? resolved.from : undefined,
+            obsolete,
+            status: "healthy",
+          });
+        } catch (err: any) {
+          const { classifyError } = await import("./_core/providerHealth.js");
+          const kind = classifyError(err);
+          recordProviderFailure(provider, kind, err.message);
+          results.push({
+            provider,
+            configured: true,
+            ok: false,
+            obsolete,
+            status: getProviderHealth(provider).status,
+            error: err.message,
+          });
+        }
+      }
+
+      return { ok: true, results };
+    }),
+
+    // ─── Connecteur de clés API ───────────────────────────────────
+    apiKeys: router({
+      list: adminProcedure.query(async () => {
+        const { listApiKeyStatus } = await import("./_core/apiKeys.js");
+        return listApiKeyStatus();
+      }),
+
+      set: adminProcedure
+        .input(
+          zod.object({
+            provider: z.string().min(1),
+            value: z.string(),
+          })
+        )
+        .mutation(async ({ input }) => {
+          const { setApiKey, resetApiKeyCache } = await import("./_core/apiKeys.js");
+          const { resetProviderHealth } = await import("./_core/providerHealth.js");
+          await setApiKey(input.provider as any, input.value);
+          resetApiKeyCache();
+          resetProviderHealth(input.provider as any);
+          return { ok: true };
+        }),
+
+      remove: adminProcedure
+        .input(
+          zod.object({
+            provider: z.string().min(1),
+          })
+        )
+        .mutation(async ({ input }) => {
+          const { removeApiKey, resetApiKeyCache } = await import("./_core/apiKeys.js");
+          const { resetProviderHealth } = await import("./_core/providerHealth.js");
+          await removeApiKey(input.provider as any);
+          resetApiKeyCache();
+          resetProviderHealth(input.provider as any);
+          return { ok: true };
+        }),
+    }),
+
+    // ─── Gestion dynamique des providers ───────────────────────────
+    providers: router({
+      list: adminProcedure.query(async () => {
+        const { listProviders } = await import("./_core/apiProviders.js");
+        return listProviders();
+      }),
+
+      add: adminProcedure
+        .input(
+          zod.object({
+            provider: z.string().min(1).max(50),
+            label: z.string().min(1).max(100),
+            model: z.string().min(1).max(100),
+            baseUrl: z.string().url().optional(),
+            enabled: z.boolean().optional(),
+          })
+        )
+        .mutation(async ({ input }) => {
+          const { upsertProvider, resetProviderCache } = await import("./_core/apiProviders.js");
+          await upsertProvider({
+            provider: input.provider.toLowerCase().replace(/[^a-z0-9-]/g, "-"),
+            label: input.label,
+            model: input.model,
+            baseUrl: input.baseUrl,
+            enabled: input.enabled,
+          });
+          resetProviderCache();
+          return { ok: true };
+        }),
+
+      remove: adminProcedure
+        .input(zod.object({ provider: z.string().min(1) }))
+        .mutation(async ({ input }) => {
+          const { removeProvider, resetProviderCache } = await import("./_core/apiProviders.js");
+          const { resetProviderHealth } = await import("./_core/providerHealth.js");
+          await removeProvider(input.provider);
+          resetProviderCache();
+          resetProviderHealth(input.provider as any);
+          return { ok: true };
+        }),
+    }),
 
     generateDescription: adminProcedure
       .input(
@@ -1983,8 +2158,32 @@ generateImage: adminProcedure
       const stats = getAiStats();
       const userId = ctx.user?.id?.toString() || "anonymous";
       const quota = getUserQuotaInfo(userId);
-      return { ...stats, userQuota: quota };
+      const { getAllProviderHealth, getFallbackEvents } = await import("./_core/providerHealth.js");
+      const { listEnabledProviders } = await import("./_core/apiProviders.js");
+      const providers = await listEnabledProviders();
+      return {
+        ...stats,
+        userQuota: quota,
+        providerHealth: getAllProviderHealth(providers),
+        fallbackEvents: getFallbackEvents(),
+      };
     }),
+
+    resetProviderHealth: adminProcedure
+      .input(zod.object({ provider: z.string().optional() }))
+      .mutation(async ({ input }) => {
+        const { resetProviderHealth } = await import("./_core/providerHealth.js");
+        if (input.provider) {
+          resetProviderHealth(input.provider as any);
+        } else {
+          const { listEnabledProviders } = await import("./_core/apiProviders.js");
+          const providers = await listEnabledProviders();
+          for (const p of providers) {
+            resetProviderHealth(p as any);
+          }
+        }
+        return { ok: true };
+      }),
 
     quota: adminProcedure.query(async ({ ctx }) => {
       const userId = ctx.user?.id?.toString() || "anonymous";

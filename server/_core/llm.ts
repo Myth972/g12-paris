@@ -1,5 +1,13 @@
 import { TRPCError } from "@trpc/server";
 import { ENV } from "./env.js";
+import {
+  classifyError,
+  getProviderHealth,
+  isProviderAvailable,
+  recordFallback,
+  recordProviderFailure,
+  recordProviderSuccess,
+} from "./providerHealth.js";
 
 let detectedOllamaModel: string | null = null;
 
@@ -81,8 +89,6 @@ export type ToolChoice =
   | ToolChoiceByName
   | ToolChoiceExplicit;
 
-import { type AiProvider } from "../../shared/aiProviders.js";
-
 export type InvokeParams = {
   messages: Message[];
   tools?: Tool[];
@@ -94,7 +100,7 @@ export type InvokeParams = {
   output_schema?: OutputSchema;
   responseFormat?: ResponseFormat;
   response_format?: ResponseFormat;
-  provider?: AiProvider;
+  provider?: string;
   model?: string;
 };
 
@@ -312,10 +318,14 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
   let apiKey = "";
   let model = params.model || "";
 
+  const { getApiKey } = await import("./apiKeys.js");
+  const { getProviderConfig } = await import("./apiProviders.js");
+  const providerConfig = await getProviderConfig(provider);
+
   if (provider === "minimax") {
     apiUrl = "https://api.minimaxi.chat/v1/text/chatcompletion_v2";
-    apiKey = ENV.minimaxApiKey;
-    model = model || "MiniMax-M1";
+    apiKey = (await getApiKey("minimax")) || "";
+    model = model || "MiniMax-M2.1";
     if (!apiKey)
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -323,7 +333,7 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
       });
   } else if (provider === "aimlapi") {
     apiUrl = "https://api.aimlapi.com/v1/chat/completions";
-    apiKey = ENV.aimlApiKey;
+    apiKey = (await getApiKey("aimlapi")) || "";
     model = model || "mistralai/Mistral-7B-Instruct-v0.2";
     if (!apiKey)
       throw new TRPCError({
@@ -332,8 +342,8 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
       });
   } else if (provider === "groq") {
     apiUrl = "https://api.groq.com/openai/v1/chat/completions";
-    apiKey = ENV.groqApiKey;
-    model = model || "llama-3.3-70b-versatile";
+    apiKey = (await getApiKey("groq")) || "";
+    model = model || "openai/gpt-oss-120b";
     if (!apiKey)
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -344,19 +354,37 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
     apiKey = "ollama";
     model = model || ENV.ollamaModel || await detectOllamaModel();
     // Pas de vérification de clé — Ollama fonctionne sans authentification en local
+  } else if (providerConfig?.baseUrl) {
+    // Provider personnalisé — endpoint OpenAI-compatible défini en base
+    apiUrl = providerConfig.baseUrl;
+    apiKey = (await getApiKey(provider)) || "";
+    model = model || providerConfig.model;
+    if (!apiKey)
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: `API Key for ${provider} is not configured`,
+      });
   } else {
-    // Google / Gemini fallback
-    apiUrl = "https://forge.manus.im/v1/chat/completions";
-    apiKey = (ENV as any).forgeApiKey || ENV.googleApiKey;
-    model = model || "gemini-2.0-flash-exp";
-    if (!apiKey && (ENV as any).googleApiKey)
-      apiKey = (ENV as any).googleApiKey;
+    // Google / Gemini — API OpenAI-compatible officielle
+    apiUrl = "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions";
+    apiKey = (await getApiKey("google")) || "";
+    model = model || "gemini-3.5-flash";
     if (!apiKey)
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "AI API Key is not configured",
       });
   }
+
+  // Remplacement automatique des modèles obsolètes
+  const { resolveModel } = await import("./modelRegistry.js");
+  const resolved = resolveModel(provider, model);
+  if (resolved.replaced) {
+    console.warn(
+      `[AI Model] ${provider}: modèle obsolète "${resolved.from}" remplacé par "${resolved.model}"`
+    );
+  }
+  model = resolved.model;
 
   const payload: Record<string, unknown> = {
     model,
@@ -378,9 +406,6 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
   // Provider specific adjustments
   if (provider === "google") {
     payload.max_tokens = 32768;
-    payload.thinking = {
-      budget_tokens: 128,
-    };
   }
 
   const normalizedResponseFormat = normalizeResponseFormat({
@@ -431,38 +456,84 @@ export async function invokeLLM(params: InvokeParams): Promise<InvokeResult> {
   return (await response.json()) as InvokeResult;
 }
 
-// Providers fallback order
-const FALLBACK_ORDER: AiProvider[] = ["groq", "google", "minimax", "aimlapi", "ollama"];
+// Note : l'ordre de fallback est désormais dynamique (liste des providers activés en base).
+
+/** Vérifie qu'un provider dispose bien d'une clé API configurée (DB ou .env). */
+export async function isProviderConfigured(provider: string): Promise<boolean> {
+  if (provider === "ollama") return true; // local, pas de clé
+  const { getApiKey } = await import("./apiKeys.js");
+  return !!(await getApiKey(provider));
+}
 
 /**
  * invokeLLMWithFallback — tente le provider demandé, puis les autres en cas d'échec.
- * Inclut un timeout de 30s par tentative et un retry automatique.
+ * Utilise un circuit breaker : les providers non configurés ou en cooldown
+ * (3 échecs consécutifs) sont automatiquement sautés, et chaque bascule
+ * est tracée dans le monitoring IA.
  */
 export async function invokeLLMWithFallback(params: InvokeParams): Promise<InvokeResult> {
   const preferredProvider = params.provider || ENV.preferredAiProvider || "groq";
-  
+
+  // Liste dynamique des providers activés (base de données)
+  const { listEnabledProviders } = await import("./apiProviders.js");
+  const enabledProviders = await listEnabledProviders();
+
   // Construire la liste des providers à essayer (préféré d'abord, puis fallback)
   const providersToTry = [
     preferredProvider,
-    ...FALLBACK_ORDER.filter(p => p !== preferredProvider),
+    ...enabledProviders.filter(p => p !== preferredProvider),
   ];
 
+  const attempts: Array<{ provider: string; ok: boolean; error?: string; durationMs: number }> = [];
   let lastError: Error | null = null;
+  let lastAttemptedProvider: string | null = null;
 
   for (const provider of providersToTry) {
+    // Circuit breaker : sauter les providers indisponibles
+    if (!(await isProviderConfigured(provider))) {
+      console.warn(`[AI Fallback] ${provider} skipped (clé API non configurée)`);
+      continue;
+    }
+    if (!isProviderAvailable(provider)) {
+      const health = getProviderHealth(provider);
+      console.warn(`[AI Fallback] ${provider} skipped (en cooldown, ${health.consecutiveFailures} échecs)`);
+      continue;
+    }
+
+    const startedAt = Date.now();
     try {
       const result = await invokeLLM({ ...params, provider });
+      recordProviderSuccess(provider);
+      attempts.push({ provider, ok: true, durationMs: Date.now() - startedAt });
+      if (lastAttemptedProvider && lastAttemptedProvider !== provider) {
+        recordFallback(lastAttemptedProvider, provider, "server", "basculé automatiquement");
+      }
       return result;
     } catch (err: any) {
+      const kind = classifyError(err);
+      recordProviderFailure(provider, kind, err.message);
       lastError = err;
-      console.warn(`[AI Fallback] Provider ${provider} failed: ${err.message}`);
-      // Si c'est une erreur de configuration (clé manquante), essayer le suivant
-      // Si c'est une erreur de timeout ou d'API, essayer le suivant aussi
+      lastAttemptedProvider = provider;
+      attempts.push({ provider, ok: false, error: err.message, durationMs: Date.now() - startedAt });
+      console.warn(`[AI Fallback] Provider ${provider} failed (${kind}): ${err.message}`);
+      // Configuration manquante ou erreur transitoire : essayer le suivant
       continue;
     }
   }
 
-  // Tous les providers ont échoué
+  // Tous les providers ont échoué — alerte structurée
+  console.error(
+    `[AI Fallback] TOUS LES PROVIDERS ONT ÉCHOUÉ (${attempts.length} tentatives)`,
+    JSON.stringify(
+      attempts.map(a => ({
+        provider: a.provider,
+        ok: a.ok,
+        error: a.error,
+        durationMs: a.durationMs,
+      }))
+    )
+  );
+
   throw new TRPCError({
     code: "INTERNAL_SERVER_ERROR",
     message: `Tous les providers IA ont échoué. Dernière erreur: ${lastError?.message || "inconnue"}`,

@@ -89,6 +89,7 @@ const KlingStudio = lazy(() => import("./KlingStudio"));
 const AIChatBox = lazy(() => import("@/components/AIChatBox").then(m => ({ default: m.AIChatBox })));
 const HomeContentManager = lazy(() => import("@/components/HomeContentManager"));
 const AIDashboard = lazy(() => import("@/components/AIDashboard"));
+const ApiKeyConnector = lazy(() => import("@/components/ApiKeyConnector"));
 const CMSManager = lazy(() => import("@/components/CMSManager"));
 const AIArticleWriter = lazy(() => import("./AIArticleWriter"));
 
@@ -1043,6 +1044,11 @@ if (authLoading) {
           </TabsContent>
           <TabsContent value="ai">
             <AIAssistantTab />
+            <div className="mt-8">
+              <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> Chargement...</div>}>
+                <ApiKeyConnector />
+              </Suspense>
+            </div>
             <div className="mt-8">
               <AIDashboard />
             </div>

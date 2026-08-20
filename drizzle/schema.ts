@@ -199,6 +199,34 @@ export const siteSettings = sqliteTable("site_settings", {
 export type SiteSetting = typeof siteSettings.$inferSelect;
 export type InsertSiteSetting = typeof siteSettings.$inferInsert;
 
+export const apiKeys = sqliteTable("api_keys", {
+  provider: text("provider").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: integer("updatedAt", { mode: "timestamp" })
+    .default(sql`(strftime('%s', 'now'))`)
+    .notNull(),
+});
+
+export type ApiKey = typeof apiKeys.$inferSelect;
+export type InsertApiKey = typeof apiKeys.$inferInsert;
+
+export const apiProviders = sqliteTable("api_providers", {
+  provider: text("provider").primaryKey(),
+  label: text("label").notNull(),
+  model: text("model").notNull(),
+  baseUrl: text("baseUrl"),
+  enabled: integer("enabled", { mode: "boolean" }).default(true).notNull(),
+  createdAt: integer("createdAt", { mode: "timestamp" })
+    .default(sql`(strftime('%s', 'now'))`)
+    .notNull(),
+  updatedAt: integer("updatedAt", { mode: "timestamp" })
+    .default(sql`(strftime('%s', 'now'))`)
+    .notNull(),
+});
+
+export type ApiProvider = typeof apiProviders.$inferSelect;
+export type InsertApiProvider = typeof apiProviders.$inferInsert;
+
 export const categories = sqliteTable("categories", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   name: text("name").notNull(),

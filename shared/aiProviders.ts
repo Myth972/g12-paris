@@ -2,26 +2,20 @@ export const AI_PROVIDERS = [
   {
     value: "groq",
     label: "Groq",
-    model: "Llama 3.3 70B",
+    model: "GPT-OSS 120B",
     description: "Rapide et très performant en rédaction longue.",
   },
   {
     value: "google",
     label: "Google Gemini",
-    model: "Gemini 2.0 Flash",
+    model: "Gemini 3.5 Flash",
     description: "Très bon en synthèse et réponses rapides.",
   },
   {
     value: "minimax",
     label: "MiniMax",
-    model: "abab6.5s-chat",
+    model: "MiniMax-M2.1",
     description: "Excellent pour la créativité et les nuances.",
-  },
-  {
-    value: "aimlapi",
-    label: "AIML API (Kling)",
-    model: "kling-v1.5",
-    description: "Spécialisé dans la génération de médias et d'images.",
   },
   {
     value: "ollama",
