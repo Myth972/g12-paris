@@ -119,3 +119,7 @@ TODO_PENDING.md
 
 # Local dev tools
 components/ai-chat-widget/
+
+# Toggle de test local (mode Auto/Ordi/Tél) — jamais déployé
+client/src/components/DevDeviceToggle.tsx
+client/src/hooks/useDevDeviceMode.tsx

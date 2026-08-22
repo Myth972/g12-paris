@@ -1,13 +1,15 @@
 import { motion, useMotionValue, useSpring } from "framer-motion";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useMotionEnabled } from "@/hooks/useMotionEnabled";
-import { useDevDeviceMode } from "@/hooks/useDevDeviceMode";
 import { useVisualEnabled } from "@/hooks/useVisualSetting";
 
 export default function GlowCursor() {
   const motionEnabled = useMotionEnabled();
-  const { mode } = useDevDeviceMode();
-  const isDesktop = mode !== "mobile";
+  const [isDesktop] = useState(
+    () =>
+      typeof window === "undefined" ||
+      window.matchMedia?.("(pointer: fine)")?.matches !== false
+  );
   const enabled = useVisualEnabled("visuals.glowCursor.enabled");
 
   const mouseX = useMotionValue(-200);

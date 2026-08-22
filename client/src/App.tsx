@@ -2,13 +2,12 @@ import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { trpc } from "@/lib/trpc";
 import { Route, Switch } from "wouter";
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect, useState, type ComponentType } from "react";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import SiteHeader from "./components/SiteHeader";
 import SiteFooter from "./components/SiteFooter";
 import { Loader2 } from "lucide-react";
-import DevDeviceToggle from "./components/DevDeviceToggle";
 import PageTransition from "./components/PageTransition";
 import GlowCursor from "./components/GlowCursor";
 
@@ -229,6 +228,17 @@ function AppWithTheme() {
   const enableThemeToggle = settings?.["design.enableThemeToggle"] === "true";
   const defaultTheme = (settings?.["design.defaultTheme"] as "light" | "dark") || "light";
 
+  // Toggle de test local uniquement — fichier hors git, jamais résolu par le bundler
+  const [DevDeviceToggle, setDevDeviceToggle] = useState<ComponentType | null>(null);
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      const devTogglePath = "/src/components/DevDeviceToggle.tsx";
+      import(/* @vite-ignore */ devTogglePath)
+        .then(m => setDevDeviceToggle(() => m.default))
+        .catch(() => {});
+    }
+  }, []);
+
   return (
     <ThemeProvider defaultTheme={defaultTheme} switchable={enableThemeToggle}>
       <DynamicDesign />
@@ -236,7 +246,7 @@ function AppWithTheme() {
         <GlowCursor />
         <Toaster />
         <Router />
-        {import.meta.env.DEV && <DevDeviceToggle />}
+        {DevDeviceToggle && <DevDeviceToggle />}
       </TooltipProvider>
     </ThemeProvider>
   );
