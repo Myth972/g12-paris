@@ -1215,6 +1215,17 @@ RÈGLES :
           });
         }
 
+        // Kling est un provider vidéo, pas chat — on teste pas via chat completions
+        if (provider === "kling") {
+          const info = getProviderInfo(provider);
+          return { 
+            ok: true, 
+            provider,
+            model: info.model,
+            response: "Kling AI (vidéo) — test via génération vidéo dans l'admin" 
+          };
+        }
+
         const response = await invokeLLM({
           messages: [{ role: "user", content: "Dis 'OK' si tu fonctionnes." }],
           provider,
@@ -1262,6 +1273,21 @@ RÈGLES :
             ok: false,
             status: getProviderHealth(provider).status,
             error: "Clé API non configurée",
+          });
+          continue;
+        }
+
+        // Kling est un provider vidéo — pas de test chat
+        if (provider === "kling") {
+          recordProviderSuccess(provider);
+          const info = getProviderInfo(provider);
+          results.push({
+            provider,
+            configured: true,
+            ok: true,
+            model: info.model,
+            status: getProviderHealth(provider).status,
+            error: undefined,
           });
           continue;
         }

@@ -109,20 +109,37 @@ export async function removeApiKey(provider: string): Promise<void> {
   cache.set(provider, envKeyFor(provider));
 }
 
-/** Récupère les crédits disponibles pour Kling AI. */
+/** Récupère les crédits disponibles pour Kling AI (best effort). */
 export async function fetchKlingCredits(apiKey: string): Promise<string | null> {
-  try {
-    const resp = await fetch("https://api.klingai.com/v1/user/credits", {
-      headers: { Authorization: `Bearer ${apiKey}` },
-      signal: AbortSignal.timeout(5000),
-    });
-    if (!resp.ok) return null;
-    const data = await resp.json();
-    // Adapter selon la réponse réelle de l'API Kling
-    return data.credits?.toString() ?? data.balance?.toString() ?? data.amount?.toString() ?? null;
-  } catch {
-    return null;
+  // Essayer plusieurs endpoints possibles
+  const endpoints = [
+    "https://api.klingai.com/v1/user/credits",
+    "https://api.klingai.com/v1/user/balance",
+    "https://api.klingai.com/v1/account/credits",
+    "https://api.klingai.com/v1/credits",
+  ];
+
+  for (const url of endpoints) {
+    try {
+      const resp = await fetch(url, {
+        headers: { Authorization: `Bearer ${apiKey}` },
+        signal: AbortSignal.timeout(5000),
+      });
+      if (!resp.ok) continue;
+      const data = await resp.json();
+      // Adapter selon la réponse réelle de l'API Kling
+      const credits = data.credits?.toString() 
+        ?? data.balance?.toString() 
+        ?? data.amount?.toString() 
+        ?? data.data?.credits?.toString()
+        ?? data.data?.balance?.toString()
+        ?? null;
+      if (credits) return credits;
+    } catch {
+      continue;
+    }
   }
+  return null; // Silencieux : pas de crédits affichés plutôt qu'erreur
 }
 
 /** Retourne l'état de tous les providers (sans exposer les clés). */
