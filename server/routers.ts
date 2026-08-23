@@ -2128,68 +2128,91 @@ generateImage: adminProcedure
           });
         }
 
-        // Step 1: Submit the generation request (Kling direct API)
-        const submitResp = await fetch(
-          "https://api.klingai.com/v1/video/generations",
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${klingKey}`,
-            },
-            body: JSON.stringify({
-              model: input.imageUrl ? "kling-v1-6-image-to-video" : "kling-v1-6-text-to-video",
-              prompt: input.prompt,
-              negative_prompt: input.negativePrompt || "",
-              duration: input.duration === "5" ? 5 : 10,
-              aspect_ratio: input.aspectRatio,
-              ...(input.imageUrl ? { image_url: input.imageUrl } : {}),
-            }),
-          }
-        );
+        const payload = {
+          model: input.imageUrl ? "kling-v1-6-image-to-video" : "kling-v1-6-text-to-video",
+          prompt: input.prompt,
+          negative_prompt: input.negativePrompt || "",
+          duration: input.duration === "5" ? 5 : 10,
+          aspect_ratio: input.aspectRatio,
+          ...(input.imageUrl ? { image_url: input.imageUrl } : {}),
+        };
 
-        if (!submitResp.ok) {
-          const err = await submitResp.text();
-          throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: `Kling video submit error: ${submitResp.status} – ${err}`,
-          });
+        // Essayer plusieurs endpoints possibles pour la soumission
+        const submitEndpoints = [
+          "https://api.klingai.com/v1/video/generation",      // singulier
+          "https://api.klingai.com/v1/generations",           // sans /video
+          "https://api.klingai.com/v1/video/create",
+          "https://api.klingai.com/v1/video/generate",
+        ];
+
+        let submitData: any = null;
+        let generationId: string | null = null;
+        let lastError: string = "";
+
+        for (const endpoint of submitEndpoints) {
+          try {
+            const submitResp = await fetch(endpoint, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${klingKey}`,
+              },
+              body: JSON.stringify(payload),
+            });
+
+            if (submitResp.ok) {
+              submitData = await submitResp.json();
+              generationId = submitData?.data?.task_id || submitData?.id || submitData?.task_id;
+              if (generationId) break;
+            }
+            lastError = `HTTP ${submitResp.status}: ${await submitResp.text()}`;
+          } catch (e: any) {
+            lastError = e.message;
+          }
         }
 
-        const submitData = (await submitResp.json()) as any;
-        const generationId = submitData?.data?.task_id || submitData?.id || submitData?.task_id;
         if (!generationId) {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: `Pas d'ID de génération: ${JSON.stringify(submitData).substring(0, 200)}`,
+            message: `Kling video submit error (tous endpoints essayés): ${lastError}`,
           });
         }
 
-        // Step 2: Poll for result (max 90s)
+        // Step 2: Poll for result (max 90s) - essayer plusieurs endpoints de polling
+        const pollEndpoints = [
+          (id: string) => `https://api.klingai.com/v1/video/generation/${id}`,     // singulier
+          (id: string) => `https://api.klingai.com/v1/generations/${id}`,
+          (id: string) => `https://api.klingai.com/v1/video/generations/${id}`,   // original
+        ];
+
         for (let i = 0; i < 18; i++) {
           await new Promise(r => setTimeout(r, 5000));
-          const pollResp = await fetch(
-            `https://api.klingai.com/v1/video/generations/${generationId}`,
-            {
-              headers: { Authorization: `Bearer ${klingKey}` },
+          
+          for (const pollEndpoint of pollEndpoints) {
+            try {
+              const pollResp = await fetch(pollEndpoint(generationId), {
+                headers: { Authorization: `Bearer ${klingKey}` },
+              });
+              if (!pollResp.ok) continue;
+              const pollData = (await pollResp.json()) as any;
+              const status = pollData?.data?.task_status || pollData?.status;
+              if (status === "completed" || status === "success" || status === "succeeded") {
+                const videoUrl =
+                  pollData?.data?.task_result?.videos?.[0]?.url ||
+                  pollData?.video?.url ||
+                  pollData?.output?.url ||
+                  pollData?.url;
+                if (videoUrl) return { url: videoUrl, generationId };
+              }
+              if (status === "failed" || status === "error") {
+                throw new TRPCError({
+                  code: "INTERNAL_SERVER_ERROR",
+                  message: `Génération vidéo échouée: ${JSON.stringify(pollData).substring(0, 200)}`,
+                });
+              }
+} catch {
+              continue;
             }
-          );
-          if (!pollResp.ok) continue;
-          const pollData = (await pollResp.json()) as any;
-          const status = pollData?.data?.task_status || pollData?.status;
-          if (status === "completed" || status === "success" || status === "succeeded") {
-            const videoUrl =
-              pollData?.data?.task_result?.videos?.[0]?.url ||
-              pollData?.video?.url ||
-              pollData?.output?.url ||
-              pollData?.url;
-            if (videoUrl) return { url: videoUrl, generationId };
-          }
-          if (status === "failed" || status === "error") {
-            throw new TRPCError({
-              code: "INTERNAL_SERVER_ERROR",
-              message: `Génération vidéo échouée: ${JSON.stringify(pollData).substring(0, 200)}`,
-            });
           }
         }
 
