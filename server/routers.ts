@@ -1215,14 +1215,14 @@ RÈGLES :
           });
         }
 
-        // Kling est un provider vidéo, pas chat — on teste pas via chat completions
-        if (provider === "kling") {
+        // Kling et Replicate sont des providers vidéo, pas chat — on teste pas via chat completions
+        if (provider === "kling" || provider === "replicate") {
           const info = getProviderInfo(provider);
           return { 
             ok: true, 
             provider,
             model: info.model,
-            response: "Kling AI (vidéo) — test via génération vidéo dans l'admin" 
+            response: `${info.label} (vidéo) — test via génération vidéo dans l'admin` 
           };
         }
 
@@ -1277,8 +1277,8 @@ RÈGLES :
           continue;
         }
 
-        // Kling est un provider vidéo — pas de test chat
-        if (provider === "kling") {
+        // Kling et Replicate sont des providers vidéo — pas de test chat
+        if (provider === "kling" || provider === "replicate") {
           recordProviderSuccess(provider);
           const info = getProviderInfo(provider);
           results.push({
