@@ -29,6 +29,12 @@ export const AI_PROVIDERS = [
     model: "Kling v1",
     description: "Génération vidéo + chat (API directe).",
   },
+  {
+    value: "replicate",
+    label: "Replicate",
+    model: "Kling v2.6 (via Replicate)",
+    description: "Génération vidéo Kling via Replicate (H100, pay-per-use).",
+  },
 ] as const;
 
 export type AiProvider = (typeof AI_PROVIDERS)[number]["value"];

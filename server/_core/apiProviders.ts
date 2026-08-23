@@ -36,6 +36,13 @@ export const DEFAULT_PROVIDERS: ApiProviderConfig[] = [
     baseUrl: "https://api.klingai.com/v1/chat/completions",
     enabled: true,
   },
+  {
+    provider: "replicate",
+    label: "Replicate",
+    model: "kwaivgi/kling-v2.6",
+    baseUrl: "https://api.replicate.com/v1/predictions",
+    enabled: true,
+  },
 ];
 
 // Cache en mémoire (invalidé à chaque modification).

@@ -31,6 +31,8 @@ function envKeyFor(provider: string): string | null {
       return ENV.minimaxApiKey || null;
     case "aimlapi":
       return ENV.aimlApiKey || null;
+    case "replicate":
+      return ENV.replicateApiToken || null;
     case "ollama":
       return "ollama"; // pas de clé
     default:

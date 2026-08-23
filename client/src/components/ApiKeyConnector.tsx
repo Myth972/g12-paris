@@ -24,6 +24,7 @@ const PROVIDER_URLS: Record<string, string> = {
   google: "https://aistudio.google.com/apikey",
   minimax: "https://platform.minimaxi.com/user-center/basic-information",
   kling: "https://klingai.com/user/api-keys",
+  replicate: "https://replicate.com/account/api-tokens",
   ollama: "",
 };
 
@@ -32,6 +33,7 @@ const PROVIDER_HINTS: Record<string, string> = {
   google: "GOOGLE_API_KEY (aistudio.google.com)",
   minimax: "MINIMAX_API_KEY (platform.minimaxi.com)",
   kling: "KLING_API_KEY (klingai.com/user/api-keys)",
+  replicate: "REPLICATE_API_TOKEN (replicate.com/account/api-tokens)",
   ollama: "Ollama local — aucune clé requise",
 };
 

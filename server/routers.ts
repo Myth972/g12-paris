@@ -2216,8 +2216,99 @@ generateImage: adminProcedure
           }
         }
 
-        // Return generationId to let client poll later
+// Return generationId to let client poll later
         return { url: null, generationId, pending: true };
+      }),
+
+    // ─── Replicate Video Generation (Kling via Replicate) ──────────────
+    generateVideoReplicate: adminProcedure
+      .input(
+        z.object({
+          prompt: z.string().min(1).max(1000),
+          duration: z.enum(["5", "10"]).default("5"),
+          aspectRatio: z.enum(["1:1", "16:9", "9:16"]).default("16:9"),
+          negativePrompt: z.string().optional(),
+          imageUrl: z.string().url().optional(),
+          model: z.enum(["kwaivgi/kling-v1.6-standard", "kwaivgi/kling-v1.6-pro", "kwaivgi/kling-v2.6", "kwaivgi/kling-v3"]).default("kwaivgi/kling-v2.6"),
+          audio: z.boolean().default(false),
+        })
+      )
+      .mutation(async ({ input }) => {
+        const { getApiKey } = await import("./_core/apiKeys.js");
+        const replicateToken = await getApiKey("replicate");
+
+        if (!replicateToken) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Token Replicate non configuré (connecteur de clés API)",
+          });
+        }
+
+        // Submit prediction to Replicate
+        const submitResp = await fetch("https://api.replicate.com/v1/predictions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${replicateToken}`,
+            "Prefer": "respond-async",
+          },
+          body: JSON.stringify({
+            version: input.model,
+            input: {
+              prompt: input.prompt,
+              duration: input.duration === "5" ? 5 : 10,
+              aspect_ratio: input.aspectRatio,
+              negative_prompt: input.negativePrompt || "",
+              audio: input.audio,
+              ...(input.imageUrl ? { image: input.imageUrl } : {}),
+            },
+          }),
+        });
+
+        if (!submitResp.ok) {
+          const err = await submitResp.text();
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: `Replicate submit error: ${submitResp.status} – ${err}`,
+          });
+        }
+
+        const prediction = (await submitResp.json()) as any;
+        const predictionId = prediction?.id;
+        if (!predictionId) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: `Pas d'ID de prédiction: ${JSON.stringify(prediction).substring(0, 200)}`,
+          });
+        }
+
+        // Poll for result (max 5 minutes)
+        for (let i = 0; i < 60; i++) {
+          await new Promise(r => setTimeout(r, 5000));
+          
+          const pollResp = await fetch(`https://api.replicate.com/v1/predictions/${predictionId}`, {
+            headers: { Authorization: `Bearer ${replicateToken}` },
+          });
+          
+          if (!pollResp.ok) continue;
+          const pollData = (await pollResp.json()) as any;
+          const status = pollData?.status;
+          
+          if (status === "succeeded") {
+            const videoUrl = pollData?.output?.[0] || pollData?.output?.video_url || pollData?.output;
+            if (videoUrl) return { url: videoUrl, generationId: predictionId };
+          }
+          
+          if (status === "failed" || status === "canceled") {
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message: `Génération vidéo échouée: ${pollData?.error || "Inconnu"}`,
+            });
+          }
+        }
+
+        // Return predictionId to let client poll later
+        return { url: null, generationId: predictionId, pending: true };
       }),
 
     // ─── AI Stats & Quota ──────────────────────────────────────────
