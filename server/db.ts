@@ -1,4 +1,4 @@
-import { eq, desc, and, sql, asc, notInArray, inArray, count } from "drizzle-orm";
+import { eq, desc, and, sql, asc, notInArray, inArray, count, isNotNull } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/libsql";
 import { createClient } from "@libsql/client";
 import {
@@ -701,6 +701,45 @@ export async function getLatestBiblicalVerse() {
     .orderBy(desc(biblicalVerses.createdAt))
     .limit(1);
   return rows[0] || null;
+}
+
+export async function countBiblicalVerses(): Promise<number> {
+  const db = getDb();
+  assertDb(db);
+
+  const result = await db
+    .select({ count: count(biblicalVerses.id) })
+    .from(biblicalVerses);
+  return result[0]?.count ?? 0;
+}
+
+export async function getVerseOfTheDay() {
+  const db = getDb();
+  assertDb(db);
+
+  // Récupérer uniquement les versets AVEC image (imageUrl non null)
+  const allVersesWithImages = await db
+    .select()
+    .from(biblicalVerses)
+    .where(isNotNull(biblicalVerses.imageUrl))
+    .orderBy(asc(biblicalVerses.createdAt));
+  
+  const total = allVersesWithImages.length;
+
+  if (total === 0) {
+    return null;
+  }
+
+  // Calculer le jour de l'année (1-366)
+  const now = new Date();
+  const startOfYear = new Date(now.getFullYear(), 0, 0);
+  const diff = now.getTime() - startOfYear.getTime();
+  const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+  // Index déterministe : jourDeLAnnée % totalVersetsAvecImage
+  const verseIndex = dayOfYear % total;
+
+  return allVersesWithImages[verseIndex] || null;
 }
 
 export async function listBiblicalVerses(limit = 50, offset = 0) {

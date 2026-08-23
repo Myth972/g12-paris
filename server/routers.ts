@@ -49,6 +49,8 @@ import {
   deleteBiblicalVerse,
   listBiblicalVerses,
   getLatestBiblicalVerse,
+  getVerseOfTheDay,
+  countBiblicalVerses,
   getPageContent,
   createPageContent,
   updatePageContent,
@@ -752,8 +754,8 @@ export const appRouter = router({
 
   verses: router({
     latest: publicProcedure.query(async () => {
-      const items = await getLatestBiblicalVerse();
-      return items;
+      const verse = await getVerseOfTheDay();
+      return verse;
     }),
 
     create: adminProcedure
