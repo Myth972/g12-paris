@@ -1372,7 +1372,7 @@ RÈGLES :
             provider: z.string().min(1).max(50),
             label: z.string().min(1).max(100),
             model: z.string().min(1).max(100),
-            baseUrl: z.string().url().optional().or(z.literal("")).transform(v => v === "" ? undefined : v),
+            baseUrl: z.string().transform(v => v === "" ? undefined : v).pipe(z.string().url().optional()),
             enabled: z.boolean().optional(),
           })
         )
