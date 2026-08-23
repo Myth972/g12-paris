@@ -23,6 +23,12 @@ export const AI_PROVIDERS = [
     model: "llama3.2",
     description: "IA en local sur votre machine via Ollama.",
   },
+  {
+    value: "kling",
+    label: "Kling AI",
+    model: "Kling v1",
+    description: "Génération vidéo + chat (API directe).",
+  },
 ] as const;
 
 export type AiProvider = (typeof AI_PROVIDERS)[number]["value"];

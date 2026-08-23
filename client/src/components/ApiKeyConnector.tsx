@@ -23,6 +23,7 @@ const PROVIDER_URLS: Record<string, string> = {
   groq: "https://console.groq.com/keys",
   google: "https://aistudio.google.com/apikey",
   minimax: "https://platform.minimaxi.com/user-center/basic-information",
+  kling: "https://klingai.com/user/api-keys",
   ollama: "",
 };
 
@@ -30,6 +31,7 @@ const PROVIDER_HINTS: Record<string, string> = {
   groq: "GROQ_API_KEY (console.groq.com)",
   google: "GOOGLE_API_KEY (aistudio.google.com)",
   minimax: "MINIMAX_API_KEY (platform.minimaxi.com)",
+  kling: "KLING_API_KEY (klingai.com/user/api-keys)",
   ollama: "Ollama local — aucune clé requise",
 };
 
@@ -301,15 +303,24 @@ export default function ApiKeyConnector() {
                           : "aucune"}
                     </Badge>
                   </div>
-                  {status.configured ? (
-                    <p className="text-xs text-muted-foreground mt-1 font-mono">
-                      {status.masked}
-                    </p>
-                  ) : (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {PROVIDER_HINTS[status.provider]}
-                    </p>
-                  )}
+{status.configured ? (
+                      <>
+                        <p className="text-xs text-muted-foreground mt-1 font-mono">
+                          {status.masked}
+                        </p>
+                        {status.provider === "kling" && status.credits && (
+                          <div className="flex items-center gap-1 mt-1">
+                            <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">
+                              💳 Crédits : {status.credits}
+                            </span>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {PROVIDER_HINTS[status.provider]}
+                      </p>
+                    )}
                 </div>
               </div>
 

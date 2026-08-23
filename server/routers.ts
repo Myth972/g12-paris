@@ -1186,34 +1186,45 @@ RÈGLES :
       }),
 
     testProvider: adminProcedure
-      .input(zod.object({ provider: z.enum(["google", "groq", "minimax", "aimlapi", "ollama"]).optional() }))
+      .input(zod.object({ provider: z.string().optional() }))
       .mutation(async ({ input }) => {
-        const db = getDb();
+        const { listEnabledProviders } = await import("./_core/apiProviders.js");
+        const enabledProviders = await listEnabledProviders();
+        
         let provider = input.provider;
         
-        if (!provider && db) {
-          
-          
-          const rows = await db
-            .select()
-            .from(siteSettings)
-            .where(eq(siteSettings.key, "aiProvider"))
-            .limit(1);
-          provider = rows[0]?.value as any;
+        if (!provider) {
+          const db = getDb();
+          if (db) {
+            const rows = await db
+              .select()
+              .from(siteSettings)
+              .where(eq(siteSettings.key, "aiProvider"))
+              .limit(1);
+            provider = rows[0]?.value as string || "groq";
+          } else {
+            provider = "groq";
+          }
         }
 
-        
+        // Valider que le provider est activé
+        if (!enabledProviders.includes(provider)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Provider "${provider}" non activé`,
+          });
+        }
+
         const response = await invokeLLM({
           messages: [{ role: "user", content: "Dis 'OK' si tu fonctionnes." }],
-          provider: provider as any,
+          provider,
         });
-        
-        
-        const info = getProviderInfo(provider as any || "groq");
+
+        const info = getProviderInfo(provider);
         
         return { 
           ok: true, 
-          provider: provider || "groq",
+          provider,
           model: info.model,
           response: response.choices[0].message.content 
         };
@@ -2081,28 +2092,30 @@ generateImage: adminProcedure
         })
       )
       .mutation(async ({ input }) => {
-        
-        if (!ENV.aimlApiKey) {
+        const { getApiKey } = await import("./_core/apiKeys.js");
+        const klingKey = await getApiKey("kling");
+
+        if (!klingKey) {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: "AIMLAPI_KEY non configurée",
+            message: "Clé API Kling non configurée (connecteur de clés API)",
           });
         }
 
-        // Step 1: Submit the generation request
+        // Step 1: Submit the generation request (Kling direct API)
         const submitResp = await fetch(
-          "https://api.aimlapi.com/v2/generate/video/kling/generation",
+          "https://api.klingai.com/v1/video/generations",
           {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
-              Authorization: `Bearer ${ENV.aimlApiKey}`,
+              Authorization: `Bearer ${klingKey}`,
             },
             body: JSON.stringify({
-              model: input.imageUrl ? "kling-video/v1.6/pro/image-to-video" : "kling-video/v1.6/pro/text-to-video",
+              model: input.imageUrl ? "kling-v1-6-image-to-video" : "kling-v1-6-text-to-video",
               prompt: input.prompt,
               negative_prompt: input.negativePrompt || "",
-              duration: input.duration,
+              duration: input.duration === "5" ? 5 : 10,
               aspect_ratio: input.aspectRatio,
               ...(input.imageUrl ? { image_url: input.imageUrl } : {}),
             }),
@@ -2118,7 +2131,7 @@ generateImage: adminProcedure
         }
 
         const submitData = (await submitResp.json()) as any;
-        const generationId = submitData?.id || submitData?.generation_id;
+        const generationId = submitData?.data?.task_id || submitData?.id || submitData?.task_id;
         if (!generationId) {
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
@@ -2130,17 +2143,20 @@ generateImage: adminProcedure
         for (let i = 0; i < 18; i++) {
           await new Promise(r => setTimeout(r, 5000));
           const pollResp = await fetch(
-            `https://api.aimlapi.com/v2/generate/video/kling/generation?generation_id=${generationId}`,
+            `https://api.klingai.com/v1/video/generations/${generationId}`,
             {
-              headers: { Authorization: `Bearer ${ENV.aimlApiKey}` },
+              headers: { Authorization: `Bearer ${klingKey}` },
             }
           );
           if (!pollResp.ok) continue;
           const pollData = (await pollResp.json()) as any;
-          const status = pollData?.status;
-          if (status === "completed" || status === "success") {
+          const status = pollData?.data?.task_status || pollData?.status;
+          if (status === "completed" || status === "success" || status === "succeeded") {
             const videoUrl =
-              pollData?.video?.url || pollData?.output?.url || pollData?.url;
+              pollData?.data?.task_result?.videos?.[0]?.url ||
+              pollData?.video?.url ||
+              pollData?.output?.url ||
+              pollData?.url;
             if (videoUrl) return { url: videoUrl, generationId };
           }
           if (status === "failed" || status === "error") {

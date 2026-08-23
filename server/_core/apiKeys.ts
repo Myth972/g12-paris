@@ -15,6 +15,7 @@ export interface ApiKeyStatus {
   configured: boolean;
   source: "env" | "db" | "none";
   masked: string;
+  credits?: string | null;
 }
 
 // Cache en mémoire pour éviter un SELECT à chaque appel IA.
@@ -108,6 +109,22 @@ export async function removeApiKey(provider: string): Promise<void> {
   cache.set(provider, envKeyFor(provider));
 }
 
+/** Récupère les crédits disponibles pour Kling AI. */
+export async function fetchKlingCredits(apiKey: string): Promise<string | null> {
+  try {
+    const resp = await fetch("https://api.klingai.com/v1/user/credits", {
+      headers: { Authorization: `Bearer ${apiKey}` },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!resp.ok) return null;
+    const data = await resp.json();
+    // Adapter selon la réponse réelle de l'API Kling
+    return data.credits?.toString() ?? data.balance?.toString() ?? data.amount?.toString() ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /** Retourne l'état de tous les providers (sans exposer les clés). */
 export async function listApiKeyStatus(): Promise<ApiKeyStatus[]> {
   const { listProviders } = await import("./apiProviders.js");
@@ -118,11 +135,19 @@ export async function listApiKeyStatus(): Promise<ApiKeyStatus[]> {
     const dbValue = await getApiKey(provider);
     const effective = dbValue ?? envValue;
     const source = dbValue !== envValue && dbValue !== null ? "db" : envValue ? "env" : "none";
+
+    // Récupérer les crédits pour Kling si configuré
+    let credits: string | null = null;
+    if (provider === "kling" && effective && effective !== "ollama") {
+      credits = await fetchKlingCredits(effective);
+    }
+
     results.push({
       provider,
       configured: !!effective,
       source,
       masked: effective ? maskKey(effective) : "",
+      credits,
     });
   }
   return results;
