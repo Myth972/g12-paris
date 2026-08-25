@@ -185,13 +185,18 @@ export default function ArticleEditor() {
   };
 
   const handleImproveContent = (tone: "biblical" | "normal") => {
-    const plainText = content.replace(/<[^>]*>/g, "").trim();
-    if (!plainText) { toast.error("Le contenu est vide"); return; }
+    if (!content.trim()) { toast.error("Le contenu est vide"); return; }
     improveTextMutation.mutate(
-      { text: plainText, tone, field: "content" },
+      { text: content, tone, field: "content" },
       {
         onSuccess: (improved) => {
-          setContent(`<p>${improved.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br/>')}</p>`);
+          // L'IA peut retourner du HTML brut ou du texte entre blocs de code
+          let html = improved.replace(/^```html\s*/i, "").replace(/\s*```$/i, "").trim();
+          // Si pas de balises HTML, wrapper dans des paragraphes
+          if (!/<[a-z][\s\S]*>/i.test(html)) {
+            html = `<p>${html.replace(/\n\n/g, "</p><p>").replace(/\n/g, "<br/>")}</p>`;
+          }
+          setContent(html);
         },
       },
     );

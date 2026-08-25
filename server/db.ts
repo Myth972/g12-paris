@@ -717,29 +717,47 @@ export async function getVerseOfTheDay() {
   const db = getDb();
   assertDb(db);
 
-  // Récupérer uniquement les versets AVEC image (imageUrl non null)
-  const allVersesWithImages = await db
+  // Récupérer les versets AVEC image en priorité
+  const versesWithImages = await db
     .select()
     .from(biblicalVerses)
     .where(isNotNull(biblicalVerses.imageUrl))
     .orderBy(asc(biblicalVerses.createdAt));
-  
-  const total = allVersesWithImages.length;
 
+  // Si peu de versets avec image (< 3), compléter avec les versets sans image
+  let pool = versesWithImages;
+  if (versesWithImages.length < 3) {
+    const allVerses = await db
+      .select()
+      .from(biblicalVerses)
+      .orderBy(asc(biblicalVerses.createdAt));
+    pool = allVerses;
+  }
+
+  const total = pool.length;
   if (total === 0) {
     return null;
   }
 
-  // Calculer le jour de l'année (1-366)
+  // Seed déterministe basé sur l'année pour mélanger l'ordre chaque année
   const now = new Date();
-  const startOfYear = new Date(now.getFullYear(), 0, 0);
+  const year = now.getFullYear();
+  const startOfYear = new Date(year, 0, 0);
   const diff = now.getTime() - startOfYear.getTime();
   const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
 
-  // Index déterministe : jourDeLAnnée % totalVersetsAvecImage
-  const verseIndex = dayOfYear % total;
+  // Simple hash seed par année pour un ordre stable dans la journée
+  const seed = (year * 2654435761) >>> 0;
 
-  return allVersesWithImages[verseIndex] || null;
+  // Fisher-Yates déterministe avec seed → ordre différent chaque année
+  const shuffled = [...pool];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const rng = ((seed + i * 2654435761) >>> 0) % (i + 1);
+    [shuffled[i], shuffled[rng]] = [shuffled[rng], shuffled[i]];
+  }
+
+  const verseIndex = dayOfYear % total;
+  return shuffled[verseIndex] || null;
 }
 
 export async function listBiblicalVerses(limit = 50, offset = 0) {

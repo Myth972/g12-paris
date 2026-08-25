@@ -1508,17 +1508,22 @@ RÈGLES :
           provider = rows[0]?.value as any;
         }
 
+        const isContent = input.field === "content";
+
+        const structureHint = isContent
+          ? ` Structure le contenu avec des balises HTML <h2> pour les sections principales et <h3> pour les sous-sections. Le sommaire est généré automatiquement à partir de ces titres. Conserve les balises HTML existantes (<h2>, <h3>, <p>, <blockquote>, <ul>, <li>, <strong>, <em>).`
+          : "";
+
         const systemPrompt =
           input.tone === "biblical"
-            ? "Tu es un assistant rédactionnel chrétien. Améliore le texte donné en lui donnant une tonalité spirituelle et biblique, avec des références aux Écritures si pertinent. Garde la structure et la longueur similaires."
-            : "Tu es un assistant rédactionnel expert en reformulation. Réécris le texte en substituant des mots, des phrases et des paragraphes pour le rendre unique et plus attrayant tout en transmettant fidèlement le message d'origine. Garde la structure et la longueur similaires.";
+            ? `Tu es un assistant rédactionnel chrétien. Améliore le texte donné en lui donnant une tonalité spirituelle et biblique, avec des références aux Écritures si pertinent. Garde la structure et la longueur similaires.${structureHint}`
+            : `Tu es un assistant rédactionnel expert en reformulation. Réécris le texte en substituant des mots, des phrases et des paragraphes pour le rendre unique et plus attrayant tout en transmettant fidèlement le message d'origine. Garde la structure et la longueur similaires.${structureHint}`;
 
-        const fieldHint =
-          input.field === "excerpt"
-            ? " (résumé / description courte)"
-            : " (contenu principal)";
+        const fieldHint = isContent
+          ? " (contenu principal en HTML)"
+          : " (résumé / description courte)";
 
-        const prompt = `Améliore le texte suivant${fieldHint} :\n\n${input.text}`;
+        const prompt = `Améliore le texte suivant${fieldHint}. Réponds UNIQUEMENT avec le HTML amélioré, sans bloc de code :\n\n${input.text}`;
         const startTime = Date.now();
         checkUserQuota(userId, estimateTokens(input.text) + 200);
 
