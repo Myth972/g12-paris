@@ -1,4 +1,5 @@
 import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
 import YouTubeEmbed from "@/components/YouTubeEmbed";
 import ArticleCard from "@/components/ArticleCard";
 import { Button } from "@/components/ui/button";
@@ -11,7 +12,11 @@ import {
   Clock,
   ChevronRight,
   List,
+  Lightbulb,
+  Loader2,
+  Sparkles,
 } from "lucide-react";
+import { useState } from "react";
 import { useLocation, useParams, Link } from "wouter";
 import { Streamdown } from "streamdown";
 import { toast } from "sonner";
@@ -85,6 +90,8 @@ function ArticleToc({ sections }: { sections: TocSection[] }) {
 export default function ArticleDetail() {
   const params = useParams<{ slug: string }>();
   const [, setLocation] = useLocation();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin" || user?.role === "editeur";
 
   const {
     data: article,
@@ -107,6 +114,17 @@ export default function ArticleDetail() {
   const relatedArticles = (relatedData?.items ?? []).filter(
     (a: any) => a.slug !== params.slug
   ).slice(0, 3);
+
+  const [aiSuggestions, setAiSuggestions] = useState<any[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const suggestMutation = trpc.ai.suggestImprovements.useMutation({
+    onSuccess: (data) => {
+      setAiSuggestions(data.suggestions || []);
+      setShowSuggestions(true);
+    },
+    onError: (err) => toast.error(err.message),
+  });
 
   const sections = article ? extractHeadings(article.content) : [];
   const contentHtml = article
@@ -279,6 +297,64 @@ export default function ArticleDetail() {
           </div>
         </div>
       </div>
+
+      {/* AI Suggestions for editors/admins */}
+      {isAdmin && article && (
+        <div className="container max-w-5xl mx-auto mt-8 px-4">
+          {!showSuggestions ? (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => suggestMutation.mutate({ articleId: article.id })}
+              disabled={suggestMutation.isPending}
+              className="gap-2"
+            >
+              {suggestMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Sparkles className="w-4 h-4 text-amber-500" />
+              )}
+              Suggérer des améliorations IA
+            </Button>
+          ) : (
+            <div className="bg-card rounded-xl border border-border p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold flex items-center gap-2">
+                  <Lightbulb className="w-4 h-4 text-amber-500" />
+                  Suggestions d'amélioration
+                </h3>
+                <Button variant="ghost" size="sm" onClick={() => setShowSuggestions(false)}>
+                  Fermer
+                </Button>
+              </div>
+              <div className="space-y-2">
+                {aiSuggestions.map((s, i) => (
+                  <div key={i} className="flex items-start gap-3 p-2 rounded-lg bg-muted/30">
+                    <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
+                      s.priority === "haute" ? "bg-red-500/10 text-red-600" :
+                      s.priority === "moyenne" ? "bg-amber-500/10 text-amber-600" :
+                      "bg-blue-500/10 text-blue-600"
+                    }`}>
+                      {s.type}
+                    </span>
+                    <p className="text-sm text-muted-foreground flex-1">{s.description}</p>
+                  </div>
+                ))}
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-3 text-xs"
+                onClick={() => suggestMutation.mutate({ articleId: article.id })}
+                disabled={suggestMutation.isPending}
+              >
+                {suggestMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Sparkles className="w-3 h-3 mr-1" />}
+                Régénérer
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ---------- Proposition 5 : articles similaires + fin épurée ---------- */}
       {relatedArticles.length > 0 && (

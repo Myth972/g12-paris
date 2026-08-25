@@ -19,8 +19,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trash2, Send, Mail } from "lucide-react";
+import { Trash2, Send, Mail, Trash } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -35,9 +36,25 @@ function formatDate(date: Date): string {
 
 export default function NewsletterAdmin() {
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [selectedSubscribers, setSelectedSubscribers] = useState<number[]>([]);
   const { t } = useTranslation();
   const [newsletterSubject, setNewsletterSubject] = useState("Les dernières actualités de G12 Paris");
   const utils = trpc.useUtils();
+
+  const toggleSelectAll = () => {
+    if (!subscribers) return;
+    if (selectedSubscribers.length === subscribers.length) {
+      setSelectedSubscribers([]);
+    } else {
+      setSelectedSubscribers(subscribers.map((s: { id: number }) => s.id));
+    }
+  };
+
+  const toggleSelectItem = (id: number) => {
+    setSelectedSubscribers((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
 
   const { data: subscribersData, isLoading } =
     trpc.newsletter.listSubscribers.useQuery();
@@ -48,6 +65,15 @@ export default function NewsletterAdmin() {
       utils.newsletter.listSubscribers.invalidate();
       toast.success(t('admin.newsletterAdmin.toastDeleted'));
       setDeleteId(null);
+    },
+    onError: () => toast.error(t('admin.newsletterAdmin.toastDeleteError')),
+  });
+
+  const bulkDeleteMutation = trpc.newsletter.bulkDeleteSubscribers.useMutation({
+    onSuccess: (res) => {
+      utils.newsletter.listSubscribers.invalidate();
+      toast.success(t('admin.newsletterAdmin.toastDeleted'));
+      setSelectedSubscribers([]);
     },
     onError: () => toast.error(t('admin.newsletterAdmin.toastDeleteError')),
   });
@@ -99,6 +125,23 @@ export default function NewsletterAdmin() {
         </div>
       </div>
 
+      {selectedSubscribers.length > 0 && (
+        <div className="flex items-center gap-2 mb-2 max-w-4xl mx-auto">
+          <span className="text-sm text-muted-foreground">
+            {selectedSubscribers.length} sélectionné{(selectedSubscribers.length) !== 1 ? 's' : ''}
+          </span>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => bulkDeleteMutation.mutate({ ids: selectedSubscribers })}
+            disabled={bulkDeleteMutation.isPending}
+          >
+            <Trash className="w-4 h-4 mr-1" />
+            {bulkDeleteMutation.isPending ? '...' : 'Supprimer'}
+          </Button>
+        </div>
+      )}
+
       <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm max-w-4xl mx-auto">
         {isLoading ? (
           <div className="p-6 space-y-4">
@@ -120,6 +163,15 @@ export default function NewsletterAdmin() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-12">
+                  {subscribers && subscribers.length > 0 && (
+                    <Checkbox
+                      checked={selectedSubscribers.length === subscribers.length && subscribers.length > 0}
+                      onCheckedChange={toggleSelectAll}
+                      aria-label="Tout sélectionner"
+                    />
+                  )}
+                </TableHead>
                 <TableHead>{t('admin.newsletterAdmin.colEmail')}</TableHead>
                 <TableHead>{t('admin.newsletterAdmin.colName')}</TableHead>
                 <TableHead>{t('admin.newsletterAdmin.colDate')}</TableHead>
@@ -129,6 +181,13 @@ export default function NewsletterAdmin() {
             <TableBody>
               {subscribers?.map((sub: any) => (
                 <TableRow key={sub.id}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedSubscribers.includes(sub.id)}
+                      onCheckedChange={() => toggleSelectItem(sub.id)}
+                      aria-label={`Sélectionner ${sub.email}`}
+                    />
+                  </TableCell>
                   <TableCell className="font-medium">{sub.email}</TableCell>
                   <TableCell>
                     {sub.name ? (

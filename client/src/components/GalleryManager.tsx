@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
@@ -83,6 +84,7 @@ export default function GalleryManager() {
     featured: true,
     loop: false,
   });
+  const [selectedGalleryItems, setSelectedGalleryItems] = useState<Set<number>>(new Set());
 
   const utils = trpc.useUtils();
   const { data: galleryData, isLoading } = trpc.gallery.listAdmin.useQuery();
@@ -127,6 +129,40 @@ export default function GalleryManager() {
     },
     onError: err => toast.error("Erreur : " + err.message),
   });
+
+  const bulkDeleteMutation = trpc.gallery.bulkDelete.useMutation({
+    onSuccess: (result) => {
+      utils.gallery.listAdmin.invalidate();
+      utils.gallery.list.invalidate();
+      utils.gallery.featured.invalidate();
+      setSelectedGalleryItems(new Set());
+      toast.success(`${result.count} élément(s) supprimé(s)`);
+    },
+    onError: err => toast.error("Erreur : " + err.message),
+  });
+
+  const allSelected = items.length > 0 && items.every((item: any) => selectedGalleryItems.has(item.id));
+  const someSelected = items.some((item: any) => selectedGalleryItems.has(item.id));
+
+  const toggleSelectAll = () => {
+    if (allSelected) {
+      setSelectedGalleryItems(new Set());
+    } else {
+      setSelectedGalleryItems(new Set(items.map((item: any) => item.id)));
+    }
+  };
+
+  const toggleSelectItem = (id: number) => {
+    setSelectedGalleryItems(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
 
   const resetForm = () => {
     setFormData({
@@ -483,6 +519,34 @@ export default function GalleryManager() {
         ))}
       </div>
 
+      {someSelected && (
+        <div className="flex items-center gap-3 p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+          <span className="text-sm font-medium text-destructive">
+            {selectedGalleryItems.size} élément(s) sélectionné(s)
+          </span>
+          <Button
+            variant="destructive"
+            size="sm"
+            disabled={bulkDeleteMutation.isPending}
+            onClick={() => {
+              if (confirm(`Supprimer ${selectedGalleryItems.size} élément(s) ?`)) {
+                bulkDeleteMutation.mutate({ ids: Array.from(selectedGalleryItems) });
+              }
+            }}
+          >
+            <Trash2 className="w-4 h-4 mr-1" />
+            {bulkDeleteMutation.isPending ? "Suppression..." : "Supprimer la sélection"}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSelectedGalleryItems(new Set())}
+          >
+            Annuler
+          </Button>
+        </div>
+      )}
+
       <div className="bg-card rounded-xl border border-border overflow-hidden">
         {isLoading ? (
           <div className="p-6 space-y-4">
@@ -499,6 +563,13 @@ export default function GalleryManager() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">
+                    <Checkbox
+                      checked={allSelected || (someSelected ? "indeterminate" : false)}
+                      onCheckedChange={toggleSelectAll}
+                      aria-label="Tout sélectionner"
+                    />
+                  </TableHead>
                   <TableHead>Média</TableHead>
                   <TableHead>Titre</TableHead>
                   <TableHead>Type</TableHead>
@@ -512,6 +583,13 @@ export default function GalleryManager() {
               <TableBody>
                 {items.map((item: any) => (
                   <TableRow key={item.id}>
+                    <TableCell>
+                      <Checkbox
+                        checked={selectedGalleryItems.has(item.id)}
+                        onCheckedChange={() => toggleSelectItem(item.id)}
+                        aria-label={`Sélectionner ${item.title}`}
+                      />
+                    </TableCell>
                     <TableCell>
                       {item.type === "image" ? (
                         <img

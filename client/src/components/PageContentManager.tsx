@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -70,6 +71,7 @@ export default function PageContentManager({
     loop: false,
     featuredHome: false,
   });
+  const [selectedItems, setSelectedItems] = useState<Set<number>>(new Set());
   const { activeProvider } = useAiProvider();
 
   const { data, isLoading, refetch } = trpc.pageContent.adminList.useQuery({
@@ -110,6 +112,17 @@ export default function PageContentManager({
     },
   });
 
+  const bulkDeleteMutation = trpc.pageContent.bulkDelete.useMutation({
+    onSuccess: () => {
+      toast.success("Contenus supprimés avec succès");
+      setSelectedItems(new Set());
+      refetch();
+    },
+    onError: error => {
+      toast.error(error.message || "Erreur lors de la suppression massive");
+    },
+  });
+
   const generateDescriptionMutation = trpc.ai.generateDescription.useMutation({
     onSuccess: description => {
       setFormData(prev => ({ ...prev, description }));
@@ -133,6 +146,26 @@ export default function PageContentManager({
     setEditingId(null);
     setOpen(false);
     setContentType("image");
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedItems.size === items.length) {
+      setSelectedItems(new Set());
+    } else {
+      setSelectedItems(new Set(items.map((item: any) => item.id)));
+    }
+  };
+
+  const toggleSelectItem = (id: number) => {
+    setSelectedItems(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
   };
 
   const handleSubmit = async () => {
@@ -191,7 +224,8 @@ export default function PageContentManager({
   const isLoading_mutation =
     createMutation.isPending ||
     updateMutation.isPending ||
-    deleteMutation.isPending;
+    deleteMutation.isPending ||
+    bulkDeleteMutation.isPending;
 
   return (
     <div className="space-y-6">
@@ -407,6 +441,38 @@ export default function PageContentManager({
         </Dialog>
       </div>
 
+      {selectedItems.size > 0 && (
+        <div className="flex items-center gap-3 p-3 bg-destructive/10 border border-destructive/20 rounded-lg">
+          <p className="text-sm text-destructive font-medium">
+            {selectedItems.size} élément{selectedItems.size > 1 ? "s" : ""} sélectionné{selectedItems.size > 1 ? "s" : ""}
+          </p>
+          <div className="flex gap-2 ml-auto">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedItems(new Set())}
+            >
+              Annuler
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              disabled={bulkDeleteMutation.isPending}
+              onClick={() =>
+                bulkDeleteMutation.mutate({ ids: Array.from(selectedItems) })
+              }
+            >
+              {bulkDeleteMutation.isPending ? (
+                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+              ) : (
+                <Trash2 className="w-4 h-4 mr-2" />
+              )}
+              Supprimer
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Content list */}
       {isLoading ? (
         <div className="text-center py-8">
@@ -422,6 +488,15 @@ export default function PageContentManager({
         </Card>
       ) : (
         <div className="grid gap-4">
+          <div className="flex items-center gap-2 px-1">
+            <Checkbox
+              checked={items.length > 0 && selectedItems.size === items.length}
+              onCheckedChange={toggleSelectAll}
+            />
+            <span className="text-sm text-muted-foreground">
+              Tout sélectionner
+            </span>
+          </div>
           {items.map((item: any) => {
             const videoId =
               item.contentType === "youtube_video"
@@ -472,31 +547,38 @@ export default function PageContentManager({
                   <div className="flex-1 flex flex-col">
                     <CardHeader className="pb-3 flex-1">
                       <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <CardTitle className="text-base line-clamp-1">
-                            {item.title}
-                          </CardTitle>
-                          <CardDescription className="flex items-center gap-2 mt-1">
-                            {item.contentType === "image" && "📷 Image"}
-                            {item.contentType === "youtube_video" &&
-                              "🎥 Vidéo YouTube"}
-                            {item.contentType === "mp4_video" && "🎬 Vidéo MP4"}
-                            <span className="w-1 h-1 rounded-full bg-border" />
-                            Ordre: {item.displayOrder}
-                            {item.featuredHome && (
-                              <>
-                                <span className="w-1 h-1 rounded-full bg-border" />
-                                <span className="text-primary font-bold">
-                                  🏠 Accueil
-                                </span>
-                              </>
+                        <div className="flex items-start gap-3 flex-1">
+                          <Checkbox
+                            checked={selectedItems.has(item.id)}
+                            onCheckedChange={() => toggleSelectItem(item.id)}
+                            className="mt-1"
+                          />
+                          <div className="flex-1">
+                            <CardTitle className="text-base line-clamp-1">
+                              {item.title}
+                            </CardTitle>
+                            <CardDescription className="flex items-center gap-2 mt-1">
+                              {item.contentType === "image" && "📷 Image"}
+                              {item.contentType === "youtube_video" &&
+                                "🎥 Vidéo YouTube"}
+                              {item.contentType === "mp4_video" && "🎬 Vidéo MP4"}
+                              <span className="w-1 h-1 rounded-full bg-border" />
+                              Ordre: {item.displayOrder}
+                              {item.featuredHome && (
+                                <>
+                                  <span className="w-1 h-1 rounded-full bg-border" />
+                                  <span className="text-primary font-bold">
+                                    🏠 Accueil
+                                  </span>
+                                </>
+                              )}
+                            </CardDescription>
+                            {item.description && (
+                              <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
+                                {item.description}
+                              </p>
                             )}
-                          </CardDescription>
-                          {item.description && (
-                            <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
-                              {item.description}
-                            </p>
-                          )}
+                          </div>
                         </div>
                         <div className="flex gap-1 ml-4 pt-1">
                           <Button

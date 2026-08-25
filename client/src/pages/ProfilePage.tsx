@@ -5,10 +5,12 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Shield, User, Lock, History, ArrowLeft, Save, Loader2, CheckCircle2 } from "lucide-react";
+import { Shield, User, Lock, History, ArrowLeft, Save, Loader2, CheckCircle2, Lightbulb } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 
 export default function ProfilePage() {
   const { user, refresh } = useAuth();
@@ -27,6 +29,15 @@ export default function ProfilePage() {
     onError: (err) => {
       setPasswordMessage({ type: "error", text: err.message });
     },
+  });
+
+  const [suggestionForm, setSuggestionForm] = useState({ title: "", message: "", category: "amelioration" });
+  const createSuggestionMutation = trpc.suggestions.create.useMutation({
+    onSuccess: () => {
+      toast.success("Suggestion envoyée !");
+      setSuggestionForm({ title: "", message: "", category: "amelioration" });
+    },
+    onError: (err) => toast.error(err.message),
   });
 
   if (!user) {
@@ -189,6 +200,52 @@ export default function ProfilePage() {
                   </>
                 )}
               </Button>
+            </CardContent>
+          </Card>
+
+          {/* Suggestions */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Lightbulb className="w-5 h-5 text-amber-500" />
+                Envoyer une suggestion
+              </CardTitle>
+              <CardDescription>
+                Proposez des améliorations pour la plateforme.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <Input
+                  placeholder="Titre de la suggestion"
+                  value={suggestionForm.title}
+                  onChange={(e) => setSuggestionForm(p => ({ ...p, title: e.target.value }))}
+                />
+                <Textarea
+                  placeholder="Décrivez votre suggestion..."
+                  value={suggestionForm.message}
+                  onChange={(e) => setSuggestionForm(p => ({ ...p, message: e.target.value }))}
+                  rows={3}
+                />
+                <Button
+                  onClick={() => {
+                    if (!suggestionForm.title.trim() || !suggestionForm.message.trim()) {
+                      toast.error("Veuillez remplir tous les champs");
+                      return;
+                    }
+                    createSuggestionMutation.mutate(suggestionForm);
+                  }}
+                  disabled={createSuggestionMutation.isPending}
+                  size="sm"
+                >
+                  {createSuggestionMutation.isPending ? (
+                    <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+                  ) : (
+                    <Lightbulb className="w-4 h-4 mr-1" />
+                  )}
+                  Envoyer
+                </Button>
+              </div>
             </CardContent>
           </Card>
 

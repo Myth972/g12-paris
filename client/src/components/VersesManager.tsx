@@ -21,6 +21,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Trash2, BookOpen, Sparkles, Loader2, Pencil, Image, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -35,9 +36,39 @@ export default function VersesManager() {
   const [editOpen, setEditOpen] = useState(false);
   const [editingVerse, setEditingVerse] = useState<any>(null);
   const [editFormData, setEditFormData] = useState({ ...formDefaults });
+  const [selectedVerses, setSelectedVerses] = useState<Set<number>>(new Set());
   const utils = trpc.useUtils();
   const { activeProvider } = useAiProvider();
   const { uploadFile, isUploading } = useBlobUpload();
+
+  const toggleSelectAll = () => {
+    if (selectedVerses.size === verses.length) {
+      setSelectedVerses(new Set());
+    } else {
+      setSelectedVerses(new Set(verses.map((v: any) => v.id)));
+    }
+  };
+
+  const toggleSelectItem = (id: number) => {
+    setSelectedVerses(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const bulkDeleteMutation = trpc.verses.bulkDelete.useMutation({
+    onSuccess: () => {
+      utils.verses.adminList.invalidate();
+      setSelectedVerses(new Set());
+      toast.success(`${selectedVerses.size} verset(s) supprimé(s)`);
+    },
+    onError: error => toast.error("Erreur : " + error.message),
+  });
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, target: "create" | "edit") => {
     const file = e.target.files?.[0];
@@ -383,6 +414,33 @@ export default function VersesManager() {
         </Dialog>
       </div>
 
+      {selectedVerses.size > 0 && (
+        <div className="flex items-center gap-3 bg-primary/5 border border-primary/20 rounded-lg px-4 py-2">
+          <span className="text-sm font-medium text-foreground">
+            {selectedVerses.size} sélectionné(s)
+          </span>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => {
+              if (
+                confirm(
+                  `Supprimer ${selectedVerses.size} verset(s) ?`
+                )
+              ) {
+                bulkDeleteMutation.mutate({
+                  ids: Array.from(selectedVerses),
+                });
+              }
+            }}
+            disabled={bulkDeleteMutation.isPending}
+          >
+            <Trash2 className="w-4 h-4 mr-1" />
+            {bulkDeleteMutation.isPending ? "Suppression..." : "Supprimer"}
+          </Button>
+        </div>
+      )}
+
       <div className="bg-card rounded-xl border border-border overflow-hidden">
         {isLoading ? (
           <div className="p-6 space-y-4">
@@ -402,6 +460,13 @@ export default function VersesManager() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-[50px]">
+                  <Checkbox
+                    checked={verses.length > 0 && selectedVerses.size === verses.length}
+                    onCheckedChange={toggleSelectAll}
+                    aria-label="Tout sélectionner"
+                  />
+                </TableHead>
                 <TableHead className="w-[150px]">Référence</TableHead>
                 <TableHead>Texte</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -410,6 +475,13 @@ export default function VersesManager() {
             <TableBody>
               {verses.map((verse: any) => (
                 <TableRow key={verse.id}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedVerses.has(verse.id)}
+                      onCheckedChange={() => toggleSelectItem(verse.id)}
+                      aria-label={`Sélectionner ${verse.reference}`}
+                    />
+                  </TableCell>
                   <TableCell className="font-medium">
                     {verse.reference}
                   </TableCell>

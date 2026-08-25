@@ -298,3 +298,25 @@ export const announcements = sqliteTable("announcements", {
 
 export type Announcement = typeof announcements.$inferSelect;
 export type InsertAnnouncement = typeof announcements.$inferInsert;
+
+export const suggestions = sqliteTable("suggestions", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  userId: integer("userId").notNull(),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  category: text("category").default("amelioration").notNull(),
+  status: text("status").default("pending").notNull(),
+  adminReply: text("adminReply"),
+  createdAt: integer("createdAt", { mode: "timestamp" })
+    .default(sql`(strftime('%s', 'now'))`)
+    .notNull(),
+  updatedAt: integer("updatedAt", { mode: "timestamp" })
+    .default(sql`(strftime('%s', 'now'))`)
+    .notNull(),
+}, (table) => [
+  index("idx_suggestions_user").on(table.userId),
+  index("idx_suggestions_status").on(table.status),
+]);
+
+export type Suggestion = typeof suggestions.$inferSelect;
+export type InsertSuggestion = typeof suggestions.$inferInsert;

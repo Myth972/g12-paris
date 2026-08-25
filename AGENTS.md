@@ -72,7 +72,6 @@ Plateforme web pour publier des actualités, articles, médias et gérer du cont
 │   ├── types.ts                   # Réexport types Drizzle
 │   ├── const.ts                   # Constantes partagées (UNAUTHED_ERR_MSG, etc.)
 │   ├── aiProviders.ts             # Config providers IA
-│   ├── n8n-integration.ts         # Intégration n8n
 │   └── _core/errors.ts            # Types d'erreurs
 ├── drizzle/                       # Schéma database + migrations SQL
 │   ├── schema.ts                  # Définition des tables (13 tables)
@@ -230,7 +229,6 @@ Variables critiques (voir `.en.example`) :
 
 - **Local** : `pnpm run dev` (Vite dev server) ou `pnpm start` (build production)
 - **Vercel** : `vercel.json` config, API serverless dans `api/index.ts`
-- **Docker** : `docker-compose.yml` pour n8n + PostgreSQL (workflow automation)
 - **Backups** : `scripts/backup.ps1` via Windows Task Scheduler
 
 ## Important Notes

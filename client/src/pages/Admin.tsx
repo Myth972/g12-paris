@@ -42,6 +42,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Plus,
   Pencil,
@@ -74,6 +75,7 @@ import {
   MessageCircle,
   Globe,
   Layout,
+  Lightbulb,
 } from "lucide-react";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useAiProvider } from "@/hooks/useAiProvider";
@@ -84,6 +86,7 @@ import { toast } from "sonner";
 const PageContentManager = lazy(() => import("@/components/PageContentManager"));
 const VersesManager = lazy(() => import("@/components/VersesManager"));
 const GalleryManager = lazy(() => import("@/components/GalleryManager"));
+const SuggestionsManager = lazy(() => import("@/components/SuggestionsManager"));
 const NewsletterAdmin = lazy(() => import("./NewsletterAdmin"));
 const KlingStudio = lazy(() => import("./KlingStudio"));
 const AIChatBox = lazy(() => import("@/components/AIChatBox").then(m => ({ default: m.AIChatBox })));
@@ -136,6 +139,7 @@ function ArticlesTab() {
   const { t } = useTranslation();
   const [, setLocation] = useLocation();
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [selectedArticles, setSelectedArticles] = useState<number[]>([]);
   const utils = trpc.useUtils();
 
   const { data, isLoading } = trpc.articles.adminList.useQuery();
@@ -158,6 +162,26 @@ function ArticlesTab() {
 
   const articles = data?.items ?? [];
 
+  const toggleArticleSelectAll = () => {
+    if (selectedArticles.length === articles.length) {
+      setSelectedArticles([]);
+    } else {
+      setSelectedArticles(articles.map((a: any) => a.id));
+    }
+  };
+  const toggleArticleSelect = (id: number) => {
+    setSelectedArticles(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+  };
+
+  const bulkDeleteArticleMutation = trpc.articles.bulkDelete.useMutation({
+    onSuccess: () => {
+      utils.articles.adminList.invalidate();
+      toast.success(`${selectedArticles.length} article(s) supprimé(s)`);
+      setSelectedArticles([]);
+    },
+    onError: () => toast.error("Erreur lors de la suppression"),
+  });
+
   return (
     <>
       <div className="flex items-center justify-between mb-4">
@@ -171,6 +195,23 @@ function ArticlesTab() {
           </Link>
         </Button>
       </div>
+
+      {selectedArticles.length > 0 && (
+        <div className="flex items-center justify-between bg-muted/50 rounded-lg px-4 py-2 mb-3">
+          <span className="text-sm font-medium">
+            {selectedArticles.length} article(s) sélectionné(s)
+          </span>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => bulkDeleteArticleMutation.mutate({ ids: selectedArticles })}
+            disabled={bulkDeleteArticleMutation.isPending}
+          >
+            <Trash2 className="w-4 h-4 mr-1" />
+            Supprimer ({selectedArticles.length})
+          </Button>
+        </div>
+      )}
 
       <div className="bg-card rounded-xl border border-border overflow-x-auto shadow-sm">
         {isLoading ? (
@@ -199,6 +240,12 @@ function ArticlesTab() {
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead className="w-10">
+                  <Checkbox
+                    checked={selectedArticles.length > 0 && articles.length === selectedArticles.length}
+                    onCheckedChange={toggleArticleSelectAll}
+                  />
+                </TableHead>
                 <TableHead className="w-[40%]">{t('admin.articlesTab.columnTitle')}</TableHead>
                 <TableHead>{t('admin.articlesTab.columnCategory')}</TableHead>
                 <TableHead>{t('admin.articlesTab.columnStatus')}</TableHead>
@@ -209,6 +256,12 @@ function ArticlesTab() {
             <TableBody>
               {articles.map((article: any) => (
                 <TableRow key={article.id}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedArticles.includes(article.id)}
+                      onCheckedChange={() => toggleArticleSelect(article.id)}
+                    />
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       {article.coverImageUrl ? (
@@ -326,6 +379,7 @@ function NotificationsTab() {
   const { t } = useTranslation();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [deleteId, setDeleteId] = useState<number | null>(null);
+  const [selectedNotifs, setSelectedNotifs] = useState<number[]>([]);
   const [newNotif, setNewNotif] = useState({
     title: "",
     message: "",
@@ -357,6 +411,28 @@ function NotificationsTab() {
 
   const notifs = data?.items ?? [];
 
+  const toggleNotifSelectAll = () => {
+    if (selectedNotifs.length === notifs.length) {
+      setSelectedNotifs([]);
+    } else {
+      setSelectedNotifs(notifs.map((n: any) => n.id));
+    }
+  };
+  const toggleNotifSelect = (id: number) => {
+    setSelectedNotifs(prev =>
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const bulkDeleteMutation = trpc.notifications.bulkDelete.useMutation({
+    onSuccess: () => {
+      utils.notifications.adminList.invalidate();
+      toast.success(`${selectedNotifs.length} notification(s) supprimée(s)`);
+      setSelectedNotifs([]);
+    },
+    onError: () => toast.error("Erreur lors de la suppression"),
+  });
+
   const handleCreate = () => {
     if (!newNotif.title.trim() || !newNotif.message.trim()) {
       toast.error(t('admin.notificationsTab.fillRequired'));
@@ -382,6 +458,23 @@ function NotificationsTab() {
         </Button>
       </div>
 
+      {selectedNotifs.length > 0 && (
+        <div className="flex items-center justify-between bg-primary/5 border border-primary/20 rounded-lg px-4 py-2 mb-3">
+          <span className="text-sm font-medium">{selectedNotifs.length} sélectionnée(s)</span>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={() => setSelectedNotifs([])}>Annuler</Button>
+            <Button variant="destructive" size="sm" onClick={() => {
+              if (confirm(`Supprimer ${selectedNotifs.length} notification(s) ?`)) {
+                bulkDeleteMutation.mutate({ ids: selectedNotifs });
+              }
+            }} disabled={bulkDeleteMutation.isPending}>
+              <Trash2 className="w-4 h-4 mr-1" />
+              Supprimer
+            </Button>
+          </div>
+        </div>
+      )}
+
       <div className="bg-card rounded-xl border border-border overflow-x-auto shadow-sm">
         {isLoading ? (
           <div className="p-6 space-y-4">
@@ -405,6 +498,13 @@ function NotificationsTab() {
           </div>
         ) : (
           <div className="divide-y divide-border">
+            <div className="flex items-center gap-3 px-4 py-2 border-b border-border bg-muted/30">
+              <Checkbox
+                checked={selectedNotifs.length > 0 && notifs.length === selectedNotifs.length}
+                onCheckedChange={toggleNotifSelectAll}
+              />
+              <span className="text-xs font-medium text-muted-foreground">Tout sélectionner</span>
+            </div>
             {notifs.map((notif: any) => {
               const config =
                 NOTIF_TYPE_CONFIG[
@@ -417,6 +517,7 @@ function NotificationsTab() {
                   key={notif.id}
                   className="flex items-start gap-4 p-4 hover:bg-accent/30 transition-colors"
                 >
+                  <Checkbox checked={selectedNotifs.includes(notif.id)} onCheckedChange={() => toggleNotifSelect(notif.id)} className="mt-3" />
                   <div
                     className={`flex-shrink-0 w-10 h-10 rounded-full ${config.bg} flex items-center justify-center`}
                   >
@@ -1023,6 +1124,10 @@ if (authLoading) {
               <Layout className="w-4 h-4 text-emerald-500" />
               CMS
             </TabsTrigger>
+            <TabsTrigger value="suggestions" className="gap-2">
+              <Lightbulb className="w-4 h-4 text-amber-500" />
+              Suggestions
+            </TabsTrigger>
           </TabsList>
           <TabsContent value="articles">
             <ArticlesTab />
@@ -1094,6 +1199,11 @@ if (authLoading) {
           <TabsContent value="cms">
             <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
               <CMSManager />
+            </Suspense>
+          </TabsContent>
+          <TabsContent value="suggestions">
+            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
+              <SuggestionsManager />
             </Suspense>
           </TabsContent>
         </Tabs>

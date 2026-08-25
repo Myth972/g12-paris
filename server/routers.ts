@@ -77,6 +77,20 @@ import {
   createAnnouncement,
   updateAnnouncement,
   deleteAnnouncement,
+  bulkDeleteNotifications,
+  bulkDeleteArticles,
+  bulkDeleteGalleryItems,
+  bulkDeleteBiblicalVerses,
+  bulkDeletePageContents,
+  bulkDeleteCategories,
+  bulkDeleteThemes,
+  bulkDeleteAnnouncements,
+  bulkDeleteSubscribers,
+  createSuggestion,
+  listSuggestions,
+  updateSuggestion,
+  deleteSuggestion,
+  bulkDeleteSuggestions,
   findUserByUsernameAndPassword,
   upsertUser,
   findUserByPassword,
@@ -94,6 +108,11 @@ import { sdk } from "./_core/sdk.js";
 import { COOKIE_NAME, ONE_YEAR_MS } from "../shared/const.js";
 import { getSessionCookieOptions } from "./_core/cookies.js";
 import { sendWelcomeEmail, sendWeeklyDigest, sendCustomNewsletter } from "./_core/newsletter.js";
+import {
+  triggerArticlePublished,
+  triggerUserRegistered,
+  triggerSubscriberAdded,
+} from "./_core/notificationTriggers.js";
 
 const zod = {
   object: <T extends z.ZodRawShape>(shape: T) => z.object(shape).strict(),
@@ -147,6 +166,11 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         return deleteCategory(input.id);
       }),
+    bulkDeleteCategory: adminProcedure
+      .input(zod.object({ ids: z.array(z.number()).min(1).max(100) }))
+      .mutation(async ({ input }) => {
+        return bulkDeleteCategories(input.ids);
+      }),
     listThemes: adminProcedure.query(async () => {
       return listThemes();
     }),
@@ -165,6 +189,11 @@ export const appRouter = router({
       .input(zod.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         return deleteTheme(input.id);
+      }),
+    bulkDeleteTheme: adminProcedure
+      .input(zod.object({ ids: z.array(z.number()).min(1).max(100) }))
+      .mutation(async ({ input }) => {
+        return bulkDeleteThemes(input.ids);
       }),
     sendNewsletter: adminProcedure
       .input(zod.object({ subject: z.string().min(1).max(200), content: z.string().min(1) }))
@@ -457,12 +486,21 @@ export const appRouter = router({
       )
       .mutation(async ({ ctx, input }) => {
         const slug = generateSlug(input.title);
-        return createArticle({
+        const article = await createArticle({
           ...input,
           excerpt: input.excerpt?.slice(0, 1000),
           slug,
           authorId: ctx.user.id,
         });
+        if (input.published) {
+          triggerArticlePublished({
+            articleId: article.id,
+            title: article.title,
+            authorId: ctx.user.id,
+            category: input.category,
+          }).catch(() => {});
+        }
+        return article;
       }),
 
     update: editeurProcedure
@@ -506,6 +544,12 @@ export const appRouter = router({
       .input(zod.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         return deleteArticle(input.id);
+      }),
+
+    bulkDelete: editeurProcedure
+      .input(zod.object({ ids: z.array(z.number()).min(1).max(100) }))
+      .mutation(async ({ input }) => {
+        return bulkDeleteArticles(input.ids);
       }),
 
     uploadImage: editeurProcedure
@@ -605,6 +649,12 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         return deleteNotification(input.id);
       }),
+
+    bulkDelete: adminOnlyProcedure
+      .input(zod.object({ ids: z.array(z.number()).min(1).max(100) }))
+      .mutation(async ({ input }) => {
+        return bulkDeleteNotifications(input.ids);
+      }),
   }),
 
   gallery: router({
@@ -681,6 +731,12 @@ export const appRouter = router({
       .input(zod.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         return deleteGalleryItem(input.id);
+      }),
+
+    bulkDelete: adminProcedure
+      .input(zod.object({ ids: z.array(z.number()).min(1).max(100) }))
+      .mutation(async ({ input }) => {
+        return bulkDeleteGalleryItems(input.ids);
       }),
 
     update: adminProcedure
@@ -804,6 +860,12 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         return deleteBiblicalVerse(input.id);
       }),
+
+    bulkDelete: adminProcedure
+      .input(zod.object({ ids: z.array(z.number()).min(1).max(100) }))
+      .mutation(async ({ input }) => {
+        return bulkDeleteBiblicalVerses(input.ids);
+      }),
   }),
 
   pageContent: router({
@@ -888,6 +950,12 @@ export const appRouter = router({
       .input(zod.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         return deletePageContent(input.id);
+      }),
+
+    bulkDelete: adminProcedure
+      .input(zod.object({ ids: z.array(z.number()).min(1).max(100) }))
+      .mutation(async ({ input }) => {
+        return bulkDeletePageContents(input.ids);
       }),
 
     uploadMedia: editeurProcedure
@@ -1549,6 +1617,78 @@ RÈGLES :
             model: "unknown", endpoint: "ai.improveText",
             inputTokens: estimateTokens(input.text), outputTokens: 0,
             totalTokens: estimateTokens(input.text), success: false,
+            error: err.message, durationMs: Date.now() - startTime,
+          });
+          throw err;
+        }
+      }),
+
+    suggestImprovements: editeurProcedure
+      .input(zod.object({
+        articleId: z.number(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const userId = ctx.user?.id?.toString() || "anonymous";
+        const article = await getArticleById(input.articleId);
+        if (!article) {
+          throw new TRPCError({ code: "NOT_FOUND", message: "Article introuvable" });
+        }
+
+        const db = getDb();
+        let provider: "google" | "groq" | "minimax" | "aimlapi" | "ollama" | undefined;
+        if (db) {
+          const rows = await db
+            .select()
+            .from(siteSettings)
+            .where(eq(siteSettings.key, "aiProvider"))
+            .limit(1);
+          provider = rows[0]?.value as any;
+        }
+
+        const systemPrompt = `Tu es un expert en rédaction web et SEO pour un site chrétien. Analyse l'article et propose 3-5 suggestions concrètes d'amélioration.
+
+Pour chaque suggestion, indique :
+- Le type (titre, contenu, SEO, structure, engagement)
+- La description de l'amélioration
+- La priorité (haute, moyenne, basse)
+
+Réponds UNIQUEMENT en JSON :
+{
+  "suggestions": [
+    { "type": "...", "description": "...", "priority": "haute|moyenne|basse" }
+  ]
+}`;
+
+        const plainContent = article.content.replace(/<[^>]*>/g, "").slice(0, 3000);
+        const prompt = `Article : "${article.title}"\nCatégorie : ${article.category}\nExtrait : ${article.excerpt || "N/A"}\n\nContenu (extrait) :\n${plainContent}`;
+
+        const startTime = Date.now();
+        checkUserQuota(userId, estimateTokens(prompt) + 1000);
+
+        try {
+          const response = await invokeLLMWithFallback({
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: prompt },
+            ],
+            provider,
+            responseFormat: { type: "json_object" },
+          });
+          const raw = response.choices[0].message.content as string;
+          const data = JSON.parse(raw);
+          logAiUsage({
+            timestamp: new Date(), userId, provider: provider || "groq", model: response.model,
+            endpoint: "ai.suggestImprovements", inputTokens: estimateTokens(prompt),
+            outputTokens: estimateTokens(raw), totalTokens: estimateTokens(prompt) + estimateTokens(raw),
+            success: true, durationMs: Date.now() - startTime,
+          });
+          return { suggestions: data.suggestions || [] };
+        } catch (err: any) {
+          logAiUsage({
+            timestamp: new Date(), userId, provider: provider || "groq",
+            model: "unknown", endpoint: "ai.suggestImprovements",
+            inputTokens: estimateTokens(prompt), outputTokens: 0,
+            totalTokens: estimateTokens(prompt), success: false,
             error: err.message, durationMs: Date.now() - startTime,
           });
           throw err;
@@ -2733,6 +2873,8 @@ Retourne UNIQUEMENT le prompt, pas de JSON.`;
           name: input.name,
         });
 
+        triggerSubscriberAdded({ email: input.email }).catch(() => {});
+
         // Try to send a welcome email if Resend is configured
         
         await sendWelcomeEmail(input.email, input.name);
@@ -2758,6 +2900,12 @@ Retourne UNIQUEMENT le prompt, pas de JSON.`;
         const db = getDb();
         await db.delete(subscribers).where(eq(subscribers.id, input.id));
         return { success: true };
+      }),
+
+    bulkDeleteSubscribers: adminProcedure
+      .input(zod.object({ ids: z.array(z.number()).min(1).max(100) }))
+      .mutation(async ({ input }) => {
+        return bulkDeleteSubscribers(input.ids);
       }),
 
     sendDigest: adminProcedure
@@ -3218,7 +3366,56 @@ return { url };
         
         return deleteAnnouncement(input.id);
       }),
+
+    bulkDelete: adminProcedure
+      .input(zod.object({ ids: z.array(z.number()).min(1).max(100) }))
+      .mutation(async ({ input }) => {
+        return bulkDeleteAnnouncements(input.ids);
+      }),
   }),
+
+  suggestions: router({
+    create: protectedProcedure
+      .input(zod.object({
+        title: z.string().min(1).max(300),
+        message: z.string().min(1).max(2000),
+        category: z.string().max(100).default("amelioration"),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        return createSuggestion({
+          userId: ctx.user.id,
+          ...input,
+        });
+      }),
+
+    list: adminProcedure.query(async () => {
+      return listSuggestions();
+    }),
+
+    update: adminProcedure
+      .input(zod.object({
+        id: z.number(),
+        status: z.string().optional(),
+        adminReply: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const { id, ...data } = input;
+        return updateSuggestion(id, data);
+      }),
+
+    delete: adminProcedure
+      .input(zod.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        return deleteSuggestion(input.id);
+      }),
+
+    bulkDelete: adminProcedure
+      .input(zod.object({ ids: z.array(z.number()).min(1).max(100) }))
+      .mutation(async ({ input }) => {
+        return bulkDeleteSuggestions(input.ids);
+      }),
+  }),
+
   agents: router({
     list: adminProcedure.query(async () => {
       const { listAgents } = await import("./_core/agents.js");

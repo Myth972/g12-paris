@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { useBlobUpload } from "@/hooks/useBlobUpload";
 import {
@@ -565,7 +566,35 @@ function AnnouncementsSection() {
 
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any | null>(null);
+  const [selectedAnnouncements, setSelectedAnnouncements] = useState<number[]>([]);
   const list = items ?? [];
+
+  const allSelected = list.length > 0 && selectedAnnouncements.length === list.length;
+  const someSelected = selectedAnnouncements.length > 0 && selectedAnnouncements.length < list.length;
+
+  function toggleSelectAll() {
+    if (allSelected) {
+      setSelectedAnnouncements([]);
+    } else {
+      setSelectedAnnouncements(list.map((item: any) => item.id));
+    }
+  }
+
+  function toggleSelectItem(id: number) {
+    setSelectedAnnouncements(prev =>
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  }
+
+  const bulkDeleteAnnouncementMutation = trpc.announcements.bulkDelete.useMutation({
+    onSuccess: () => {
+      utils.announcements.adminList.invalidate();
+      utils.announcements.list.invalidate();
+      toast.success(`${selectedAnnouncements.length} annonce${selectedAnnouncements.length > 1 ? "s" : ""} supprimée${selectedAnnouncements.length > 1 ? "s" : ""}`);
+      setSelectedAnnouncements([]);
+    },
+    onError: (e) => toast.error("Erreur: " + e.message),
+  });
 
   function handleSubmit(data: any) {
     const payload = { ...data, type: "announcement" as const, variant: "poster" as const };
@@ -591,6 +620,27 @@ function AnnouncementsSection() {
         </Button>
       </div>
 
+      {selectedAnnouncements.length > 0 && (
+        <div className="flex items-center gap-3 mb-3 p-2.5 rounded-lg border bg-destructive/5 border-destructive/20">
+          <span className="text-sm text-foreground font-medium">
+            {selectedAnnouncements.length} sélectionné{selectedAnnouncements.length > 1 ? "s" : ""}
+          </span>
+          <Button
+            size="sm"
+            variant="destructive"
+            disabled={bulkDeleteAnnouncementMutation.isPending}
+            onClick={() => {
+              if (confirm(`Supprimer ${selectedAnnouncements.length} annonce${selectedAnnouncements.length > 1 ? "s" : ""} ?`)) {
+                bulkDeleteAnnouncementMutation.mutate({ ids: selectedAnnouncements });
+              }
+            }}
+          >
+            <Trash2 className="w-3.5 h-3.5 mr-1" />
+            Supprimer
+          </Button>
+        </div>
+      )}
+
       {isLoading ? (
         <div className="flex items-center justify-center py-8 text-muted-foreground">
           <Loader2 className="w-5 h-5 animate-spin mr-2" /> Chargement...
@@ -604,20 +654,74 @@ function AnnouncementsSection() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {list.map((item: any, i: number) => {
-            const Icon = announcementIcons[i] || announcementIcons[0];
-            return (
-              <ItemCard
-                key={item.id}
-                item={item}
-                icon={<Icon className="w-3 h-3 text-primary" />}
-                onEdit={() => { setEditing(item); setOpen(true); }}
-                onDelete={() => { if (confirm("Supprimer cette annonce ?")) deleteMutation.mutate({ id: item.id }); }}
-              />
-            );
-          })}
-        </div>
+        <>
+          <div className="flex items-center gap-2 mb-2">
+            <Checkbox
+              checked={allSelected ? true : someSelected ? "indeterminate" : false}
+              onCheckedChange={toggleSelectAll}
+              aria-label="Tout sélectionner"
+            />
+            <span className="text-xs text-muted-foreground">
+              {allSelected ? "Tout désélectionner" : "Tout sélectionner"}
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {list.map((item: any, i: number) => {
+              const Icon = announcementIcons[i] || announcementIcons[0];
+              return (
+                <Card key={item.id} className="overflow-hidden group hover:shadow-md transition-shadow relative">
+                  <div className="absolute top-2 left-2 z-10">
+                    <Checkbox
+                      checked={selectedAnnouncements.includes(item.id)}
+                      onCheckedChange={() => toggleSelectItem(item.id)}
+                      aria-label={`Sélectionner ${item.title}`}
+                    />
+                  </div>
+                  <div className="h-32 sm:h-36 relative bg-muted overflow-hidden">
+                    {item.mediaUrl ? (
+                      <img src={item.mediaUrl} alt={item.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="flex items-center justify-center h-full">
+                        <ImageIcon className="w-8 h-8 text-foreground/20" />
+                      </div>
+                    )}
+                    {item.badge && (
+                      <div className="absolute top-2 right-2">
+                        <span className="bg-primary/90 text-primary-foreground text-[9px] font-bold px-2 py-0.5 rounded-full shadow-sm">{item.badge}</span>
+                      </div>
+                    )}
+                  </div>
+                  <CardContent className="p-2.5 sm:p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <Icon className="w-3 h-3 text-primary" />
+                          <p className="text-xs sm:text-sm font-semibold text-foreground truncate">{item.title}</p>
+                        </div>
+                        {item.description && (
+                          <p className="text-[11px] text-foreground/70 leading-snug line-clamp-2">{item.description}</p>
+                        )}
+                        {(item.eventDate || item.location) && (
+                          <p className="text-[10px] text-foreground/50 mt-1">
+                            {item.eventDate}{item.eventDate && item.location ? " • " : ""}{item.location}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0 pt-0.5">
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-foreground/60 hover:text-foreground" onClick={() => { setEditing(item); setOpen(true); }} aria-label="Modifier">
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive/70 hover:text-destructive" onClick={() => { if (confirm("Supprimer cette annonce ?")) deleteMutation.mutate({ id: item.id }); }} aria-label="Supprimer">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </>
       )}
 
       <AnnouncementDialog

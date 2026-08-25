@@ -18,6 +18,8 @@ import {
   biblicalVerses,
   pageContent,
   announcements,
+  subscribers,
+  suggestions,
 } from "../drizzle/schema.js";
 import { ENV } from "./_core/env.js";
 import { TRPCError } from "@trpc/server";
@@ -1149,4 +1151,155 @@ export async function deleteAnnouncement(id: number) {
 
   await db.delete(announcements).where(eq(announcements.id, id));
   return { success: true };
+}
+
+// ─── Bulk Delete Functions ──────────────────────────────────────
+
+export async function bulkDeleteNotifications(ids: number[]) {
+  const db = getDb();
+  assertDb(db);
+  if (ids.length === 0) return { success: true, count: 0 };
+
+  await db.delete(notificationReads).where(inArray(notificationReads.notificationId, ids));
+  await db.delete(notifications).where(inArray(notifications.id, ids));
+  return { success: true, count: ids.length };
+}
+
+export async function bulkDeleteArticles(ids: number[]) {
+  const db = getDb();
+  assertDb(db);
+  if (ids.length === 0) return { success: true, count: 0 };
+
+  await db.delete(articles).where(inArray(articles.id, ids));
+  return { success: true, count: ids.length };
+}
+
+export async function bulkDeleteGalleryItems(ids: number[]) {
+  const db = getDb();
+  assertDb(db);
+  if (ids.length === 0) return { success: true, count: 0 };
+
+  await db.delete(galleryItems).where(inArray(galleryItems.id, ids));
+  return { success: true, count: ids.length };
+}
+
+export async function bulkDeleteBiblicalVerses(ids: number[]) {
+  const db = getDb();
+  assertDb(db);
+  if (ids.length === 0) return { success: true, count: 0 };
+
+  await db.update(galleryItems).set({ verseId: null }).where(inArray(galleryItems.verseId, ids));
+  await db.delete(biblicalVerses).where(inArray(biblicalVerses.id, ids));
+  return { success: true, count: ids.length };
+}
+
+export async function bulkDeletePageContents(ids: number[]) {
+  const db = getDb();
+  assertDb(db);
+  if (ids.length === 0) return { success: true, count: 0 };
+
+  await db.delete(pageContent).where(inArray(pageContent.id, ids));
+  return { success: true, count: ids.length };
+}
+
+export async function bulkDeleteCategories(ids: number[]) {
+  const db = getDb();
+  assertDb(db);
+  if (ids.length === 0) return { success: true, count: 0 };
+
+  await db.delete(themes).where(inArray(themes.categoryId, ids));
+  await db.delete(categories).where(inArray(categories.id, ids));
+  return { success: true, count: ids.length };
+}
+
+export async function bulkDeleteThemes(ids: number[]) {
+  const db = getDb();
+  assertDb(db);
+  if (ids.length === 0) return { success: true, count: 0 };
+
+  await db.delete(themes).where(inArray(themes.id, ids));
+  return { success: true, count: ids.length };
+}
+
+export async function bulkDeleteAnnouncements(ids: number[]) {
+  const db = getDb();
+  assertDb(db);
+  if (ids.length === 0) return { success: true, count: 0 };
+
+  await db.delete(announcements).where(inArray(announcements.id, ids));
+  return { success: true, count: ids.length };
+}
+
+export async function bulkDeleteSubscribers(ids: number[]) {
+  const db = getDb();
+  assertDb(db);
+  if (ids.length === 0) return { success: true, count: 0 };
+
+  await db.delete(subscribers).where(inArray(subscribers.id, ids));
+  return { success: true, count: ids.length };
+}
+
+// ─── Suggestions Functions ─────────────────────────────────────
+
+export async function createSuggestion(data: {
+  userId: number;
+  title: string;
+  message: string;
+  category?: string;
+}) {
+  const db = getDb();
+  assertDb(db);
+
+  const [row] = await db.insert(suggestions).values({
+    userId: data.userId,
+    title: data.title,
+    message: data.message,
+    category: data.category || "amelioration",
+  }).returning();
+  return row;
+}
+
+export async function listSuggestions(limit = 50, offset = 0) {
+  const db = getDb();
+  assertDb(db);
+
+  const rows = await db
+    .select()
+    .from(suggestions)
+    .orderBy(desc(suggestions.createdAt))
+    .limit(limit)
+    .offset(offset);
+  return rows;
+}
+
+export async function updateSuggestion(
+  id: number,
+  data: Partial<{ status: string; adminReply: string }>
+) {
+  const db = getDb();
+  assertDb(db);
+
+  await db
+    .update(suggestions)
+    .set({ ...data, updatedAt: new Date() })
+    .where(eq(suggestions.id, id));
+  const [row] = await db.select().from(suggestions).where(eq(suggestions.id, id)).limit(1);
+  return row;
+}
+
+export async function deleteSuggestion(id: number) {
+  const db = getDb();
+  assertDb(db);
+
+  await db.delete(suggestions).where(eq(suggestions.id, id));
+  return { success: true };
+}
+
+export async function bulkDeleteSuggestions(ids: number[]) {
+  const db = getDb();
+  assertDb(db);
+  if (ids.length === 0) return { success: true, count: 0 };
+
+  await db.delete(suggestions).where(inArray(suggestions.id, ids));
+  return { success: true, count: ids.length };
 }
