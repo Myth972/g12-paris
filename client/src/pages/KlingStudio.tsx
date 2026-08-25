@@ -60,6 +60,7 @@ export default function KlingStudio() {
     useState<(typeof ASPECT_RATIOS_VIDEO)[number]>("16:9");
   const [vidDuration, setVidDuration] = useState<"5" | "10">("5");
   const [vidImage, setVidImage] = useState<string | null>(null);
+  const [vidModel, setVidModel] = useState<string>("kwaivgi/kling-v2.6");
   const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(
     null
   );
@@ -78,7 +79,7 @@ export default function KlingStudio() {
     onError: e => toast.error(t('admin.kling.toastError') + e.message),
   });
 
-  const generateVideoMutation = trpc.ai.generateVideo.useMutation({
+  const generateVideoMutation = trpc.ai.generateVideoReplicate.useMutation({
     onSuccess: data => {
       if (data.url) {
         setGeneratedVideoUrl(data.url);
@@ -301,7 +302,7 @@ export default function KlingStudio() {
             <div className="space-y-4">
               <div className="p-3 bg-violet-50 dark:bg-violet-950/30 rounded-lg border border-violet-200 dark:border-violet-800">
                 <p className="text-xs text-violet-700 dark:text-violet-300 font-medium">
-                  ⚡ Kling v1.6 Pro · Texte / Image → Vidéo · Peut prendre
+                  ⚡ Kling v2.6 · Texte / Image → Vidéo · Peut prendre
                   1–2 minutes
                 </p>
               </div>
@@ -385,6 +386,26 @@ export default function KlingStudio() {
                 />
               </div>
 
+              <div>
+                <Label className="text-sm font-medium mb-2 block">
+                  Modèle
+                </Label>
+                <Select
+                  value={vidModel}
+                  onValueChange={v => setVidModel(v)}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="kwaivgi/kling-v3">Kling v3 (Dernière version)</SelectItem>
+                    <SelectItem value="kwaivgi/kling-v2.6">Kling v2.6 (Recommandé)</SelectItem>
+                    <SelectItem value="kwaivgi/kling-v1.6-pro">Kling v1.6 Pro</SelectItem>
+                    <SelectItem value="kwaivgi/kling-v1.6-standard">Kling v1.6 Standard</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <Label className="text-sm font-medium mb-2 block">
@@ -437,6 +458,7 @@ export default function KlingStudio() {
                     aspectRatio: vidRatio,
                     negativePrompt: vidNegative || undefined,
                     imageUrl: vidImage || undefined,
+                    model: vidModel as any,
                   });
                 }}
               >

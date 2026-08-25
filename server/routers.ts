@@ -2260,6 +2260,7 @@ generateImage: adminProcedure
           aspectRatio: z.enum(["1:1", "16:9", "9:16"]).default("16:9"),
           negativePrompt: z.string().optional(),
           imageUrl: z.string().url().optional(),
+          model: z.enum(["kling-v1-6-image-to-video", "kling-v1-6-text-to-video"]).optional(),
         })
       )
       .mutation(async ({ input }) => {
