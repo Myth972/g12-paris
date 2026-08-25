@@ -183,7 +183,7 @@ export function ChatBot() {
                         key={i}
                         onClick={() => sendMessage(prompt)}
                         disabled={isLoading}
-                        className="text-xs rounded-full border border-border bg-card px-3 py-1.5 transition-colors hover:bg-accent disabled:opacity-50"
+                        className="text-xs rounded-full bg-primary text-primary-foreground px-3 py-1.5 transition-colors hover:bg-primary/90 disabled:opacity-50"
                       >
                         {prompt}
                       </button>
