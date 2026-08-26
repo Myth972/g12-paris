@@ -274,7 +274,7 @@ export function AIChatBox({
 
                     {message.role === "user" && (
                       <div className="size-8 shrink-0 mt-1 rounded-full bg-secondary flex items-center justify-center">
-                        <User className="size-4 text-secondary-foreground" />
+                        <User className="size-4 text-foreground" />
                       </div>
                     )}
                   </div>

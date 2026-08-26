@@ -95,7 +95,7 @@ export function ChatBot() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8"
+                  className="h-8 w-8 text-muted-foreground hover:text-destructive"
                   onClick={clearHistory}
                   title="Effacer l'historique"
                 >
@@ -158,7 +158,7 @@ export function ChatBot() {
 
                     {message.role === "user" && (
                       <div className="size-7 shrink-0 mt-1 rounded-full bg-secondary flex items-center justify-center">
-                        <User className="size-3.5 text-secondary-foreground" />
+                        <User className="size-3.5 text-foreground" />
                       </div>
                     )}
                   </div>
