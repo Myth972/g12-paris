@@ -743,8 +743,18 @@ function AIAssistantTab() {
     },
   });
 
+  const MAX_CHARS_AI = 16000;
+  const [showClearWarningAI, setShowClearWarningAI] = useState(false);
+
+  const totalCharsAI = messages.reduce((sum, m) => sum + m.content.length, 0);
+
   const handleSend = (content: string) => {
     const newMessages: Message[] = [...messages, { role: "user", content }];
+    const newTotal = newMessages.reduce((sum, m) => sum + m.content.length, 0);
+    if (newTotal >= MAX_CHARS_AI) {
+      setShowClearWarningAI(true);
+      return;
+    }
     setMessages(newMessages);
     chatMutation.mutate({ messages: newMessages });
   };
@@ -765,6 +775,16 @@ function AIAssistantTab() {
         content: `Tu es un assistant IA puissant et utile. Tu aides l'administrateur du site G12 Paris à gérer le contenu, rédiger des articles et répondre aux questions. Ton modèle actuel est ${activeProvider.model} via ${activeProvider.label}.`,
       },
     ]);
+    setShowClearWarningAI(false);
+  };
+
+  const handleConfirmTrim = () => {
+    setMessages(prev => {
+      const systemMsg = prev.filter(m => m.role === "system");
+      const nonSystem = prev.filter(m => m.role !== "system");
+      return [...systemMsg, ...nonSystem.slice(-6)];
+    });
+    setShowClearWarningAI(false);
   };
 
   return (
@@ -829,6 +849,40 @@ function AIAssistantTab() {
           </Button>
         </div>
       </div>
+
+      {/* Character limit warning */}
+      {(totalCharsAI >= 14000 || showClearWarningAI) && (
+        <div className="p-3 rounded-lg border bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800">
+          <p className="text-xs text-amber-700 dark:text-amber-300">
+            {showClearWarningAI
+              ? "Limite de 16 000 caractères atteinte. Voulez-vous supprimer les anciens messages ?"
+              : `Attention : ${totalCharsAI}/16 000 caractères utilisés.`}
+          </p>
+          {showClearWarningAI ? (
+            <div className="flex gap-2 mt-2">
+              <button
+                onClick={handleConfirmTrim}
+                className="text-xs px-3 py-1 bg-amber-600 text-white rounded hover:bg-amber-700 transition-colors"
+              >
+                Oui, supprimer les anciens
+              </button>
+              <button
+                onClick={() => setShowClearWarningAI(false)}
+                className="text-xs px-3 py-1 bg-muted text-muted-foreground rounded hover:bg-muted/80 transition-colors"
+              >
+                Annuler
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleClearHistory}
+              className="text-xs mt-1 text-amber-600 dark:text-amber-400 underline hover:no-underline"
+            >
+              Vider l'historique
+            </button>
+          )}
+        </div>
+      )}
 
       <AIChatBox
         messages={messages}

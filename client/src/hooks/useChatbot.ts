@@ -8,6 +8,8 @@ const STORAGE_KEY = "g12-chatbot-history";
 const STORAGE_TS_KEY = "g12-chatbot-timestamp";
 const MAX_MESSAGES = 30;
 const EXPIRATION_DAYS = 30;
+const MAX_CHARS = 16000;
+const WARN_CHARS = 14000;
 
 const SUGGESTED_PROMPTS = [
   "Quels sont les derniers articles ?",
@@ -66,8 +68,13 @@ export function useChatbot() {
         ];
   });
   const [isOpen, setIsOpen] = useState(false);
+  const [showClearWarning, setShowClearWarning] = useState(false);
   const chatMutation = trpc.ai.chatbot.useMutation();
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const totalChars = messages.reduce((sum, m) => sum + m.content.length, 0);
+  const isNearLimit = totalChars >= WARN_CHARS;
+  const isOverLimit = totalChars >= MAX_CHARS;
 
   const scrollToBottom = useCallback(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -83,6 +90,12 @@ export function useChatbot() {
 
       const userMessage: Message = { role: "user", content: content.trim() };
       const newMessages = [...messages, userMessage];
+      const newTotalChars = newMessages.reduce((sum, m) => sum + m.content.length, 0);
+
+      if (newTotalChars >= MAX_CHARS) {
+        setShowClearWarning(true);
+        return;
+      }
 
       setMessages(newMessages);
       saveHistory(newMessages);
@@ -129,8 +142,17 @@ export function useChatbot() {
       },
     ];
     setMessages(welcome);
+    setShowClearWarning(false);
     localStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(STORAGE_TS_KEY);
+  }, []);
+
+  const confirmClearOldMessages = useCallback(() => {
+    setMessages(prev => {
+      const kept = prev.slice(-6);
+      return kept;
+    });
+    setShowClearWarning(false);
   }, []);
 
   const toggle = useCallback(() => setIsOpen((prev) => !prev), []);
@@ -142,6 +164,11 @@ export function useChatbot() {
     suggestedPrompts: SUGGESTED_PROMPTS,
     sendMessage,
     clearHistory,
+    confirmClearOldMessages,
+    showClearWarning,
+    setShowClearWarning,
+    totalChars,
+    isNearLimit,
     toggle,
     setIsOpen,
     messagesEndRef,

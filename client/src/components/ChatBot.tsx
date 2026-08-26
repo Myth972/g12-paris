@@ -31,6 +31,11 @@ export function ChatBot() {
     suggestedPrompts,
     sendMessage,
     clearHistory,
+    confirmClearOldMessages,
+    showClearWarning,
+    setShowClearWarning,
+    totalChars,
+    isNearLimit,
     toggle,
     setIsOpen,
     messagesEndRef,
@@ -116,6 +121,40 @@ export function ChatBot() {
               Assistant IA du site G12 Paris Infos Médias
             </SheetDescription>
           </SheetHeader>
+
+          {/* Character limit warning */}
+          {isNearLimit && (
+            <div className="px-4 py-2 bg-amber-50 dark:bg-amber-950/30 border-b border-amber-200 dark:border-amber-800">
+              <p className="text-xs text-amber-700 dark:text-amber-300">
+                {showClearWarning
+                  ? "Limite atteinte. Voulez-vous supprimer les anciens messages ?"
+                  : `Attention : ${totalChars}/16 000 caractères utilisés.`}
+              </p>
+              {showClearWarning ? (
+                <div className="flex gap-2 mt-2">
+                  <button
+                    onClick={confirmClearOldMessages}
+                    className="text-xs px-3 py-1 bg-amber-600 text-white rounded hover:bg-amber-700 transition-colors"
+                  >
+                    Oui, supprimer
+                  </button>
+                  <button
+                    onClick={() => setShowClearWarning(false)}
+                    className="text-xs px-3 py-1 bg-muted text-muted-foreground rounded hover:bg-muted/80 transition-colors"
+                  >
+                    Annuler
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={clearHistory}
+                  className="text-xs mt-1 text-amber-600 dark:text-amber-400 underline hover:no-underline"
+                >
+                  Vider l'historique
+                </button>
+              )}
+            </div>
+          )}
 
           {/* Messages */}
           <div className="flex-1 overflow-hidden">
