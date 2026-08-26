@@ -749,6 +749,24 @@ function AIAssistantTab() {
     chatMutation.mutate({ messages: newMessages });
   };
 
+  const handleDeleteMessage = (displayIndex: number) => {
+    setMessages(prev => {
+      const systemMsg = prev.filter(m => m.role === "system");
+      const nonSystem = prev.filter(m => m.role !== "system");
+      nonSystem.splice(displayIndex, 1);
+      return [...systemMsg, ...nonSystem];
+    });
+  };
+
+  const handleClearHistory = () => {
+    setMessages([
+      {
+        role: "system",
+        content: `Tu es un assistant IA puissant et utile. Tu aides l'administrateur du site G12 Paris à gérer le contenu, rédiger des articles et répondre aux questions. Ton modèle actuel est ${activeProvider.model} via ${activeProvider.label}.`,
+      },
+    ]);
+  };
+
   return (
     <div className="max-w-6xl mx-auto flex flex-col gap-4">
       {/* Chatbot Toggle */}
@@ -816,6 +834,8 @@ function AIAssistantTab() {
         messages={messages}
         onSendMessage={handleSend}
         isLoading={chatMutation.isPending}
+        onDeleteMessage={handleDeleteMessage}
+        onClearHistory={handleClearHistory}
         height="650px"
         placeholder="Pose une question sur la Bible..."
         emptyStateMessage="Pose une question sur un thème biblique"

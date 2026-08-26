@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
-import { Loader2, Send, User, Sparkles } from "lucide-react";
+import { Loader2, Send, User, Sparkles, Trash2 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Streamdown } from "streamdown";
 
@@ -57,6 +57,16 @@ export type AIChatBoxProps = {
    * Click to send directly
    */
   suggestedPrompts?: string[];
+
+  /**
+   * Callback to delete a specific message by index (in displayMessages)
+   */
+  onDeleteMessage?: (index: number) => void;
+
+  /**
+   * Callback to clear all messages
+   */
+  onClearHistory?: () => void;
 };
 
 /**
@@ -119,6 +129,8 @@ export function AIChatBox({
   height = "600px",
   emptyStateMessage = "Start a conversation with AI",
   suggestedPrompts,
+  onDeleteMessage,
+  onClearHistory,
 }: AIChatBoxProps) {
   const [input, setInput] = useState("");
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -197,6 +209,22 @@ export function AIChatBox({
       )}
       style={{ height }}
     >
+      {/* Header with clear button */}
+      {onClearHistory && displayMessages.length > 0 && (
+        <div className="flex items-center justify-between px-4 py-2 border-b bg-muted/30">
+          <span className="text-xs text-muted-foreground">
+            {displayMessages.length} message{displayMessages.length > 1 ? "s" : ""}
+          </span>
+          <button
+            onClick={onClearHistory}
+            className="text-xs text-muted-foreground hover:text-destructive transition-colors flex items-center gap-1"
+          >
+            <Trash2 className="size-3" />
+            Effacer
+          </button>
+        </div>
+      )}
+
       {/* Messages Area */}
       <div ref={scrollAreaRef} className="flex-1 overflow-hidden">
         {displayMessages.length === 0 ? (
@@ -255,12 +283,21 @@ export function AIChatBox({
 
                     <div
                       className={cn(
-                        "max-w-[80%] rounded-lg px-4 py-2.5",
+                        "max-w-[80%] rounded-lg px-4 py-2.5 relative group",
                         message.role === "user"
                           ? "bg-primary text-primary-foreground"
                           : "bg-muted text-foreground"
                       )}
                     >
+                      {message.role === "assistant" && onDeleteMessage && (
+                        <button
+                          onClick={() => onDeleteMessage(index)}
+                          className="absolute -top-2 -right-2 size-6 rounded-full bg-destructive/10 text-destructive opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center hover:bg-destructive/20"
+                          title="Supprimer ce message"
+                        >
+                          <Trash2 className="size-3" />
+                        </button>
+                      )}
                       {message.role === "assistant" ? (
                         <div className="prose prose-sm dark:prose-invert max-w-none">
                           <Streamdown>{message.content}</Streamdown>
