@@ -1223,11 +1223,13 @@ if (authLoading) {
           </TabsContent>
           <TabsContent value="ai">
             <AIAssistantTab />
-            <div className="mt-8">
-              <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> Chargement...</div>}>
-                <ApiKeyConnector />
-              </Suspense>
-            </div>
+            {isAdmin && (
+              <div className="mt-8">
+                <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> Chargement...</div>}>
+                  <ApiKeyConnector />
+                </Suspense>
+              </div>
+            )}
             <div className="mt-8">
               <AIDashboard />
             </div>
