@@ -1034,7 +1034,7 @@ export const appRouter = router({
           messages: z.array(
             zod.object({
               role: z.enum(["system", "user", "assistant"]),
-              content: z.string().max(4000),
+              content: z.string().max(16000),
             })
           ).max(20),
         })
@@ -1102,7 +1102,7 @@ export const appRouter = router({
           messages: z.array(
             zod.object({
               role: z.enum(["user", "assistant"]),
-              content: z.string().max(4000),
+              content: z.string().max(16000),
             })
           ).max(30),
         })
