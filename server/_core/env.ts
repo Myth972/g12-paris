@@ -20,6 +20,7 @@ export const ENV = {
   minimaxApiKey: process.env.MINIMAX_API_KEY ?? "",
   aimlApiKey: process.env.AIMLAPI_KEY ?? "",
   replicateApiToken: process.env.REPLICATE_API_TOKEN ?? "",
+  klingApiKey: process.env.KLING_API_KEY ?? "",
   hfApiKey: process.env.HF_API_KEY ?? "",
   cloudflareApiToken: process.env.CLOUDFLARE_API_TOKEN ?? "",
   cloudflareAccountId: process.env.CLOUDFLARE_ACCOUNT_ID ?? "",

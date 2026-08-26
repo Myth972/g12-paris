@@ -33,6 +33,8 @@ function envKeyFor(provider: string): string | null {
       return ENV.aimlApiKey || null;
     case "replicate":
       return ENV.replicateApiToken || null;
+    case "kling":
+      return ENV.klingApiKey || null;
     case "ollama":
       return "ollama"; // pas de clé
     default:
