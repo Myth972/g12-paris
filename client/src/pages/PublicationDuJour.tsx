@@ -77,7 +77,7 @@ export default function PublicationDuJour() {
   const imageItems = items.filter((i: any) => i.type === "image");
   const videoItems = items.filter((i: any) => i.type !== "image");
   const verseItem = items.find((i: any) => i.verse);
-  const verse = verseItem?.verse || latestVerse;
+  const verse = latestVerse;
   const verseImage = verse?.imageUrl || verseItem?.mediaUrl || null;
   const pairCount = Math.max(imageItems.length, videoItems.length);
   const pairedItems = Array.from({ length: pairCount }).map((_, idx) => ({
