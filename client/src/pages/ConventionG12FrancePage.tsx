@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PageContentDisplay from "@/components/PageContentDisplay";
 import PageTitleEditor from "@/components/PageTitleEditor";
 import PageTextEditor from "@/components/PageTextEditor";
@@ -7,6 +7,47 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Play, Share2, ExternalLink, Check, Calendar, MapPin } from "lucide-react";
 import { Link } from "wouter";
+
+declare global {
+  interface Window {
+    FB?: {
+      init: (params: { xfbml: boolean; version: string }) => void;
+      XFBML: { parse: (element?: HTMLElement) => void };
+    };
+    fbAsyncInit?: () => void;
+  }
+}
+
+function loadFacebookSdk(): Promise<void> {
+  return new Promise((resolve) => {
+    if (typeof window === "undefined") return;
+    if (window.FB && window.FB.XFBML) {
+      resolve();
+      return;
+    }
+    // Set the global init callback before loading the SDK
+    const previousInit = window.fbAsyncInit;
+    window.fbAsyncInit = () => {
+      if (previousInit) previousInit();
+      window.FB?.init({ xfbml: true, version: "v18.0" });
+      resolve();
+    };
+    // If the SDK script is not present, inject it
+    const existing = document.getElementById("facebook-jssdk");
+    if (!existing) {
+      const script = document.createElement("script");
+      script.id = "facebook-jssdk";
+      script.src = "https://connect.facebook.net/fr_FR/sdk.js#xfbml=1&version=v18.0";
+      script.async = true;
+      script.defer = true;
+      script.crossOrigin = "anonymous";
+      document.head.appendChild(script);
+    } else {
+      // Script tag exists but SDK may not be ready yet — resolve on next tick
+      setTimeout(() => resolve(), 200);
+    }
+  });
+}
 
 export default function ConventionG12FrancePage() {
   const settingsQuery = trpc.siteSettings.getAll.useQuery();
@@ -43,6 +84,24 @@ export default function ConventionG12FrancePage() {
 
   const [copied, setCopied] = useState(false);
 
+  // Load the Facebook SDK once the component mounts and re-parse XFBML
+  // whenever the Facebook URL changes (so updates from the admin are reflected).
+  useEffect(() => {
+    let cancelled = false;
+    loadFacebookSdk()
+      .then(() => {
+        if (cancelled) return;
+        // Re-parse the whole document so the fb-video div is transformed
+        window.FB?.XFBML.parse();
+      })
+      .catch(() => {
+        // Silent failure — the fallback card will still be shown
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [facebookVideoUrl]);
+
   const handleShare = async () => {
     const url = window.location.href;
     if (navigator.share) {
@@ -63,7 +122,10 @@ export default function ConventionG12FrancePage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-background">
+    <>
+      {/* Facebook SDK requires this root div to mount its UI */}
+      <div id="fb-root" />
+      <div className="min-h-screen bg-slate-50 dark:bg-background">
       {primaryColor && (
         <style dangerouslySetInnerHTML={{
           __html: `
@@ -183,30 +245,24 @@ export default function ConventionG12FrancePage() {
               </div>
             )}
 
-            {/* Facebook Video Player */}
+            {/* Facebook Video Player (Facebook SDK - works with Reels) */}
             {facebookVideoUrl && (
-              <div className="relative aspect-video rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-4 border-white/10 dark:border-white/5 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-900">
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 text-white">
-                  <div className="w-20 h-20 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center mb-5 ring-4 ring-white/20">
-                    <svg className="w-10 h-10" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                    </svg>
+              <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-4 border-white/10 dark:border-white/5 bg-black">
+                <div
+                  className="fb-video"
+                  data-href={facebookVideoUrl}
+                  data-width="500"
+                  data-show-text="false"
+                  data-allowfullscreen="true"
+                  data-autoplay={liveEnabled ? "true" : "false"}
+                  data-lazy="false"
+                  style={{ display: "block", width: "100%" }}
+                >
+                  <div className="fb-xfbml-parse-ignore">
+                    <blockquote cite={facebookVideoUrl}>
+                      <a href={facebookVideoUrl}>Voir la vidéo sur Facebook</a>
+                    </blockquote>
                   </div>
-                  <h3 className="text-xl sm:text-2xl font-bold font-serif mb-2">
-                    {liveEnabled ? "Live Facebook" : "Vidéo Facebook"}
-                  </h3>
-                  <p className="text-sm sm:text-base text-white/80 mb-6 max-w-md">
-                    {liveEnabled
-                      ? "Le direct Facebook est disponible. Cliquez ci-dessous pour le suivre."
-                      : "La vidéo Facebook est disponible. Cliquez ci-dessous pour la regarder."}
-                  </p>
-                  <Button asChild size="lg" className="bg-white text-blue-700 hover:bg-white/90 font-semibold gap-2 shadow-lg">
-                    <a href={facebookVideoUrl} target="_blank" rel="noopener noreferrer">
-                      <Play className="w-5 h-5 fill-current" />
-                      {liveEnabled ? "Regarder le live" : "Regarder sur Facebook"}
-                      <ExternalLink className="w-4 h-4" />
-                    </a>
-                  </Button>
                 </div>
               </div>
             )}
@@ -251,6 +307,7 @@ export default function ConventionG12FrancePage() {
         <PageContentDisplay pageId="convention-g12" layout="split" />
       </section>
       </Reveal>
-    </div>
+      </div>
+    </>
   );
 }
