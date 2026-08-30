@@ -185,18 +185,28 @@ export default function ConventionG12FrancePage() {
 
             {/* Facebook Video Player */}
             {facebookVideoUrl && (
-              <div className="relative bg-black rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-4 border-white/10 dark:border-white/5">
-                <div className="relative w-full" style={{ paddingTop: "calc(430 / 560 * 100%)" }}>
-                  <iframe
-                    src={`https://www.facebook.com/plugins/video.php?height=315&href=${encodeURIComponent(facebookVideoUrl)}&show_text=true&width=560&t=0`}
-                    title="Convention G12 France - Vidéo Facebook"
-                    className="absolute inset-0 w-full h-full"
-                    style={{ border: "none", overflow: "hidden" }}
-                    scrolling="no"
-                    frameBorder="0"
-                    allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-                    allowFullScreen={true}
-                  />
+              <div className="relative aspect-video rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-4 border-white/10 dark:border-white/5 bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-900">
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 text-white">
+                  <div className="w-20 h-20 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center mb-5 ring-4 ring-white/20">
+                    <svg className="w-10 h-10" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-bold font-serif mb-2">
+                    {liveEnabled ? "Live Facebook" : "Vidéo Facebook"}
+                  </h3>
+                  <p className="text-sm sm:text-base text-white/80 mb-6 max-w-md">
+                    {liveEnabled
+                      ? "Le direct Facebook est disponible. Cliquez ci-dessous pour le suivre."
+                      : "La vidéo Facebook est disponible. Cliquez ci-dessous pour la regarder."}
+                  </p>
+                  <Button asChild size="lg" className="bg-white text-blue-700 hover:bg-white/90 font-semibold gap-2 shadow-lg">
+                    <a href={facebookVideoUrl} target="_blank" rel="noopener noreferrer">
+                      <Play className="w-5 h-5 fill-current" />
+                      {liveEnabled ? "Regarder le live" : "Regarder sur Facebook"}
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
+                  </Button>
                 </div>
               </div>
             )}

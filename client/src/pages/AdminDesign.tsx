@@ -23,7 +23,8 @@ import {
   Moon,
   Monitor,
   Play,
-  Video
+  Video,
+  Trash2
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
@@ -732,7 +733,22 @@ export default function AdminDesign() {
           </h2>
           <div className="grid md:grid-cols-2 gap-8 mb-8">
             <div className="space-y-3">
-              <label htmlFor="convention-logo-url" className="text-sm font-medium">Logo de la Convention</label>
+              <div className="flex items-center justify-between">
+                <label htmlFor="convention-logo-url" className="text-sm font-medium">Logo de la Convention</label>
+                {conventionLogoUrl && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setConventionLogoUrl("")}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 h-7 px-2 text-xs"
+                    aria-label="Supprimer le logo"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 mr-1" />
+                    Supprimer
+                  </Button>
+                )}
+              </div>
               <div 
                 className="border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors cursor-pointer bg-slate-50 relative overflow-hidden"
                 onClick={() => conventionLogoRef.current?.click()}
@@ -752,7 +768,22 @@ export default function AdminDesign() {
             </div>
             
             <div className="space-y-3">
-              <label htmlFor="convention-bg-url" className="text-sm font-medium">Image d'arrière-plan (Haut de page)</label>
+              <div className="flex items-center justify-between">
+                <label htmlFor="convention-bg-url" className="text-sm font-medium">Image d'arrière-plan (Haut de page)</label>
+                {conventionBgUrl && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setConventionBgUrl("")}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 h-7 px-2 text-xs"
+                    aria-label="Supprimer l'image d'arrière-plan"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 mr-1" />
+                    Supprimer
+                  </Button>
+                )}
+              </div>
               <div 
                 className="border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors cursor-pointer bg-slate-50 relative overflow-hidden"
                 onClick={() => conventionBgRef.current?.click()}
@@ -810,7 +841,22 @@ export default function AdminDesign() {
 
             {/* YouTube Video */}
             <div className="space-y-2">
-              <label htmlFor="convention-youtube-video-id" className="text-sm font-medium">Vidéo YouTube (ID ou URL complète)</label>
+              <div className="flex items-center justify-between">
+                <label htmlFor="convention-youtube-video-id" className="text-sm font-medium">Vidéo YouTube (ID ou URL complète)</label>
+                {conventionYoutubeVideoId && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setConventionYoutubeVideoId("")}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 h-7 px-2 text-xs"
+                    aria-label="Supprimer la vidéo YouTube"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 mr-1" />
+                    Supprimer
+                  </Button>
+                )}
+              </div>
               <Input
                 id="convention-youtube-video-id"
                 name="conventionYoutubeVideoId"
@@ -823,7 +869,22 @@ export default function AdminDesign() {
 
             {/* Facebook Video */}
             <div className="space-y-2">
-              <label htmlFor="convention-facebook-video-url" className="text-sm font-medium">Vidéo Facebook (URL complète)</label>
+              <div className="flex items-center justify-between">
+                <label htmlFor="convention-facebook-video-url" className="text-sm font-medium">Vidéo Facebook (URL complète)</label>
+                {conventionFacebookVideoUrl && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setConventionFacebookVideoUrl("")}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 h-7 px-2 text-xs"
+                    aria-label="Supprimer la vidéo Facebook"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 mr-1" />
+                    Supprimer
+                  </Button>
+                )}
+              </div>
               <Input
                 id="convention-facebook-video-url"
                 name="conventionFacebookVideoUrl"
