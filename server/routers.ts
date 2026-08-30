@@ -132,6 +132,15 @@ function generateSlug(title: string): string {
   );
 }
 
+function getBaseUrl(req: any): string {
+  const host = req.get?.("host") || req.headers?.host || "localhost:3000";
+  const protocol =
+    (req.headers?.["x-forwarded-proto"] as string) ||
+    (req.protocol as string) ||
+    "http";
+  return `${protocol}://${host}`;
+}
+
 export const appRouter = router({
   system: systemRouter,
   theme: themeRouter,
@@ -658,8 +667,17 @@ export const appRouter = router({
   }),
 
   gallery: router({
-    featured: publicProcedure.query(async () => {
-      return getFeaturedGalleryItems();
+    featured: publicProcedure.query(async ({ ctx }) => {
+      const items = await getFeaturedGalleryItems();
+      const baseUrl = getBaseUrl(ctx.req);
+      return items.map((item: any) => ({
+        ...item,
+        mediaUrl: item.mediaUrl?.startsWith("http")
+          ? item.mediaUrl
+          : item.mediaUrl
+            ? `${baseUrl}${item.mediaUrl}`
+            : "",
+      }));
     }),
 
     list: publicProcedure
@@ -672,13 +690,24 @@ export const appRouter = router({
           })
           .optional()
       )
-      .query(async ({ input }) => {
+      .query(async ({ input, ctx }) => {
         const { limit = 20, offset = 0, category } = input ?? {};
+        const baseUrl = getBaseUrl(ctx.req);
         const [items, total] = await Promise.all([
           getAllGalleryItems(limit, offset, true, category),
           countGalleryItems(true, category),
         ]);
-        return { items, total };
+        return {
+          items: items.map((item: any) => ({
+            ...item,
+            mediaUrl: item.mediaUrl?.startsWith("http")
+              ? item.mediaUrl
+              : item.mediaUrl
+                ? `${baseUrl}${item.mediaUrl}`
+                : "",
+          })),
+          total,
+        };
       }),
 
     listAdmin: adminProcedure
@@ -690,10 +719,20 @@ export const appRouter = router({
           })
           .optional()
       )
-      .query(async ({ input }) => {
+      .query(async ({ input, ctx }) => {
         const { limit = 50, offset = 0 } = input ?? {};
+        const baseUrl = getBaseUrl(ctx.req);
         const items = await getAllGalleryItems(limit, offset, false);
-        return { items };
+        return {
+          items: items.map((item: any) => ({
+            ...item,
+            mediaUrl: item.mediaUrl?.startsWith("http")
+              ? item.mediaUrl
+              : item.mediaUrl
+                ? `${baseUrl}${item.mediaUrl}`
+                : "",
+          })),
+        };
       }),
 
     create: adminProcedure

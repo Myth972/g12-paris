@@ -2,6 +2,7 @@ import { trpc } from "@/lib/trpc";
 import { useMotionEnabled } from "@/hooks/useMotionEnabled";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useBlobUpload } from "@/hooks/useBlobUpload";
+import { getImageUrl } from "@/lib/imageUrl";
 
 import YouTubeEmbed from "@/components/YouTubeEmbed";
 import { Button } from "@/components/ui/button";
@@ -233,11 +234,11 @@ export default function PublicationDuJour() {
 
                 {verseImage && !editing && (
                   <div className="w-full max-w-xl mb-8 rounded-2xl overflow-hidden border border-white/40 shadow-lg">
-                    <img
-                      src={verseImage}
-                      alt="Verset du Jour"
-                      className="w-full h-auto"
-                    />
+                      <img
+                        src={getImageUrl(verseImage)}
+                        alt="Verset du Jour"
+                        className="w-full h-auto"
+                      />
                   </div>
                 )}
 
@@ -402,11 +403,11 @@ export default function PublicationDuJour() {
                           whileHover={motionEnabled ? { scale: 1.08, rotate: 3, zIndex: 30 } : {}}
                           whileTap={motionEnabled ? { scale: 0.95 } : {}}
                           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                          onClick={() => openImageInNewTab(pair.image!.mediaUrl)}
+                           onClick={() => openImageInNewTab(getImageUrl(pair.image!.mediaUrl))}
                           className={`absolute ${isEven ? 'left-0 md:left-4' : 'right-0 md:right-4'} top-0 md:top-10 w-[85%] md:w-[60%] h-[75%] md:h-[80%] z-0 rounded-2xl overflow-hidden shadow-2xl border-4 border-white/40 cursor-pointer group hover:shadow-primary/30 transition-shadow active:scale-[0.97]`}
                         >
-                          <img
-                            src={pair.image.mediaUrl}
+                           <img
+                             src={getImageUrl(pair.image.mediaUrl)}
                             alt={pair.image.title}
                             className="w-full h-full object-cover select-none group-hover:scale-110 transition-transform duration-700"
                             onContextMenu={(e) => e.preventDefault()}

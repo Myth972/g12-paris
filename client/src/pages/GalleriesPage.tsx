@@ -1,4 +1,5 @@
 import { trpc } from "@/lib/trpc";
+import { getImageUrl } from "@/lib/imageUrl";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -248,7 +249,7 @@ export default function GalleriesPage() {
             <div className="flex flex-col md:flex-row">
               <div className="md:w-3/5 relative aspect-[16/10] md:aspect-auto md:min-h-[320px] overflow-hidden">
                 <img
-                  src={pictureOfDay.mediaUrl}
+                  src={getImageUrl(pictureOfDay.mediaUrl)}
                   alt={pictureOfDay.title}
                   className="w-full h-full absolute inset-0 object-cover group-hover:scale-105 transition-transform duration-700"
                 />
@@ -265,7 +266,7 @@ export default function GalleriesPage() {
                     <div className="space-y-2">
                       <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Image</label>
                       {draftMediaUrl && (
-                        <img src={draftMediaUrl} alt="Aperçu" className="w-full h-28 object-contain rounded-lg border border-border/50 bg-muted" />
+                        <img src={getImageUrl(draftMediaUrl)} alt="Aperçu" className="w-full h-28 object-contain rounded-lg border border-border/50 bg-muted" />
                       )}
                       <div className="flex items-center gap-2">
                         <Input value={draftMediaUrl} onChange={e => setDraftMediaUrl(e.target.value)} placeholder="URL de l'image" className="flex-1 text-xs" />
@@ -409,7 +410,7 @@ export default function GalleriesPage() {
                     <div className="aspect-[4/3] overflow-hidden bg-muted">
                       {item.type === "image" ? (
                         <img
-                          src={item.mediaUrl}
+                          src={getImageUrl(item.mediaUrl)}
                           alt={item.title}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                         />
@@ -421,7 +422,7 @@ export default function GalleriesPage() {
                               <img src={thumb} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
                             );
                             if (item.mediaUrl && !item.youtubeUrl) return (
-                              <video src={item.mediaUrl} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                              <video src={getImageUrl(item.mediaUrl)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
                             );
                             return null;
                           })()}
@@ -532,7 +533,7 @@ export default function GalleriesPage() {
                     <div className="relative overflow-hidden bg-muted aspect-[4/3]">
                       {item.type === "image" ? (
                         <img
-                          src={item.mediaUrl}
+                          src={getImageUrl(item.mediaUrl)}
                           alt={item.title}
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 select-none"
                           onContextMenu={(e) => e.preventDefault()}
@@ -547,7 +548,7 @@ export default function GalleriesPage() {
                               <img src={thumb} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 select-none" loading="lazy" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
                             );
                             if (item.mediaUrl && !item.youtubeUrl) return (
-                              <video src={item.mediaUrl} className="w-full h-full object-cover" preload="metadata" muted playsInline />
+                              <video src={getImageUrl(item.mediaUrl)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
                             );
                             return null;
                           })()}
@@ -670,7 +671,7 @@ export default function GalleriesPage() {
                 <div className="rounded-xl overflow-hidden border border-border/50 bg-muted">
                   {selectedItem.type === "image" ? (
                     <img
-                      src={selectedItem.mediaUrl}
+                      src={getImageUrl(selectedItem.mediaUrl)}
                       alt={selectedItem.title}
                       className="w-full h-auto max-h-[50vh] object-contain"
                     />
@@ -678,7 +679,7 @@ export default function GalleriesPage() {
                     <YouTubeEmbed url={selectedItem.youtubeUrl} />
                   ) : (
                     <video
-                      src={selectedItem.mediaUrl}
+                      src={getImageUrl(selectedItem.mediaUrl)}
                       controls
                       muted
                       loop={selectedItem.loop}

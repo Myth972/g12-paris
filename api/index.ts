@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express from "express";
+import path from "path";
 import crypto from "crypto";
 import { parse as parseCookieHeader } from "cookie";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
@@ -17,6 +18,9 @@ const CSRF_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 7;
 // Configure body parser (Vercel has its own limits but we set them here for consistency)
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
+// Serve uploaded files (important for local dev and self-hosted)
+app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 const readCsrfCookie = (req: any) => {
   const header = req.headers?.cookie || req.headers?.get?.("cookie");

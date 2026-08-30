@@ -40,6 +40,13 @@ AWS_REGION=eu-west-1
 AWS_S3_BUCKET=your-bucket-name
 
 # ------------------------------------------
+# Stockage (Vercel Blob - pour les images en production)
+# ------------------------------------------
+# Obtenir le token depuis le dashboard Vercel : Settings > Storage > Blob
+# https://vercel.com/docs/storage/vercel-blob
+BLOB_READ_WRITE_TOKEN=vercel_blob_your-read-write-token-here
+
+# ------------------------------------------
 # Développement
 # ------------------------------------------
 DEV=true

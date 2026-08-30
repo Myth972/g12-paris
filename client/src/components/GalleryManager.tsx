@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
+import { getImageUrl } from "@/lib/imageUrl";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -306,7 +307,7 @@ export default function GalleryManager() {
                   {editingId && formData.mediaUrl && (
                     <div className="mb-3 rounded-lg overflow-hidden border border-border/50">
                       <img
-                        src={formData.mediaUrl}
+                        src={getImageUrl(formData.mediaUrl)}
                         alt="Aperçu"
                         className="w-full h-32 object-cover"
                       />
@@ -593,7 +594,7 @@ export default function GalleryManager() {
                     <TableCell>
                       {item.type === "image" ? (
                         <img
-                          src={item.mediaUrl}
+                          src={getImageUrl(item.mediaUrl)}
                           alt={item.title}
                           className="w-16 h-12 object-cover rounded"
                         />
@@ -610,7 +611,7 @@ export default function GalleryManager() {
                         />
                       ) : (
                         <video
-                          src={item.mediaUrl}
+                          src={getImageUrl(item.mediaUrl)}
                           className="w-16 h-12 object-cover rounded bg-muted"
                           preload="metadata"
                         />
