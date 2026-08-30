@@ -21,7 +21,9 @@ import {
   Shield,
   Sun,
   Moon,
-  Monitor
+  Monitor,
+  Play,
+  Video
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
@@ -83,6 +85,9 @@ export default function AdminDesign() {
   const [conventionPrimaryColor, setConventionPrimaryColor] = useState("#DC2626");
   const [conventionLogoUrl, setConventionLogoUrl] = useState("");
   const [conventionBgUrl, setConventionBgUrl] = useState("");
+  const [conventionLiveEnabled, setConventionLiveEnabled] = useState(false);
+  const [conventionYoutubeVideoId, setConventionYoutubeVideoId] = useState("");
+  const [conventionFacebookVideoUrl, setConventionFacebookVideoUrl] = useState("");
 
   const { uploadFile } = useBlobUpload();
   const [uploading, setUploading] = useState<string | null>(null);
@@ -133,6 +138,9 @@ export default function AdminDesign() {
       if (settingsQuery.data["convention.primaryColor"]) setConventionPrimaryColor(settingsQuery.data["convention.primaryColor"] as string);
       if (settingsQuery.data["convention.logoUrl"]) setConventionLogoUrl(settingsQuery.data["convention.logoUrl"] as string);
       if (settingsQuery.data["convention.bgUrl"]) setConventionBgUrl(settingsQuery.data["convention.bgUrl"] as string);
+      if (settingsQuery.data["convention.liveEnabled"] !== undefined) setConventionLiveEnabled(settingsQuery.data["convention.liveEnabled"] === "true");
+      if (settingsQuery.data["convention.youtubeVideoId"]) setConventionYoutubeVideoId(settingsQuery.data["convention.youtubeVideoId"] as string);
+      if (settingsQuery.data["convention.facebookVideoUrl"]) setConventionFacebookVideoUrl(settingsQuery.data["convention.facebookVideoUrl"] as string);
     }
   }, [settingsQuery.data]);
 
@@ -156,6 +164,9 @@ export default function AdminDesign() {
         setSetting.mutateAsync({ key: "convention.primaryColor", value: conventionPrimaryColor }),
         setSetting.mutateAsync({ key: "convention.logoUrl", value: conventionLogoUrl }),
         setSetting.mutateAsync({ key: "convention.bgUrl", value: conventionBgUrl }),
+        setSetting.mutateAsync({ key: "convention.liveEnabled", value: String(conventionLiveEnabled) }),
+        setSetting.mutateAsync({ key: "convention.youtubeVideoId", value: conventionYoutubeVideoId }),
+        setSetting.mutateAsync({ key: "convention.facebookVideoUrl", value: conventionFacebookVideoUrl }),
       ]);
       toast.success(t('admin.design.toastSaved'));
     } catch (e) {
@@ -770,6 +781,58 @@ export default function AdminDesign() {
               <Input id="convention-primary-color" name="conventionPrimaryColor" value={conventionPrimaryColor} onChange={(e) => setConventionPrimaryColor(e.target.value)} className="font-mono text-sm uppercase max-w-[200px]" />
             </div>
             <p className="text-xs text-muted-foreground">Applique une touche de couleur spécifique sur la page Convention.</p>
+          </div>
+
+          {/* Section Lives & Vidéos */}
+          <div className="space-y-6 mt-6 pt-6 border-t">
+            <h3 className="text-lg font-bold font-serif flex items-center gap-2">
+              <Play className="w-5 h-5 text-primary" /> Lives & Vidéos
+            </h3>
+
+            {/* Toggle Live */}
+            <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border">
+              <div>
+                <label htmlFor="convention-live-enabled" className="text-sm font-medium cursor-pointer">Activer le mode Live</label>
+                <p className="text-xs text-muted-foreground mt-1">Affiche un badge "En direct" et lance l'autoplay sur les vidéos.</p>
+              </div>
+              <button
+                id="convention-live-enabled"
+                name="conventionLiveEnabled"
+                type="button"
+                role="switch"
+                aria-checked={conventionLiveEnabled}
+                onClick={() => setConventionLiveEnabled(!conventionLiveEnabled)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${conventionLiveEnabled ? 'bg-red-600' : 'bg-gray-300 dark:bg-gray-600'}`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${conventionLiveEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+            </div>
+
+            {/* YouTube Video */}
+            <div className="space-y-2">
+              <label htmlFor="convention-youtube-video-id" className="text-sm font-medium">Vidéo YouTube (ID ou URL complète)</label>
+              <Input
+                id="convention-youtube-video-id"
+                name="conventionYoutubeVideoId"
+                placeholder="ex: dQw4w9WgXcQ ou https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+                value={conventionYoutubeVideoId}
+                onChange={(e) => setConventionYoutubeVideoId(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">Colle l'ID YouTube (11 caractères) ou l'URL complète. Utilisé pour le live et les replays.</p>
+            </div>
+
+            {/* Facebook Video */}
+            <div className="space-y-2">
+              <label htmlFor="convention-facebook-video-url" className="text-sm font-medium">Vidéo Facebook (URL complète)</label>
+              <Input
+                id="convention-facebook-video-url"
+                name="conventionFacebookVideoUrl"
+                placeholder="ex: https://www.facebook.com/ConcordiaParis/videos/1234567890/"
+                value={conventionFacebookVideoUrl}
+                onChange={(e) => setConventionFacebookVideoUrl(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">Colle l'URL complète d'une vidéo Facebook (live ou replay). Optionnel : si renseigné, affichée en plus de YouTube.</p>
+            </div>
           </div>
         </section>
 

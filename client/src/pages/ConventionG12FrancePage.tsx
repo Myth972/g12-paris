@@ -18,7 +18,28 @@ export default function ConventionG12FrancePage() {
   // We can reuse some settings if needed, or rely solely on PageContentDisplay
   const liveEnabledRaw = settingsQuery.data?.conventionLiveEnabled as string | undefined;
   const liveEnabled = liveEnabledRaw === "true"; // Defaults to false for convention unless set
-  const youtubeVideoId = settingsQuery.data?.conventionYoutubeVideoId as string | undefined;
+  const youtubeVideoIdRaw = settingsQuery.data?.conventionYoutubeVideoId as string | undefined;
+  const facebookVideoUrl = settingsQuery.data?.conventionFacebookVideoUrl as string | undefined;
+
+  // Extract YouTube video ID from full URL if needed
+  const extractYouTubeId = (input: string | undefined): string | null => {
+    if (!input) return null;
+    const trimmed = input.trim();
+    if (!trimmed) return null;
+    // Already an ID (11 chars, alphanumeric + dash + underscore)
+    if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed;
+    // Try to extract from various YouTube URL formats
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/live\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+    ];
+    for (const pattern of patterns) {
+      const match = trimmed.match(pattern);
+      if (match && match[1]) return match[1];
+    }
+    return null;
+  };
+
+  const youtubeVideoId = extractYouTubeId(youtubeVideoIdRaw);
 
   const [copied, setCopied] = useState(false);
 
@@ -132,13 +153,13 @@ export default function ConventionG12FrancePage() {
       </Reveal>
 
       {/* Video Section */}
-      {(youtubeVideoId || liveEnabled) && (
+      {(youtubeVideoId || facebookVideoUrl || liveEnabled) && (
         <Reveal variant="fadeUp" delay={0.1}>
         <section className="container pb-8 px-4 sm:px-0 mt-8">
           <div className="max-w-4xl mx-auto">
-            {/* Video Player */}
-            <div className="relative aspect-video bg-black rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-4 border-white/10 dark:border-white/5">
-              {youtubeVideoId ? (
+            {/* Video Player(s) */}
+            {youtubeVideoId && (
+              <div className="relative aspect-video bg-black rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-4 border-white/10 dark:border-white/5 mb-6">
                 <iframe
                   src={`https://www.youtube.com/embed/${youtubeVideoId}${liveEnabled ? "?autoplay=1&live=1" : ""}`}
                   title="Convention G12 France en direct"
@@ -146,7 +167,11 @@ export default function ConventionG12FrancePage() {
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 />
-              ) : liveEnabled ? (
+              </div>
+            )}
+
+            {!youtubeVideoId && liveEnabled && (
+              <div className="relative aspect-video bg-black rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-4 border-white/10 dark:border-white/5 mb-6">
                 <div className="absolute inset-0 flex items-center justify-center bg-muted">
                   <div className="text-center">
                     <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
@@ -155,11 +180,24 @@ export default function ConventionG12FrancePage() {
                     <p className="text-muted-foreground">La session va bientôt commencer...</p>
                   </div>
                 </div>
-              ) : null}
-            </div>
+              </div>
+            )}
+
+            {/* Facebook Video Player */}
+            {facebookVideoUrl && (
+              <div className="relative aspect-video bg-black rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-4 border-white/10 dark:border-white/5">
+                <iframe
+                  src={`https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(facebookVideoUrl)}&show_text=0&autoplay=${liveEnabled ? 1 : 0}`}
+                  title="Convention G12 France - Vidéo Facebook"
+                  className="absolute inset-0 w-full h-full"
+                  allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            )}
 
             {/* Share Button */}
-            <div className="flex justify-center gap-3 mt-6">
+            <div className="flex flex-wrap justify-center gap-3 mt-6">
               <Button onClick={handleShare} className="gap-2" variant="outline">
                 {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
                 {copied ? "Lien copié !" : "Partager l'événement"}
@@ -169,6 +207,14 @@ export default function ConventionG12FrancePage() {
                   <a href={`https://youtube.com/watch?v=${youtubeVideoId}`} target="_blank" rel="noopener noreferrer" className="gap-2">
                     <ExternalLink className="w-4 h-4" />
                     Ouvrir sur YouTube
+                  </a>
+                </Button>
+              )}
+              {facebookVideoUrl && (
+                <Button asChild variant="ghost">
+                  <a href={facebookVideoUrl} target="_blank" rel="noopener noreferrer" className="gap-2">
+                    <ExternalLink className="w-4 h-4" />
+                    Ouvrir sur Facebook
                   </a>
                 </Button>
               )}
