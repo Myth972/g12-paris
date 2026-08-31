@@ -605,6 +605,39 @@
             "title": "Library Management - Advanced Features"
           }
         },
+        "convention": {
+          "title": "Convention G12 France",
+          "desc": "The Convention page is accessible via /culte-en-ligne/convention. It is fully configurable from the admin Design panel.",
+          "visualSettings": "Visual Settings",
+          "logoLabel": "Logo",
+          "logoDesc": "Upload or URL. Toggle ON/OFF to hide.",
+          "bgLabel": "Background Image",
+          "bgDesc": "Header image for the page.",
+          "colorLabel": "Primary Color",
+          "colorDesc": "Applied to accents, buttons, and titles.",
+          "videosLive": "Videos & Live",
+          "liveMode": "Live Mode",
+          "liveModeDesc": "\"Live\" badge + autoplay. Works with YouTube and Facebook.",
+          "youtubeLabel": "YouTube",
+          "youtubeDesc": "ID or full URL. Displayed first.",
+          "facebookLabel": "Facebook",
+          "facebookDesc": "Share URL (share/v/...). Used when YouTube is empty. Automatic fallback if the iframe fails to load.",
+          "rule": "Rule:",
+          "ruleDesc": "YouTube and Facebook are never displayed at the same time. YouTube takes priority. When YouTube is empty, Facebook is shown."
+        },
+        "mediaUploads": {
+          "title": "Media & Uploads",
+          "imagesTitle": "Images",
+          "imagesDesc": "Images are uploaded via Vercel Blob or stored locally in /uploads.",
+          "formatSupported": "Supported formats: JPG, PNG, WebP, AVIF, SVG, GIF",
+          "relativeUrls": "Relative /uploads/ URLs are automatically converted to absolute URLs",
+          "getImageUrl": "Use getImageUrl() for dynamic images",
+          "audioVideoTitle": "Audio & Video",
+          "audioVideoDesc": "Audio and video files are uploaded via the same mechanism.",
+          "audioFormats": "Audio: MP3, WAV, OGG",
+          "videoFormats": "Video: MP4, WebM",
+          "videoEmbed": "YouTube/Facebook videos are embedded via iframe (no upload)"
+        },
         "library": {
           "searchFilters": {
             "title": "Search & Filters",

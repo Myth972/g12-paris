@@ -220,48 +220,48 @@ export default function AdminTutorial() {
         <section className="space-y-4">
           <div className="flex items-center gap-2 text-xl font-semibold">
             <Globe className="h-6 w-6 text-primary" />
-            <h2>Convention G12 France</h2>
+            <h2>{t('admin.tutorial.convention.title')}</h2>
           </div>
 
           <Card>
             <CardContent className="pt-6 space-y-4">
               <p className="text-sm text-muted-foreground">
-                La page Convention est accessible via <code className="bg-muted px-1.5 py-0.5 rounded text-xs">/culte-en-ligne/convention</code>. Elle est entièrement configurable depuis l'admin Design.
+                {t('admin.tutorial.convention.desc')}
               </p>
 
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <h4 className="font-medium text-sm">Paramètres visuels</h4>
+                  <h4 className="font-medium text-sm">{t('admin.tutorial.convention.visualSettings')}</h4>
                   <ul className="text-sm space-y-1 text-muted-foreground">
                     <li className="flex items-start gap-2">
                       <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                      <span><strong>Logo</strong> — Upload ou URL. Toggle ON/OFF pour masquer.</span>
+                      <span><strong>{t('admin.tutorial.convention.logoLabel')}</strong> — {t('admin.tutorial.convention.logoDesc')}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                      <span><strong>Image de fond</strong> — Image d'en-tête de la page.</span>
+                      <span><strong>{t('admin.tutorial.convention.bgLabel')}</strong> — {t('admin.tutorial.convention.bgDesc')}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                      <span><strong>Couleur principale</strong> — Appliquée aux accents, boutons, titres.</span>
+                      <span><strong>{t('admin.tutorial.convention.colorLabel')}</strong> — {t('admin.tutorial.convention.colorDesc')}</span>
                     </li>
                   </ul>
                 </div>
 
                 <div className="space-y-2">
-                  <h4 className="font-medium text-sm">Vidéos & Live</h4>
+                  <h4 className="font-medium text-sm">{t('admin.tutorial.convention.videosLive')}</h4>
                   <ul className="text-sm space-y-1 text-muted-foreground">
                     <li className="flex items-start gap-2">
                       <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                      <span><strong>Mode Live</strong> — Badge "En direct" + autoplay. Fonctionne avec YouTube et Facebook.</span>
+                      <span><strong>{t('admin.tutorial.convention.liveMode')}</strong> — {t('admin.tutorial.convention.liveModeDesc')}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                      <span><strong>YouTube</strong> — ID ou URL complète. Affiché en priorité.</span>
+                      <span><strong>{t('admin.tutorial.convention.youtubeLabel')}</strong> — {t('admin.tutorial.convention.youtubeDesc')}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                      <span><strong>Facebook</strong> — URL de partage (share/v/...). Utilisé si YouTube est vide. Fallback automatique si l'iframe ne charge pas.</span>
+                      <span><strong>{t('admin.tutorial.convention.facebookLabel')}</strong> — {t('admin.tutorial.convention.facebookDesc')}</span>
                     </li>
                   </ul>
                 </div>
@@ -269,7 +269,7 @@ export default function AdminTutorial() {
 
               <div className="bg-primary/5 border border-primary/20 p-3 rounded-md">
                 <p className="text-sm">
-                  <strong>Règle :</strong> YouTube et Facebook ne s'affichent pas en même temps. YouTube a la priorité. Si YouTube est vide, Facebook est affiché.
+                  <strong>{t('admin.tutorial.convention.rule')}</strong> {t('admin.tutorial.convention.ruleDesc')}
                 </p>
               </div>
             </CardContent>
@@ -280,30 +280,30 @@ export default function AdminTutorial() {
         <section className="space-y-4">
           <div className="flex items-center gap-2 text-xl font-semibold">
             <ImageIcon className="h-6 w-6 text-primary" />
-            <h2>Médias & Uploads</h2>
+            <h2>{t('admin.tutorial.mediaUploads.title')}</h2>
           </div>
 
           <div className="grid gap-6 md:grid-cols-2">
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Images</CardTitle>
+                <CardTitle className="text-lg">{t('admin.tutorial.mediaUploads.imagesTitle')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Les images sont uploadées via Vercel Blob ou stockées localement dans <code className="bg-muted px-1.5 py-0.5 rounded text-xs">/uploads</code>.
+                  {t('admin.tutorial.mediaUploads.imagesDesc')}
                 </p>
                 <ul className="text-sm space-y-1 text-muted-foreground">
                   <li className="flex items-start gap-2">
                     <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                    <span>Formats supportés : JPG, PNG, WebP, AVIF, SVG, GIF</span>
+                    <span>{t('admin.tutorial.mediaUploads.formatSupported')}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                    <span>Les URLs relatives <code>/uploads/</code> sont converties en URLs absolues automatiquement</span>
+                    <span>{t('admin.tutorial.mediaUploads.relativeUrls')}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                    <span>Utiliser <code>getImageUrl()</code> pour les images dynamiques</span>
+                    <span>{t('admin.tutorial.mediaUploads.getImageUrl')}</span>
                   </li>
                 </ul>
               </CardContent>
@@ -311,24 +311,24 @@ export default function AdminTutorial() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Audio & Vidéo</CardTitle>
+                <CardTitle className="text-lg">{t('admin.tutorial.mediaUploads.audioVideoTitle')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
                 <p className="text-sm text-muted-foreground">
-                  Les fichiers audio et vidéo sont uploadés via le même mécanisme.
+                  {t('admin.tutorial.mediaUploads.audioVideoDesc')}
                 </p>
                 <ul className="text-sm space-y-1 text-muted-foreground">
                   <li className="flex items-start gap-2">
                     <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                    <span>Audio : MP3, WAV, OGG</span>
+                    <span>{t('admin.tutorial.mediaUploads.audioFormats')}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                    <span>Vidéo : MP4, WebM</span>
+                    <span>{t('admin.tutorial.mediaUploads.videoFormats')}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
-                    <span>Les vidéos YouTube/Facebook sont intégrées via iframe (pas d'upload)</span>
+                    <span>{t('admin.tutorial.mediaUploads.videoEmbed')}</span>
                   </li>
                 </ul>
               </CardContent>

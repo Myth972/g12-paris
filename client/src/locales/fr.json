@@ -605,6 +605,39 @@
             "title": "Gestion Bibliothèque - Fonctionnalités Avancées"
           }
         },
+        "convention": {
+          "title": "Convention G12 France",
+          "desc": "La page Convention est accessible via /culte-en-ligne/convention. Elle est entièrement configurable depuis l'admin Design.",
+          "visualSettings": "Paramètres visuels",
+          "logoLabel": "Logo",
+          "logoDesc": "Upload ou URL. Toggle ON/OFF pour masquer.",
+          "bgLabel": "Image de fond",
+          "bgDesc": "Image d'en-tête de la page.",
+          "colorLabel": "Couleur principale",
+          "colorDesc": "Appliquée aux accents, boutons, titres.",
+          "videosLive": "Vidéos & Live",
+          "liveMode": "Mode Live",
+          "liveModeDesc": "Badge \"En direct\" + autoplay. Fonctionne avec YouTube et Facebook.",
+          "youtubeLabel": "YouTube",
+          "youtubeDesc": "ID ou URL complète. Affiché en priorité.",
+          "facebookLabel": "Facebook",
+          "facebookDesc": "URL de partage (share/v/...). Utilisé si YouTube est vide. Fallback automatique si l'iframe ne charge pas.",
+          "rule": "Règle :",
+          "ruleDesc": "YouTube et Facebook ne s'affichent pas en même temps. YouTube a la priorité. Si YouTube est vide, Facebook est affiché."
+        },
+        "mediaUploads": {
+          "title": "Médias & Uploads",
+          "imagesTitle": "Images",
+          "imagesDesc": "Les images sont uploadées via Vercel Blob ou stockées localement dans /uploads.",
+          "formatSupported": "Formats supportés : JPG, PNG, WebP, AVIF, SVG, GIF",
+          "relativeUrls": "Les URLs relatives /uploads/ sont converties en URLs absolues automatiquement",
+          "getImageUrl": "Utiliser getImageUrl() pour les images dynamiques",
+          "audioVideoTitle": "Audio & Vidéo",
+          "audioVideoDesc": "Les fichiers audio et vidéo sont uploadés via le même mécanisme.",
+          "audioFormats": "Audio : MP3, WAV, OGG",
+          "videoFormats": "Vidéo : MP4, WebM",
+          "videoEmbed": "Les vidéos YouTube/Facebook sont intégrées via iframe (pas d'upload)"
+        },
         "library": {
           "searchFilters": {
             "title": "Recherche & Filtres",
