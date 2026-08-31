@@ -89,6 +89,7 @@ export default function AdminDesign() {
   const [conventionLiveEnabled, setConventionLiveEnabled] = useState(false);
   const [conventionYoutubeVideoId, setConventionYoutubeVideoId] = useState("");
   const [conventionFacebookVideoUrl, setConventionFacebookVideoUrl] = useState("");
+  const [conventionFacebookEmbedCode, setConventionFacebookEmbedCode] = useState("");
 
   const { uploadFile } = useBlobUpload();
   const [uploading, setUploading] = useState<string | null>(null);
@@ -142,6 +143,7 @@ export default function AdminDesign() {
       if (settingsQuery.data["convention.liveEnabled"] !== undefined) setConventionLiveEnabled(settingsQuery.data["convention.liveEnabled"] === "true");
       if (settingsQuery.data["convention.youtubeVideoId"]) setConventionYoutubeVideoId(settingsQuery.data["convention.youtubeVideoId"] as string);
       if (settingsQuery.data["convention.facebookVideoUrl"]) setConventionFacebookVideoUrl(settingsQuery.data["convention.facebookVideoUrl"] as string);
+      if (settingsQuery.data["convention.facebookEmbedCode"]) setConventionFacebookEmbedCode(settingsQuery.data["convention.facebookEmbedCode"] as string);
     }
   }, [settingsQuery.data]);
 
@@ -168,6 +170,7 @@ export default function AdminDesign() {
         setSetting.mutateAsync({ key: "convention.liveEnabled", value: String(conventionLiveEnabled) }),
         setSetting.mutateAsync({ key: "convention.youtubeVideoId", value: conventionYoutubeVideoId }),
         setSetting.mutateAsync({ key: "convention.facebookVideoUrl", value: conventionFacebookVideoUrl }),
+        setSetting.mutateAsync({ key: "convention.facebookEmbedCode", value: conventionFacebookEmbedCode }),
       ]);
       toast.success(t('admin.design.toastSaved'));
     } catch (e) {
@@ -893,6 +896,39 @@ export default function AdminDesign() {
                 onChange={(e) => setConventionFacebookVideoUrl(e.target.value)}
               />
               <p className="text-xs text-muted-foreground">Colle l'URL complète d'une vidéo Facebook (live ou replay). Optionnel : si renseigné, affichée en plus de YouTube.</p>
+            </div>
+
+            {/* Facebook Custom Embed Code */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label htmlFor="convention-facebook-embed-code" className="text-sm font-medium">Code iframe Facebook (optionnel)</label>
+                {conventionFacebookEmbedCode && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setConventionFacebookEmbedCode("")}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 h-7 px-2 text-xs"
+                    aria-label="Supprimer le code iframe"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 mr-1" />
+                    Supprimer
+                  </Button>
+                )}
+              </div>
+              <textarea
+                id="convention-facebook-embed-code"
+                name="conventionFacebookEmbedCode"
+                placeholder='Colle ici le code iframe depuis Facebook (ex: &lt;iframe src="https://www.facebook.com/plugins/video.php?..."&gt;...)'
+                value={conventionFacebookEmbedCode}
+                onChange={(e) => setConventionFacebookEmbedCode(e.target.value)}
+                rows={4}
+                className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 font-mono text-xs"
+              />
+              <p className="text-xs text-muted-foreground">
+                Optionnel. Si renseigné, <strong>remplace</strong> l'URL Facebook ci-dessus. Colle le code iframe complet généré par Facebook.
+                Utilise le lien de partage (ex: <code>https://www.facebook.com/share/v/...</code>) dans l'URL du plugin pour que l'embed fonctionne.
+              </p>
             </div>
           </div>
         </section>
