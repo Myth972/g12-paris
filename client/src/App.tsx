@@ -44,6 +44,7 @@ const ChatBot = lazy(() => import("./components/ChatBot").then(m => ({ default: 
 const MoJSTestPage = lazy(() => import("./pages/MoJSTestPage"));
 const ILoveYouJesus = lazy(() => import("./pages/ILoveYouJesus"));
 const ArticleDesignDemo = lazy(() => import("./pages/ArticleDesignDemo"));
+const FacebookSdkTest = lazy(() => import("./pages/FacebookSdkTest"));
 
 function PageLoader() {
   return (
@@ -157,6 +158,11 @@ function Router() {
         <Route path="/article-design-demo">
           <PublicLayout>
             <ArticleDesignDemo />
+          </PublicLayout>
+        </Route>
+        <Route path="/test-facebook-sdk">
+          <PublicLayout>
+            <FacebookSdkTest />
           </PublicLayout>
         </Route>
         <Route path="/iloveyoujesus">

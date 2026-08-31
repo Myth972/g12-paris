@@ -13,6 +13,7 @@ declare global {
     FB?: {
       init: (params: { xfbml: boolean; version: string }) => void;
       XFBML: { parse: (element?: HTMLElement) => void };
+      Event?: { subscribe: (event: string, cb: (resp: any) => void) => void };
     };
     fbAsyncInit?: () => void;
   }
