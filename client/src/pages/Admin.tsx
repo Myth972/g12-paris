@@ -111,25 +111,25 @@ function formatDate(date: Date): string {
   });
 }
 
-const NOTIF_TYPE_CONFIG = {
-  info: { icon: Info, color: "text-blue-500", bg: "bg-blue-50", label: "Info" },
+const NOTIF_TYPE_CONFIG: Record<string, { icon: any; color: string; bg: string; labelKey: string }> = {
+  info: { icon: Info, color: "text-blue-500", bg: "bg-blue-50", labelKey: "admin.notificationsTab.typeInfo" },
   alerte: {
     icon: AlertTriangle,
     color: "text-amber-500",
     bg: "bg-amber-50",
-    label: "Alerte",
+    labelKey: "admin.notificationsTab.typeAlert",
   },
   nouveauté: {
     icon: Sparkles,
     color: "text-emerald-500",
     bg: "bg-emerald-50",
-    label: "Nouveauté",
+    labelKey: "admin.notificationsTab.typeNew",
   },
   important: {
     icon: AlertCircle,
     color: "text-red-500",
     bg: "bg-red-50",
-    label: "Important",
+    labelKey: "admin.notificationsTab.typeImportant",
   },
 };
 
@@ -176,10 +176,10 @@ function ArticlesTab() {
   const bulkDeleteArticleMutation = trpc.articles.bulkDelete.useMutation({
     onSuccess: () => {
       utils.articles.adminList.invalidate();
-      toast.success(`${selectedArticles.length} article(s) supprimé(s)`);
+      toast.success(t('admin.articlesTab.bulkDeleted', { count: selectedArticles.length }));
       setSelectedArticles([]);
     },
-    onError: () => toast.error("Erreur lors de la suppression"),
+    onError: () => toast.error(t('admin.articlesTab.bulkDeleteError')),
   });
 
   return (
@@ -199,7 +199,7 @@ function ArticlesTab() {
       {selectedArticles.length > 0 && (
         <div className="flex items-center justify-between bg-muted/50 rounded-lg px-4 py-2 mb-3">
           <span className="text-sm font-medium">
-            {selectedArticles.length} article(s) sélectionné(s)
+            {t('admin.articlesTab.selectedCount', { count: selectedArticles.length })}
           </span>
           <Button
             variant="destructive"
@@ -208,7 +208,7 @@ function ArticlesTab() {
             disabled={bulkDeleteArticleMutation.isPending}
           >
             <Trash2 className="w-4 h-4 mr-1" />
-            Supprimer ({selectedArticles.length})
+            {t('admin.notificationsTab.delete')} ({selectedArticles.length})
           </Button>
         </div>
       )}
@@ -322,7 +322,7 @@ function ArticlesTab() {
                         size="icon"
                         className="h-8 w-8"
                         asChild
-                        aria-label="Modifier l'article"
+                        aria-label={t('admin.articlesTab.editArticle')}
                       >
                         <Link href={`/admin/article/${article.id}`}>
                           <Pencil className="w-4 h-4" />
@@ -333,7 +333,7 @@ function ArticlesTab() {
                         size="icon"
                         className="h-8 w-8 text-destructive hover:text-destructive"
                         onClick={() => setDeleteId(article.id)}
-                        aria-label="Supprimer l'article"
+                        aria-label={t('admin.articlesTab.deleteArticle')}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -427,10 +427,10 @@ function NotificationsTab() {
   const bulkDeleteMutation = trpc.notifications.bulkDelete.useMutation({
     onSuccess: () => {
       utils.notifications.adminList.invalidate();
-      toast.success(`${selectedNotifs.length} notification(s) supprimée(s)`);
+      toast.success(t('admin.notificationsTab.bulkDeleted', { count: selectedNotifs.length }));
       setSelectedNotifs([]);
     },
-    onError: () => toast.error("Erreur lors de la suppression"),
+    onError: () => toast.error(t('admin.notificationsTab.bulkDeleteError')),
   });
 
   const handleCreate = () => {
@@ -460,16 +460,16 @@ function NotificationsTab() {
 
       {selectedNotifs.length > 0 && (
         <div className="flex items-center justify-between bg-primary/5 border border-primary/20 rounded-lg px-4 py-2 mb-3">
-          <span className="text-sm font-medium">{selectedNotifs.length} sélectionnée(s)</span>
+          <span className="text-sm font-medium">{t('admin.notificationsTab.selectedCount', { count: selectedNotifs.length })}</span>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setSelectedNotifs([])}>Annuler</Button>
+            <Button variant="outline" size="sm" onClick={() => setSelectedNotifs([])}>{t('admin.notificationsTab.cancel')}</Button>
             <Button variant="destructive" size="sm" onClick={() => {
-              if (confirm(`Supprimer ${selectedNotifs.length} notification(s) ?`)) {
+              if (confirm(t('admin.notificationsTab.confirmDeleteNotif', { count: selectedNotifs.length }))) {
                 bulkDeleteMutation.mutate({ ids: selectedNotifs });
               }
             }} disabled={bulkDeleteMutation.isPending}>
               <Trash2 className="w-4 h-4 mr-1" />
-              Supprimer
+              {t('admin.notificationsTab.delete')}
             </Button>
           </div>
         </div>
@@ -503,7 +503,7 @@ function NotificationsTab() {
                 checked={selectedNotifs.length > 0 && notifs.length === selectedNotifs.length}
                 onCheckedChange={toggleNotifSelectAll}
               />
-              <span className="text-xs font-medium text-muted-foreground">Tout sélectionner</span>
+              <span className="text-xs font-medium text-muted-foreground">{t('admin.notificationsTab.selectAll')}</span>
             </div>
             {notifs.map((notif: any) => {
               const config =
@@ -532,7 +532,7 @@ function NotificationsTab() {
                         variant="outline"
                         className="text-[10px] px-1.5 py-0"
                       >
-                        {config.label}
+                        {t(config.labelKey)}
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground line-clamp-2">
@@ -555,7 +555,7 @@ function NotificationsTab() {
                     size="icon"
                     className="h-8 w-8 text-destructive hover:text-destructive flex-shrink-0"
                     onClick={() => setDeleteId(notif.id)}
-                    aria-label="Supprimer la notification"
+                    aria-label={t('admin.notificationsTab.deleteNotification')}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -601,10 +601,10 @@ function NotificationsTab() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="info">Info</SelectItem>
-                  <SelectItem value="alerte">Alerte</SelectItem>
-                  <SelectItem value="nouveauté">Nouveauté</SelectItem>
-                  <SelectItem value="important">Important</SelectItem>
+                  <SelectItem value="info">{t('admin.notificationsTab.typeInfo')}</SelectItem>
+                  <SelectItem value="alerte">{t('admin.notificationsTab.typeAlert')}</SelectItem>
+                  <SelectItem value="nouveauté">{t('admin.notificationsTab.typeNew')}</SelectItem>
+                  <SelectItem value="important">{t('admin.notificationsTab.typeImportant')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -697,7 +697,7 @@ function AIAssistantTab() {
   const chatbotMutation = trpc.siteSettings.set.useMutation({
     onSuccess: () => {
       chatbotQuery.refetch();
-      toast.success("Paramètre chatbot mis à jour");
+      toast.success(t('admin.aiTab.chatbotUpdated'));
     },
   });
   const isChatbotEnabled = chatbotQuery.data === "true";
@@ -794,9 +794,9 @@ function AIAssistantTab() {
         <div className="flex items-center gap-3">
           <MessageCircle className="w-5 h-5 text-primary" />
           <div>
-            <h4 className="text-sm font-medium">Chatbot public</h4>
+            <h4 className="text-sm font-medium">{t('admin.aiTab.chatbotTitle')}</h4>
             <p className="text-xs text-muted-foreground">
-              Active ou désactive le chatbot visible par les visiteurs du site
+              {t('admin.aiTab.chatbotDesc')}
             </p>
           </div>
         </div>
@@ -811,8 +811,8 @@ function AIAssistantTab() {
         <div className="flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-primary" />
           <div>
-            <h3 className="text-lg font-serif font-bold text-foreground">
-              Assistant IA — {activeProvider.label}
+              <h3 className="text-lg font-serif font-bold text-foreground">
+              {t('admin.aiTab.assistantTitle')} — {activeProvider.label}
             </h3>
             <p className="text-xs text-muted-foreground">
               {activeProvider.model} • {activeProvider.description}
@@ -855,8 +855,8 @@ function AIAssistantTab() {
         <div className="p-3 rounded-lg border bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800">
           <p className="text-xs text-amber-700 dark:text-amber-300">
             {showClearWarningAI
-              ? "Limite de 16 000 caractères atteinte. Voulez-vous supprimer les anciens messages ?"
-              : `Attention : ${totalCharsAI}/16 000 caractères utilisés.`}
+              ? t('admin.aiTab.charLimitReached')
+              : t('admin.aiTab.charUsage', { count: totalCharsAI })}
           </p>
           {showClearWarningAI ? (
             <div className="flex gap-2 mt-2">
@@ -864,13 +864,13 @@ function AIAssistantTab() {
                 onClick={handleConfirmTrim}
                 className="text-xs px-3 py-1 bg-amber-600 text-white rounded hover:bg-amber-700 transition-colors"
               >
-                Oui, supprimer les anciens
+                {t('admin.aiTab.trimConfirm')}
               </button>
               <button
                 onClick={() => setShowClearWarningAI(false)}
                 className="text-xs px-3 py-1 bg-muted text-muted-foreground rounded hover:bg-muted/80 transition-colors"
               >
-                Annuler
+                {t('admin.notificationsTab.cancel')}
               </button>
             </div>
           ) : (
@@ -878,7 +878,7 @@ function AIAssistantTab() {
               onClick={handleClearHistory}
               className="text-xs mt-1 text-amber-600 dark:text-amber-400 underline hover:no-underline"
             >
-              Vider l'historique
+              {t('admin.aiTab.clearHistory')}
             </button>
           )}
         </div>
@@ -891,19 +891,19 @@ function AIAssistantTab() {
         onDeleteMessage={handleDeleteMessage}
         onClearHistory={handleClearHistory}
         height="650px"
-        placeholder="Pose une question sur la Bible..."
-        emptyStateMessage="Pose une question sur un thème biblique"
+        placeholder={t('admin.aiTab.placeholder')}
+        emptyStateMessage={t('admin.aiTab.emptyState')}
         suggestedPrompts={[
-          "Explique la signification de Pâques dans la tradition chrétienne",
-          "Quels sont les thèmes principaux du livre des Psaumes ?",
-          "Donne-moi un résumé de l'Évangile selon Jean",
-          "Quelle est la différence entre l'Ancien et le Nouveau Testament ?",
-          "Parle-moi de la vie de l'apôtre Paul",
-          "Quels sont les enseignements de Jésus sur l'amour et le pardon ?",
-          "Explique le livre de l'Apocalypse",
-          "Qui sont les prophètes majeurs dans la Bible ?",
-          "Quelle est l'histoire de Moïse et de l'Exode ?",
-          "Parle-moi du fruit de l'Esprit selon Galates",
+          t('admin.aiTab.prompts.easter'),
+          t('admin.aiTab.prompts.psalms'),
+          t('admin.aiTab.prompts.john'),
+          t('admin.aiTab.prompts.testaments'),
+          t('admin.aiTab.prompts.paul'),
+          t('admin.aiTab.prompts.love'),
+          t('admin.aiTab.prompts.revelation'),
+          t('admin.aiTab.prompts.prophets'),
+          t('admin.aiTab.prompts.moses'),
+          t('admin.aiTab.prompts.fruit'),
         ]}
       />
     </div>
@@ -1085,7 +1085,7 @@ if (authLoading) {
               </div>
               <h3 className="text-xl font-bold font-serif mb-2">{t('admin.quickAccess.library')}</h3>
               <p className="text-sm text-muted-foreground">
-                Gérez vos livres, études bibliques, vidéos et ressources premium.
+                {t('admin.quickAccess.libraryDesc')}
               </p>
             </div>
           </Link>
@@ -1098,7 +1098,7 @@ if (authLoading) {
               </div>
               <h3 className="text-xl font-bold font-serif mb-2">{t('admin.quickAccess.design')}</h3>
               <p className="text-sm text-muted-foreground">
-                Personnalisez les couleurs, polices, logos et le style visuel global.
+                {t('admin.quickAccess.designDesc')}
               </p>
             </div>
           </Link>
@@ -1110,9 +1110,9 @@ if (authLoading) {
               <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center text-purple-600 mb-4 group-hover:scale-110 transition-transform">
                 <Sparkles className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold font-serif mb-2">Visuels</h3>
+              <h3 className="text-xl font-bold font-serif mb-2">{t('admin.quickAccess.visuals')}</h3>
               <p className="text-sm text-muted-foreground">
-                Gérez les animations, particules, effets de survol et transitions.
+                {t('admin.quickAccess.visualsDesc')}
               </p>
             </div>
           </Link>
@@ -1124,9 +1124,9 @@ if (authLoading) {
               <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-600 mb-4 group-hover:scale-110 transition-transform">
                 <Bot className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold font-serif mb-2">Agents</h3>
+              <h3 className="text-xl font-bold font-serif mb-2">{t('admin.quickAccess.agents')}</h3>
               <p className="text-sm text-muted-foreground">
-                Exécutez et surveillez les agents automatisés (YouTube, etc.).
+                {t('admin.quickAccess.agentsDesc')}
               </p>
             </div>
           </Link>
@@ -1139,7 +1139,7 @@ if (authLoading) {
               </div>
               <h3 className="text-xl font-bold font-serif mb-2">{t('admin.quickAccess.newArticle')}</h3>
               <p className="text-sm text-muted-foreground">
-                Rédigez un nouvel article pour le blog ou les actualités.
+                {t('admin.quickAccess.newArticleDesc')}
               </p>
             </div>
           </Link>
@@ -1170,11 +1170,11 @@ if (authLoading) {
             </TabsTrigger>
             <TabsTrigger value="ai" className="gap-2">
               <Sparkles className="w-4 h-4 text-primary" />
-              IA
+              {t('admin.tabs.ai')}
             </TabsTrigger>
             <TabsTrigger value="ai-writer" className="gap-2">
               <FileText className="w-4 h-4 text-amber-500" />
-              Rédaction IA
+              {t('admin.tabs.aiWriter')}
             </TabsTrigger>
             <TabsTrigger value="kling" className="gap-2">
               <Wand2 className="w-4 h-4 text-violet-500" />
@@ -1225,7 +1225,7 @@ if (authLoading) {
             <AIAssistantTab />
             {isAdmin && (
               <div className="mt-8">
-                <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> Chargement...</div>}>
+                <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
                   <ApiKeyConnector />
                 </Suspense>
               </div>
@@ -1235,7 +1235,7 @@ if (authLoading) {
             </div>
           </TabsContent>
           <TabsContent value="ai-writer">
-            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> Chargement...</div>}>
+            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
               <AIArticleWriter />
             </Suspense>
           </TabsContent>

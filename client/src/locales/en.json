@@ -37,6 +37,10 @@
         "libraryDesc": "Manage your books, Bible studies, videos, and premium resources.",
         "design": "Design & Identity",
         "designDesc": "Customize colors, fonts, logos, and the overall visual style.",
+        "visuals": "Visuals",
+        "visualsDesc": "Manage animations, particles, hover effects and transitions.",
+        "agents": "Agents",
+        "agentsDesc": "Run and monitor automated agents (YouTube, etc.).",
         "newArticle": "New Article",
         "newArticleDesc": "Write a new article for the blog or news.",
         "newNotification": "New Notification",
@@ -48,10 +52,13 @@
         "notifications": "Notifications",
         "newsletter": "Newsletter",
         "ai": "AI Assistant",
+        "aiWriter": "AI Writer",
         "kling": "Kling Studio",
         "users": "Users",
         "pages": "Page Content",
-        "publications": "Publications & Verses"
+        "publications": "Publications & Verses",
+        "cms": "CMS",
+        "suggestions": "Suggestions"
       },
       "roles": {
         "admin": "Administrator",
@@ -108,7 +115,12 @@
         "toastDeleted": "Article deleted",
         "toastDeleteError": "Error deleting article",
         "toastStatusUpdated": "Status updated",
-        "toastStatusError": "Error updating status"
+        "toastStatusError": "Error updating status",
+        "selectedCount": "{{count}} article(s) selected",
+        "bulkDeleted": "{{count}} article(s) deleted",
+        "bulkDeleteError": "Error deleting articles",
+        "editArticle": "Edit article",
+        "deleteArticle": "Delete article"
       },
       "notificationsTab": {
         "totalCount": "{{count}} notification sent",
@@ -135,7 +147,19 @@
         "send": "Send",
         "deleteTitle": "Delete this notification?",
         "deleteDesc": "This action cannot be undone. The notification will be permanently deleted for all users.",
-        "by": "by"
+        "by": "by",
+        "selectedCount": "{{count}} selected",
+        "bulkDeleted": "{{count}} notification(s) deleted",
+        "bulkDeleteError": "Error deleting notifications",
+        "deleteNotification": "Delete notification",
+        "selectAll": "Select all",
+        "cancel": "Cancel",
+        "delete": "Delete",
+        "confirmDeleteNotif": "Delete {{count}} notification(s)?",
+        "typeInfo": "Info",
+        "typeAlert": "Alert",
+        "typeNew": "New",
+        "typeImportant": "Important"
       },
       "usersTab": {
         "accessDenied": "Access denied",
@@ -165,7 +189,29 @@
       "aiTab": {
         "testIA": "Test AI",
         "testing": "Testing...",
-        "errorPrefix": "AI Error: "
+        "errorPrefix": "AI Error: ",
+        "chatbotTitle": "Public Chatbot",
+        "chatbotDesc": "Enable or disable the chatbot visible to site visitors",
+        "chatbotUpdated": "Chatbot setting updated",
+        "assistantTitle": "AI Assistant",
+        "charLimitReached": "16,000 character limit reached. Do you want to delete older messages?",
+        "charUsage": "Warning: {{count}}/16,000 characters used.",
+        "trimConfirm": "Yes, delete older",
+        "clearHistory": "Clear history",
+        "placeholder": "Ask a question about the Bible...",
+        "emptyState": "Ask a question about a biblical topic",
+        "prompts": {
+          "easter": "Explain the meaning of Easter in the Christian tradition",
+          "psalms": "What are the main themes of the book of Psalms?",
+          "john": "Give me a summary of the Gospel of John",
+          "testaments": "What is the difference between the Old and New Testaments?",
+          "paul": "Tell me about the life of the Apostle Paul",
+          "love": "What are Jesus' teachings on love and forgiveness?",
+          "revelation": "Explain the book of Revelation",
+          "prophets": "Who are the major prophets in the Bible?",
+          "moses": "What is the story of Moses and the Exodus?",
+          "fruit": "Tell me about the fruit of the Spirit according to Galatians"
+        }
       },
       "design": {
         "title": "Design & Visual Identity",

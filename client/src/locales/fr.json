@@ -37,6 +37,10 @@
         "libraryDesc": "Gérez vos livres, études bibliques, vidéos et ressources premium.",
         "design": "Design & Identité",
         "designDesc": "Personnalisez les couleurs, polices, logos et le style visuel global.",
+        "visuals": "Visuels",
+        "visualsDesc": "Gérez les animations, particules, effets de survol et transitions.",
+        "agents": "Agents",
+        "agentsDesc": "Exécutez et surveillez les agents automatisés (YouTube, etc.).",
         "newArticle": "Nouvel Article",
         "newArticleDesc": "Rédigez un nouvel article pour le blog ou les actualités.",
         "newNotification": "Nouvelle notification",
@@ -48,10 +52,13 @@
         "notifications": "Notifications",
         "newsletter": "Newsletter",
         "ai": "Assistant IA",
+        "aiWriter": "Rédaction IA",
         "kling": "Kling Studio",
         "users": "Utilisateurs",
         "pages": "Contenu des pages",
-        "publications": "Publications & Versets"
+        "publications": "Publications & Versets",
+        "cms": "CMS",
+        "suggestions": "Suggestions"
       },
       "roles": {
         "admin": "Administrateur",
@@ -108,7 +115,12 @@
         "toastDeleted": "Article supprimé",
         "toastDeleteError": "Erreur lors de la suppression",
         "toastStatusUpdated": "Statut mis à jour",
-        "toastStatusError": "Erreur lors de la mise à jour"
+        "toastStatusError": "Erreur lors de la mise à jour",
+        "selectedCount": "{{count}} article(s) sélectionné(s)",
+        "bulkDeleted": "{{count}} article(s) supprimé(s)",
+        "bulkDeleteError": "Erreur lors de la suppression",
+        "editArticle": "Modifier l'article",
+        "deleteArticle": "Supprimer l'article"
       },
       "notificationsTab": {
         "totalCount": "{{count}} notification envoyée",
@@ -135,7 +147,19 @@
         "send": "Envoyer",
         "deleteTitle": "Supprimer cette notification ?",
         "deleteDesc": "Cette action est irréversible. La notification sera définitivement supprimée pour tous les utilisateurs.",
-        "by": "par"
+        "by": "par",
+        "selectedCount": "{{count}} sélectionnée(s)",
+        "bulkDeleted": "{{count}} notification(s) supprimée(s)",
+        "bulkDeleteError": "Erreur lors de la suppression",
+        "deleteNotification": "Supprimer la notification",
+        "selectAll": "Tout sélectionner",
+        "cancel": "Annuler",
+        "delete": "Supprimer",
+        "confirmDeleteNotif": "Supprimer {{count}} notification(s) ?",
+        "typeInfo": "Info",
+        "typeAlert": "Alerte",
+        "typeNew": "Nouveauté",
+        "typeImportant": "Important"
       },
       "usersTab": {
         "accessDenied": "Accès refusé",
@@ -165,7 +189,29 @@
       "aiTab": {
         "testIA": "Tester l'IA",
         "testing": "Test...",
-        "errorPrefix": "Erreur IA: "
+        "errorPrefix": "Erreur IA: ",
+        "chatbotTitle": "Chatbot public",
+        "chatbotDesc": "Active ou désactive le chatbot visible par les visiteurs du site",
+        "chatbotUpdated": "Paramètre chatbot mis à jour",
+        "assistantTitle": "Assistant IA",
+        "charLimitReached": "Limite de 16 000 caractères atteinte. Voulez-vous supprimer les anciens messages ?",
+        "charUsage": "Attention : {{count}}/16 000 caractères utilisés.",
+        "trimConfirm": "Oui, supprimer les anciens",
+        "clearHistory": "Vider l'historique",
+        "placeholder": "Pose une question sur la Bible...",
+        "emptyState": "Pose une question sur un thème biblique",
+        "prompts": {
+          "easter": "Explique la signification de Pâques dans la tradition chrétienne",
+          "psalms": "Quels sont les thèmes principaux du livre des Psaumes ?",
+          "john": "Donne-moi un résumé de l'Évangile selon Jean",
+          "testaments": "Quelle est la différence entre l'Ancien et le Nouveau Testament ?",
+          "paul": "Parle-moi de la vie de l'apôtre Paul",
+          "love": "Quels sont les enseignements de Jésus sur l'amour et le pardon ?",
+          "revelation": "Explique le livre de l'Apocalypse",
+          "prophets": "Qui sont les prophètes majeurs dans la Bible ?",
+          "moses": "Quelle est l'histoire de Moïse et de l'Exode ?",
+          "fruit": "Parle-moi du fruit de l'Esprit selon Galates"
+        }
       },
       "design": {
         "title": "Design & Identité Visuelle",
