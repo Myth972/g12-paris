@@ -13,6 +13,8 @@ export default function ConventionG12FrancePage() {
   
   const conventionLogoUrl = (settingsQuery.data?.["convention.logoUrl"] as string) || "https://conventiong12france.com/wp-content/uploads/elementor/thumbs/g12France-rdu8vngvdwatmx6fgxu9wasglsg906xtva9qh3nrls.png";
   const bgUrl = (settingsQuery.data?.["convention.bgUrl"] as string) || "https://conventiong12france.com/wp-content/uploads/2025/10/LHERITAGE-2025-1536x861.png";
+  const bgUrlMiddle = (settingsQuery.data?.["convention.bgUrlMiddle"] as string) || "";
+  const bgUrlBottom = (settingsQuery.data?.["convention.bgUrlBottom"] as string) || "";
   const primaryColor = settingsQuery.data?.["convention.primaryColor"] as string;
   const showLogoRaw = settingsQuery.data?.["convention.showLogo"] as string | undefined;
   const showOfficialSiteRaw = settingsQuery.data?.["convention.showOfficialSite"] as string | undefined;
@@ -271,8 +273,16 @@ export default function ConventionG12FrancePage() {
       {/* Bilingual Call to Action */}
       {showBilingualCTA && (
       <Reveal variant="fadeUp" delay={0.12}>
-      <section className="container py-12 px-4 sm:px-0">
-        <div className="max-w-4xl mx-auto text-center space-y-10">
+      <section 
+        className="container py-12 px-4 sm:px-0 relative"
+        style={bgUrlMiddle ? { 
+          backgroundImage: `url(${bgUrlMiddle})`, 
+          backgroundSize: 'cover', 
+          backgroundPosition: 'center' 
+        } : {}}
+      >
+        {bgUrlMiddle && <div className="absolute inset-0 bg-white/80 dark:bg-black/80 pointer-events-none" />}
+        <div className="max-w-4xl mx-auto text-center space-y-10 relative z-10">
           {/* French */}
           <div className="space-y-3">
             <PageTextEditor
@@ -377,8 +387,18 @@ export default function ConventionG12FrancePage() {
 
       {/* Content section */}
       <Reveal variant="fadeUp" delay={0.15}>
-      <section className="container pb-12 sm:pb-16 pt-8 px-4 sm:px-0">
-        <PageContentDisplay pageId="convention-g12" layout="split" />
+      <section 
+        className="container pb-12 sm:pb-16 pt-8 px-4 sm:px-0 relative"
+        style={bgUrlBottom ? { 
+          backgroundImage: `url(${bgUrlBottom})`, 
+          backgroundSize: 'cover', 
+          backgroundPosition: 'center' 
+        } : {}}
+      >
+        {bgUrlBottom && <div className="absolute inset-0 bg-white/80 dark:bg-black/80 pointer-events-none" />}
+        <div className="relative z-10">
+          <PageContentDisplay pageId="convention-g12" layout="split" />
+        </div>
       </section>
       </Reveal>
     </div>

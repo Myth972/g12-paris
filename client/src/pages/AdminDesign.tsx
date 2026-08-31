@@ -86,6 +86,8 @@ export default function AdminDesign() {
   const [conventionPrimaryColor, setConventionPrimaryColor] = useState("#DC2626");
   const [conventionLogoUrl, setConventionLogoUrl] = useState("");
   const [conventionBgUrl, setConventionBgUrl] = useState("");
+  const [conventionBgUrlMiddle, setConventionBgUrlMiddle] = useState("");
+  const [conventionBgUrlBottom, setConventionBgUrlBottom] = useState("");
   const [conventionLiveEnabled, setConventionLiveEnabled] = useState(false);
   const [conventionYoutubeVideoId, setConventionYoutubeVideoId] = useState("");
   const [conventionFacebookVideoUrl, setConventionFacebookVideoUrl] = useState("");
@@ -100,8 +102,10 @@ export default function AdminDesign() {
   const bannerRef = useRef<HTMLInputElement>(null);
   const conventionLogoRef = useRef<HTMLInputElement>(null);
   const conventionBgRef = useRef<HTMLInputElement>(null);
+  const conventionBgMiddleRef = useRef<HTMLInputElement>(null);
+  const conventionBgBottomRef = useRef<HTMLInputElement>(null);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logoLight' | 'logoDark' | 'banner' | 'conventionLogo' | 'conventionBg') => {
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logoLight' | 'logoDark' | 'banner' | 'conventionLogo' | 'conventionBg' | 'conventionBgMiddle' | 'conventionBgBottom') => {
     const file = e.target.files?.[0];
     if (!file) return;
     
@@ -113,6 +117,8 @@ export default function AdminDesign() {
       if (type === 'banner') setDefaultBanner(result.url);
       if (type === 'conventionLogo') setConventionLogoUrl(result.url);
       if (type === 'conventionBg') setConventionBgUrl(result.url);
+      if (type === 'conventionBgMiddle') setConventionBgUrlMiddle(result.url);
+      if (type === 'conventionBgBottom') setConventionBgUrlBottom(result.url);
       toast.success(t('admin.design.toastImageUploaded'));
     } catch {
       toast.error(t('admin.design.toastImageError'));
@@ -142,6 +148,8 @@ export default function AdminDesign() {
       if (settingsQuery.data["convention.primaryColor"]) setConventionPrimaryColor(settingsQuery.data["convention.primaryColor"] as string);
       if (settingsQuery.data["convention.logoUrl"]) setConventionLogoUrl(settingsQuery.data["convention.logoUrl"] as string);
       if (settingsQuery.data["convention.bgUrl"]) setConventionBgUrl(settingsQuery.data["convention.bgUrl"] as string);
+      if (settingsQuery.data["convention.bgUrlMiddle"]) setConventionBgUrlMiddle(settingsQuery.data["convention.bgUrlMiddle"] as string);
+      if (settingsQuery.data["convention.bgUrlBottom"]) setConventionBgUrlBottom(settingsQuery.data["convention.bgUrlBottom"] as string);
       if (settingsQuery.data["convention.liveEnabled"] !== undefined) setConventionLiveEnabled(settingsQuery.data["convention.liveEnabled"] === "true");
       if (settingsQuery.data["convention.youtubeVideoId"]) setConventionYoutubeVideoId(settingsQuery.data["convention.youtubeVideoId"] as string);
       if (settingsQuery.data["convention.facebookVideoUrl"]) setConventionFacebookVideoUrl(settingsQuery.data["convention.facebookVideoUrl"] as string);
@@ -171,6 +179,8 @@ export default function AdminDesign() {
         setSetting.mutateAsync({ key: "convention.primaryColor", value: conventionPrimaryColor }),
         setSetting.mutateAsync({ key: "convention.logoUrl", value: conventionLogoUrl }),
         setSetting.mutateAsync({ key: "convention.bgUrl", value: conventionBgUrl }),
+        setSetting.mutateAsync({ key: "convention.bgUrlMiddle", value: conventionBgUrlMiddle }),
+        setSetting.mutateAsync({ key: "convention.bgUrlBottom", value: conventionBgUrlBottom }),
         setSetting.mutateAsync({ key: "convention.liveEnabled", value: String(conventionLiveEnabled) }),
         setSetting.mutateAsync({ key: "convention.youtubeVideoId", value: conventionYoutubeVideoId }),
         setSetting.mutateAsync({ key: "convention.facebookVideoUrl", value: conventionFacebookVideoUrl }),
@@ -809,6 +819,76 @@ export default function AdminDesign() {
               </div>
               <input type="file" ref={conventionBgRef} className="hidden" accept="image/*" onChange={(e) => handleUpload(e, 'conventionBg')} id="convention-bg-upload" name="conventionBgUpload" />
               <Input id="convention-bg-url" name="conventionBgUrl" placeholder={t('admin.design.orPasteUrl')} value={conventionBgUrl} onChange={(e) => setConventionBgUrl(e.target.value)} className="text-xs" />
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label htmlFor="convention-bg-middle-url" className="text-sm font-medium">Image d'arrière-plan (Milieu de page)</label>
+                {conventionBgUrlMiddle && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setConventionBgUrlMiddle("")}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 h-7 px-2 text-xs"
+                    aria-label="Supprimer l'image du milieu"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 mr-1" />
+                    Supprimer
+                  </Button>
+                )}
+              </div>
+              <div 
+                className="border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors cursor-pointer bg-slate-50 relative overflow-hidden"
+                onClick={() => conventionBgMiddleRef.current?.click()}
+                aria-label="Upload background milieu convention"
+              >
+                {conventionBgUrlMiddle ? (
+                  <img src={conventionBgUrlMiddle} alt="Background Milieu" className="absolute inset-0 w-full h-full object-cover opacity-50" />
+                ) : (
+                  <>
+                    {uploading === 'conventionBgMiddle' ? <Loader2 className="w-8 h-8 text-muted-foreground mb-2 animate-spin" /> : <ImageIcon className="w-8 h-8 text-muted-foreground mb-2" />}
+                    <span className="text-sm font-medium text-foreground">{uploading === 'conventionBgMiddle' ? t('admin.design.uploading') : t('admin.design.browseOrDrag')}</span>
+                  </>
+                )}
+              </div>
+              <input type="file" ref={conventionBgMiddleRef} className="hidden" accept="image/*" onChange={(e) => handleUpload(e, 'conventionBgMiddle')} id="convention-bg-middle-upload" name="conventionBgMiddleUpload" />
+              <Input id="convention-bg-middle-url" name="conventionBgMiddleUrl" placeholder={t('admin.design.orPasteUrl')} value={conventionBgUrlMiddle} onChange={(e) => setConventionBgUrlMiddle(e.target.value)} className="text-xs" />
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <label htmlFor="convention-bg-bottom-url" className="text-sm font-medium">Image d'arrière-plan (Bas de page)</label>
+                {conventionBgUrlBottom && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setConventionBgUrlBottom("")}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 h-7 px-2 text-xs"
+                    aria-label="Supprimer l'image du bas"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 mr-1" />
+                    Supprimer
+                  </Button>
+                )}
+              </div>
+              <div 
+                className="border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors cursor-pointer bg-slate-50 relative overflow-hidden"
+                onClick={() => conventionBgBottomRef.current?.click()}
+                aria-label="Upload background bas convention"
+              >
+                {conventionBgUrlBottom ? (
+                  <img src={conventionBgUrlBottom} alt="Background Bas" className="absolute inset-0 w-full h-full object-cover opacity-50" />
+                ) : (
+                  <>
+                    {uploading === 'conventionBgBottom' ? <Loader2 className="w-8 h-8 text-muted-foreground mb-2 animate-spin" /> : <ImageIcon className="w-8 h-8 text-muted-foreground mb-2" />}
+                    <span className="text-sm font-medium text-foreground">{uploading === 'conventionBgBottom' ? t('admin.design.uploading') : t('admin.design.browseOrDrag')}</span>
+                  </>
+                )}
+              </div>
+              <input type="file" ref={conventionBgBottomRef} className="hidden" accept="image/*" onChange={(e) => handleUpload(e, 'conventionBgBottom')} id="convention-bg-bottom-upload" name="conventionBgBottomUpload" />
+              <Input id="convention-bg-bottom-url" name="conventionBgBottomUrl" placeholder={t('admin.design.orPasteUrl')} value={conventionBgUrlBottom} onChange={(e) => setConventionBgUrlBottom(e.target.value)} className="text-xs" />
             </div>
           </div>
           
