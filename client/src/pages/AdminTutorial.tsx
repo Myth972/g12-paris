@@ -216,6 +216,126 @@ export default function AdminTutorial() {
           </Card>
         </section>
 
+        {/* Section: Convention G12 France */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 text-xl font-semibold">
+            <Globe className="h-6 w-6 text-primary" />
+            <h2>Convention G12 France</h2>
+          </div>
+
+          <Card>
+            <CardContent className="pt-6 space-y-4">
+              <p className="text-sm text-muted-foreground">
+                La page Convention est accessible via <code className="bg-muted px-1.5 py-0.5 rounded text-xs">/culte-en-ligne/convention</code>. Elle est entièrement configurable depuis l'admin Design.
+              </p>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm">Paramètres visuels</h4>
+                  <ul className="text-sm space-y-1 text-muted-foreground">
+                    <li className="flex items-start gap-2">
+                      <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                      <span><strong>Logo</strong> — Upload ou URL. Toggle ON/OFF pour masquer.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                      <span><strong>Image de fond</strong> — Image d'en-tête de la page.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                      <span><strong>Couleur principale</strong> — Appliquée aux accents, boutons, titres.</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm">Vidéos & Live</h4>
+                  <ul className="text-sm space-y-1 text-muted-foreground">
+                    <li className="flex items-start gap-2">
+                      <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                      <span><strong>Mode Live</strong> — Badge "En direct" + autoplay. Fonctionne avec YouTube et Facebook.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                      <span><strong>YouTube</strong> — ID ou URL complète. Affiché en priorité.</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                      <span><strong>Facebook</strong> — URL de partage (share/v/...). Utilisé si YouTube est vide. Fallback automatique si l'iframe ne charge pas.</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="bg-primary/5 border border-primary/20 p-3 rounded-md">
+                <p className="text-sm">
+                  <strong>Règle :</strong> YouTube et Facebook ne s'affichent pas en même temps. YouTube a la priorité. Si YouTube est vide, Facebook est affiché.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Section: Médias & Uploads */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2 text-xl font-semibold">
+            <ImageIcon className="h-6 w-6 text-primary" />
+            <h2>Médias & Uploads</h2>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Images</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Les images sont uploadées via Vercel Blob ou stockées localement dans <code className="bg-muted px-1.5 py-0.5 rounded text-xs">/uploads</code>.
+                </p>
+                <ul className="text-sm space-y-1 text-muted-foreground">
+                  <li className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <span>Formats supportés : JPG, PNG, WebP, AVIF, SVG, GIF</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <span>Les URLs relatives <code>/uploads/</code> sont converties en URLs absolues automatiquement</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <span>Utiliser <code>getImageUrl()</code> pour les images dynamiques</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Audio & Vidéo</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  Les fichiers audio et vidéo sont uploadés via le même mécanisme.
+                </p>
+                <ul className="text-sm space-y-1 text-muted-foreground">
+                  <li className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <span>Audio : MP3, WAV, OGG</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <span>Vidéo : MP4, WebM</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <span>Les vidéos YouTube/Facebook sont intégrées via iframe (pas d'upload)</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
         {/* Section: Gestion Bibliothèque - Nouvelles fonctionnalités */}
         <section className="space-y-4">
           <div className="flex items-center gap-2 text-xl font-semibold">

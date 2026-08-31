@@ -15,11 +15,13 @@ export default function ConventionG12FrancePage() {
   const bgUrl = (settingsQuery.data?.["convention.bgUrl"] as string) || "https://conventiong12france.com/wp-content/uploads/2025/10/LHERITAGE-2025-1536x861.png";
   const primaryColor = settingsQuery.data?.["convention.primaryColor"] as string;
   const showLogoRaw = settingsQuery.data?.["convention.showLogo"] as string | undefined;
+  const showOfficialSiteRaw = settingsQuery.data?.["convention.showOfficialSite"] as string | undefined;
   
   // We can reuse some settings if needed, or rely solely on PageContentDisplay
   const liveEnabledRaw = settingsQuery.data?.["convention.liveEnabled"] as string | undefined;
   const liveEnabled = liveEnabledRaw === "true"; // Defaults to false for convention unless set
   const showLogo = showLogoRaw !== "false"; // Defaults to true
+  const showOfficialSite = showOfficialSiteRaw !== "false"; // Defaults to true
   const youtubeVideoIdRaw = settingsQuery.data?.["convention.youtubeVideoId"] as string | undefined;
   const facebookVideoUrl = settingsQuery.data?.["convention.facebookVideoUrl"] as string | undefined;
 
@@ -250,17 +252,64 @@ export default function ConventionG12FrancePage() {
                   </a>
                 </Button>
               )}
-              <Button asChild variant="default" className="gap-2 convention-primary-bg bg-blue-700 hover:opacity-90 text-white border-0">
-                <a href="https://conventiong12france.com/" target="_blank" rel="noopener noreferrer">
-                  Visiter le site officiel
-                  <ExternalLink className="w-4 h-4" />
-                </a>
-              </Button>
+              {showOfficialSite && (
+                <Button asChild variant="default" className="gap-2 convention-primary-bg bg-blue-700 hover:opacity-90 text-white border-0">
+                  <a href="https://conventiong12france.com/" target="_blank" rel="noopener noreferrer">
+                    Visiter le site officiel
+                    <ExternalLink className="w-4 h-4" />
+                  </a>
+                </Button>
+              )}
             </div>
           </div>
         </section>
         </Reveal>
       )}
+
+      {/* Bilingual Call to Action */}
+      <Reveal variant="fadeUp" delay={0.12}>
+      <section className="container py-12 px-4 sm:px-0">
+        <div className="max-w-4xl mx-auto text-center space-y-10">
+          {/* French */}
+          <div className="space-y-3">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight">
+              NOUS SOMMES DANS LES TEMPS<br />
+              <span className="text-xl sm:text-2xl md:text-3xl font-semibold text-foreground/90">ET L'HEURE N'EST PLUS À L'ATTENTE</span>
+            </h2>
+            <p className="text-foreground/80 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto">
+              Un appel résonne à nouveau. Aller, faire des disciples et voir une génération entière se lever pour Jésus!
+            </p>
+            <div className="pt-2 space-y-1">
+              <p className="text-lg sm:text-xl font-bold font-serif convention-primary-text">CONVENTION G12 FRANCE 2026</p>
+              <p className="text-base sm:text-lg font-semibold text-foreground/90">ALLEZ, FAITES DES DISCIPLES</p>
+              <p className="text-sm sm:text-base text-muted-foreground">30 &amp; 31 OCTOBRE — 1ER NOVEMBRE</p>
+              <p className="text-sm sm:text-base text-muted-foreground">PARIS</p>
+              <p className="text-xs sm:text-sm font-medium uppercase tracking-wider text-muted-foreground mt-2">Inscriptions bientôt ouvertes</p>
+            </div>
+          </div>
+
+          <div className="w-16 h-px bg-border mx-auto" />
+
+          {/* English */}
+          <div className="space-y-3">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight">
+              WE ARE LIVING IN THE TIMES<br />
+              <span className="text-xl sm:text-2xl md:text-3xl font-semibold text-foreground/90">AND THIS IS NO TIME TO WAIT</span>
+            </h2>
+            <p className="text-foreground/80 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto">
+              The call is sounding once again. To go, make disciples, and see an entire generation rise for Jesus!
+            </p>
+            <div className="pt-2 space-y-1">
+              <p className="text-lg sm:text-xl font-bold font-serif convention-primary-text">G12 FRANCE CONVENTION 2026</p>
+              <p className="text-base sm:text-lg font-semibold text-foreground/90">GO AND MAKE DISCIPLES</p>
+              <p className="text-sm sm:text-base text-muted-foreground">OCTOBER 30 &amp; 31 — NOVEMBER 1</p>
+              <p className="text-sm sm:text-base text-muted-foreground">PARIS</p>
+              <p className="text-xs sm:text-sm font-medium uppercase tracking-wider text-muted-foreground mt-2">Registration Opens Soon</p>
+            </div>
+          </div>
+        </div>
+      </section>
+      </Reveal>
 
       {/* Content section */}
       <Reveal variant="fadeUp" delay={0.15}>

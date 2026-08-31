@@ -90,6 +90,7 @@ export default function AdminDesign() {
   const [conventionYoutubeVideoId, setConventionYoutubeVideoId] = useState("");
   const [conventionFacebookVideoUrl, setConventionFacebookVideoUrl] = useState("");
   const [conventionShowLogo, setConventionShowLogo] = useState(true);
+  const [conventionShowOfficialSite, setConventionShowOfficialSite] = useState(true);
 
   const { uploadFile } = useBlobUpload();
   const [uploading, setUploading] = useState<string | null>(null);
@@ -144,6 +145,7 @@ export default function AdminDesign() {
       if (settingsQuery.data["convention.youtubeVideoId"]) setConventionYoutubeVideoId(settingsQuery.data["convention.youtubeVideoId"] as string);
       if (settingsQuery.data["convention.facebookVideoUrl"]) setConventionFacebookVideoUrl(settingsQuery.data["convention.facebookVideoUrl"] as string);
       if (settingsQuery.data["convention.showLogo"] !== undefined) setConventionShowLogo(settingsQuery.data["convention.showLogo"] !== "false");
+      if (settingsQuery.data["convention.showOfficialSite"] !== undefined) setConventionShowOfficialSite(settingsQuery.data["convention.showOfficialSite"] !== "false");
     }
   }, [settingsQuery.data]);
 
@@ -171,6 +173,7 @@ export default function AdminDesign() {
         setSetting.mutateAsync({ key: "convention.youtubeVideoId", value: conventionYoutubeVideoId }),
         setSetting.mutateAsync({ key: "convention.facebookVideoUrl", value: conventionFacebookVideoUrl }),
         setSetting.mutateAsync({ key: "convention.showLogo", value: String(conventionShowLogo) }),
+        setSetting.mutateAsync({ key: "convention.showOfficialSite", value: String(conventionShowOfficialSite) }),
       ]);
       toast.success(t('admin.design.toastSaved'));
     } catch (e) {
@@ -833,6 +836,25 @@ export default function AdminDesign() {
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${conventionShowLogo ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}
             >
               <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${conventionShowLogo ? 'translate-x-6' : 'translate-x-1'}`} />
+            </button>
+          </div>
+
+          {/* Toggle Official Site */}
+          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border">
+            <div>
+              <label htmlFor="convention-show-official-site" className="text-sm font-medium cursor-pointer">Afficher "Visiter le site officiel"</label>
+              <p className="text-xs text-muted-foreground mt-1">Bouton lien vers conventiong12france.com sous les vidéos.</p>
+            </div>
+            <button
+              id="convention-show-official-site"
+              name="conventionShowOfficialSite"
+              type="button"
+              role="switch"
+              aria-checked={conventionShowOfficialSite}
+              onClick={() => setConventionShowOfficialSite(!conventionShowOfficialSite)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${conventionShowOfficialSite ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${conventionShowOfficialSite ? 'translate-x-6' : 'translate-x-1'}`} />
             </button>
           </div>
 
