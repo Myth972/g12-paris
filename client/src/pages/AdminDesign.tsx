@@ -91,6 +91,7 @@ export default function AdminDesign() {
   const [conventionFacebookVideoUrl, setConventionFacebookVideoUrl] = useState("");
   const [conventionShowLogo, setConventionShowLogo] = useState(true);
   const [conventionShowOfficialSite, setConventionShowOfficialSite] = useState(true);
+  const [conventionShowBilingualCTA, setConventionShowBilingualCTA] = useState(true);
 
   const { uploadFile } = useBlobUpload();
   const [uploading, setUploading] = useState<string | null>(null);
@@ -146,6 +147,7 @@ export default function AdminDesign() {
       if (settingsQuery.data["convention.facebookVideoUrl"]) setConventionFacebookVideoUrl(settingsQuery.data["convention.facebookVideoUrl"] as string);
       if (settingsQuery.data["convention.showLogo"] !== undefined) setConventionShowLogo(settingsQuery.data["convention.showLogo"] !== "false");
       if (settingsQuery.data["convention.showOfficialSite"] !== undefined) setConventionShowOfficialSite(settingsQuery.data["convention.showOfficialSite"] !== "false");
+      if (settingsQuery.data["convention.showBilingualCTA"] !== undefined) setConventionShowBilingualCTA(settingsQuery.data["convention.showBilingualCTA"] !== "false");
     }
   }, [settingsQuery.data]);
 
@@ -174,6 +176,7 @@ export default function AdminDesign() {
         setSetting.mutateAsync({ key: "convention.facebookVideoUrl", value: conventionFacebookVideoUrl }),
         setSetting.mutateAsync({ key: "convention.showLogo", value: String(conventionShowLogo) }),
         setSetting.mutateAsync({ key: "convention.showOfficialSite", value: String(conventionShowOfficialSite) }),
+        setSetting.mutateAsync({ key: "convention.showBilingualCTA", value: String(conventionShowBilingualCTA) }),
       ]);
       toast.success(t('admin.design.toastSaved'));
     } catch (e) {
@@ -855,6 +858,25 @@ export default function AdminDesign() {
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${conventionShowOfficialSite ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}
             >
               <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${conventionShowOfficialSite ? 'translate-x-6' : 'translate-x-1'}`} />
+            </button>
+          </div>
+
+          {/* Toggle Bilingual CTA */}
+          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border mt-6">
+            <div>
+              <label htmlFor="convention-show-bilingual-cta" className="text-sm font-medium cursor-pointer">Afficher la section bilingue FR/EN</label>
+              <p className="text-xs text-muted-foreground mt-1">Masquer le bloc "NOUS SOMMES DANS LES TEMPS" (FR + EN) sous la vidéo.</p>
+            </div>
+            <button
+              id="convention-show-bilingual-cta"
+              name="conventionShowBilingualCTA"
+              type="button"
+              role="switch"
+              aria-checked={conventionShowBilingualCTA}
+              onClick={() => setConventionShowBilingualCTA(!conventionShowBilingualCTA)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${conventionShowBilingualCTA ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${conventionShowBilingualCTA ? 'translate-x-6' : 'translate-x-1'}`} />
             </button>
           </div>
 

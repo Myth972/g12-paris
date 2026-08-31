@@ -22,6 +22,8 @@ export default function ConventionG12FrancePage() {
   const liveEnabled = liveEnabledRaw === "true"; // Defaults to false for convention unless set
   const showLogo = showLogoRaw !== "false"; // Defaults to true
   const showOfficialSite = showOfficialSiteRaw !== "false"; // Defaults to true
+  const showBilingualCTARaw = settingsQuery.data?.["convention.showBilingualCTA"] as string | undefined;
+  const showBilingualCTA = showBilingualCTARaw !== "false"; // Defaults to true
   const youtubeVideoIdRaw = settingsQuery.data?.["convention.youtubeVideoId"] as string | undefined;
   const facebookVideoUrl = settingsQuery.data?.["convention.facebookVideoUrl"] as string | undefined;
 
@@ -267,24 +269,55 @@ export default function ConventionG12FrancePage() {
       )}
 
       {/* Bilingual Call to Action */}
+      {showBilingualCTA && (
       <Reveal variant="fadeUp" delay={0.12}>
       <section className="container py-12 px-4 sm:px-0">
         <div className="max-w-4xl mx-auto text-center space-y-10">
           {/* French */}
           <div className="space-y-3">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight">
-              NOUS SOMMES DANS LES TEMPS<br />
-              <span className="text-xl sm:text-2xl md:text-3xl font-semibold text-foreground/90">ET L'HEURE N'EST PLUS À L'ATTENTE</span>
-            </h2>
-            <p className="text-foreground/80 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto">
-              Un appel résonne à nouveau. Aller, faire des disciples et voir une génération entière se lever pour Jésus!
-            </p>
+            <PageTextEditor
+              pageKey="convention-g12"
+              textKey="bilingual_fr_title"
+              defaultText={"NOUS SOMMES DANS LES TEMPS\nET L'HEURE N'EST PLUS À L'ATTENTE"}
+              className="text-2xl sm:text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight"
+            />
+            <PageTextEditor
+              pageKey="convention-g12"
+              textKey="bilingual_fr_body"
+              defaultText="Un appel résonne à nouveau. Aller, faire des disciples et voir une génération entière se lever pour Jésus!"
+              className="text-foreground/80 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto"
+            />
             <div className="pt-2 space-y-1">
-              <p className="text-lg sm:text-xl font-bold font-serif convention-primary-text">CONVENTION G12 FRANCE 2026</p>
-              <p className="text-base sm:text-lg font-semibold text-foreground/90">ALLEZ, FAITES DES DISCIPLES</p>
-              <p className="text-sm sm:text-base text-muted-foreground">30 &amp; 31 OCTOBRE — 1ER NOVEMBRE</p>
-              <p className="text-sm sm:text-base text-muted-foreground">PARIS</p>
-              <p className="text-xs sm:text-sm font-medium uppercase tracking-wider text-muted-foreground mt-2">Inscriptions bientôt ouvertes</p>
+              <PageTextEditor
+                pageKey="convention-g12"
+                textKey="bilingual_fr_event_name"
+                defaultText="CONVENTION G12 FRANCE 2026"
+                className="text-lg sm:text-xl font-bold font-serif convention-primary-text"
+              />
+              <PageTextEditor
+                pageKey="convention-g12"
+                textKey="bilingual_fr_subtitle"
+                defaultText="ALLEZ, FAITES DES DISCIPLES"
+                className="text-base sm:text-lg font-semibold text-foreground/90"
+              />
+              <PageTextEditor
+                pageKey="convention-g12"
+                textKey="bilingual_fr_dates"
+                defaultText="30 & 31 OCTOBRE — 1ER NOVEMBRE"
+                className="text-sm sm:text-base text-muted-foreground"
+              />
+              <PageTextEditor
+                pageKey="convention-g12"
+                textKey="bilingual_fr_location"
+                defaultText="PARIS"
+                className="text-sm sm:text-base text-muted-foreground"
+              />
+              <PageTextEditor
+                pageKey="convention-g12"
+                textKey="bilingual_fr_cta"
+                defaultText="Inscriptions bientôt ouvertes"
+                className="text-xs sm:text-sm font-medium uppercase tracking-wider text-muted-foreground mt-2"
+              />
             </div>
           </div>
 
@@ -292,24 +325,55 @@ export default function ConventionG12FrancePage() {
 
           {/* English */}
           <div className="space-y-3">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight">
-              WE ARE LIVING IN THE TIMES<br />
-              <span className="text-xl sm:text-2xl md:text-3xl font-semibold text-foreground/90">AND THIS IS NO TIME TO WAIT</span>
-            </h2>
-            <p className="text-foreground/80 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto">
-              The call is sounding once again. To go, make disciples, and see an entire generation rise for Jesus!
-            </p>
+            <PageTextEditor
+              pageKey="convention-g12"
+              textKey="bilingual_en_title"
+              defaultText={"WE ARE LIVING IN THE TIMES\nAND THIS IS NO TIME TO WAIT"}
+              className="text-2xl sm:text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight"
+            />
+            <PageTextEditor
+              pageKey="convention-g12"
+              textKey="bilingual_en_body"
+              defaultText="The call is sounding once again. To go, make disciples, and see an entire generation rise for Jesus!"
+              className="text-foreground/80 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto"
+            />
             <div className="pt-2 space-y-1">
-              <p className="text-lg sm:text-xl font-bold font-serif convention-primary-text">G12 FRANCE CONVENTION 2026</p>
-              <p className="text-base sm:text-lg font-semibold text-foreground/90">GO AND MAKE DISCIPLES</p>
-              <p className="text-sm sm:text-base text-muted-foreground">OCTOBER 30 &amp; 31 — NOVEMBER 1</p>
-              <p className="text-sm sm:text-base text-muted-foreground">PARIS</p>
-              <p className="text-xs sm:text-sm font-medium uppercase tracking-wider text-muted-foreground mt-2">Registration Opens Soon</p>
+              <PageTextEditor
+                pageKey="convention-g12"
+                textKey="bilingual_en_event_name"
+                defaultText="G12 FRANCE CONVENTION 2026"
+                className="text-lg sm:text-xl font-bold font-serif convention-primary-text"
+              />
+              <PageTextEditor
+                pageKey="convention-g12"
+                textKey="bilingual_en_subtitle"
+                defaultText="GO AND MAKE DISCIPLES"
+                className="text-base sm:text-lg font-semibold text-foreground/90"
+              />
+              <PageTextEditor
+                pageKey="convention-g12"
+                textKey="bilingual_en_dates"
+                defaultText="OCTOBER 30 & 31 — NOVEMBER 1"
+                className="text-sm sm:text-base text-muted-foreground"
+              />
+              <PageTextEditor
+                pageKey="convention-g12"
+                textKey="bilingual_en_location"
+                defaultText="PARIS"
+                className="text-sm sm:text-base text-muted-foreground"
+              />
+              <PageTextEditor
+                pageKey="convention-g12"
+                textKey="bilingual_en_cta"
+                defaultText="Registration Opens Soon"
+                className="text-xs sm:text-sm font-medium uppercase tracking-wider text-muted-foreground mt-2"
+              />
             </div>
           </div>
         </div>
       </section>
       </Reveal>
+      )}
 
       {/* Content section */}
       <Reveal variant="fadeUp" delay={0.15}>
