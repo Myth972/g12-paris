@@ -11,6 +11,7 @@ type PageTextEditorProps = {
   textKey: string;
   defaultText: string;
   className?: string;
+  style?: React.CSSProperties;
 };
 
 export default function PageTextEditor({
@@ -18,6 +19,7 @@ export default function PageTextEditor({
   textKey,
   defaultText,
   className,
+  style,
 }: PageTextEditorProps) {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
@@ -92,7 +94,7 @@ export default function PageTextEditor({
           </div>
         </div>
       ) : (
-        <p className={`${className} whitespace-pre-wrap break-words leading-relaxed`}>{text}</p>
+        <p className={`${className} whitespace-pre-wrap break-words leading-relaxed`} style={style}>{text}</p>
       )}
     </div>
   );

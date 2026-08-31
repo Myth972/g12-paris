@@ -14,6 +14,7 @@ export default function CulteEnLignePage() {
   const heroOpacityRaw = settingsQuery.data?.culteHeroBgOpacity as string | undefined;
   const heroOpacityPercent = Math.max(0, Math.min(60, Number(heroOpacityRaw ?? 18)));
   const heroOpacity = heroOpacityPercent / 100;
+  const textColor = (settingsQuery.data?.["culte.textColor"] as string) || "";
   const liveEnabledRaw = settingsQuery.data?.culteLiveEnabled as string | undefined;
   const liveEnabled = liveEnabledRaw !== "false";
   const youtubeVideoId = settingsQuery.data?.culteYoutubeVideoId as string | undefined;
@@ -52,7 +53,7 @@ export default function CulteEnLignePage() {
         )}
         <div className="absolute inset-0 bg-gradient-to-b from-white/90 via-white/70 to-transparent dark:from-background/95 dark:via-background/80 pointer-events-none" />
         <div className="container relative z-10 px-4 sm:px-0">
-          <div className="max-w-2xl">
+          <div className="max-w-4xl mx-auto">
             <div className="flex items-center gap-2 mb-3 sm:mb-4">
               <div className="w-6 sm:w-8 h-0.5 bg-primary rounded-full" />
               <span className="text-xs font-semibold uppercase tracking-[0.15em] text-primary font-sans">
@@ -81,8 +82,9 @@ export default function CulteEnLignePage() {
             <PageTextEditor
               pageKey="culte-en-ligne"
               textKey="hero"
-              defaultText="Participez à nos services de culte en ligne et vivez une expérience spirituelle depuis n'importe où."
-              className="mt-2 sm:mt-4 text-foreground/70 dark:text-foreground/80 text-sm sm:text-base leading-relaxed max-w-lg"
+              defaultText={"Participez à nos services de culte en ligne et vivez une expérience spirituelle depuis n'importe où.\n\nEt si vous le voulez, rejoignez nous chaque dimanche sur Paris."}
+              className={`mt-2 sm:mt-4 text-sm sm:text-base leading-relaxed max-w-lg ${textColor ? "" : "text-foreground/70 dark:text-foreground/80"}`}
+              style={textColor ? { color: `${textColor} !important` } : undefined}
             />
             
             <div className="mt-6">
@@ -100,11 +102,11 @@ export default function CulteEnLignePage() {
       {/* Banner Section (Déplacée ici pour une meilleure hiérarchie) */}
       {settingsQuery.data?.culteBannerUrl && (
         <Reveal variant="scaleUp" delay={0.2}>
-        <section className="container px-4 sm:px-0 -mt-8 sm:-mt-12 relative z-20 mb-8 sm:mb-12 flex justify-center animate-in fade-in slide-in-from-bottom-4 duration-1000">
+        <section className="container px-4 sm:px-0 -mt-8 sm:-mt-12 relative z-20 mb-8 sm:mb-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
           <img
             src={settingsQuery.data.culteBannerUrl as string}
             alt="Bannière culte"
-            className="rounded-xl sm:rounded-2xl shadow-lg sm:shadow-2xl shadow-primary/20 transition-transform hover:scale-[1.02] duration-500 w-full max-w-md sm:max-w-[500px] lg:max-w-[700px] h-auto"
+            className="rounded-xl sm:rounded-2xl shadow-lg sm:shadow-2xl shadow-primary/20 transition-transform hover:scale-[1.02] duration-500 w-full max-w-md sm:max-w-[700px] lg:max-w-[900px] h-auto mx-auto"
           />
         </section>
         </Reveal>
