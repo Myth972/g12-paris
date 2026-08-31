@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PageContentDisplay from "@/components/PageContentDisplay";
 import PageTitleEditor from "@/components/PageTitleEditor";
 import PageTextEditor from "@/components/PageTextEditor";
@@ -6,9 +6,12 @@ import { Reveal } from "@/components/Reveal";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Play, Share2, ExternalLink, Check, Calendar, MapPin } from "lucide-react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
+
+const STORAGE_KEY = "g12_convention_registered";
 
 export default function ConventionG12FrancePage() {
+  const [, navigate] = useLocation();
   const settingsQuery = trpc.siteSettings.getAll.useQuery();
   
   const conventionLogoUrl = (settingsQuery.data?.["convention.logoUrl"] as string) || "https://conventiong12france.com/wp-content/uploads/elementor/thumbs/g12France-rdu8vngvdwatmx6fgxu9wasglsg906xtva9qh3nrls.png";
@@ -28,6 +31,16 @@ export default function ConventionG12FrancePage() {
   const showBilingualCTA = showBilingualCTARaw !== "false"; // Defaults to true
   const youtubeVideoIdRaw = settingsQuery.data?.["convention.youtubeVideoId"] as string | undefined;
   const facebookVideoUrl = settingsQuery.data?.["convention.facebookVideoUrl"] as string | undefined;
+  const registrationEnabled = settingsQuery.data?.["convention.registrationEnabled"] === "true";
+
+  useEffect(() => {
+    if (settingsQuery.data && registrationEnabled) {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (!stored) {
+        navigate("/inscription-convention");
+      }
+    }
+  }, [settingsQuery.data, registrationEnabled, navigate]);
 
   // Extract YouTube video ID from full URL if needed
   const extractYouTubeId = (input: string | undefined): string | null => {

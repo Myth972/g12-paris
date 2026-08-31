@@ -320,3 +320,20 @@ export const suggestions = sqliteTable("suggestions", {
 
 export type Suggestion = typeof suggestions.$inferSelect;
 export type InsertSuggestion = typeof suggestions.$inferInsert;
+
+// ─── Convention Registrations ──────────────────────────────────
+
+export const conventionRegistrations = sqliteTable("convention_registrations", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  firstName: text("firstName").notNull(),
+  lastName: text("lastName").notNull(),
+  email: text("email").notNull(),
+  createdAt: integer("createdAt", { mode: "timestamp" })
+    .default(sql`(strftime('%s', 'now'))`)
+    .notNull(),
+}, (table) => [
+  index("idx_convention_reg_email").on(table.email),
+]);
+
+export type ConventionRegistration = typeof conventionRegistrations.$inferSelect;
+export type InsertConventionRegistration = typeof conventionRegistrations.$inferInsert;

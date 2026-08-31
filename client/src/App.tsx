@@ -31,6 +31,7 @@ const AboutVisionPage = lazy(() => import("./pages/AboutVisionPage"));
 const CartCheckoutPage = lazy(() => import("./pages/CartCheckoutPage"));
 const CulteEnLignePage = lazy(() => import("./pages/CulteEnLignePage"));
 const ConventionG12FrancePage = lazy(() => import("./pages/ConventionG12FrancePage"));
+const ConventionRegistrationPage = lazy(() => import("./pages/ConventionRegistrationPage"));
 const AdminBibliotheque = lazy(() => import("./pages/AdminBibliotheque"));
 const AdminBibliothequeEditor = lazy(() => import("./pages/AdminBibliothequeEditor"));
 const AdminDesign = lazy(() => import("./pages/AdminDesign"));
@@ -143,6 +144,9 @@ function Router() {
           <PublicLayout>
             <ConventionG12FrancePage />
           </PublicLayout>
+        </Route>
+        <Route path="/inscription-convention">
+          <ConventionRegistrationPage />
         </Route>
         <Route path="/culte-en-ligne">
           <PublicLayout>

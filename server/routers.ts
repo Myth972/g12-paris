@@ -91,6 +91,12 @@ import {
   updateSuggestion,
   deleteSuggestion,
   bulkDeleteSuggestions,
+  createConventionRegistration,
+  findConventionRegistrationByEmail,
+  listConventionRegistrations,
+  countConventionRegistrations,
+  deleteConventionRegistration,
+  bulkDeleteConventionRegistrations,
   findUserByUsernameAndPassword,
   upsertUser,
   findUserByPassword,
@@ -3453,6 +3459,50 @@ return { url };
       .input(zod.object({ ids: z.array(z.number()).min(1).max(100) }))
       .mutation(async ({ input }) => {
         return bulkDeleteSuggestions(input.ids);
+      }),
+  }),
+
+  conventionRegistrations: router({
+    create: publicProcedure
+      .input(zod.object({
+        firstName: z.string().min(1).max(100),
+        lastName: z.string().min(1).max(100),
+        email: z.string().email().max(200),
+      }))
+      .mutation(async ({ input }) => {
+        const existing = await findConventionRegistrationByEmail(input.email);
+        if (existing) {
+          return { success: true, registration: existing, alreadyRegistered: true };
+        }
+        const registration = await createConventionRegistration(input);
+        return { success: true, registration, alreadyRegistered: false };
+      }),
+
+    checkEmail: publicProcedure
+      .input(zod.object({ email: z.string().email() }))
+      .query(async ({ input }) => {
+        const registration = await findConventionRegistrationByEmail(input.email);
+        return { registered: !!registration, registration };
+      }),
+
+    list: adminProcedure.query(async () => {
+      return listConventionRegistrations();
+    }),
+
+    count: adminProcedure.query(async () => {
+      return countConventionRegistrations();
+    }),
+
+    delete: adminProcedure
+      .input(zod.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        return deleteConventionRegistration(input.id);
+      }),
+
+    bulkDelete: adminProcedure
+      .input(zod.object({ ids: z.array(z.number()).min(1).max(100) }))
+      .mutation(async ({ input }) => {
+        return bulkDeleteConventionRegistrations(input.ids);
       }),
   }),
 

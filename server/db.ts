@@ -20,6 +20,7 @@ import {
   announcements,
   subscribers,
   suggestions,
+  conventionRegistrations,
 } from "../drizzle/schema.js";
 import { ENV } from "./_core/env.js";
 import { TRPCError } from "@trpc/server";
@@ -1301,5 +1302,69 @@ export async function bulkDeleteSuggestions(ids: number[]) {
   if (ids.length === 0) return { success: true, count: 0 };
 
   await db.delete(suggestions).where(inArray(suggestions.id, ids));
+  return { success: true, count: ids.length };
+}
+
+// ─── Convention Registrations Functions ────────────────────────
+
+export async function createConventionRegistration(data: {
+  firstName: string;
+  lastName: string;
+  email: string;
+}) {
+  const db = getDb();
+  assertDb(db);
+  const [row] = await db.insert(conventionRegistrations).values({
+    firstName: data.firstName,
+    lastName: data.lastName,
+    email: data.email.toLowerCase().trim(),
+  }).returning();
+  return row;
+}
+
+export async function findConventionRegistrationByEmail(email: string) {
+  const db = getDb();
+  assertDb(db);
+  const rows = await db
+    .select()
+    .from(conventionRegistrations)
+    .where(eq(conventionRegistrations.email, email.toLowerCase().trim()))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+export async function listConventionRegistrations(limit = 100, offset = 0) {
+  const db = getDb();
+  assertDb(db);
+  const rows = await db
+    .select()
+    .from(conventionRegistrations)
+    .orderBy(desc(conventionRegistrations.createdAt))
+    .limit(limit)
+    .offset(offset);
+  return rows;
+}
+
+export async function countConventionRegistrations() {
+  const db = getDb();
+  assertDb(db);
+  const rows = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(conventionRegistrations);
+  return rows[0]?.count ?? 0;
+}
+
+export async function deleteConventionRegistration(id: number) {
+  const db = getDb();
+  assertDb(db);
+  await db.delete(conventionRegistrations).where(eq(conventionRegistrations.id, id));
+  return { success: true };
+}
+
+export async function bulkDeleteConventionRegistrations(ids: number[]) {
+  const db = getDb();
+  assertDb(db);
+  if (ids.length === 0) return { success: true, count: 0 };
+  await db.delete(conventionRegistrations).where(inArray(conventionRegistrations.id, ids));
   return { success: true, count: ids.length };
 }

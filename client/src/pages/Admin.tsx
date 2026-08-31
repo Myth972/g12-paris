@@ -76,6 +76,7 @@ import {
   Globe,
   Layout,
   Lightbulb,
+  ClipboardList,
 } from "lucide-react";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useAiProvider } from "@/hooks/useAiProvider";
@@ -87,6 +88,7 @@ const PageContentManager = lazy(() => import("@/components/PageContentManager"))
 const VersesManager = lazy(() => import("@/components/VersesManager"));
 const GalleryManager = lazy(() => import("@/components/GalleryManager"));
 const SuggestionsManager = lazy(() => import("@/components/SuggestionsManager"));
+const ConventionRegistrationsManager = lazy(() => import("@/components/ConventionRegistrationsManager"));
 const NewsletterAdmin = lazy(() => import("./NewsletterAdmin"));
 const KlingStudio = lazy(() => import("./KlingStudio"));
 const AIChatBox = lazy(() => import("@/components/AIChatBox").then(m => ({ default: m.AIChatBox })));
@@ -1202,6 +1204,12 @@ if (authLoading) {
               <Lightbulb className="w-4 h-4 text-amber-500" />
               Suggestions
             </TabsTrigger>
+            {isAdmin && (
+              <TabsTrigger value="convention-registrations" className="gap-2">
+                <ClipboardList className="w-4 h-4 text-blue-500" />
+                Inscriptions
+              </TabsTrigger>
+            )}
           </TabsList>
           <TabsContent value="articles">
             <ArticlesTab />
@@ -1280,6 +1288,11 @@ if (authLoading) {
           <TabsContent value="suggestions">
             <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
               <SuggestionsManager />
+            </Suspense>
+          </TabsContent>
+          <TabsContent value="convention-registrations">
+            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
+              <ConventionRegistrationsManager />
             </Suspense>
           </TabsContent>
         </Tabs>
