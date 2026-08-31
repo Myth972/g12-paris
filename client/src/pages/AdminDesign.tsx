@@ -89,6 +89,7 @@ export default function AdminDesign() {
   const [conventionLiveEnabled, setConventionLiveEnabled] = useState(false);
   const [conventionYoutubeVideoId, setConventionYoutubeVideoId] = useState("");
   const [conventionFacebookVideoUrl, setConventionFacebookVideoUrl] = useState("");
+  const [conventionShowLogo, setConventionShowLogo] = useState(true);
 
   const { uploadFile } = useBlobUpload();
   const [uploading, setUploading] = useState<string | null>(null);
@@ -142,6 +143,7 @@ export default function AdminDesign() {
       if (settingsQuery.data["convention.liveEnabled"] !== undefined) setConventionLiveEnabled(settingsQuery.data["convention.liveEnabled"] === "true");
       if (settingsQuery.data["convention.youtubeVideoId"]) setConventionYoutubeVideoId(settingsQuery.data["convention.youtubeVideoId"] as string);
       if (settingsQuery.data["convention.facebookVideoUrl"]) setConventionFacebookVideoUrl(settingsQuery.data["convention.facebookVideoUrl"] as string);
+      if (settingsQuery.data["convention.showLogo"] !== undefined) setConventionShowLogo(settingsQuery.data["convention.showLogo"] !== "false");
     }
   }, [settingsQuery.data]);
 
@@ -168,6 +170,7 @@ export default function AdminDesign() {
         setSetting.mutateAsync({ key: "convention.liveEnabled", value: String(conventionLiveEnabled) }),
         setSetting.mutateAsync({ key: "convention.youtubeVideoId", value: conventionYoutubeVideoId }),
         setSetting.mutateAsync({ key: "convention.facebookVideoUrl", value: conventionFacebookVideoUrl }),
+        setSetting.mutateAsync({ key: "convention.showLogo", value: String(conventionShowLogo) }),
       ]);
       toast.success(t('admin.design.toastSaved'));
     } catch (e) {
@@ -812,6 +815,25 @@ export default function AdminDesign() {
               <Input id="convention-primary-color" name="conventionPrimaryColor" value={conventionPrimaryColor} onChange={(e) => setConventionPrimaryColor(e.target.value)} className="font-mono text-sm uppercase max-w-[200px]" />
             </div>
             <p className="text-xs text-muted-foreground">Applique une touche de couleur spécifique sur la page Convention.</p>
+          </div>
+
+          {/* Toggle Logo */}
+          <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border mt-6">
+            <div>
+              <label htmlFor="convention-show-logo" className="text-sm font-medium cursor-pointer">Afficher le logo</label>
+              <p className="text-xs text-muted-foreground mt-1">Masquer le logo de la Convention sur la page publique.</p>
+            </div>
+            <button
+              id="convention-show-logo"
+              name="conventionShowLogo"
+              type="button"
+              role="switch"
+              aria-checked={conventionShowLogo}
+              onClick={() => setConventionShowLogo(!conventionShowLogo)}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${conventionShowLogo ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}
+            >
+              <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${conventionShowLogo ? 'translate-x-6' : 'translate-x-1'}`} />
+            </button>
           </div>
 
           {/* Section Lives & Vidéos */}

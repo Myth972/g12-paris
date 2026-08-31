@@ -14,10 +14,12 @@ export default function ConventionG12FrancePage() {
   const conventionLogoUrl = (settingsQuery.data?.["convention.logoUrl"] as string) || "https://conventiong12france.com/wp-content/uploads/elementor/thumbs/g12France-rdu8vngvdwatmx6fgxu9wasglsg906xtva9qh3nrls.png";
   const bgUrl = (settingsQuery.data?.["convention.bgUrl"] as string) || "https://conventiong12france.com/wp-content/uploads/2025/10/LHERITAGE-2025-1536x861.png";
   const primaryColor = settingsQuery.data?.["convention.primaryColor"] as string;
+  const showLogoRaw = settingsQuery.data?.["convention.showLogo"] as string | undefined;
   
   // We can reuse some settings if needed, or rely solely on PageContentDisplay
   const liveEnabledRaw = settingsQuery.data?.["convention.liveEnabled"] as string | undefined;
   const liveEnabled = liveEnabledRaw === "true"; // Defaults to false for convention unless set
+  const showLogo = showLogoRaw !== "false"; // Defaults to true
   const youtubeVideoIdRaw = settingsQuery.data?.["convention.youtubeVideoId"] as string | undefined;
   const facebookVideoUrl = settingsQuery.data?.["convention.facebookVideoUrl"] as string | undefined;
 
@@ -97,11 +99,13 @@ export default function ConventionG12FrancePage() {
           </div>
 
           <div className="max-w-4xl mx-auto flex flex-col items-center text-center">
-            <img 
-              src={conventionLogoUrl} 
-              alt="Convention G12 France" 
-              className="w-full max-w-[280px] sm:max-w-[350px] mb-8 animate-in fade-in zoom-in duration-700"
-            />
+            {showLogo && (
+              <img 
+                src={conventionLogoUrl} 
+                alt="Convention G12 France" 
+                className="w-full max-w-[280px] sm:max-w-[350px] mb-8 animate-in fade-in zoom-in duration-700"
+              />
+            )}
 
             {/* Live Badge */}
             {liveEnabled && (
