@@ -1280,7 +1280,9 @@ function BentoGridSection() {
                   value={radarForm.hour}
                   onChange={e => setRadarForm({ ...radarForm, hour: e.target.value })}
                 />
+                <p className="text-xs text-muted-foreground mt-1">Heure actuelle du direct : {radarForm.hour}h</p>
               </div>
+
 
               <div className="space-y-1.5">
                 <Label className="text-xs">Lien du direct</Label>

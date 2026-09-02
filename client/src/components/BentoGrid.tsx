@@ -22,6 +22,8 @@ import { useAudioPlayer, DEFAULT_TRACKS } from "@/contexts/AudioPlayerContext";
 import { useVisualEnabled } from "@/hooks/useVisualSetting";
 import { toast } from "sonner";
 
+const dayNames = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+
 interface BentoGridProps {
   className?: string;
 }
@@ -253,7 +255,7 @@ export default function BentoGrid({ className = "" }: BentoGridProps) {
               À la une
             </Badge>
             <span className="text-[11px] font-medium text-white/80 bg-black/40 backdrop-blur-md px-2.5 py-0.5 rounded-full">
-              Dimanche 10h00
+              {dayNames[radarSettings.day]} {radarSettings.hour}h00
             </span>
           </div>
 
