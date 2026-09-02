@@ -10,6 +10,8 @@ import SiteFooter from "./components/SiteFooter";
 import { Loader2 } from "lucide-react";
 import PageTransition from "./components/PageTransition";
 import GlowCursor from "./components/GlowCursor";
+import { AudioPlayerProvider } from "./contexts/AudioPlayerContext";
+import FloatingAudioPlayer from "./components/FloatingAudioPlayer";
 
 // Lazy-loaded pages
 const Home = lazy(() => import("./pages/Home"));
@@ -247,10 +249,13 @@ function AppWithTheme() {
     <ThemeProvider defaultTheme={defaultTheme} switchable={enableThemeToggle}>
       <DynamicDesign />
       <TooltipProvider>
-        <GlowCursor />
-        <Toaster />
-        <Router />
-        {DevDeviceToggle && <DevDeviceToggle />}
+        <AudioPlayerProvider>
+          <GlowCursor />
+          <Toaster />
+          <Router />
+          <FloatingAudioPlayer />
+          {DevDeviceToggle && <DevDeviceToggle />}
+        </AudioPlayerProvider>
       </TooltipProvider>
     </ThemeProvider>
   );

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Sparkles, Loader2, Send, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,19 @@ export function AISearch() {
 
   const searchMutation = trpc.ai.search.useMutation();
   const statusQuery = trpc.ai.status.useQuery();
+
+  useEffect(() => {
+    const handleOpen = (e: any) => {
+      setOpen(true);
+      if (e.detail) {
+        setQuery(e.detail);
+        setHasSearched(true);
+        searchMutation.mutate({ query: e.detail });
+      }
+    };
+    window.addEventListener("open-ai-search", handleOpen);
+    return () => window.removeEventListener("open-ai-search", handleOpen);
+  }, [searchMutation]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

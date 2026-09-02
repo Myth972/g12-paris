@@ -9,15 +9,15 @@ import { useBlobUpload } from "@/hooks/useBlobUpload";
 
 export default function CulteHeroBackgroundSettings() {
   const settingsQuery = trpc.siteSettings.getAll.useQuery();
+  const utils = trpc.useUtils();
   const setSetting = trpc.siteSettings.set.useMutation({
-    onSuccess: () => {
-      utils.siteSettings.getAll.invalidate();
+    onSuccess: async () => {
+      await utils.siteSettings.getAll.invalidate();
       toast.success("Paramètres mis à jour");
     },
     onError: error => toast.error("Erreur: " + error.message),
   });
   const { uploadFile, isUploading } = useBlobUpload();
-  const utils = trpc.useUtils();
 
   const currentUrl = settingsQuery.data?.culteHeroBgUrl ?? "";
   const currentOpacityRaw = settingsQuery.data?.culteHeroBgOpacity ?? "18";
@@ -25,7 +25,6 @@ export default function CulteHeroBackgroundSettings() {
   const [opacity, setOpacity] = useState(currentOpacity);
   const liveEnabledRaw = settingsQuery.data?.culteLiveEnabled;
   const liveEnabled = liveEnabledRaw !== "false";
-  const currentTextColor = (settingsQuery.data?.["culte.textColor"] as string) || "";
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -120,30 +119,6 @@ export default function CulteHeroBackgroundSettings() {
         </div>
       </div>
 
-      <div className="space-y-2 border-t border-border/40 pt-4">
-        <Label className="text-xs">Couleur du texte (hero)</Label>
-        <div className="flex items-center gap-3">
-          <input
-            type="color"
-            value={currentTextColor || "#374151"}
-            onChange={(e) => setSetting.mutate({ key: "culte.textColor", value: e.target.value })}
-            className="w-10 h-10 rounded-lg cursor-pointer border-0"
-          />
-          <div className="flex items-center gap-2">
-            {currentTextColor && (
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() => setSetting.mutate({ key: "culte.textColor", value: "" })}
-                className="text-destructive hover:text-destructive text-xs h-7"
-              >
-                Réinitialiser
-              </Button>
-            )}
-          </div>
-        </div>
-        <p className="text-xs text-muted-foreground">Couleur personnalisée pour le paragraphe sous le titre.</p>
-      </div>
     </div>
   );
 }

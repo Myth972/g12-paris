@@ -14,6 +14,8 @@ const defaults: Defaults = {
   "visuals.scrollToTop.enabled": "true",
   "visuals.reveal.enabled": "true",
   "visuals.stats.enabled": "true",
+  "visuals.bentoGrid.enabled": "true",
+  "visuals.audioPlayer.enabled": "true",
 };
 
 export function useVisualSetting(key: string): string {

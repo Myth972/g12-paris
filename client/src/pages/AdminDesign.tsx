@@ -52,6 +52,7 @@ export default function AdminDesign() {
       </div>
     );
   }
+  const utils = trpc.useUtils();
   const settingsQuery = trpc.siteSettings.getAll.useQuery();
   const setSetting = trpc.siteSettings.set.useMutation();
 
@@ -192,6 +193,7 @@ export default function AdminDesign() {
         setSetting.mutateAsync({ key: "convention.registrationEnabled", value: String(conventionRegistrationEnabled) }),
       ]);
       toast.success(t('admin.design.toastSaved'));
+      await utils.siteSettings.getAll.invalidate();
     } catch (e) {
       toast.error(t('admin.design.toastSaveError'));
     }
@@ -249,6 +251,20 @@ export default function AdminDesign() {
 
   return (
     <div className="min-h-screen bg-muted/20 pb-20 overflow-y-auto">
+      <style dangerouslySetInnerHTML={{ __html: `
+        :root:not(.dark) {
+          ${primaryColor ? `--primary: ${primaryColor} !important;` : ''}
+          ${secondaryColor ? `--secondary: ${secondaryColor} !important;` : ''}
+          ${bgColor ? `--background: ${bgColor} !important;` : ''}
+        }
+        ${textColor ? `:root:not(.dark) body, :root:not(.dark) .text-foreground, :root:not(.dark) h1, :root:not(.dark) h2, :root:not(.dark) h3, :root:not(.dark) h4, :root:not(.dark) h5, :root:not(.dark) h6, :root:not(.dark) p { color: ${textColor} !important; }` : ''}
+        ${mutedTextColor ? `:root:not(.dark) .text-muted-foreground { color: ${mutedTextColor} !important; }` : ''}
+        ${fontHeading ? `h1, h2, h3, h4, h5, h6, .font-serif { font-family: ${fontHeading === 'playfair' ? '"Playfair Display", serif' : fontHeading === 'merriweather' ? 'Merriweather, serif' : 'Lora, serif'} !important; }` : ''}
+        ${fontBody ? `body, .font-sans { font-family: ${fontBody === 'inter' ? 'Inter, sans-serif' : fontBody === 'roboto' ? 'Roboto, sans-serif' : 'Lato, sans-serif'} !important; }` : ''}
+        ${buttonStyle === 'square' ? '[data-slot="button"], button, .btn { border-radius: 0px !important; }' : ''}
+        ${buttonStyle === 'pill' ? '[data-slot="button"], button, .btn { border-radius: 9999px !important; }' : ''}
+        ${cardStyle === 'shadow' ? '.bg-card { border-color: transparent !important; box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1) !important; }' : ''}
+      `}} />
       {/* Header */}
       <div className="bg-card border-b sticky top-0 z-10 shadow-sm">
         <div className="container py-4 flex items-center justify-between">

@@ -3023,19 +3023,16 @@ Retourne UNIQUEMENT le prompt, pas de JSON.`;
       }),
 
     getAll: publicProcedure.query(async () => {
-      return withCache("site:all", async () => {
-        const db = getDb();
-        if (!db) return {};
-        const rows = await db.select().from(siteSettings);
-        return Object.fromEntries(rows.map((r: any) => [r.key, r.value]));
-      }, 30_000);
+      const db = getDb();
+      if (!db) return {};
+      const rows = await db.select().from(siteSettings);
+      return Object.fromEntries(rows.map((r: any) => [r.key, r.value]));
     }),
 
     set: adminProcedure
       .input(zod.object({ key: z.string(), value: z.string() }))
       .mutation(async ({ input }) => {
         clearCache(`site:${input.key}`);
-        clearCache("site:all");
         const db = getDb();
         if (!db)
           throw new TRPCError({

@@ -16,6 +16,8 @@ import {
   Layers,
   BarChart3,
   Eye,
+  LayoutDashboard,
+  Music,
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
@@ -76,6 +78,20 @@ const features = [
     label: "Compteurs statistiques",
     desc: "Compteurs animés sur la page d'accueil",
     icon: BarChart3,
+    fields: ["enabled"] as const,
+  },
+  {
+    key: "bentoGrid",
+    label: "Bento Grid d'accueil",
+    desc: "Grille moderne asymétrique en 5 tuiles (culte, verset, radar, IA)",
+    icon: LayoutDashboard,
+    fields: ["enabled"] as const,
+  },
+  {
+    key: "audioPlayer",
+    label: "Lecteur audio persistant",
+    desc: "Mini-player flottant en bas d'écran avec visualiseur et contrôle audio",
+    icon: Music,
     fields: ["enabled"] as const,
   },
 ];

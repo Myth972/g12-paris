@@ -21,9 +21,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { useBlobUpload } from "@/hooks/useBlobUpload";
 import {
@@ -40,11 +42,18 @@ import {
   BookOpen,
   Mic2,
   Calendar,
+  Music,
+  Sparkles,
+  Radio,
+  Volume2,
+  Save,
+  Upload,
 } from "lucide-react";
 
 export default function HomeContentManager() {
   return (
     <div className="space-y-10">
+      <BentoGridSection />
       <WhatsAppSliderSection />
       <AnnouncementsSection />
       <FlashEventsSection />
@@ -817,3 +826,621 @@ function FlashEventsSection() {
     </div>
   );
 }
+
+// ─── Bento Grid & Audio Player Section ───────────────────────────
+
+function BentoGridSection() {
+  const utils = trpc.useUtils();
+  const settingsQuery = trpc.siteSettings.getAll.useQuery();
+  const setSettingMutation = trpc.siteSettings.set.useMutation({
+    onSuccess: () => {
+      utils.siteSettings.getAll.invalidate();
+      toast.success("Paramètres enregistrés avec succès");
+    },
+    onError: err => toast.error("Erreur: " + err.message),
+  });
+  const { uploadFile, isUploading } = useBlobUpload();
+
+  const bentoEnabled = settingsQuery.data?.["visuals.bentoGrid.enabled"] !== "false";
+  const audioEnabled = settingsQuery.data?.["visuals.audioPlayer.enabled"] !== "false";
+
+  // Formulaires par tuile
+  const [flagshipForm, setFlagshipForm] = useState({
+    title: "",
+    description: "",
+    imageUrl: "",
+    link: "",
+    ctaLabel: "",
+  });
+
+  const [verseForm, setVerseForm] = useState({
+    reference: "",
+    text: "",
+    audioTitle: "",
+    audioUrl: "",
+  });
+
+  const [radarForm, setRadarForm] = useState({
+    forceLive: "auto",
+    day: "0",
+    hour: "10",
+    label: "Prochain Direct",
+    link: "/culte-en-ligne",
+  });
+
+  const [eventForm, setEventForm] = useState({
+    badge: "",
+    title: "",
+    date: "",
+    imageUrl: "",
+    link: "",
+  });
+
+  useEffect(() => {
+    if (settingsQuery.data) {
+      const d = settingsQuery.data;
+      setFlagshipForm({
+        title: (d["bento.flagship.title"] as string) || "",
+        description: (d["bento.flagship.description"] as string) || "",
+        imageUrl: (d["bento.flagship.imageUrl"] as string) || "",
+        link: (d["bento.flagship.link"] as string) || "",
+        ctaLabel: (d["bento.flagship.ctaLabel"] as string) || "",
+      });
+      setVerseForm({
+        reference: (d["bento.verse.reference"] as string) || "",
+        text: (d["bento.verse.text"] as string) || "",
+        audioTitle: (d["bento.verse.audioTitle"] as string) || "",
+        audioUrl: (d["bento.verse.audioUrl"] as string) || "",
+      });
+      setRadarForm({
+        forceLive: (d["bento.radar.forceLive"] as string) || "auto",
+        day: (d["bento.radar.day"] as string) || "0",
+        hour: (d["bento.radar.hour"] as string) || "10",
+        label: (d["bento.radar.label"] as string) || "Prochain Direct",
+        link: (d["bento.radar.link"] as string) || "/culte-en-ligne",
+      });
+      setEventForm({
+        badge: (d["bento.event.badge"] as string) || "",
+        title: (d["bento.event.title"] as string) || "",
+        date: (d["bento.event.date"] as string) || "",
+        imageUrl: (d["bento.event.imageUrl"] as string) || "",
+        link: (d["bento.event.link"] as string) || "",
+      });
+    }
+  }, [settingsQuery.data]);
+
+  const handleToggleBento = (checked: boolean) => {
+    setSettingMutation.mutate({
+      key: "visuals.bentoGrid.enabled",
+      value: checked ? "true" : "false",
+    });
+  };
+
+  const handleToggleAudio = (checked: boolean) => {
+    setSettingMutation.mutate({
+      key: "visuals.audioPlayer.enabled",
+      value: checked ? "true" : "false",
+    });
+  };
+
+  const handleSaveFlagship = () => {
+    setSettingMutation.mutate({ key: "bento.flagship.title", value: flagshipForm.title });
+    setSettingMutation.mutate({ key: "bento.flagship.description", value: flagshipForm.description });
+    setSettingMutation.mutate({ key: "bento.flagship.imageUrl", value: flagshipForm.imageUrl });
+    setSettingMutation.mutate({ key: "bento.flagship.link", value: flagshipForm.link });
+    setSettingMutation.mutate({ key: "bento.flagship.ctaLabel", value: flagshipForm.ctaLabel });
+  };
+
+  const handleResetFlagship = () => {
+    setFlagshipForm({ title: "", description: "", imageUrl: "", link: "", ctaLabel: "" });
+    setSettingMutation.mutate({ key: "bento.flagship.title", value: "" });
+    setSettingMutation.mutate({ key: "bento.flagship.description", value: "" });
+    setSettingMutation.mutate({ key: "bento.flagship.imageUrl", value: "" });
+    setSettingMutation.mutate({ key: "bento.flagship.link", value: "" });
+    setSettingMutation.mutate({ key: "bento.flagship.ctaLabel", value: "" });
+    toast.info("Tuile 1 réinitialisée au mode automatique");
+  };
+
+  const handleSaveVerse = () => {
+    setSettingMutation.mutate({ key: "bento.verse.reference", value: verseForm.reference });
+    setSettingMutation.mutate({ key: "bento.verse.text", value: verseForm.text });
+    setSettingMutation.mutate({ key: "bento.verse.audioTitle", value: verseForm.audioTitle });
+    setSettingMutation.mutate({ key: "bento.verse.audioUrl", value: verseForm.audioUrl });
+  };
+
+  const handleResetVerse = () => {
+    setVerseForm({ reference: "", text: "", audioTitle: "", audioUrl: "" });
+    setSettingMutation.mutate({ key: "bento.verse.reference", value: "" });
+    setSettingMutation.mutate({ key: "bento.verse.text", value: "" });
+    setSettingMutation.mutate({ key: "bento.verse.audioTitle", value: "" });
+    setSettingMutation.mutate({ key: "bento.verse.audioUrl", value: "" });
+    toast.info("Tuile 2 réinitialisée au verset du jour automatique");
+  };
+
+  const handleSaveRadar = () => {
+    setSettingMutation.mutate({ key: "bento.radar.forceLive", value: radarForm.forceLive });
+    setSettingMutation.mutate({ key: "bento.radar.day", value: radarForm.day });
+    setSettingMutation.mutate({ key: "bento.radar.hour", value: radarForm.hour });
+    setSettingMutation.mutate({ key: "bento.radar.label", value: radarForm.label });
+    setSettingMutation.mutate({ key: "bento.radar.link", value: radarForm.link });
+  };
+
+  const handleSaveEvent = () => {
+    setSettingMutation.mutate({ key: "bento.event.badge", value: eventForm.badge });
+    setSettingMutation.mutate({ key: "bento.event.title", value: eventForm.title });
+    setSettingMutation.mutate({ key: "bento.event.date", value: eventForm.date });
+    setSettingMutation.mutate({ key: "bento.event.imageUrl", value: eventForm.imageUrl });
+    setSettingMutation.mutate({ key: "bento.event.link", value: eventForm.link });
+  };
+
+  const handleResetEvent = () => {
+    setEventForm({ badge: "", title: "", date: "", imageUrl: "", link: "" });
+    setSettingMutation.mutate({ key: "bento.event.badge", value: "" });
+    setSettingMutation.mutate({ key: "bento.event.title", value: "" });
+    setSettingMutation.mutate({ key: "bento.event.date", value: "" });
+    setSettingMutation.mutate({ key: "bento.event.imageUrl", value: "" });
+    setSettingMutation.mutate({ key: "bento.event.link", value: "" });
+    toast.info("Tuile 4 réinitialisée aux événements récents automatiques");
+  };
+
+  return (
+    <Card className="border-border/60 shadow-sm overflow-hidden">
+      <div className="bg-primary/5 border-b border-border/40 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-lg font-serif font-bold text-foreground flex items-center gap-2">
+            <LayoutDashboard className="w-5 h-5 text-primary" />
+            Mode Éditeur : Bento Grid & Lecteur Audio
+          </h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Personnalisez chacune des tuiles de la Bento Grid ou laissez le mode automatique opérer.
+          </p>
+        </div>
+
+        {/* Interrupteurs principaux */}
+        <div className="flex flex-wrap items-center gap-4 bg-background/80 px-3 py-2 rounded-xl border border-border/50">
+          <div className="flex items-center gap-2">
+            <Switch
+              id="toggle-bento"
+              checked={bentoEnabled}
+              onCheckedChange={handleToggleBento}
+            />
+            <Label htmlFor="toggle-bento" className="text-xs font-medium cursor-pointer">
+              Bento Grid
+            </Label>
+          </div>
+
+          <div className="w-px h-4 bg-border" />
+
+          <div className="flex items-center gap-2">
+            <Switch
+              id="toggle-audio"
+              checked={audioEnabled}
+              onCheckedChange={handleToggleAudio}
+            />
+            <Label htmlFor="toggle-audio" className="text-xs font-medium cursor-pointer flex items-center gap-1">
+              <Music className="w-3.5 h-3.5 text-primary" />
+              Lecteur Audio
+            </Label>
+          </div>
+        </div>
+      </div>
+
+      <CardContent className="p-4 sm:p-6 space-y-6">
+        {/* Onglets de personnalisation des Tuiles */}
+        <Tabs defaultValue="tuile1" className="w-full">
+          <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full h-auto p-1 bg-muted/40 rounded-xl mb-4">
+            <TabsTrigger value="tuile1" className="text-xs py-2 gap-1.5">
+              <Zap className="w-3.5 h-3.5 text-amber-500" />
+              Tuile 1 · Flagship
+            </TabsTrigger>
+            <TabsTrigger value="tuile2" className="text-xs py-2 gap-1.5">
+              <BookOpen className="w-3.5 h-3.5 text-primary" />
+              Tuile 2 · Verset
+            </TabsTrigger>
+            <TabsTrigger value="tuile3" className="text-xs py-2 gap-1.5">
+              <Radio className="w-3.5 h-3.5 text-red-500" />
+              Tuile 3 · Radar
+            </TabsTrigger>
+            <TabsTrigger value="tuile4" className="text-xs py-2 gap-1.5">
+              <Calendar className="w-3.5 h-3.5 text-blue-500" />
+              Tuile 4 · Flash
+            </TabsTrigger>
+          </TabsList>
+
+          {/* ─── ONGLET 1 : TUILE FLAGSHIP ─── */}
+          <TabsContent value="tuile1" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">Tuile 1 : Flagship (À la une)</h3>
+                <p className="text-xs text-muted-foreground">Grande tuile 2x2. Par défaut : dernier culte / publication phare.</p>
+              </div>
+              <Button variant="ghost" size="sm" onClick={handleResetFlagship} className="text-xs text-muted-foreground">
+                Réinitialiser (mode auto)
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted/20 p-4 rounded-xl border border-border/40">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Titre à la une</Label>
+                <Input
+                  placeholder="Ex: G12 Paris — Culte en Ligne"
+                  value={flagshipForm.title}
+                  onChange={e => setFlagshipForm({ ...flagshipForm, title: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs">Libellé du bouton (CTA)</Label>
+                <Input
+                  placeholder="Ex: Participer au culte"
+                  value={flagshipForm.ctaLabel}
+                  onChange={e => setFlagshipForm({ ...flagshipForm, ctaLabel: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-1.5 md:col-span-2">
+                <Label className="text-xs">Description</Label>
+                <Textarea
+                  rows={2}
+                  placeholder="Ex: Vivez des temps de louange passionnés et d'édification spirituelle..."
+                  value={flagshipForm.description}
+                  onChange={e => setFlagshipForm({ ...flagshipForm, description: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs">Lien de destination</Label>
+                <Input
+                  placeholder="Ex: /culte-en-ligne ou /publication-du-jour"
+                  value={flagshipForm.link}
+                  onChange={e => setFlagshipForm({ ...flagshipForm, link: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs">Image de fond Flagship</Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="https://..."
+                    value={flagshipForm.imageUrl}
+                    onChange={e => setFlagshipForm({ ...flagshipForm, imageUrl: e.target.value })}
+                  />
+                  <label className="relative cursor-pointer shrink-0">
+                    <Button type="button" variant="outline" size="sm" className="gap-1.5 h-9" disabled={isUploading} asChild>
+                      <span>
+                        {isUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                        Upload
+                      </span>
+                    </Button>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="sr-only"
+                      onChange={async e => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        try {
+                          const res = await uploadFile({ file, folder: "bento" });
+                          setFlagshipForm(p => ({ ...p, imageUrl: res.url }));
+                          toast.success("Image uploadée");
+                        } catch { toast.error("Échec upload"); }
+                      }}
+                      disabled={isUploading}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <div className="md:col-span-2 flex justify-end">
+                <Button size="sm" onClick={handleSaveFlagship} disabled={setSettingMutation.isPending} className="gap-1.5">
+                  <Save className="w-4 h-4" />
+                  Enregistrer Tuile 1
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* ─── ONGLET 2 : TUILE VERSET & AUDIO ─── */}
+          <TabsContent value="tuile2" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">Tuile 2 : Verset du Jour & Audio</h3>
+                <p className="text-xs text-muted-foreground">Citation biblique et méditation audio connectée au player flottant.</p>
+              </div>
+              <Button variant="ghost" size="sm" onClick={handleResetVerse} className="text-xs text-muted-foreground">
+                Réinitialiser (mode auto)
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted/20 p-4 rounded-xl border border-border/40">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Référence biblique</Label>
+                <Input
+                  placeholder="Ex: Jean 14:27 (vide = verset du jour auto)"
+                  value={verseForm.reference}
+                  onChange={e => setVerseForm({ ...verseForm, reference: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs">Titre de la méditation audio</Label>
+                <Input
+                  placeholder="Ex: Méditation : La Paix du Cœur"
+                  value={verseForm.audioTitle}
+                  onChange={e => setVerseForm({ ...verseForm, audioTitle: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-1.5 md:col-span-2">
+                <Label className="text-xs">Texte du verset ou parole inspirée</Label>
+                <Textarea
+                  rows={3}
+                  placeholder="Ex: Je vous laisse la paix, je vous donne ma paix. Que votre cœur ne se trouble point... (laisser vide pour texte auto)"
+                  value={verseForm.text}
+                  onChange={e => setVerseForm({ ...verseForm, text: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-1.5 md:col-span-2">
+                <Label className="text-xs">Fichier audio de la méditation (MP3/WAV/OGG)</Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="https://...fichier.mp3 (vide = piste par défaut)"
+                    value={verseForm.audioUrl}
+                    onChange={e => setVerseForm({ ...verseForm, audioUrl: e.target.value })}
+                  />
+                  <label className="relative cursor-pointer shrink-0">
+                    <Button type="button" variant="outline" size="sm" className="gap-1.5 h-9" disabled={isUploading} asChild>
+                      <span>
+                        {isUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                        Upload Audio
+                      </span>
+                    </Button>
+                    <input
+                      type="file"
+                      accept="audio/*"
+                      className="sr-only"
+                      onChange={async e => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        try {
+                          const res = await uploadFile({ file, folder: "audio" });
+                          setVerseForm(p => ({ ...p, audioUrl: res.url, audioTitle: p.audioTitle || file.name.replace(/\.[^.]+$/, "") }));
+                          toast.success("Fichier audio uploadé");
+                        } catch { toast.error("Échec upload audio"); }
+                      }}
+                      disabled={isUploading}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <div className="md:col-span-2 flex justify-end">
+                <Button size="sm" onClick={handleSaveVerse} disabled={setSettingMutation.isPending} className="gap-1.5">
+                  <Save className="w-4 h-4" />
+                  Enregistrer Tuile 2
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* ─── ONGLET 3 : TUILE RADAR DIRECT ─── */}
+          <TabsContent value="tuile3" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">Tuile 3 : Radar Culte en Direct</h3>
+                <p className="text-xs text-muted-foreground">Gestion du compte à rebours et du badge En Direct.</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted/20 p-4 rounded-xl border border-border/40">
+              <div className="space-y-1.5">
+                <Label className="text-xs">État de diffusion du culte</Label>
+                <Select
+                  value={radarForm.forceLive}
+                  onValueChange={v => setRadarForm({ ...radarForm, forceLive: v })}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Mode de détection" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="auto">Automatique (Dimanche matin 10h00)</SelectItem>
+                    <SelectItem value="true">🔴 Forcer "EN DIRECT MAINTENANT"</SelectItem>
+                    <SelectItem value="false">⚪ Forcer "Prochain Direct" (Compte à rebours)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs">Jour de la réunion</Label>
+                <Select
+                  value={radarForm.day}
+                  onValueChange={v => setRadarForm({ ...radarForm, day: v })}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Jour" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0">Dimanche</SelectItem>
+                    <SelectItem value="2">Mardi</SelectItem>
+                    <SelectItem value="3">Mercredi</SelectItem>
+                    <SelectItem value="4">Jeudi</SelectItem>
+                    <SelectItem value="5">Vendredi</SelectItem>
+                    <SelectItem value="6">Samedi</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs">Heure de début (format 24h)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={23}
+                  value={radarForm.hour}
+                  onChange={e => setRadarForm({ ...radarForm, hour: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs">Lien du direct</Label>
+                <Input
+                  placeholder="/culte-en-ligne"
+                  value={radarForm.link}
+                  onChange={e => setRadarForm({ ...radarForm, link: e.target.value })}
+                />
+              </div>
+
+              <div className="md:col-span-2 flex justify-end">
+                <Button size="sm" onClick={handleSaveRadar} disabled={setSettingMutation.isPending} className="gap-1.5">
+                  <Save className="w-4 h-4" />
+                  Enregistrer Tuile 3
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* ─── ONGLET 4 : TUILE ÉVÉNEMENT FLASH ─── */}
+          <TabsContent value="tuile4" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">Tuile 4 : Événement Flash & Convention</h3>
+                <p className="text-xs text-muted-foreground">Mise en avant d'un séminaire, de la Convention ou d'un événement prioritaire.</p>
+              </div>
+              <Button variant="ghost" size="sm" onClick={handleResetEvent} className="text-xs text-muted-foreground">
+                Réinitialiser (mode auto)
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted/20 p-4 rounded-xl border border-border/40">
+              <div className="space-y-1.5">
+                <Label className="text-xs">Badge supérieur</Label>
+                <Input
+                  placeholder="Ex: Inscriptions ouvertes, J-15..."
+                  value={eventForm.badge}
+                  onChange={e => setEventForm({ ...eventForm, badge: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs">Titre de l'événement</Label>
+                <Input
+                  placeholder="Ex: Convention G12 France 2026"
+                  value={eventForm.title}
+                  onChange={e => setEventForm({ ...eventForm, title: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs">Date / Période</Label>
+                <Input
+                  placeholder="Ex: 24-26 Octobre 2026"
+                  value={eventForm.date}
+                  onChange={e => setEventForm({ ...eventForm, date: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs">Lien d'inscription ou d'information</Label>
+                <Input
+                  placeholder="Ex: /convention-g12-france"
+                  value={eventForm.link}
+                  onChange={e => setEventForm({ ...eventForm, link: e.target.value })}
+                />
+              </div>
+
+              <div className="space-y-1.5 md:col-span-2">
+                <Label className="text-xs">Affiche / Image de l'événement</Label>
+                <div className="flex gap-2">
+                  <Input
+                    placeholder="https://..."
+                    value={eventForm.imageUrl}
+                    onChange={e => setEventForm({ ...eventForm, imageUrl: e.target.value })}
+                  />
+                  <label className="relative cursor-pointer shrink-0">
+                    <Button type="button" variant="outline" size="sm" className="gap-1.5 h-9" disabled={isUploading} asChild>
+                      <span>
+                        {isUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                        Upload
+                      </span>
+                    </Button>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="sr-only"
+                      onChange={async e => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        try {
+                          const res = await uploadFile({ file, folder: "announcements" });
+                          setEventForm(p => ({ ...p, imageUrl: res.url }));
+                          toast.success("Affiche uploadée");
+                        } catch { toast.error("Échec upload"); }
+                      }}
+                      disabled={isUploading}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <div className="md:col-span-2 flex justify-end">
+                <Button size="sm" onClick={handleSaveEvent} disabled={setSettingMutation.isPending} className="gap-1.5">
+                  <Save className="w-4 h-4" />
+                  Enregistrer Tuile 4
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {/* Aperçu en temps réel */}
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
+            Aperçu des 5 Tuiles de la Bento Grid
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            <div className="bg-card border border-border/60 p-3 rounded-xl">
+              <span className="text-[10px] font-bold text-primary block">Tuile 1 · Flagship</span>
+              <p className="text-xs font-medium truncate text-foreground mt-1">
+                {flagshipForm.title || "Culte & Célébration"}
+              </p>
+              <span className="text-[10px] text-muted-foreground">Format 2x2 immersif</span>
+            </div>
+
+            <div className="bg-card border border-border/60 p-3 rounded-xl">
+              <span className="text-[10px] font-bold text-primary block">Tuile 2 · Verset & Audio</span>
+              <p className="text-xs font-medium truncate text-foreground mt-1">
+                {verseForm.reference || "Verset du Jour"}
+              </p>
+              <span className="text-[10px] text-muted-foreground">Copie & Lecture audio</span>
+            </div>
+
+            <div className="bg-card border border-border/60 p-3 rounded-xl">
+              <span className="text-[10px] font-bold text-primary block">Tuile 3 · Radar Direct</span>
+              <p className="text-xs font-medium truncate text-foreground mt-1">
+                {radarForm.forceLive === "true" ? "🔴 En direct" : `${radarForm.hour}h00`}
+              </p>
+              <span className="text-[10px] text-muted-foreground">Compte à rebours</span>
+            </div>
+
+            <div className="bg-card border border-border/60 p-3 rounded-xl">
+              <span className="text-[10px] font-bold text-primary block">Tuile 4 · Événement</span>
+              <p className="text-xs font-medium truncate text-foreground mt-1">
+                {eventForm.title || "Convention G12"}
+              </p>
+              <span className="text-[10px] text-muted-foreground">Inscriptions & Flash</span>
+            </div>
+
+            <div className="bg-card border border-border/60 p-3 rounded-xl">
+              <span className="text-[10px] font-bold text-primary block">Tuile 5 · Assistant IA</span>
+              <p className="text-xs font-medium truncate text-foreground mt-1">Questions spirituelles</p>
+              <span className="text-[10px] text-muted-foreground">Déclencheur Ask G12</span>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+

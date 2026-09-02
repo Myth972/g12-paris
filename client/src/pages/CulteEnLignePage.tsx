@@ -14,7 +14,6 @@ export default function CulteEnLignePage() {
   const heroOpacityRaw = settingsQuery.data?.culteHeroBgOpacity as string | undefined;
   const heroOpacityPercent = Math.max(0, Math.min(60, Number(heroOpacityRaw ?? 18)));
   const heroOpacity = heroOpacityPercent / 100;
-  const textColor = (settingsQuery.data?.["culte.textColor"] as string) || "";
   const liveEnabledRaw = settingsQuery.data?.culteLiveEnabled as string | undefined;
   const liveEnabled = liveEnabledRaw !== "false";
   const youtubeVideoId = settingsQuery.data?.culteYoutubeVideoId as string | undefined;
@@ -83,8 +82,7 @@ export default function CulteEnLignePage() {
               pageKey="culte-en-ligne"
               textKey="hero"
               defaultText={"Participez à nos services de culte en ligne et vivez une expérience spirituelle depuis n'importe où.\n\nEt si vous le voulez, rejoignez nous chaque dimanche sur Paris."}
-              className={`mt-2 sm:mt-4 text-sm sm:text-base leading-relaxed max-w-lg ${textColor ? "" : "text-foreground/70 dark:text-foreground/80"}`}
-              style={textColor ? { color: `${textColor} !important` } : undefined}
+              className="mt-2 sm:mt-4 text-sm sm:text-base leading-relaxed max-w-lg text-foreground/70 dark:text-foreground/80"
             />
             
             <div className="mt-6">

@@ -6,6 +6,7 @@ import AnnouncementCard, { type Announcement } from "@/components/AnnouncementCa
 import { Reveal, staggerContainer, staggerItem } from "@/components/Reveal";
 import FloatingParticles from "@/components/FloatingParticles";
 import TiltCard from "@/components/TiltCard";
+import BentoGrid from "@/components/BentoGrid";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -143,6 +144,11 @@ const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, categor
           </div>
         </div>
       </section>
+      </Reveal>
+
+      {/* Bento Grid moderne — En un coup d'œil */}
+      <Reveal variant="fadeUp" delay={0.1}>
+        <BentoGrid />
       </Reveal>
 
       {/* MetaSlider — informations WhatsApp */}
