@@ -22,6 +22,7 @@ import { Streamdown } from "streamdown";
 import { toast } from "sonner";
 import ReadingProgressBar from "@/components/ReadingProgressBar";
 import ScrollToTopButton from "@/components/ScrollToTopButton";
+import StoryCardGenerator from "@/components/StoryCardGenerator";
 import {
   extractHeadings,
   injectHeadingIds,
@@ -243,6 +244,13 @@ export default function ArticleDetail() {
               <Share2 className="w-3.5 h-3.5 mr-1.5" />
               Partager
             </Button>
+            <StoryCardGenerator
+              title={article.title}
+              excerpt={article.excerpt}
+              coverImageUrl={article.coverImageUrl}
+              category={article.category}
+              slug={article.slug}
+            />
           </div>
         </div>
       </header>
