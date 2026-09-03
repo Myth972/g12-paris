@@ -51,7 +51,7 @@
     "@radix-ui/react-toggle": "^1.1.14",
     "@radix-ui/react-toggle-group": "^1.1.15",
     "@radix-ui/react-tooltip": "^1.2.12",
-    "@shikijs/core": "^3.14.0",
+    "@shikijs/core": "^4.3.1",
     "@shikijs/engine-javascript": "^3.14.0",
     "@shikijs/langs": "^3.14.0",
     "@shikijs/themes": "^3.14.0",
