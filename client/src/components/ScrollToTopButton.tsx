@@ -2,14 +2,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { ChevronUp } from "lucide-react";
 import { useMotionEnabled } from "@/hooks/useMotionEnabled";
-import { useVisualEnabled } from "@/hooks/useVisualSetting";
 
 export default function ScrollToTopButton() {
   const motionEnabled = useMotionEnabled();
-  const enabled = useVisualEnabled("visuals.scrollToTop.enabled");
   const [visible, setVisible] = useState(false);
-
-  if (!enabled) return null;
 
   useEffect(() => {
     const onScroll = () => setVisible(window.scrollY > 400);

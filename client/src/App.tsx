@@ -12,6 +12,7 @@ import PageTransition from "./components/PageTransition";
 import GlowCursor from "./components/GlowCursor";
 import { AudioPlayerProvider } from "./contexts/AudioPlayerContext";
 import FloatingAudioPlayer from "./components/FloatingAudioPlayer";
+import ScrollToTopButton from "./components/ScrollToTopButton";
 
 // Lazy-loaded pages
 const Home = lazy(() => import("./pages/Home"));
@@ -253,6 +254,7 @@ function AppWithTheme() {
           <GlowCursor />
           <Toaster />
           <Router />
+          <ScrollToTopButton />
           <FloatingAudioPlayer />
           {DevDeviceToggle && <DevDeviceToggle />}
         </AudioPlayerProvider>
