@@ -27,7 +27,7 @@ export default function ScrollToTopButton() {
           transition={{ duration: 0.2 }}
           onClick={scrollToTop}
           aria-label="Remonter en haut"
-          className="fixed bottom-6 right-6 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+          className="fixed bottom-20 right-4 sm:bottom-24 sm:right-6 z-50 flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
         >
           <ChevronUp className="h-5 w-5" />
         </motion.button>
