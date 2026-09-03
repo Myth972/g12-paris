@@ -77,6 +77,7 @@ import {
   Layout,
   Lightbulb,
   ClipboardList,
+  Settings,
 } from "lucide-react";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useAiProvider } from "@/hooks/useAiProvider";
@@ -946,6 +947,9 @@ if (authLoading) {
   const isBibliotheque = userRole === "bibliotheque";
   const hasAdminAccess = isAdmin || isEditeur || isBibliotheque;
 
+  const [editorMode, setEditorMode] = useState(false);
+  const showFullAdmin = isAdmin && !editorMode;
+
   if (!isAdmin && !isEditeur && !isBibliotheque) {
     return (
       <div className="container py-20 text-center">
@@ -977,6 +981,17 @@ if (authLoading) {
                 <Badge variant="outline" className="text-xs">
                   {isAdmin ? t('admin.roles.admin') : isEditeur ? t('admin.roles.editeur') : isBibliotheque ? t('admin.roles.bibliotheque') : t('admin.roles.user')}
                 </Badge>
+                {isAdmin && (
+                  <Button
+                    variant={editorMode ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setEditorMode(!editorMode)}
+                    className="ml-2 gap-1.5"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                    Mode éditeur
+                  </Button>
+                )}
 <Button
   variant="outline"
   size="sm"
@@ -1092,7 +1107,7 @@ if (authLoading) {
             </div>
           </Link>
 
-          {isAdmin && (
+          {showFullAdmin && (
           <Link href="/admin/design">
             <div className="bg-card border border-border p-6 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50">
               <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-600 mb-4 group-hover:scale-110 transition-transform">
@@ -1106,7 +1121,7 @@ if (authLoading) {
           </Link>
           )}
 
-          {isAdmin && (
+          {showFullAdmin && (
           <Link href="/admin/visuals">
             <div className="bg-card border border-border p-6 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50">
               <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center text-purple-600 mb-4 group-hover:scale-110 transition-transform">
@@ -1120,7 +1135,7 @@ if (authLoading) {
           </Link>
           )}
 
-          {isAdmin && (
+          {showFullAdmin && (
           <Link href="/admin/agents">
             <div className="bg-card border border-border p-6 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50">
               <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-600 mb-4 group-hover:scale-110 transition-transform">
@@ -1182,11 +1197,13 @@ if (authLoading) {
               <Wand2 className="w-4 h-4 text-violet-500" />
               AI Media Studio
             </TabsTrigger>
+              </>
+            )}
+            {showFullAdmin && (
             <TabsTrigger value="users" className="gap-2">
               <Users className="w-4 h-4" />
               {t('admin.tabs.users')}
             </TabsTrigger>
-              </>
             )}
             <TabsTrigger value="pages" className="gap-2">
               <Newspaper className="w-4 h-4" />
@@ -1204,7 +1221,7 @@ if (authLoading) {
               <Lightbulb className="w-4 h-4 text-amber-500" />
               Suggestions
             </TabsTrigger>
-            {isAdmin && (
+            {showFullAdmin && (
               <TabsTrigger value="convention-registrations" className="gap-2">
                 <ClipboardList className="w-4 h-4 text-blue-500" />
                 Inscriptions
@@ -1231,7 +1248,7 @@ if (authLoading) {
           </TabsContent>
           <TabsContent value="ai">
             <AIAssistantTab />
-            {isAdmin && (
+            {showFullAdmin && (
               <div className="mt-8">
                 <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
                   <ApiKeyConnector />
@@ -1250,10 +1267,12 @@ if (authLoading) {
           <TabsContent value="kling" className="py-4">
             <KlingStudio />
           </TabsContent>
+            </>
+          )}
+          {showFullAdmin && (
           <TabsContent value="users">
             <UsersTab />
           </TabsContent>
-            </>
           )}
           <TabsContent value="pages">
             <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.main.loadingManager')}</div>}>
@@ -1277,7 +1296,7 @@ if (authLoading) {
           <TabsContent value="publications" className="space-y-8">
             <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
                <GalleryManager />
-               {isAdmin && <><div className="h-px bg-border my-8" /><VersesManager /></>}
+               {showFullAdmin && <><div className="h-px bg-border my-8" /><VersesManager /></>}
             </Suspense>
           </TabsContent>
           <TabsContent value="cms">
