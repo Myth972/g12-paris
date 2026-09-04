@@ -1092,75 +1092,42 @@ if (authLoading) {
       </div>
 
       <div className="container pt-2">
-        <h2 className="text-lg font-serif font-bold mb-4 flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-primary" /> {t('admin.quickAccess.title')}
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
-          <Link href="/admin/bibliotheque">
-            <div className="bg-card border border-border p-6 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50">
-              <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary mb-4 group-hover:scale-110 transition-transform">
-                <Library className="w-6 h-6" />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+          <Link href="/admin/article/new">
+            <div className="bg-card border border-border p-5 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50 flex items-center gap-4">
+              <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary group-hover:scale-110 transition-transform flex-shrink-0">
+                <Plus className="w-5 h-5" />
               </div>
-              <h3 className="text-xl font-bold font-serif mb-2">{t('admin.quickAccess.library')}</h3>
-              <p className="text-sm text-muted-foreground">
-                {t('admin.quickAccess.libraryDesc')}
-              </p>
+              <div>
+                <h3 className="font-semibold text-sm">{t('admin.quickAccess.newArticle')}</h3>
+                <p className="text-xs text-muted-foreground">{t('admin.quickAccess.newArticleDesc')}</p>
+              </div>
             </div>
           </Link>
-
+          <Link href="/admin/bibliotheque">
+            <div className="bg-card border border-border p-5 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50 flex items-center gap-4">
+              <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center text-amber-600 group-hover:scale-110 transition-transform flex-shrink-0">
+                <Library className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-sm">{t('admin.quickAccess.library')}</h3>
+                <p className="text-xs text-muted-foreground">{t('admin.quickAccess.libraryDesc')}</p>
+              </div>
+            </div>
+          </Link>
           {showFullAdmin && (
           <Link href="/admin/design">
-            <div className="bg-card border border-border p-6 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50">
-              <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-600 mb-4 group-hover:scale-110 transition-transform">
-                <Palette className="w-6 h-6" />
+            <div className="bg-card border border-border p-5 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50 flex items-center gap-4">
+              <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center text-purple-600 group-hover:scale-110 transition-transform flex-shrink-0">
+                <Palette className="w-5 h-5" />
               </div>
-              <h3 className="text-xl font-bold font-serif mb-2">{t('admin.quickAccess.design')}</h3>
-              <p className="text-sm text-muted-foreground">
-                {t('admin.quickAccess.designDesc')}
-              </p>
+              <div>
+                <h3 className="font-semibold text-sm">{t('admin.quickAccess.design')}</h3>
+                <p className="text-xs text-muted-foreground">{t('admin.quickAccess.designDesc')}</p>
+              </div>
             </div>
           </Link>
           )}
-
-          {showFullAdmin && (
-          <Link href="/admin/visuals">
-            <div className="bg-card border border-border p-6 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50">
-              <div className="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center text-purple-600 mb-4 group-hover:scale-110 transition-transform">
-                <Sparkles className="w-6 h-6" />
-              </div>
-              <h3 className="text-xl font-bold font-serif mb-2">{t('admin.quickAccess.visuals')}</h3>
-              <p className="text-sm text-muted-foreground">
-                {t('admin.quickAccess.visualsDesc')}
-              </p>
-            </div>
-          </Link>
-          )}
-
-          {showFullAdmin && (
-          <Link href="/admin/agents">
-            <div className="bg-card border border-border p-6 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50">
-              <div className="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-600 mb-4 group-hover:scale-110 transition-transform">
-                <Bot className="w-6 h-6" />
-              </div>
-              <h3 className="text-xl font-bold font-serif mb-2">{t('admin.quickAccess.agents')}</h3>
-              <p className="text-sm text-muted-foreground">
-                {t('admin.quickAccess.agentsDesc')}
-              </p>
-            </div>
-          </Link>
-          )}
-
-          <Link href="/admin/article/new">
-            <div className="bg-card border border-border p-6 rounded-2xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50">
-              <div className="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center text-blue-600 mb-4 group-hover:scale-110 transition-transform">
-                <Plus className="w-6 h-6" />
-              </div>
-              <h3 className="text-xl font-bold font-serif mb-2">{t('admin.quickAccess.newArticle')}</h3>
-              <p className="text-sm text-muted-foreground">
-                {t('admin.quickAccess.newArticleDesc')}
-              </p>
-            </div>
-          </Link>
         </div>
       </div>
 
@@ -1176,36 +1143,6 @@ if (authLoading) {
               <LayoutDashboard className="w-4 h-4" />
               {t('admin.tabs.home')}
             </TabsTrigger>
-            {hasAdminAccess && (
-              <>
-            <TabsTrigger value="notifications" className="gap-2">
-              <Bell className="w-4 h-4" />
-              {t('admin.tabs.notifications')}
-            </TabsTrigger>
-            <TabsTrigger value="newsletter" className="gap-2">
-              <Mail className="w-4 h-4" />
-              {t('admin.tabs.newsletter')}
-            </TabsTrigger>
-            <TabsTrigger value="ai" className="gap-2">
-              <Sparkles className="w-4 h-4 text-primary" />
-              {t('admin.tabs.ai')}
-            </TabsTrigger>
-            <TabsTrigger value="ai-writer" className="gap-2">
-              <FileText className="w-4 h-4 text-amber-500" />
-              {t('admin.tabs.aiWriter')}
-            </TabsTrigger>
-            <TabsTrigger value="kling" className="gap-2">
-              <Wand2 className="w-4 h-4 text-violet-500" />
-              AI Media Studio
-            </TabsTrigger>
-              </>
-            )}
-            {showFullAdmin && (
-            <TabsTrigger value="users" className="gap-2">
-              <Users className="w-4 h-4" />
-              {t('admin.tabs.users')}
-            </TabsTrigger>
-            )}
             <TabsTrigger value="pages" className="gap-2">
               <Newspaper className="w-4 h-4" />
               {t('admin.tabs.pages')}
@@ -1214,23 +1151,37 @@ if (authLoading) {
               <BookOpen className="w-4 h-4" />
               {t('admin.tabs.publications')}
             </TabsTrigger>
+            {hasAdminAccess && (
+              <>
+            <TabsTrigger value="ai" className="gap-2">
+              <Sparkles className="w-4 h-4 text-primary" />
+              {t('admin.tabs.ai')}
+            </TabsTrigger>
+            <TabsTrigger value="communications" className="gap-2">
+              <Mail className="w-4 h-4" />
+              Communications
+            </TabsTrigger>
+              </>
+            )}
             <TabsTrigger value="cms" className="gap-2">
               <Layout className="w-4 h-4 text-emerald-500" />
               CMS
-            </TabsTrigger>
-            <TabsTrigger value="suggestions" className="gap-2">
-              <Lightbulb className="w-4 h-4 text-amber-500" />
-              Suggestions
             </TabsTrigger>
             <TabsTrigger value="story-cards" className="gap-2">
               <ImageIcon className="w-4 h-4 text-pink-500" />
               Story Cards
             </TabsTrigger>
             {showFullAdmin && (
-              <TabsTrigger value="convention-registrations" className="gap-2">
-                <ClipboardList className="w-4 h-4 text-blue-500" />
-                Inscriptions
-              </TabsTrigger>
+              <>
+            <TabsTrigger value="users" className="gap-2">
+              <Users className="w-4 h-4" />
+              {t('admin.tabs.users')}
+            </TabsTrigger>
+            <TabsTrigger value="convention-registrations" className="gap-2">
+              <ClipboardList className="w-4 h-4 text-blue-500" />
+              Inscriptions
+            </TabsTrigger>
+              </>
             )}
           </TabsList>
           <TabsContent value="articles">
@@ -1243,34 +1194,42 @@ if (authLoading) {
           </TabsContent>
           {hasAdminAccess && (
             <>
-          <TabsContent value="notifications">
-            <NotificationsTab />
-          </TabsContent>
-          <TabsContent value="newsletter">
-            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
-              <NewsletterAdmin />
-            </Suspense>
-          </TabsContent>
-          <TabsContent value="ai">
+          <TabsContent value="ai" className="space-y-6">
             <AIAssistantTab />
             {showFullAdmin && (
-              <div className="mt-8">
+              <div>
                 <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
                   <ApiKeyConnector />
                 </Suspense>
               </div>
             )}
-            <div className="mt-8">
-              <AIDashboard />
+            <div>
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-amber-500" />
+                Rédacteur IA
+              </h3>
+              <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
+                <AIArticleWriter />
+              </Suspense>
             </div>
+            <div>
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                <Wand2 className="w-4 h-4 text-violet-500" />
+                AI Media Studio
+              </h3>
+              <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
+                <KlingStudio />
+              </Suspense>
+            </div>
+            <AIDashboard />
           </TabsContent>
-          <TabsContent value="ai-writer">
-            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
-              <AIArticleWriter />
-            </Suspense>
-          </TabsContent>
-          <TabsContent value="kling" className="py-4">
-            <KlingStudio />
+          <TabsContent value="communications" className="space-y-6">
+            <NotificationsTab />
+            <div className="border-t border-border pt-6">
+              <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
+                <NewsletterAdmin />
+              </Suspense>
+            </div>
           </TabsContent>
             </>
           )}
@@ -1307,11 +1266,6 @@ if (authLoading) {
           <TabsContent value="cms">
             <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
               <CMSManager />
-            </Suspense>
-          </TabsContent>
-          <TabsContent value="suggestions">
-            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
-              <SuggestionsManager />
             </Suspense>
           </TabsContent>
           <TabsContent value="story-cards">
