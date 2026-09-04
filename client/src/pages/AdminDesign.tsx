@@ -257,8 +257,19 @@ export default function AdminDesign() {
           ${secondaryColor ? `--secondary: ${secondaryColor} !important;` : ''}
           ${bgColor ? `--background: ${bgColor} !important;` : ''}
         }
-        ${textColor ? `:root:not(.dark) body, :root:not(.dark) .text-foreground, :root:not(.dark) h1, :root:not(.dark) h2, :root:not(.dark) h3, :root:not(.dark) h4, :root:not(.dark) h5, :root:not(.dark) h6, :root:not(.dark) p { color: ${textColor} !important; }` : ''}
-        ${mutedTextColor ? `:root:not(.dark) .text-muted-foreground { color: ${mutedTextColor} !important; }` : ''}
+        .dark {
+          ${primaryColor ? `--primary: ${primaryColor} !important;` : ''}
+          ${secondaryColor ? `--secondary: ${secondaryColor} !important;` : ''}
+          ${bgColor ? `--background: ${bgColor} !important;` : ''}
+        }
+        ${textColor ? `
+          :root:not(.dark) body, :root:not(.dark) .text-foreground, :root:not(.dark) .text-card-foreground { color: ${textColor} !important; }
+          .dark body, .dark .text-foreground, .dark .text-card-foreground { color: ${textColor} !important; }
+        ` : ''}
+        ${mutedTextColor ? `
+          :root:not(.dark) .text-muted-foreground { color: ${mutedTextColor} !important; }
+          .dark .text-muted-foreground { color: ${mutedTextColor} !important; }
+        ` : ''}
         ${fontHeading ? `h1, h2, h3, h4, h5, h6, .font-serif { font-family: ${fontHeading === 'playfair' ? '"Playfair Display", serif' : fontHeading === 'merriweather' ? 'Merriweather, serif' : 'Lora, serif'} !important; }` : ''}
         ${fontBody ? `body, .font-sans { font-family: ${fontBody === 'inter' ? 'Inter, sans-serif' : fontBody === 'roboto' ? 'Roboto, sans-serif' : 'Lato, sans-serif'} !important; }` : ''}
         ${buttonStyle === 'square' ? '[data-slot="button"], button, .btn { border-radius: 0px !important; }' : ''}
