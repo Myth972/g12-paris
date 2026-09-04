@@ -84,35 +84,40 @@ export default function StoryCardAdmin() {
   }, [width, height]);
 
   const handleDownload = async () => {
+    const article = selectedArticle;
     const blob = await generateImage();
-    if (!blob) return;
+    if (!blob || !article) return;
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `g12-story-${selectedArticle?.slug}-${format}.png`;
+    a.download = `g12-story-${article.slug}-${format}.png`;
     a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
     toast.success("Image téléchargée");
   };
 
   const handleShare = async () => {
+    const article = selectedArticle;
     const blob = await generateImage();
-    if (!blob) return;
+    if (!blob || !article) return;
     const file = new File([blob], `g12-story-${format}.png`, {
       type: "image/png",
     });
     if (navigator.share && navigator.canShare?.({ files: [file] })) {
       try {
         await navigator.share({
-          title: selectedArticle?.title,
-          text: selectedArticle?.excerpt || selectedArticle?.title,
+          title: article.title,
+          text: article.excerpt || article.title,
           files: [file],
         });
       } catch {
         toast.error("Partage annulé");
       }
     } else {
-      toast.success("Lien copié");
+      await navigator.clipboard.writeText(
+        `${window.location.origin}/article/${article.slug}`
+      );
+      toast.success("Lien copié dans le presse-papiers");
     }
   };
 
@@ -233,13 +238,15 @@ export default function StoryCardAdmin() {
                 background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
               }}
             >
-              {selectedArticle?.coverImageUrl && (
+              {selectedArticle?.coverImageUrl ? (
                 <img
                   src={selectedArticle.coverImageUrl}
                   alt=""
                   crossOrigin="anonymous"
                   className="absolute inset-0 w-full h-full object-cover opacity-30"
                 />
+              ) : (
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-primary/5" />
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-transparent" />
               <div className="relative z-10 p-6 sm:p-8 flex flex-col gap-4">
@@ -258,7 +265,7 @@ export default function StoryCardAdmin() {
                         : "clamp(1.25rem, 3vw, 2rem)",
                   }}
                 >
-                  {selectedArticle?.title?.length ?? 0 > 80
+                  {(selectedArticle?.title?.length ?? 0) > 80
                     ? (selectedArticle?.title ?? "").slice(0, 77) + "..."
                     : selectedArticle?.title}
                 </h2>
