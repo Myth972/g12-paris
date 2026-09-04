@@ -98,6 +98,7 @@ const AIDashboard = lazy(() => import("@/components/AIDashboard"));
 const ApiKeyConnector = lazy(() => import("@/components/ApiKeyConnector"));
 const CMSManager = lazy(() => import("@/components/CMSManager"));
 const AIArticleWriter = lazy(() => import("./AIArticleWriter"));
+const StoryCardAdmin = lazy(() => import("./StoryCardAdmin"));
 
 import HomeHeroBackgroundSettings from "@/components/HomeHeroBackgroundSettings";
 import CulteHeroBackgroundSettings from "@/components/CulteHeroBackgroundSettings";
@@ -1221,6 +1222,10 @@ if (authLoading) {
               <Lightbulb className="w-4 h-4 text-amber-500" />
               Suggestions
             </TabsTrigger>
+            <TabsTrigger value="story-cards" className="gap-2">
+              <ImageIcon className="w-4 h-4 text-pink-500" />
+              Story Cards
+            </TabsTrigger>
             {showFullAdmin && (
               <TabsTrigger value="convention-registrations" className="gap-2">
                 <ClipboardList className="w-4 h-4 text-blue-500" />
@@ -1307,6 +1312,11 @@ if (authLoading) {
           <TabsContent value="suggestions">
             <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
               <SuggestionsManager />
+            </Suspense>
+          </TabsContent>
+          <TabsContent value="story-cards">
+            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
+              <StoryCardAdmin />
             </Suspense>
           </TabsContent>
           <TabsContent value="convention-registrations">
