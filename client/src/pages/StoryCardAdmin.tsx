@@ -181,7 +181,7 @@ export default function StoryCardAdmin() {
             <div className="flex-1 min-w-0">
               <p className="font-medium text-sm truncate">{article.title}</p>
               <div className="flex items-center gap-2 mt-1">
-                <Badge variant="secondary" className="text-[10px]">
+                <Badge variant="outline" className="text-[10px] border-border/60">
                   {formatCategory(article.category)}
                 </Badge>
                 <span className="text-[10px] text-muted-foreground">
