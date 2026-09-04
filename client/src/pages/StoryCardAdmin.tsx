@@ -58,6 +58,11 @@ export default function StoryCardAdmin() {
     a.title.toLowerCase().includes(search.toLowerCase())
   );
 
+  const formatCategory = (cat: string) => {
+    const parts = cat.split(":");
+    return parts[parts.length - 1].trim();
+  };
+
   const { width, height } = FORMAT_CONFIG[format];
 
   const generateImage = useCallback(async (): Promise<Blob | null> => {
@@ -177,7 +182,7 @@ export default function StoryCardAdmin() {
               <p className="font-medium text-sm truncate">{article.title}</p>
               <div className="flex items-center gap-2 mt-1">
                 <Badge variant="secondary" className="text-[10px]">
-                  {article.category}
+                  {formatCategory(article.category)}
                 </Badge>
                 <span className="text-[10px] text-muted-foreground">
                   {article.published ? "Publié" : "Brouillon"}
@@ -254,7 +259,7 @@ export default function StoryCardAdmin() {
                   className="inline-flex self-start items-center rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-white"
                   style={{ backgroundColor: primaryColor }}
                 >
-                  {selectedArticle?.category}
+                  {selectedArticle ? formatCategory(selectedArticle.category) : ""}
                 </span>
                 <h2
                   className="font-serif font-bold text-white leading-tight"
