@@ -77,7 +77,10 @@ export default function GalleriesPage() {
   const { data, isLoading } = trpc.gallery.list.useQuery({
     limit,
     offset,
-    category: activeCategory || undefined,
+    ...(activeCategory ? { category: activeCategory } : {}),
+  }, {
+    refetchOnMount: true,
+    refetchOnWindowFocus: false,
   });
   const { data: featuredData } = trpc.gallery.featured.useQuery();
 
@@ -512,6 +515,7 @@ export default function GalleriesPage() {
         ) : items.length > 0 ? (
           <>
             <motion.div
+              key={`gallery-grid-${activeCategory}-${page}`}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
               variants={containerVars}
               initial={motionEnabled ? "hidden" : "visible"}
@@ -538,14 +542,21 @@ export default function GalleriesPage() {
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 select-none"
                           onContextMenu={(e) => e.preventDefault()}
                           draggable={false}
-                          loading="lazy"
+                          loading="eager"
+                          onError={e => {
+                            const img = e.target as HTMLImageElement;
+                            img.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect fill='%23e2e8f0' width='100' height='100'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='%2394a3b8' font-size='14'%3EImage%3C/text%3E%3C/svg%3E";
+                          }}
                         />
                       ) : (
                         <div className="relative w-full h-full">
                           {(() => {
                             const thumb = item.coverImageUrl || (item.youtubeUrl ? getYouTubeThumbnail(item.youtubeUrl) : null);
                             if (thumb) return (
-                              <img src={thumb} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 select-none" loading="lazy" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                              <img src={thumb} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 select-none" loading="eager" onError={e => {
+                                const img = e.target as HTMLImageElement;
+                                img.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect fill='%23e2e8f0' width='100' height='100'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='%2394a3b8' font-size='14'%3EVideo%3C/text%3E%3C/svg%3E";
+                              }} />
                             );
                             if (item.mediaUrl && !item.youtubeUrl) return (
                               <video src={getImageUrl(item.mediaUrl)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
