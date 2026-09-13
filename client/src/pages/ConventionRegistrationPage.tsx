@@ -9,7 +9,6 @@ import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import QRCode from "qrcode";
 
-const STORAGE_KEY = "g12_convention_registered";
 
 export default function ConventionRegistrationPage() {
   const [, navigate] = useLocation();
@@ -30,22 +29,10 @@ export default function ConventionRegistrationPage() {
     }
   }, [settingsQuery.data, registrationEnabled, navigate]);
 
-  useEffect(() => {
-    const registered = localStorage.getItem(STORAGE_KEY);
-    if (registered) {
-      navigate("/culte-en-ligne/convention");
-    }
-  }, [navigate]);
+  // localStorage check removed — doublon géré côté serveur (alreadyRegistered)
 
   const registerMutation = trpc.conventionRegistrations.create.useMutation({
     onSuccess: (data) => {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({
-        email: data.registration.email,
-        firstName: data.registration.firstName,
-        lastName: data.registration.lastName,
-        ticketCode: data.registration.ticketCode,
-        registeredAt: new Date().toISOString(),
-      }));
       if (data.registration.ticketCode) {
         QRCode.toDataURL(
           `https://g12parismedia.com/convention/verify?code=${data.registration.ticketCode}`,
