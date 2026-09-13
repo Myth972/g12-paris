@@ -5,17 +5,33 @@ import PageTextEditor from "@/components/PageTextEditor";
 import { Reveal } from "@/components/Reveal";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
-import { Play, Share2, ExternalLink, Check, Calendar, MapPin } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Play, Share2, ExternalLink, Check, Calendar, MapPin, ShieldCheck, Loader2, XCircle } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { toast } from "sonner";
 
+const COOKIE_NAME = "g12_convention_verified";
+const COOKIE_DAYS = 3;
+
+function setConventionCookie(code: string) {
+  const expires = new Date(Date.now() + COOKIE_DAYS * 24 * 60 * 60 * 1000).toUTCString();
+  document.cookie = `${COOKIE_NAME}=${code};expires=${expires};path=/;SameSite=Lax;Secure`;
+}
+
+function getConventionCookie(): string | null {
+  const match = document.cookie.match(new RegExp(`(?:^|; )${COOKIE_NAME}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+}
 
 export default function ConventionG12FrancePage() {
   const [, navigate] = useLocation();
   const settingsQuery = trpc.siteSettings.getAll.useQuery();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
-  
+
   const conventionLogoUrl = (settingsQuery.data?.["convention.logoUrl"] as string) || "https://conventiong12france.com/wp-content/uploads/elementor/thumbs/g12France-rdu8vngvdwatmx6fgxu9wasglsg906xtva9qh3nrls.png";
   const bgUrl = (settingsQuery.data?.["convention.bgUrl"] as string) || "https://conventiong12france.com/wp-content/uploads/2025/10/LHERITAGE-2025-1536x861.png";
   const bgUrlMiddle = (settingsQuery.data?.["convention.bgUrlMiddle"] as string) || "";
@@ -23,32 +39,80 @@ export default function ConventionG12FrancePage() {
   const primaryColor = settingsQuery.data?.["convention.primaryColor"] as string;
   const showLogoRaw = settingsQuery.data?.["convention.showLogo"] as string | undefined;
   const showOfficialSiteRaw = settingsQuery.data?.["convention.showOfficialSite"] as string | undefined;
-  
-  // We can reuse some settings if needed, or rely solely on PageContentDisplay
   const liveEnabledRaw = settingsQuery.data?.["convention.liveEnabled"] as string | undefined;
-  const liveEnabled = liveEnabledRaw === "true"; // Defaults to false for convention unless set
-  const showLogo = showLogoRaw !== "false"; // Defaults to true
-  const showOfficialSite = showOfficialSiteRaw !== "false"; // Defaults to true
+  const liveEnabled = liveEnabledRaw === "true";
+  const showLogo = showLogoRaw !== "false";
+  const showOfficialSite = showOfficialSiteRaw !== "false";
   const showBilingualCTARaw = settingsQuery.data?.["convention.showBilingualCTA"] as string | undefined;
-  const showBilingualCTA = showBilingualCTARaw !== "false"; // Defaults to true
+  const showBilingualCTA = showBilingualCTARaw !== "false";
   const youtubeVideoIdRaw = settingsQuery.data?.["convention.youtubeVideoId"] as string | undefined;
   const facebookVideoUrl = settingsQuery.data?.["convention.facebookVideoUrl"] as string | undefined;
   const registrationEnabled = settingsQuery.data?.["convention.registrationEnabled"] === "true";
 
+  // Redirect to registration if enabled (admin bypass)
   useEffect(() => {
     if (settingsQuery.data && registrationEnabled && !isAdmin) {
       navigate("/inscription-convention");
     }
   }, [settingsQuery.data, registrationEnabled, navigate, isAdmin]);
 
-  // Extract YouTube video ID from full URL if needed
+  // --- Code verification state ---
+  const [verified, setVerified] = useState(false);
+  const [code, setCode] = useState("");
+  const [verifying, setVerifying] = useState(false);
+  const [verifyError, setVerifyError] = useState("");
+
+  // Check cookie on mount
+  useEffect(() => {
+    if (isAdmin) {
+      setVerified(true);
+      return;
+    }
+    const cookieCode = getConventionCookie();
+    if (cookieCode) {
+      setCode(cookieCode);
+      setVerified(true);
+    }
+  }, [isAdmin]);
+
+  const verifyQuery = trpc.conventionRegistrations.verifyCode.useQuery(
+    { code },
+    { enabled: false }
+  );
+
+  const handleVerify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (code.length !== 7) return;
+    setVerifying(true);
+    setVerifyError("");
+    try {
+      const result = await verifyQuery.refetch();
+      if (result.data?.valid) {
+        setConventionCookie(code);
+        setVerified(true);
+        toast.success("Code vérifié ! Bienvenue à la Convention G12 France.");
+      } else {
+        const reason = result.data?.reason;
+        if (reason === "rate_limit") {
+          setVerifyError("Trop de tentatives. Réessayez dans 5 minutes.");
+        } else if (reason === "expired") {
+          setVerifyError("Ce code a expiré.");
+        } else {
+          setVerifyError("Code invalide. Vérifiez votre code et réessayez.");
+        }
+      }
+    } catch {
+      setVerifyError("Erreur de connexion. Réessayez.");
+    } finally {
+      setVerifying(false);
+    }
+  };
+
   const extractYouTubeId = (input: string | undefined): string | null => {
     if (!input) return null;
     const trimmed = input.trim();
     if (!trimmed) return null;
-    // Already an ID (11 chars, alphanumeric + dash + underscore)
     if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed;
-    // Try to extract from various YouTube URL formats
     const patterns = [
       /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/live\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
     ];
@@ -60,362 +124,253 @@ export default function ConventionG12FrancePage() {
   };
 
   const youtubeVideoId = extractYouTubeId(youtubeVideoIdRaw);
-
   const [copied, setCopied] = useState(false);
   const [iframeErrored, setIframeErrored] = useState(false);
 
   const handleShare = async () => {
     const url = window.location.href;
     if (navigator.share) {
-      try {
-        await navigator.share({
-          title: "Convention G12 France",
-          text: "Participez à la Convention G12 France avec nous !",
-          url,
-        });
-      } catch (err) {
-        console.log("Share cancelled");
-      }
-    } else {
+      try { await navigator.share({ title: "Convention G12 France", url }); } catch {}
+    } else if (navigator.clipboard) {
       await navigator.clipboard.writeText(url);
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
   };
 
+  // --- Code verification form ---
+  if (!verified) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
+        <Card className="max-w-md w-full">
+          <CardHeader className="text-center">
+            <ShieldCheck className="w-12 h-12 text-primary mx-auto mb-2" />
+            <CardTitle className="text-2xl font-serif">Convention G12 France</CardTitle>
+            <CardDescription>
+              Entrez votre code à 7 caractères pour accéder au contenu de la convention.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <form onSubmit={handleVerify} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="conv-code">Code d'accès</Label>
+                <Input
+                  id="conv-code"
+                  placeholder="ABCD123"
+                  value={code}
+                  onChange={(e) => { setCode(e.target.value.toUpperCase().slice(0, 7)); setVerifyError(""); }}
+                  maxLength={7}
+                  className="text-center text-lg font-mono tracking-[0.2em] uppercase"
+                  autoFocus
+                  disabled={verifying}
+                />
+              </div>
+              {verifyError && (
+                <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/10 px-3 py-2 rounded-lg">
+                  <XCircle className="w-4 h-4 shrink-0" />
+                  {verifyError}
+                </div>
+              )}
+              <Button type="submit" className="w-full" disabled={code.length !== 7 || verifying}>
+                {verifying ? (
+                  <><Loader2 className="w-4 h-4 animate-spin mr-2" />Vérification...</>
+                ) : (
+                  "Accéder à la Convention"
+                )}
+              </Button>
+            </form>
+            <div className="text-center">
+              <Link href="/inscription-convention" className="text-sm text-muted-foreground hover:text-foreground">
+                Pas encore inscrit ? S'inscrire ici
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // --- Main convention content (after verification) ---
   return (
     <div className="min-h-screen bg-background">
+      {/* Dynamic primary color CSS injection */}
       {primaryColor && (
-        <style dangerouslySetInnerHTML={{
-          __html: `
-            .convention-primary-bg { background-color: ${primaryColor} !important; }
-            .convention-primary-text { color: ${primaryColor} !important; }
-            .convention-primary-border { border-color: ${primaryColor} !important; }
-            .convention-gradient { background: linear-gradient(135deg, ${primaryColor} 0%, #1e3a8a 100%) !important; }
-          `
-        }} />
-      )}
-      
-      {/* Hero section */}
-      <Reveal variant="fadeDown" duration={0.7}>
-      <section 
-        className="relative py-8 sm:py-12 md:py-16 overflow-hidden"
-        style={bgUrl ? { 
-          backgroundImage: `url(${bgUrl})`, 
-          backgroundSize: 'cover', 
-          backgroundPosition: 'center' 
-        } : {}}
-      >
-        {!bgUrl && <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-background to-background pointer-events-none" />}
-        <div className={`absolute inset-0 ${bgUrl ? 'bg-white/80 dark:bg-black/80' : 'bg-gradient-to-br from-primary/10 to-destructive/5 dark:from-primary/5 dark:to-destructive/5'} pointer-events-none`} />
-        
-        <div className="container relative z-10 px-4 sm:px-0">
-          <div className="mb-6">
-            <Button variant="ghost" asChild className="mb-4 -ml-4 text-muted-foreground">
-              <Link href="/culte-en-ligne">← Retour au Culte en ligne</Link>
-            </Button>
-          </div>
-
-          <div className="max-w-4xl mx-auto flex flex-col items-center text-center">
-            {showLogo && (
-              <img 
-                src={conventionLogoUrl} 
-                alt="Convention G12 France" 
-                className="w-full max-w-[280px] sm:max-w-[350px] mb-8 animate-in fade-in zoom-in duration-700"
-              />
-            )}
-
-            {/* Live Badge */}
-            {liveEnabled && (
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-6 bg-red-600 text-white shadow-md animate-pulse">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
-                </span>
-                En direct maintenant
-              </div>
-            )}
-
-            <PageTitleEditor
-              pageKey="convention-g12"
-              defaultH1={"Bienvenue à la Convention G12 France"}
-              defaultH2=""
-              h1ClassName="text-3xl sm:text-4xl md:text-5xl font-bold font-serif text-foreground leading-tight mb-4"
-            />
-            
-            <PageTextEditor
-              pageKey="convention-g12"
-              textKey="hero"
-              defaultText="Rejoignez-nous pour cet événement exceptionnel de transformation, d'équipement et de vision. Vivez la puissance de la vision G12 en France."
-              className="mt-4 text-foreground/80 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto"
-            />
-
-            <div className="flex flex-wrap justify-center gap-4 mt-8">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground bg-white dark:bg-card px-4 py-2 rounded-full shadow-sm border">
-                <Calendar className="w-4 h-4 convention-primary-text text-primary" />
-                <PageTextEditor
-                  pageKey="convention-g12"
-                  textKey="date_info"
-                  defaultText="Prochain événement"
-                  className="inline-block"
-                />
-              </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground bg-white dark:bg-card px-4 py-2 rounded-full shadow-sm border">
-                <MapPin className="w-4 h-4 convention-primary-text text-primary" />
-                <PageTextEditor
-                  pageKey="convention-g12"
-                  textKey="location_info"
-                  defaultText="En ligne & En présentiel"
-                  className="inline-block"
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      </Reveal>
-
-      {/* Video Section */}
-      {(youtubeVideoId || facebookVideoUrl || liveEnabled) && (
-        <Reveal variant="fadeUp" delay={0.1}>
-        <section 
-          className="container pb-8 px-4 sm:px-0 mt-8 relative"
-          style={bgUrlMiddle ? { 
-            backgroundImage: `url(${bgUrlMiddle})`, 
-            backgroundSize: 'cover', 
-            backgroundPosition: 'center' 
-          } : {}}
-        >
-          {bgUrlMiddle && <div className="absolute inset-0 bg-white/80 dark:bg-black/80 pointer-events-none" />}
-          <div className="max-w-4xl mx-auto relative z-10">
-            {/* YouTube */}
-            {youtubeVideoId && (
-              <div className="relative aspect-video bg-black rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-4 border-white/10 dark:border-white/5">
-                <iframe
-                  src={`https://www.youtube.com/embed/${youtubeVideoId}${liveEnabled ? "?autoplay=1&live=1" : ""}`}
-                  title="Convention G12 France en direct"
-                  className="absolute inset-0 w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
-            )}
-
-            {/* Facebook (seulement si pas de YouTube) */}
-            {!youtubeVideoId && facebookVideoUrl && !iframeErrored && (
-              <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-4 border-white/10 dark:border-white/5 bg-black">
-                <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
-                  <iframe
-                    src={`https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(facebookVideoUrl)}&show_text=false&width=560&t=0`}
-                    title="Convention G12 France - Vidéo Facebook"
-                    className="absolute inset-0 w-full h-full"
-                    style={{ border: "none", overflow: "hidden" }}
-                    scrolling="no"
-                    frameBorder="0"
-                    allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
-                    allowFullScreen
-                    onError={() => setIframeErrored(true)}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* Fallback Facebook si l'iframe échoue */}
-            {!youtubeVideoId && facebookVideoUrl && iframeErrored && (
-              <div className="relative aspect-video rounded-xl sm:rounded-2xl overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-900">
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 text-white">
-                  <div className="w-20 h-20 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center mb-5 ring-4 ring-white/20">
-                    <Play className="w-10 h-10 text-white" />
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-bold font-serif mb-2">Vidéo Facebook</h3>
-                  <p className="text-sm sm:text-base text-white/80 mb-6 max-w-md">La vidéo est disponible sur Facebook.</p>
-                  <Button asChild size="lg" className="bg-card text-card-foreground hover:bg-card/90 font-semibold gap-2 shadow-lg">
-                    <a href={facebookVideoUrl} target="_blank" rel="noopener noreferrer">
-                      <Play className="w-5 h-5 fill-current" />
-                      Regarder sur Facebook
-                      <ExternalLink className="w-4 h-4" />
-                    </a>
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Placeholder live sans source */}
-            {!youtubeVideoId && !facebookVideoUrl && liveEnabled && (
-              <div className="relative aspect-video bg-black rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-4 border-white/10 dark:border-white/5">
-                <div className="absolute inset-0 flex items-center justify-center bg-muted">
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-                      <Play className="w-8 h-8 text-primary ml-1" />
-                    </div>
-                    <p className="text-muted-foreground">La session va bientôt commencer...</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Share + External links */}
-            <div className="flex flex-wrap justify-center gap-3 mt-6">
-              <Button onClick={handleShare} className="gap-2" variant="outline">
-                {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
-                {copied ? "Lien copié !" : "Partager l'événement"}
-              </Button>
-              {youtubeVideoId && (
-                <Button asChild variant="ghost">
-                  <a href={`https://youtube.com/watch?v=${youtubeVideoId}`} target="_blank" rel="noopener noreferrer" className="gap-2">
-                    <ExternalLink className="w-4 h-4" />
-                    Ouvrir sur YouTube
-                  </a>
-                </Button>
-              )}
-              {!youtubeVideoId && facebookVideoUrl && (
-                <Button asChild variant="ghost">
-                  <a href={facebookVideoUrl} target="_blank" rel="noopener noreferrer" className="gap-2">
-                    <ExternalLink className="w-4 h-4" />
-                    Ouvrir sur Facebook
-                  </a>
-                </Button>
-              )}
-              {showOfficialSite && (
-                <Button asChild variant="default" className="gap-2 convention-primary-bg bg-primary hover:bg-primary/90 text-white border-0">
-                  <a href="https://conventiong12france.com/" target="_blank" rel="noopener noreferrer">
-                    Visiter le site officiel
-                    <ExternalLink className="w-4 h-4" />
-                  </a>
-                </Button>
-              )}
-            </div>
-          </div>
-        </section>
-        </Reveal>
+        <style>{`
+          :root { --primary: ${primaryColor}; }
+          .dark { --primary: ${primaryColor}; }
+        `}</style>
       )}
 
-      {/* Bottom Zone: Bilingual + Content */}
-      <div 
-        className="relative"
-        style={bgUrlBottom ? { 
-          backgroundImage: `url(${bgUrlBottom})`, 
-          backgroundSize: 'cover', 
-          backgroundPosition: 'center' 
-        } : {}}
-      >
-        {bgUrlBottom && <div className="absolute inset-0 bg-white/80 dark:bg-black/80 pointer-events-none" />}
-        <div className="relative z-10">
-          {/* Bilingual Call to Action */}
-          {showBilingualCTA && (
-          <Reveal variant="fadeUp" delay={0.12}>
-          <section className="container py-12 px-4 sm:px-0">
-            <div className="max-w-4xl mx-auto text-center space-y-10">
-              {/* French */}
-              <div className="space-y-3">
-                <PageTextEditor
-                  pageKey="convention-g12"
-                  textKey="bilingual_fr_title"
-                  defaultText={"NOUS SOMMES DANS LES TEMPS\nET L'HEURE N'EST PLUS À L'ATTENTE"}
-                  className="text-2xl sm:text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight"
-                />
-                <PageTextEditor
-                  pageKey="convention-g12"
-                  textKey="bilingual_fr_body"
-                  defaultText="Un appel résonne à nouveau. Aller, faire des disciples et voir une génération entière se lever pour Jésus!"
-                  className="text-foreground/80 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto"
-                />
-                <div className="pt-2 space-y-1">
-                  <PageTextEditor
-                    pageKey="convention-g12"
-                    textKey="bilingual_fr_event_name"
-                    defaultText="CONVENTION G12 FRANCE 2026"
-                    className="text-lg sm:text-xl font-bold font-serif convention-primary-text"
-                  />
-                  <PageTextEditor
-                    pageKey="convention-g12"
-                    textKey="bilingual_fr_subtitle"
-                    defaultText="ALLEZ, FAITES DES DISCIPLES"
-                    className="text-base sm:text-lg font-semibold text-foreground/90"
-                  />
-                  <PageTextEditor
-                    pageKey="convention-g12"
-                    textKey="bilingual_fr_dates"
-                    defaultText="30 & 31 OCTOBRE — 1ER NOVEMBRE"
-                    className="text-sm sm:text-base text-muted-foreground"
-                  />
-                  <PageTextEditor
-                    pageKey="convention-g12"
-                    textKey="bilingual_fr_location"
-                    defaultText="PARIS"
-                    className="text-sm sm:text-base text-muted-foreground"
-                  />
-                  <PageTextEditor
-                    pageKey="convention-g12"
-                    textKey="bilingual_fr_cta"
-                    defaultText="Inscriptions bientôt ouvertes"
-                    className="text-xs sm:text-sm font-medium uppercase tracking-wider text-muted-foreground mt-2"
-                  />
-                </div>
-              </div>
-
-              <div className="w-16 h-px bg-border mx-auto" />
-
-              {/* English */}
-              <div className="space-y-3">
-                <PageTextEditor
-                  pageKey="convention-g12"
-                  textKey="bilingual_en_title"
-                  defaultText={"WE ARE LIVING IN THE TIMES\nAND THIS IS NO TIME TO WAIT"}
-                  className="text-2xl sm:text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight"
-                />
-                <PageTextEditor
-                  pageKey="convention-g12"
-                  textKey="bilingual_en_body"
-                  defaultText="The call is sounding once again. To go, make disciples, and see an entire generation rise for Jesus!"
-                  className="text-foreground/80 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto"
-                />
-                <div className="pt-2 space-y-1">
-                  <PageTextEditor
-                    pageKey="convention-g12"
-                    textKey="bilingual_en_event_name"
-                    defaultText="G12 FRANCE CONVENTION 2026"
-                    className="text-lg sm:text-xl font-bold font-serif convention-primary-text"
-                  />
-                  <PageTextEditor
-                    pageKey="convention-g12"
-                    textKey="bilingual_en_subtitle"
-                    defaultText="GO AND MAKE DISCIPLES"
-                    className="text-base sm:text-lg font-semibold text-foreground/90"
-                  />
-                  <PageTextEditor
-                    pageKey="convention-g12"
-                    textKey="bilingual_en_dates"
-                    defaultText="OCTOBER 30 & 31 — NOVEMBER 1"
-                    className="text-sm sm:text-base text-muted-foreground"
-                  />
-                  <PageTextEditor
-                    pageKey="convention-g12"
-                    textKey="bilingual_en_location"
-                    defaultText="PARIS"
-                    className="text-sm sm:text-base text-muted-foreground"
-                  />
-                  <PageTextEditor
-                    pageKey="convention-g12"
-                    textKey="bilingual_en_cta"
-                    defaultText="Registration Opens Soon"
-                    className="text-xs sm:text-sm font-medium uppercase tracking-wider text-muted-foreground mt-2"
-                  />
-                </div>
-              </div>
-            </div>
-          </section>
-          </Reveal>
+      {/* Hero Section */}
+      <div className="relative overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          style={{ backgroundImage: `url("${bgUrl}")` }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-background" />
+        <div className="relative z-10 container mx-auto px-4 py-16 md:py-24 text-center">
+          {showLogo && (
+            <img
+              src={conventionLogoUrl}
+              alt="Convention G12 France"
+              className="h-20 md:h-28 mx-auto mb-6 object-contain drop-shadow-lg"
+            />
           )}
-
-          {/* Content section */}
-          <Reveal variant="fadeUp" delay={0.15}>
-          <section className="container pb-12 sm:pb-16 pt-8 px-4 sm:px-0">
-            <PageContentDisplay pageId="convention-g12" layout="split" />
-          </section>
+          <Reveal>
+            <div className="flex items-center justify-center gap-3 mb-4">
+              {liveEnabled && (
+                <span className="inline-flex items-center gap-1.5 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider animate-pulse">
+                  <span className="w-2 h-2 bg-white rounded-full" />
+                  En direct
+                </span>
+              )}
+            </div>
           </Reveal>
+          <Reveal>
+            <h1 className="text-4xl md:text-6xl font-bold font-serif text-white mb-4 drop-shadow-lg">
+              <PageTitleEditor pageKey="convention-g12" defaultH1="Convention G12 France 2026" />
+            </h1>
+          </Reveal>
+          <Reveal>
+            <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto mb-8 drop-shadow">
+              <PageTextEditor pageKey="convention-g12" textKey="hero" defaultText="L'héritage de la foi — Un temps fort de worship, de prière et de enseignement" />
+            </p>
+          </Reveal>
+          {showOfficialSite && (
+            <Reveal>
+              <Button asChild size="lg" className="gap-2">
+                <a href="https://conventiong12france.com" target="_blank" rel="noopener noreferrer">
+                  Site officiel <ExternalLink className="w-4 h-4" />
+                </a>
+              </Button>
+            </Reveal>
+          )}
         </div>
       </div>
+
+      {/* Video Section */}
+      {(youtubeVideoId || facebookVideoUrl) && (
+        <section className="container mx-auto px-4 -mt-8 relative z-20">
+          <Reveal>
+            <div className="max-w-4xl mx-auto">
+              <div className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl bg-black">
+                {youtubeVideoId && !iframeErrored ? (
+                  <iframe
+                    src={`https://www.youtube.com/embed/${youtubeVideoId}?autoplay=0&rel=0`}
+                    className="absolute inset-0 w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    title="Convention G12 France - Live"
+                    onError={() => setIframeErrored(true)}
+                  />
+                ) : facebookVideoUrl ? (
+                  <iframe
+                    src={facebookVideoUrl}
+                    className="absolute inset-0 w-full h-full"
+                    allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"
+                    allowFullScreen
+                    title="Convention G12 France - Facebook"
+                  />
+                ) : (
+                  <div className="absolute inset-0 flex items-center justify-center bg-muted/20">
+                    <div className="text-center">
+                      <Play className="w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-30" />
+                      <p className="text-muted-foreground">Le live débutera bientôt</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </Reveal>
+        </section>
+      )}
+
+      {/* Info Section */}
+      <section className="container mx-auto px-4 py-12">
+        <Reveal>
+          <div className="max-w-4xl mx-auto grid md:grid-cols-2 gap-6">
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-muted/30 border">
+              <Calendar className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+              <div>
+                <p className="font-medium">Dates</p>
+                <p className="text-sm text-muted-foreground">Plus d'informations sur conventiong12france.com</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3 p-4 rounded-xl bg-muted/30 border">
+              <MapPin className="w-5 h-5 text-primary mt-0.5 shrink-0" />
+              <div>
+                <p className="font-medium">Lieu</p>
+                <p className="text-sm text-muted-foreground">Plus d'informations sur conventiong12france.com</p>
+              </div>
+            </div>
+          </div>
+        </Reveal>
+      </section>
+
+      {/* Middle background image */}
+      {bgUrlMiddle && (
+        <div className="relative h-48 md:h-64 my-8">
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url("${bgUrlMiddle}")` }}
+          />
+        </div>
+      )}
+
+      {/* Bilingual CTA Section */}
+      {showBilingualCTA && (
+        <section className="container mx-auto px-4 py-12">
+          <Reveal>
+            <div className="max-w-2xl mx-auto text-center space-y-6">
+              <h2 className="text-3xl font-bold font-serif">
+                <PageTitleEditor pageKey="convention-g12-cta" defaultH1="Rejoignez-nous pour cette convention historique" />
+              </h2>
+              <div className="grid md:grid-cols-2 gap-4">
+                <Button asChild size="lg" className="gap-2">
+                  <a href="https://conventiong12france.com" target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="w-4 h-4" /> FR
+                  </a>
+                </Button>
+                <Button asChild size="lg" variant="outline" className="gap-2">
+                  <a href="https://conventiong12france.com/en" target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="w-4 h-4" /> EN
+                  </a>
+                </Button>
+              </div>
+            </div>
+          </Reveal>
+        </section>
+      )}
+
+      {/* Bottom background image */}
+      {bgUrlBottom && (
+        <div className="relative h-48 md:h-64 my-8">
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: `url("${bgUrlBottom}")` }}
+          />
+        </div>
+      )}
+
+      {/* Content Section */}
+      <section className="container mx-auto px-4 py-12">
+        <div className="max-w-4xl mx-auto">
+          <PageContentDisplay pageId="convention-g12" />
+        </div>
+      </section>
+
+      {/* Share & Back */}
+      <section className="container mx-auto px-4 py-8 border-t">
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <Link href="/culte-en-ligne" className="text-sm text-muted-foreground hover:text-foreground">
+            ← Retour au Culte en ligne
+          </Link>
+          <Button variant="outline" size="sm" onClick={handleShare} className="gap-2">
+            {copied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
+            {copied ? "Copié !" : "Partager"}
+          </Button>
+        </div>
+      </section>
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { eq, desc, and, sql, asc, notInArray, inArray, count, isNotNull } from "drizzle-orm";
+import { eq, desc, and, sql, asc, notInArray, inArray, count, isNotNull, gte } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/libsql";
 import { createClient } from "@libsql/client";
 import {
@@ -21,6 +21,7 @@ import {
   subscribers,
   suggestions,
   conventionRegistrations,
+  conventionCodeAttempts,
   agentRuns,
 } from "../drizzle/schema.js";
 import { ENV } from "./_core/env.js";
@@ -1327,11 +1328,13 @@ export async function createConventionRegistration(data: {
   const db = getDb();
   assertDb(db);
   const ticketCode = generateTicketCode();
+  const expiresAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000); // 3 days
   const [row] = await db.insert(conventionRegistrations).values({
     firstName: data.firstName,
     lastName: data.lastName,
     email: data.email.toLowerCase().trim(),
     ticketCode,
+    expiresAt,
   }).returning();
   return row;
 }
@@ -1357,6 +1360,67 @@ export async function listConventionRegistrations(limit = 100, offset = 0) {
     .limit(limit)
     .offset(offset);
   return rows;
+}
+
+export async function logConventionCodeAttempt(code: string, ip: string | null, success: boolean) {
+  const db = getDb();
+  assertDb(db);
+  await db.insert(conventionCodeAttempts).values({ code, ip, success });
+}
+
+export async function countRecentAttempts(ip: string, minutes: number = 5): Promise<number> {
+  const db = getDb();
+  assertDb(db);
+  const cutoff = new Date(Date.now() - minutes * 60 * 1000);
+  const rows = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(conventionCodeAttempts)
+    .where(
+      and(
+        eq(conventionCodeAttempts.ip, ip),
+        eq(conventionCodeAttempts.success, false),
+        gte(conventionCodeAttempts.createdAt, cutoff)
+      )
+    );
+  return rows[0]?.count ?? 0;
+}
+
+export async function verifyConventionCode(code: string, ip: string | null) {
+  const db = getDb();
+  assertDb(db);
+  
+  const tooMany = await countRecentAttempts(ip || "unknown", 5);
+  if (tooMany >= 10) {
+    await logConventionCodeAttempt(code, ip, false);
+    return { valid: false, reason: "rate_limit", registration: null };
+  }
+  
+  const normalizedCode = code.toUpperCase().trim();
+  const rows = await db
+    .select()
+    .from(conventionRegistrations)
+    .where(
+      and(
+        eq(conventionRegistrations.ticketCode, normalizedCode),
+        eq(conventionRegistrations.isActive, true)
+      )
+    )
+    .limit(1);
+  
+  const reg = rows[0] ?? null;
+  
+  if (!reg) {
+    await logConventionCodeAttempt(normalizedCode, ip, false);
+    return { valid: false, reason: "not_found", registration: null };
+  }
+  
+  if (reg.expiresAt && new Date(reg.expiresAt) < new Date()) {
+    await logConventionCodeAttempt(normalizedCode, ip, false);
+    return { valid: false, reason: "expired", registration: null };
+  }
+  
+  await logConventionCodeAttempt(normalizedCode, ip, true);
+  return { valid: true, registration: reg };
 }
 
 export async function countConventionRegistrations() {

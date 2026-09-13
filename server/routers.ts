@@ -98,6 +98,7 @@ import {
   deleteConventionRegistration,
   toggleConventionRegistrationActive,
   bulkDeleteConventionRegistrations,
+  verifyConventionCode,
   findUserByUsernameAndPassword,
   upsertUser,
   findUserByPassword,
@@ -3532,16 +3533,9 @@ return { url };
 
     verifyCode: publicProcedure
       .input(zod.object({ code: z.string().length(7) }))
-      .query(async ({ input }) => {
-        const db = getDb();
-        if (!db) return { valid: false, registration: null };
-        const rows = await db
-          .select()
-          .from(conventionRegistrations)
-          .where(eq(conventionRegistrations.ticketCode, input.code.toUpperCase()))
-          .limit(1);
-        const reg = rows[0] ?? null;
-        return { valid: !!reg, registration: reg };
+      .query(async ({ input, ctx }) => {
+        const ip = (ctx.req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || ctx.req.ip || "unknown";
+        return verifyConventionCode(input.code, ip);
       }),
 
     publicCount: publicProcedure.query(async () => {

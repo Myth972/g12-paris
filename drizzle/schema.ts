@@ -330,6 +330,7 @@ export const conventionRegistrations = sqliteTable("convention_registrations", {
   email: text("email").notNull(),
   ticketCode: text("ticketCode").notNull(),
   isActive: integer("isActive", { mode: "boolean" }).default(true).notNull(),
+  expiresAt: integer("expiresAt", { mode: "timestamp" }),
   createdAt: integer("createdAt", { mode: "timestamp" })
     .default(sql`(strftime('%s', 'now'))`)
     .notNull(),
@@ -340,6 +341,23 @@ export const conventionRegistrations = sqliteTable("convention_registrations", {
 
 export type ConventionRegistration = typeof conventionRegistrations.$inferSelect;
 export type InsertConventionRegistration = typeof conventionRegistrations.$inferInsert;
+
+// ─── Convention Code Attempts (audit) ──────────────────────────
+
+export const conventionCodeAttempts = sqliteTable("convention_code_attempts", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  code: text("code").notNull(),
+  ip: text("ip"),
+  success: integer("success", { mode: "boolean" }).notNull(),
+  createdAt: integer("createdAt", { mode: "timestamp" })
+    .default(sql`(strftime('%s', 'now'))`)
+    .notNull(),
+}, (table) => [
+  index("idx_convention_attempts_created").on(table.createdAt),
+  index("idx_convention_attempts_ip").on(table.ip),
+]);
+export type ConventionCodeAttempt = typeof conventionCodeAttempts.$inferSelect;
+export type InsertConventionCodeAttempt = typeof conventionCodeAttempts.$inferInsert;
 
 // ─── Agent Runs ──────────────────────────────────────────────
 
