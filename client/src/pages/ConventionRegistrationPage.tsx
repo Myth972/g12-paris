@@ -92,8 +92,8 @@ export default function ConventionRegistrationPage() {
                   Acheter mes billets sur HelloAsso
                 </a>
               </Button>
-              <Button asChild variant="outline" size="lg" className="gap-2 w-full">
-                <Link href="/culte-en-ligne/convention">
+              <Button asChild size="lg" className="gap-2 w-full">
+                <Link href={`/convention/verify?code=${ticketCode || ""}`}>
                   Accéder à la Convention
                 </Link>
               </Button>
