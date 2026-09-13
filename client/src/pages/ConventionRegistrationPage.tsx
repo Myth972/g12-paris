@@ -39,6 +39,7 @@ export default function ConventionRegistrationPage() {
         email: data.registration.email,
         firstName: data.registration.firstName,
         lastName: data.registration.lastName,
+        ticketCode: data.registration.ticketCode,
         registeredAt: new Date().toISOString(),
       }));
       setSubmitted(true);
@@ -63,20 +64,34 @@ export default function ConventionRegistrationPage() {
   };
 
   if (submitted) {
+    const ticketCode = registerMutation.data?.registration?.ticketCode;
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <Card className="max-w-md w-full text-center">
           <CardContent className="pt-8 pb-6">
             <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold font-serif mb-2">Inscription réussie !</h2>
-            <p className="text-muted-foreground mb-6">
-              Merci {firstName} ! Vous pouvez maintenant accéder à la Convention G12 France.
+            <p className="text-muted-foreground mb-4">
+              Merci {firstName} ! Votre code d'inscription :
             </p>
-            <Button asChild size="lg" className="gap-2">
-              <Link href="/culte-en-ligne/convention">
-                Accéder à la Convention
-              </Link>
-            </Button>
+            {ticketCode && (
+              <div className="bg-primary/10 border border-primary/30 rounded-lg px-4 py-3 mb-6">
+                <p className="text-2xl font-mono font-bold tracking-[0.3em] text-primary">{ticketCode}</p>
+                <p className="text-xs text-muted-foreground mt-1">Conservez ce code, il vous sera demandé à l'entrée</p>
+              </div>
+            )}
+            <div className="space-y-3">
+              <Button asChild size="lg" className="gap-2 w-full">
+                <a href="https://www.helloasso.com/associations/mci-lyon/evenements/convention-g12-france-2026" target="_blank" rel="noopener noreferrer">
+                  Acheter mes billets sur HelloAsso
+                </a>
+              </Button>
+              <Button asChild variant="outline" size="lg" className="gap-2 w-full">
+                <Link href="/culte-en-ligne/convention">
+                  Accéder à la Convention
+                </Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>

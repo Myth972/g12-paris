@@ -66,10 +66,10 @@ export default function ConventionRegistrationsManager() {
       toast.error("Aucune inscription à exporter");
       return;
     }
-    const header = "Prénom,Nom,Email,Date d'inscription\n";
+    const header = "Prénom,Nom,Email,Code,Date d'inscription\n";
     const rows = items.map((r: any) => {
       const date = new Date(r.createdAt).toLocaleDateString("fr-FR");
-      return `${r.firstName},${r.lastName},${r.email},${date}`;
+      return `${r.firstName},${r.lastName},${r.email},${r.ticketCode || ""},${date}`;
     }).join("\n");
     const bom = "\uFEFF";
     const blob = new Blob([bom + header + rows], { type: "text/csv;charset=utf-8;" });
@@ -139,6 +139,7 @@ export default function ConventionRegistrationsManager() {
                 <th className="p-3 text-left font-medium">Prénom</th>
                 <th className="p-3 text-left font-medium">Nom</th>
                 <th className="p-3 text-left font-medium">Email</th>
+                <th className="p-3 text-left font-medium">Code</th>
                 <th className="p-3 text-left font-medium">Date</th>
                 <th className="p-3 w-10"></th>
               </tr>
@@ -165,6 +166,11 @@ export default function ConventionRegistrationsManager() {
                       <Mail className="w-4 h-4 text-muted-foreground" />
                       {reg.email}
                     </div>
+                  </td>
+                  <td className="p-3">
+                    <span className="font-mono text-xs font-bold bg-primary/10 text-primary px-2 py-1 rounded">
+                      {reg.ticketCode || "—"}
+                    </span>
                   </td>
                   <td className="p-3 text-muted-foreground">
                     {new Date(reg.createdAt).toLocaleDateString("fr-FR", {

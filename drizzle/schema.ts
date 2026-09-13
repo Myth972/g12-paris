@@ -328,11 +328,13 @@ export const conventionRegistrations = sqliteTable("convention_registrations", {
   firstName: text("firstName").notNull(),
   lastName: text("lastName").notNull(),
   email: text("email").notNull(),
+  ticketCode: text("ticketCode").notNull(),
   createdAt: integer("createdAt", { mode: "timestamp" })
     .default(sql`(strftime('%s', 'now'))`)
     .notNull(),
 }, (table) => [
   index("idx_convention_reg_email").on(table.email),
+  index("idx_convention_reg_ticketCode").on(table.ticketCode),
 ]);
 
 export type ConventionRegistration = typeof conventionRegistrations.$inferSelect;

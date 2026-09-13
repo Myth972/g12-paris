@@ -1310,6 +1310,15 @@ export async function bulkDeleteSuggestions(ids: number[]) {
 
 // ─── Convention Registrations Functions ────────────────────────
 
+function generateTicketCode(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no I, O, 0, 1 to avoid confusion
+  let code = "";
+  for (let i = 0; i < 7; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return code;
+}
+
 export async function createConventionRegistration(data: {
   firstName: string;
   lastName: string;
@@ -1317,10 +1326,12 @@ export async function createConventionRegistration(data: {
 }) {
   const db = getDb();
   assertDb(db);
+  const ticketCode = generateTicketCode();
   const [row] = await db.insert(conventionRegistrations).values({
     firstName: data.firstName,
     lastName: data.lastName,
     email: data.email.toLowerCase().trim(),
+    ticketCode,
   }).returning();
   return row;
 }
