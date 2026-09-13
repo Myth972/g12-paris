@@ -177,11 +177,18 @@ export default function ConventionRegistrationPage() {
               )}
             </Button>
           </form>
-          <div className="mt-4 text-center">
-            <Link href="/culte-en-ligne" className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
-              <ArrowLeft className="w-3 h-3" />
-              Retour au Culte en ligne
-            </Link>
+          <div className="mt-4 space-y-3">
+            <Button asChild variant="outline" size="lg" className="gap-2 w-full">
+              <Link href="/convention/verify">
+                Déjà inscrit ? Vérifier mon code
+              </Link>
+            </Button>
+            <div className="text-center">
+              <Link href="/culte-en-ligne" className="text-sm text-muted-foreground hover:text-foreground inline-flex items-center gap-1">
+                <ArrowLeft className="w-3 h-3" />
+                Retour au Culte en ligne
+              </Link>
+            </div>
           </div>
         </CardContent>
       </Card>
