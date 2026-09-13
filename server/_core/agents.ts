@@ -1,4 +1,5 @@
 import { TRPCError } from "@trpc/server";
+import { createAgentRun } from "../db.js";
 
 // ─── Types ────────────────────────────────────────────────────────
 
@@ -98,6 +99,14 @@ export async function runAgent(id: string): Promise<AgentLogEntry> {
   const log: AgentLogEntry = { agentId: id, startedAt, duration, success, message };
   logs.unshift(log);
   if (logs.length > MAX_LOG_ENTRIES) logs.pop();
+
+  createAgentRun({
+    agentId: id,
+    startedAt: new Date(startedAt),
+    duration,
+    success,
+    message,
+  }).catch(() => {});
 
   return log;
 }

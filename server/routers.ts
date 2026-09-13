@@ -113,11 +113,12 @@ import { getProviderInfo, type AiProvider } from "../shared/aiProviders.js";
 import { sdk } from "./_core/sdk.js";
 import { COOKIE_NAME, ONE_YEAR_MS } from "../shared/const.js";
 import { getSessionCookieOptions } from "./_core/cookies.js";
-import { sendWelcomeEmail, sendWeeklyDigest, sendCustomNewsletter } from "./_core/newsletter.js";
+import { sendWelcomeEmail, sendWeeklyDigest, sendCustomNewsletter, sendConventionConfirmation } from "./_core/newsletter.js";
 import {
   triggerArticlePublished,
   triggerUserRegistered,
   triggerSubscriberAdded,
+  triggerMediaUploaded,
 } from "./_core/notificationTriggers.js";
 
 const zod = {
@@ -552,6 +553,38 @@ export const appRouter = router({
         if (data.title && data.title !== existing.title) {
           updateData.slug = generateSlug(data.title);
         }
+        // Auto-moderation: run spellcheck in background on content changes
+        if (data.content && data.content.length > 100) {
+          const contentSnippet = data.content.substring(0, 2000);
+          import("./_core/llm.js").then(({ invokeLLMWithFallback }) => {
+            import("./_core/providerHealth.js").then(({ isProviderAvailable, recordProviderSuccess }) => {
+              const providers = ["groq", "google"];
+              for (const provider of providers) {
+                if (!isProviderAvailable(provider)) continue;
+                invokeLLMWithFallback({
+                  provider,
+                  messages: [{
+                    role: "user" as const,
+                    content: `Check this French text for spelling and grammar errors. Return ONLY a JSON array of issues found (empty array if clean). Each issue: {"line": number, "issue": "description", "fix": "correction"}. Text: "${contentSnippet}"`
+                  }],
+                  maxTokens: 1000,
+                }).then(async (resp) => {
+                  recordProviderSuccess(provider);
+                  const result = resp.choices[0]?.message?.content;
+                  if (result && typeof result === "string") {
+                    try {
+                      const issues = JSON.parse(result);
+                      if (Array.isArray(issues) && issues.length > 0) {
+                        console.log(`[AutoModeration] Article ${id}: ${issues.length} issues found`);
+                      }
+                    } catch {}
+                  }
+                }).catch(() => {});
+                break;
+              }
+            });
+          }).catch(() => {});
+        }
         return updateArticle(id, updateData);
       }),
 
@@ -760,6 +793,7 @@ export const appRouter = router({
       )
       .mutation(async ({ ctx, input }) => {
         const item = await createGalleryItem(input);
+        triggerMediaUploaded({ fileName: input.title, uploaderName: ctx.user?.name || "Admin", count: 1 }).catch(() => {});
         if (input.featured) {
           await createNotification({
             title: `Nouveau média à la une : ${input.title}`,
@@ -3472,6 +3506,7 @@ return { url };
           return { success: true, registration: existing, alreadyRegistered: true };
         }
         const registration = await createConventionRegistration(input);
+        sendConventionConfirmation(input.email, input.firstName, input.lastName).catch(() => {});
         return { success: true, registration, alreadyRegistered: false };
       }),
 

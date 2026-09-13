@@ -21,9 +21,11 @@ import {
   subscribers,
   suggestions,
   conventionRegistrations,
+  agentRuns,
 } from "../drizzle/schema.js";
 import { ENV } from "./_core/env.js";
 import { TRPCError } from "@trpc/server";
+import { triggerUserRegistered } from "./_core/notificationTriggers.js";
 
 function assertDb(db: unknown): asserts db {
   if (!db) {
@@ -1096,6 +1098,7 @@ export async function upsertUserFromAuth(data: { openId: string; name: string; r
     createdAt: new Date(),
     updatedAt: new Date(),
   }).returning();
+  triggerUserRegistered({ userName: data.name, userId: row.id }).catch(() => {});
   return row;
 }
 
@@ -1367,4 +1370,39 @@ export async function bulkDeleteConventionRegistrations(ids: number[]) {
   if (ids.length === 0) return { success: true, count: 0 };
   await db.delete(conventionRegistrations).where(inArray(conventionRegistrations.id, ids));
   return { success: true, count: ids.length };
+}
+
+// ─── Agent Runs ──────────────────────────────────────────────
+
+export async function createAgentRun(data: {
+  agentId: string;
+  startedAt: Date;
+  duration: number;
+  success: boolean;
+  message?: string;
+}) {
+  const db = getDb();
+  assertDb(db);
+  const [row] = await db.insert(agentRuns).values({
+    agentId: data.agentId,
+    startedAt: data.startedAt,
+    duration: data.duration,
+    success: data.success,
+    message: data.message,
+  }).returning();
+  return row;
+}
+
+export async function listAgentRuns(agentId?: string, limit = 50) {
+  const db = getDb();
+  assertDb(db);
+  if (agentId) {
+    return db.select().from(agentRuns)
+      .where(eq(agentRuns.agentId, agentId))
+      .orderBy(desc(agentRuns.startedAt))
+      .limit(limit);
+  }
+  return db.select().from(agentRuns)
+    .orderBy(desc(agentRuns.startedAt))
+    .limit(limit);
 }

@@ -6,6 +6,8 @@
  * et expose un état lisible au dashboard admin.
  */
 
+import { triggerProviderCooldown } from "./notificationTriggers.js";
+
 export type ProviderErrorKind =
   | "config"
   | "auth"
@@ -125,6 +127,7 @@ export function recordProviderFailure(
   if (state.consecutiveFailures >= FAILURE_THRESHOLD) {
     state.status = "cooldown";
     state.cooldownUntil = Date.now() + COOLDOWN_MS;
+    triggerProviderCooldown({ provider, error }).catch(() => {});
   } else {
     state.status = "degraded";
   }

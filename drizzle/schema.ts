@@ -337,3 +337,20 @@ export const conventionRegistrations = sqliteTable("convention_registrations", {
 
 export type ConventionRegistration = typeof conventionRegistrations.$inferSelect;
 export type InsertConventionRegistration = typeof conventionRegistrations.$inferInsert;
+
+// ─── Agent Runs ──────────────────────────────────────────────
+
+export const agentRuns = sqliteTable("agent_runs", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  agentId: text("agentId").notNull(),
+  startedAt: integer("startedAt", { mode: "timestamp" }).notNull(),
+  duration: integer("duration").notNull(),
+  success: integer("success", { mode: "boolean" }).notNull(),
+  message: text("message"),
+}, (table) => [
+  index("idx_agent_runs_agentId").on(table.agentId),
+  index("idx_agent_runs_startedAt").on(table.startedAt),
+]);
+
+export type AgentRun = typeof agentRuns.$inferSelect;
+export type InsertAgentRun = typeof agentRuns.$inferInsert;

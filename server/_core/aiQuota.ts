@@ -1,4 +1,5 @@
 import { TRPCError } from "@trpc/server";
+import { triggerQuotaExceeded } from "./notificationTriggers.js";
 
 // ─── Per-User Token Quota ────────────────────────────────────────
 
@@ -26,7 +27,13 @@ export function checkUserQuota(userId: string, estimatedTokens: number): void {
     entry.lastReset = now;
   }
 
+  const THRESHOLD_PERCENT = 0.8;
+  if (entry.tokens + estimatedTokens > QUOTA_MAX_TOKENS * THRESHOLD_PERCENT && entry.tokens <= QUOTA_MAX_TOKENS * THRESHOLD_PERCENT) {
+    triggerQuotaExceeded({ userName: userId, tokensUsed: entry.tokens + estimatedTokens }).catch(() => {});
+  }
+
   if (entry.tokens + estimatedTokens > QUOTA_MAX_TOKENS) {
+    triggerQuotaExceeded({ userName: userId, tokensUsed: entry.tokens + estimatedTokens }).catch(() => {});
     throw new TRPCError({
       code: "TOO_MANY_REQUESTS",
       message: `Quota IA dépassé (${QUOTA_MAX_TOKENS} tokens/heure). Réessayez plus tard.`,
