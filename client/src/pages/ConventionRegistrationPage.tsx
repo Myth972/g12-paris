@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, CheckCircle2, ArrowLeft } from "lucide-react";
+import { Loader2, CheckCircle2, ArrowLeft, Ticket, Users } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
+import QRCode from "qrcode";
 
 const STORAGE_KEY = "g12_convention_registered";
 
@@ -14,11 +15,14 @@ export default function ConventionRegistrationPage() {
   const [, navigate] = useLocation();
   const settingsQuery = trpc.siteSettings.getAll.useQuery();
   const registrationEnabled = settingsQuery.data?.["convention.registrationEnabled"] === "true";
+  const publicCountQuery = trpc.conventionRegistrations.publicCount.useQuery();
+  const registrationCount = publicCountQuery.data ?? 0;
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
+  const [qrUrl, setQrUrl] = useState<string>("");
 
   useEffect(() => {
     if (settingsQuery.data && !registrationEnabled) {
@@ -42,6 +46,12 @@ export default function ConventionRegistrationPage() {
         ticketCode: data.registration.ticketCode,
         registeredAt: new Date().toISOString(),
       }));
+      if (data.registration.ticketCode) {
+        QRCode.toDataURL(
+          `https://g12parismedia.com/convention/verify?code=${data.registration.ticketCode}`,
+          { width: 200, margin: 2, color: { dark: "#1e293b", light: "#ffffff" } }
+        ).then(setQrUrl).catch(() => {});
+      }
       setSubmitted(true);
       toast.success("Inscription réussie !");
     },
@@ -75,14 +85,20 @@ export default function ConventionRegistrationPage() {
               Merci {firstName} ! Votre code d'inscription :
             </p>
             {ticketCode && (
-              <div className="bg-primary/10 border border-primary/30 rounded-lg px-4 py-3 mb-6">
+              <div className="bg-primary/10 border border-primary/30 rounded-lg px-4 py-3 mb-4">
                 <p className="text-2xl font-mono font-bold tracking-[0.3em] text-primary">{ticketCode}</p>
                 <p className="text-xs text-muted-foreground mt-1">Conservez ce code, il vous sera demandé à l'entrée</p>
               </div>
             )}
+            {qrUrl && (
+              <div className="flex justify-center mb-4">
+                <img src={qrUrl} alt="QR Code" className="rounded-lg border" />
+              </div>
+            )}
             <div className="space-y-3">
               <Button asChild size="lg" className="gap-2 w-full">
-                <a href="https://www.helloasso.com/associations/mci-lyon/evenements/convention-g12-france-2026" target="_blank" rel="noopener noreferrer">
+                <a href={`https://www.helloasso.com/associations/mci-lyon/evenements/convention-g12-france-2026?ticketCode=${ticketCode || ""}`} target="_blank" rel="noopener noreferrer">
+                  <Ticket className="w-4 h-4" />
                   Acheter mes billets sur HelloAsso
                 </a>
               </Button>
@@ -114,6 +130,12 @@ export default function ConventionRegistrationPage() {
           <CardDescription>
             Inscrivez-vous pour accéder au direct et à tous les contenus de la convention.
           </CardDescription>
+          {registrationCount > 0 && (
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground mt-2">
+              <Users className="w-4 h-4" />
+              <span>{registrationCount} personne{registrationCount > 1 ? "s" : ""} déjà inscrite{registrationCount > 1 ? "s" : ""}</span>
+            </div>
+          )}
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

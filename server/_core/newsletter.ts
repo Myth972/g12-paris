@@ -151,7 +151,7 @@ export async function sendCustomNewsletter(emails: string[], subject: string, co
   }, emails);
 }
 
-export async function sendConventionConfirmation(email: string, firstName: string, lastName: string) {
+export async function sendConventionConfirmation(email: string, firstName: string, lastName: string, ticketCode: string) {
   if (!process.env.RESEND_API_KEY) {
     console.warn("RESEND_API_KEY is not set. Skipping convention confirmation email.");
     return;
@@ -161,17 +161,21 @@ export async function sendConventionConfirmation(email: string, firstName: strin
     const { error } = await resend.emails.send({
       from: ACTUAL_FROM,
       to: [email],
-      subject: "Confirmation inscription - Convention G12 France",
+      subject: `Confirmation inscription - Convention G12 France | Code: ${ticketCode}`,
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
           <h1 style="color: #D97706; text-align: center; border-bottom: 2px solid #D97706; padding-bottom: 10px;">Convention G12 France</h1>
           <p style="color: #1e293b; font-size: 16px;">Bonjour ${firstName} ${lastName},</p>
           <p style="color: #1e293b; font-size: 16px;">Votre inscription à la Convention G12 France a bien été enregistrée. Nous avons hâte de vous accueillir !</p>
-          <p style="color: #1e293b; font-size: 16px;">Vous recevrez des informations pratiques (lieu, horaires, programme) dans les prochains jours.</p>
-          <div style="margin-top: 30px; padding: 20px; background: #fef3c7; border-radius: 8px; text-align: center;">
-            <p style="color: #92400e; font-weight: bold; font-size: 18px;">📍 Convention G12 France</p>
-            <p style="color: #92400e; font-size: 14px;">Restez connectés pour les prochaines annonces</p>
+          <div style="margin: 30px 0; padding: 25px; background: #fef3c7; border-radius: 12px; text-align: center; border: 2px solid #f59e0b;">
+            <p style="color: #92400e; font-size: 14px; margin-bottom: 8px;">Votre code d'inscription :</p>
+            <p style="color: #92400e; font-size: 32px; font-weight: bold; letter-spacing: 6px; font-family: monospace; margin: 0;">${ticketCode}</p>
+            <p style="color: #92400e; font-size: 12px; margin-top: 8px;">Conservez ce code, il vous sera demandé à l'entrée</p>
           </div>
+          <div style="text-align: center; margin: 25px 0;">
+            <a href="https://www.helloasso.com/associations/mci-lyon/evenements/convention-g12-france-2026" style="display: inline-block; background: #D97706; color: white; padding: 14px 30px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">Acheter mes billets</a>
+          </div>
+          <p style="color: #64748b; font-size: 14px;">Vous recevrez des informations pratiques (lieu, horaires, programme) dans les prochains jours.</p>
           <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #94a3b8; font-size: 12px;">
             <p>© ${new Date().getFullYear()} G12 Paris</p>
           </div>

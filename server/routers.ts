@@ -105,8 +105,8 @@ import { storagePut, getSignedUrl } from "./storage.js";
 import { nanoid } from "nanoid";
 import { themeRouter } from "./themeRouter.js";
 import { withCache, clearCache } from "./_core/cache.js";
-import { siteSettings, announcements, subscribers, articles, biblicalVerses, galleryItems } from "../drizzle/schema.js";
-import { eq, desc, asc, and, like } from "drizzle-orm";
+import { siteSettings, announcements, subscribers, articles, biblicalVerses, galleryItems, conventionRegistrations } from "../drizzle/schema.js";
+import { eq, desc, asc, and, like, sql } from "drizzle-orm";
 import { ENV } from "./_core/env.js";
 import { invokeLLM, invokeLLMWithFallback } from "./_core/llm.js";
 import { getProviderInfo, type AiProvider } from "../shared/aiProviders.js";
@@ -3506,7 +3506,19 @@ return { url };
           return { success: true, registration: existing, alreadyRegistered: true };
         }
         const registration = await createConventionRegistration(input);
-        sendConventionConfirmation(input.email, input.firstName, input.lastName).catch(() => {});
+        sendConventionConfirmation(input.email, input.firstName, input.lastName, registration.ticketCode).catch(() => {});
+
+        // Check registration threshold for admin notification
+        const regCount = await countConventionRegistrations();
+        if (regCount > 0 && regCount % 10 === 0) {
+          createNotification({
+            title: "Convention G12 France",
+            message: `${regCount} inscrits atteints !`,
+            type: "important",
+            authorId: 1,
+          }).catch(() => {});
+        }
+
         return { success: true, registration, alreadyRegistered: false };
       }),
 
@@ -3517,12 +3529,44 @@ return { url };
         return { registered: !!registration, registration };
       }),
 
+    verifyCode: publicProcedure
+      .input(zod.object({ code: z.string().length(7) }))
+      .query(async ({ input }) => {
+        const db = getDb();
+        if (!db) return { valid: false, registration: null };
+        const rows = await db
+          .select()
+          .from(conventionRegistrations)
+          .where(eq(conventionRegistrations.ticketCode, input.code.toUpperCase()))
+          .limit(1);
+        const reg = rows[0] ?? null;
+        return { valid: !!reg, registration: reg };
+      }),
+
+    publicCount: publicProcedure.query(async () => {
+      return countConventionRegistrations();
+    }),
+
     list: adminProcedure.query(async () => {
       return listConventionRegistrations();
     }),
 
     count: adminProcedure.query(async () => {
       return countConventionRegistrations();
+    }),
+
+    stats: adminProcedure.query(async () => {
+      const db = getDb();
+      if (!db) return [];
+      const rows = await db
+        .select({
+          date: sql<string>`date(${conventionRegistrations.createdAt}, 'unixepoch', 'localtime')`,
+          count: sql<number>`count(*)`,
+        })
+        .from(conventionRegistrations)
+        .groupBy(sql`date(${conventionRegistrations.createdAt}, 'unixepoch', 'localtime')`)
+        .orderBy(sql`date(${conventionRegistrations.createdAt}, 'unixepoch', 'localtime')`);
+      return rows;
     }),
 
     delete: adminProcedure

@@ -101,6 +101,18 @@ async function startServer() {
     message: { error: "Trop de requêtes IA. Réessayez dans 1 minute." },
   });
 
+  // Rate limiter spécifique pour les inscriptions Convention (3 par IP par heure)
+  const conventionRateLimiter = rateLimit({
+    windowMs: 60 * 60 * 1000, // 1 hour
+    max: 3, // 3 registrations per IP per hour
+    standardHeaders: true,
+    legacyHeaders: false,
+    message: { error: "Trop d'inscriptions. Réessayez dans 1 heure." },
+    keyGenerator: (req) => {
+      return (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.ip || "unknown";
+    },
+  });
+
   const csrfProtect: express.RequestHandler = (req, res, next) => {
     if (!["POST", "PUT", "PATCH", "DELETE"].includes(req.method)) {
       return next();
@@ -193,6 +205,10 @@ Règles : Réponds en français, sois chaleureux et concis.`;
       // Appliquer le rate limiter IA strict pour les endpoints IA
       if (req.path.startsWith("/ai.")) {
         return aiRateLimiter(req, res, next);
+      }
+      // Appliquer le rate limiter Convention pour les inscriptions
+      if (req.path.startsWith("/conventionRegistrations.create")) {
+        return conventionRateLimiter(req, res, next);
       }
       return apiRateLimiter(req, res, next);
     },
