@@ -36,10 +36,10 @@ export default function ConventionG12FrancePage() {
   const registrationEnabled = settingsQuery.data?.["convention.registrationEnabled"] === "true";
 
   useEffect(() => {
-    if (settingsQuery.data && registrationEnabled && !isAdmin) {
+    if (settingsQuery.data && registrationEnabled) {
       navigate("/inscription-convention");
     }
-  }, [settingsQuery.data, registrationEnabled, navigate, isAdmin]);
+  }, [settingsQuery.data, registrationEnabled, navigate]);
 
   // Extract YouTube video ID from full URL if needed
   const extractYouTubeId = (input: string | undefined): string | null => {
