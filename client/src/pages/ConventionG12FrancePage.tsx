@@ -7,11 +7,14 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Play, Share2, ExternalLink, Check, Calendar, MapPin } from "lucide-react";
 import { Link, useLocation } from "wouter";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 
 export default function ConventionG12FrancePage() {
   const [, navigate] = useLocation();
   const settingsQuery = trpc.siteSettings.getAll.useQuery();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   
   const conventionLogoUrl = (settingsQuery.data?.["convention.logoUrl"] as string) || "https://conventiong12france.com/wp-content/uploads/elementor/thumbs/g12France-rdu8vngvdwatmx6fgxu9wasglsg906xtva9qh3nrls.png";
   const bgUrl = (settingsQuery.data?.["convention.bgUrl"] as string) || "https://conventiong12france.com/wp-content/uploads/2025/10/LHERITAGE-2025-1536x861.png";
@@ -33,10 +36,10 @@ export default function ConventionG12FrancePage() {
   const registrationEnabled = settingsQuery.data?.["convention.registrationEnabled"] === "true";
 
   useEffect(() => {
-    if (settingsQuery.data && registrationEnabled) {
+    if (settingsQuery.data && registrationEnabled && !isAdmin) {
       navigate("/inscription-convention");
     }
-  }, [settingsQuery.data, registrationEnabled, navigate]);
+  }, [settingsQuery.data, registrationEnabled, navigate, isAdmin]);
 
   // Extract YouTube video ID from full URL if needed
   const extractYouTubeId = (input: string | undefined): string | null => {

@@ -8,6 +8,7 @@ import { Loader2, CheckCircle2, ArrowLeft, Ticket, Users } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import QRCode from "qrcode";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 
 export default function ConventionRegistrationPage() {
@@ -16,6 +17,8 @@ export default function ConventionRegistrationPage() {
   const registrationEnabled = settingsQuery.data?.["convention.registrationEnabled"] === "true";
   const publicCountQuery = trpc.conventionRegistrations.publicCount.useQuery();
   const registrationCount = publicCountQuery.data ?? 0;
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -24,10 +27,10 @@ export default function ConventionRegistrationPage() {
   const [qrUrl, setQrUrl] = useState<string>("");
 
   useEffect(() => {
-    if (settingsQuery.data && !registrationEnabled) {
+    if (settingsQuery.data && !registrationEnabled && !isAdmin) {
       navigate("/culte-en-ligne/convention");
     }
-  }, [settingsQuery.data, registrationEnabled, navigate]);
+  }, [settingsQuery.data, registrationEnabled, navigate, isAdmin]);
 
   // localStorage check removed — doublon géré côté serveur (alreadyRegistered)
 
