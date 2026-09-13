@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Play, Share2, ExternalLink, Check, Calendar, MapPin } from "lucide-react";
 import { Link, useLocation } from "wouter";
 
-const STORAGE_KEY = "g12_convention_registered";
 
 export default function ConventionG12FrancePage() {
   const [, navigate] = useLocation();
@@ -35,10 +34,7 @@ export default function ConventionG12FrancePage() {
 
   useEffect(() => {
     if (settingsQuery.data && registrationEnabled) {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (!stored) {
-        navigate("/inscription-convention");
-      }
+      navigate("/inscription-convention");
     }
   }, [settingsQuery.data, registrationEnabled, navigate]);
 
