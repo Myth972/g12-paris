@@ -107,7 +107,7 @@ export default function PremiumBookPage() {
         <div className="grid lg:grid-cols-2 gap-12 lg:gap-20">
           {/* Cover Image */}
           <div className="space-y-4">
-            <div className="bg-slate-50 dark:bg-slate-900 border rounded-2xl overflow-hidden aspect-[4/5] relative group shadow-inner">
+            <div className="bg-muted/30 dark:bg-background border rounded-2xl overflow-hidden aspect-[4/5] relative group shadow-inner">
               {isAffiliate && (
                 <div className="absolute top-4 left-4 z-10 bg-amber-500 text-white text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5">
                   <ExternalLink className="w-3 h-3" />

@@ -57,8 +57,8 @@ export default function BibliothequePage() {
     <div className="min-h-screen bg-background">
       {/* Hero Banner Premium */}
       <Reveal variant="fadeDown" duration={0.7}>
-      <section className="relative overflow-hidden bg-slate-950 py-20 lg:py-32">
-        <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-800" />
+      <section className="relative overflow-hidden bg-foreground py-20 lg:py-32">
+        <div className="absolute inset-0 bg-gradient-to-r from-foreground via-foreground/90 to-foreground/80" />
         <div className="absolute inset-0 bg-[url('/premium_bible.webp')] bg-cover bg-center opacity-20 mix-blend-overlay" />
         
         <div className="container relative z-10">
@@ -79,7 +79,7 @@ export default function BibliothequePage() {
                 pageKey="bibliotheque"
                 textKey="hero"
                 defaultText="Plongez dans des textes inspirants. Des Bibles aux finitions exceptionnelles, des commentaires profonds et des ressources pour nourrir votre esprit."
-                className="text-lg md:text-xl !text-slate-300 mb-8 max-w-xl font-light"
+                className="text-lg md:text-xl !text-muted-foreground mb-8 max-w-xl font-light"
               />
               <div className="flex flex-wrap gap-4">
                 <Button asChild size="lg" className="bg-amber-600 hover:bg-amber-700 text-white border-0 shadow-lg shadow-amber-900/50">
@@ -91,7 +91,7 @@ export default function BibliothequePage() {
               </div>
             </div>
             <div className="hidden lg:block relative">
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 to-transparent z-10" />
+              <div className="absolute inset-0 bg-gradient-to-t from-foreground to-transparent z-10" />
               <img 
                 src="/premium_bible.webp" 
                 alt="Bible Premium" 

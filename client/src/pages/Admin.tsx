@@ -1092,7 +1092,7 @@ if (authLoading) {
       </div>
 
       <div className="container pt-2">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Link href="/admin/article/new">
             <div className="bg-card border border-border p-5 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50 flex items-center gap-4">
               <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary group-hover:scale-110 transition-transform flex-shrink-0">
@@ -1124,6 +1124,19 @@ if (authLoading) {
               <div>
                 <h3 className="font-semibold text-sm">{t('admin.quickAccess.design')}</h3>
                 <p className="text-xs text-muted-foreground">{t('admin.quickAccess.designDesc')}</p>
+              </div>
+            </div>
+          </Link>
+          )}
+          {showFullAdmin && (
+          <Link href="/admin/agents">
+            <div className="bg-card border border-border p-5 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50 flex items-center gap-4">
+              <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform flex-shrink-0">
+                <Bot className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-sm">{t('admin.quickAccess.agents')}</h3>
+                <p className="text-xs text-muted-foreground">{t('admin.quickAccess.agentsDesc')}</p>
               </div>
             </div>
           </Link>

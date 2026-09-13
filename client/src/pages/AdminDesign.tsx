@@ -311,7 +311,7 @@ export default function AdminDesign() {
             <div className="space-y-3">
               <label htmlFor="logo-light-url" className="text-sm font-medium">{t('admin.design.logoLightLabel')}</label>
               <div 
-                className="border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors cursor-pointer bg-slate-50 relative overflow-hidden"
+                className="border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors cursor-pointer bg-muted/30 relative overflow-hidden"
                 onClick={() => logoLightRef.current?.click()}
                 aria-label="Upload logo light"
               >
@@ -339,9 +339,9 @@ export default function AdminDesign() {
                   <img src={logoDark} alt="Logo Dark" className="max-h-24 object-contain" />
                 ) : (
                   <>
-                    {uploading === 'logoDark' ? <Loader2 className="w-8 h-8 text-slate-400 mb-2 animate-spin" /> : <ImageIcon className="w-8 h-8 text-slate-400 mb-2" />}
+                    {uploading === 'logoDark' ? <Loader2 className="w-8 h-8 text-muted-foreground mb-2 animate-spin" /> : <ImageIcon className="w-8 h-8 text-muted-foreground mb-2" />}
                     <span className="text-sm font-medium text-white">{uploading === 'logoDark' ? t('admin.design.uploading') : t('admin.design.browseOrDrag')}</span>
-                    <span className="text-xs text-slate-400 mt-1">{t('admin.design.darkBackgrounds')}</span>
+                    <span className="text-xs text-muted-foreground mt-1">{t('admin.design.darkBackgrounds')}</span>
                   </>
                 )}
               </div>
@@ -799,7 +799,7 @@ export default function AdminDesign() {
                 )}
               </div>
               <div 
-                className="border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors cursor-pointer bg-slate-50 relative overflow-hidden"
+                className="border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors cursor-pointer bg-muted/30 relative overflow-hidden"
                 onClick={() => conventionLogoRef.current?.click()}
                 aria-label="Upload logo convention"
               >
@@ -834,7 +834,7 @@ export default function AdminDesign() {
                 )}
               </div>
               <div 
-                className="border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors cursor-pointer bg-slate-50 relative overflow-hidden"
+                className="border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors cursor-pointer bg-muted/30 relative overflow-hidden"
                 onClick={() => conventionBgRef.current?.click()}
                 aria-label="Upload background convention"
               >
@@ -869,7 +869,7 @@ export default function AdminDesign() {
                 )}
               </div>
               <div 
-                className="border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors cursor-pointer bg-slate-50 relative overflow-hidden"
+                className="border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors cursor-pointer bg-muted/30 relative overflow-hidden"
                 onClick={() => conventionBgMiddleRef.current?.click()}
                 aria-label="Upload background milieu convention"
               >
@@ -904,7 +904,7 @@ export default function AdminDesign() {
                 )}
               </div>
               <div 
-                className="border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors cursor-pointer bg-slate-50 relative overflow-hidden"
+                className="border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors cursor-pointer bg-muted/30 relative overflow-hidden"
                 onClick={() => conventionBgBottomRef.current?.click()}
                 aria-label="Upload background bas convention"
               >
@@ -1028,7 +1028,7 @@ export default function AdminDesign() {
                 role="switch"
                 aria-checked={conventionLiveEnabled}
                 onClick={() => setConventionLiveEnabled(!conventionLiveEnabled)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${conventionLiveEnabled ? 'bg-red-600' : 'bg-gray-300 dark:bg-gray-600'}`}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${conventionLiveEnabled ? 'bg-red-600' : 'bg-muted'}`}
               >
                 <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${conventionLiveEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
               </button>

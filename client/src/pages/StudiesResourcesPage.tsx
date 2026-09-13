@@ -130,7 +130,7 @@ export default function StudiesResourcesPage() {
                   { title: "Les prophéties messianiques", duration: "22:10" }
                 ].map((video, i) => (
                   <div key={i} className="group cursor-pointer">
-                    <div className="aspect-video bg-slate-800 rounded-xl relative overflow-hidden mb-3">
+                    <div className="aspect-video bg-muted rounded-xl relative overflow-hidden mb-3">
                       <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors" />
                       <div className="absolute inset-0 flex items-center justify-center">
                         <div className="w-12 h-12 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">

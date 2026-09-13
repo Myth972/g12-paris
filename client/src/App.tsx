@@ -45,7 +45,7 @@ const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const AISearch = lazy(() => import("./components/AISearch").then(m => ({ default: m.AISearch })));
 const ChatBot = lazy(() => import("./components/ChatBot").then(m => ({ default: m.ChatBot })));
-const MoJSTestPage = lazy(() => import("./pages/MoJSTestPage"));
+
 const ILoveYouJesus = lazy(() => import("./pages/ILoveYouJesus"));
 const ArticleDesignDemo = lazy(() => import("./pages/ArticleDesignDemo"));
 
@@ -156,11 +156,7 @@ function Router() {
             <CulteEnLignePage />
           </PublicLayout>
         </Route>
-        <Route path="/test-mojs">
-          <PublicLayout>
-            <MoJSTestPage />
-          </PublicLayout>
-        </Route>
+
         <Route path="/article-design-demo">
           <PublicLayout>
             <ArticleDesignDemo />

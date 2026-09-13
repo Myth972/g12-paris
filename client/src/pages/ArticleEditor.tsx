@@ -428,7 +428,7 @@ export default function ArticleEditor() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 text-xs gap-1 text-blue-600 hover:text-blue-600 hover:bg-blue-500/10"
+                  className="h-8 text-xs gap-1 text-primary hover:text-primary hover:bg-primary/10"
                   disabled={spellCheckMutation.isPending || !excerpt}
                   onClick={handleSpellCheckExcerpt}
                 >
@@ -690,7 +690,7 @@ export default function ArticleEditor() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 text-xs gap-1 text-blue-600 hover:text-blue-600 hover:bg-blue-500/10"
+                  className="h-8 text-xs gap-1 text-primary hover:text-primary hover:bg-primary/10"
                   disabled={spellCheckMutation.isPending || !content}
                   onClick={handleSpellCheckContent}
                 >

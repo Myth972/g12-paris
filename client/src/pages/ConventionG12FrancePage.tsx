@@ -85,7 +85,7 @@ export default function ConventionG12FrancePage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-background">
+    <div className="min-h-screen bg-background">
       {primaryColor && (
         <style dangerouslySetInnerHTML={{
           __html: `
@@ -107,8 +107,8 @@ export default function ConventionG12FrancePage() {
           backgroundPosition: 'center' 
         } : {}}
       >
-        {!bgUrl && <div className="absolute inset-0 bg-gradient-to-b from-blue-900/10 via-background to-background pointer-events-none" />}
-        <div className={`absolute inset-0 ${bgUrl ? 'bg-white/80 dark:bg-black/80' : 'bg-gradient-to-br from-blue-100/50 to-red-100/30 dark:from-blue-900/20 dark:to-red-900/10'} pointer-events-none`} />
+        {!bgUrl && <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-background to-background pointer-events-none" />}
+        <div className={`absolute inset-0 ${bgUrl ? 'bg-white/80 dark:bg-black/80' : 'bg-gradient-to-br from-primary/10 to-destructive/5 dark:from-primary/5 dark:to-destructive/5'} pointer-events-none`} />
         
         <div className="container relative z-10 px-4 sm:px-0">
           <div className="mb-6">
@@ -230,7 +230,7 @@ export default function ConventionG12FrancePage() {
                   </div>
                   <h3 className="text-xl sm:text-2xl font-bold font-serif mb-2">Vidéo Facebook</h3>
                   <p className="text-sm sm:text-base text-white/80 mb-6 max-w-md">La vidéo est disponible sur Facebook.</p>
-                  <Button asChild size="lg" className="bg-white text-blue-700 hover:bg-white/90 font-semibold gap-2 shadow-lg">
+                  <Button asChild size="lg" className="bg-card text-card-foreground hover:bg-card/90 font-semibold gap-2 shadow-lg">
                     <a href={facebookVideoUrl} target="_blank" rel="noopener noreferrer">
                       <Play className="w-5 h-5 fill-current" />
                       Regarder sur Facebook
@@ -278,7 +278,7 @@ export default function ConventionG12FrancePage() {
                 </Button>
               )}
               {showOfficialSite && (
-                <Button asChild variant="default" className="gap-2 convention-primary-bg bg-blue-700 hover:opacity-90 text-white border-0">
+                <Button asChild variant="default" className="gap-2 convention-primary-bg bg-primary hover:bg-primary/90 text-white border-0">
                   <a href="https://conventiong12france.com/" target="_blank" rel="noopener noreferrer">
                     Visiter le site officiel
                     <ExternalLink className="w-4 h-4" />

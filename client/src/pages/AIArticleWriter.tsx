@@ -574,8 +574,8 @@ export default function AIArticleWriter() {
                 <CardHeader>
                   <div className="flex items-start justify-between gap-4">
                     <div className="flex-1">
-                      <Badge variant="default" className="mb-2 bg-blue-900 text-white hover:bg-blue-800">
-                        {category}
+                        <Badge variant="default" className="mb-2 bg-primary text-primary-foreground hover:bg-primary/90">
+                          {category}
                       </Badge>
                       <h2 className="text-2xl font-bold font-serif leading-tight">
                         {result.title}
@@ -720,7 +720,7 @@ export default function AIArticleWriter() {
                       <p className="text-sm font-medium mb-1">Tags</p>
                       <div className="flex flex-wrap gap-1.5">
                         {result.seo.tags.map((tag, idx) => (
-                          <Badge key={idx} variant="outline" className="text-xs bg-white text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600">
+                          <Badge key={idx} variant="outline" className="text-xs bg-card text-card-foreground border-border">
                             {tag}
                           </Badge>
                         ))}
@@ -964,7 +964,7 @@ export default function AIArticleWriter() {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="gap-2 bg-white text-blue-700 border-blue-300 hover:bg-blue-50 dark:bg-gray-800 dark:text-blue-300 dark:border-blue-700"
+                  className="gap-2 bg-card text-card-foreground border-border hover:bg-accent"
                   onClick={() => setFeedbackMode(!feedbackMode)}
                 >
                   <RefreshCw className="w-4 h-4" />
@@ -973,7 +973,7 @@ export default function AIArticleWriter() {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="gap-2 bg-white text-blue-700 border-blue-300 hover:bg-blue-50 dark:bg-gray-800 dark:text-blue-300 dark:border-blue-700"
+                  className="gap-2 bg-card text-card-foreground border-border hover:bg-accent"
                   onClick={() => handleGenerateCover()}
                   disabled={coverMutation.isPending}
                 >

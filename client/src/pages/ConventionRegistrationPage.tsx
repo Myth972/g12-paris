@@ -64,7 +64,7 @@ export default function ConventionRegistrationPage() {
 
   if (submitted) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-background flex items-center justify-center px-4">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4">
         <Card className="max-w-md w-full text-center">
           <CardContent className="pt-8 pb-6">
             <CheckCircle2 className="w-16 h-16 text-emerald-500 mx-auto mb-4" />
@@ -85,14 +85,14 @@ export default function ConventionRegistrationPage() {
 
   if (settingsQuery.isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-background flex items-center justify-center px-4">
+    <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <Card className="max-w-md w-full">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-serif">Inscription Convention G12 France</CardTitle>

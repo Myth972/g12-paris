@@ -121,7 +121,7 @@ export default function PublicationDuJour() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/30 relative">
+    <div className="min-h-screen bg-muted/30 relative">
       <FloatingParticles
         className="fixed inset-0 w-full h-full z-0"
         particleCount={30}
@@ -195,7 +195,7 @@ export default function PublicationDuJour() {
         {/* Verset du Jour - Redesigned for Premium glassmorphism feel */}
         {verseError ? null : verseLoading ? (
           <motion.section variants={sectionVars} className="container pb-16 relative z-50">
-            <div className="relative overflow-hidden bg-white/40 backdrop-blur-xl border border-white/60 rounded-3xl p-8 md:p-12 max-w-4xl mx-auto shadow-xl shadow-primary/5">
+            <div className="relative overflow-hidden bg-card/40 backdrop-blur-xl border border-border/60 rounded-3xl p-8 md:p-12 max-w-4xl mx-auto shadow-xl shadow-primary/5">
               <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
               <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-accent/20 rounded-full blur-3xl pointer-events-none" />
               <div className="relative flex flex-col items-center text-center z-10">
@@ -214,7 +214,7 @@ export default function PublicationDuJour() {
           </motion.section>
         ) : verse ? (
           <motion.section variants={sectionVars} className="container pb-16 relative z-50">
-            <div className="relative overflow-hidden bg-white/40 backdrop-blur-xl border border-white/60 rounded-3xl p-8 md:p-12 max-w-4xl mx-auto shadow-xl shadow-primary/5">
+            <div className="relative overflow-hidden bg-card/40 backdrop-blur-xl border border-border/60 rounded-3xl p-8 md:p-12 max-w-4xl mx-auto shadow-xl shadow-primary/5">
               {/* Decorative elements */}
               <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
               <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-accent/20 rounded-full blur-3xl pointer-events-none" />
@@ -233,7 +233,7 @@ export default function PublicationDuJour() {
                 )}
 
                 {verseImage && !editing && (
-                  <div className="w-full max-w-xl mb-8 rounded-2xl overflow-hidden border border-white/40 shadow-lg">
+                  <div className="w-full max-w-xl mb-8 rounded-2xl overflow-hidden border border-border/40 shadow-lg">
                       <img
                         src={getImageUrl(verseImage)}
                         alt="Verset du Jour"
@@ -404,7 +404,7 @@ export default function PublicationDuJour() {
                           whileTap={motionEnabled ? { scale: 0.95 } : {}}
                           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
                            onClick={() => openImageInNewTab(getImageUrl(pair.image!.mediaUrl))}
-                          className={`absolute ${isEven ? 'left-0 md:left-4' : 'right-0 md:right-4'} top-0 md:top-10 w-[85%] md:w-[60%] h-[75%] md:h-[80%] z-0 rounded-2xl overflow-hidden shadow-2xl border-4 border-white/40 cursor-pointer group hover:shadow-primary/30 transition-shadow active:scale-[0.97]`}
+                          className={`absolute ${isEven ? 'left-0 md:left-4' : 'right-0 md:right-4'} top-0 md:top-10 w-[85%] md:w-[60%] h-[75%] md:h-[80%] z-0 rounded-2xl overflow-hidden shadow-2xl border-4 border-border/40 cursor-pointer group hover:shadow-primary/30 transition-shadow active:scale-[0.97]`}
                         >
                            <img
                              src={getImageUrl(pair.image.mediaUrl)}
@@ -421,7 +421,7 @@ export default function PublicationDuJour() {
                           </div>
                         </motion.div>
                      ) : (
-                       <div className={`absolute ${isEven ? 'left-0' : 'right-0'} top-0 w-[85%] md:w-[60%] h-[75%] z-0 rounded-2xl border-4 border-white/40 bg-black/5 flex items-center justify-center text-muted-foreground`}>
+                        <div className={`absolute ${isEven ? 'left-0' : 'right-0'} top-0 w-[85%] md:w-[60%] h-[75%] z-0 rounded-2xl border-4 border-border/40 bg-black/5 flex items-center justify-center text-muted-foreground`}>
                          Aucune image
                        </div>
                      )}

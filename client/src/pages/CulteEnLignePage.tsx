@@ -50,7 +50,7 @@ export default function CulteEnLignePage() {
             style={{ backgroundImage: `url(${heroBgUrl})`, opacity: heroOpacity }}
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-b from-white/90 via-white/70 to-transparent dark:from-background/95 dark:via-background/80 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/90 via-background/70 to-transparent pointer-events-none" />
         <div className="container relative z-10 px-4 sm:px-0">
           <div className="max-w-4xl mx-auto">
             <div className="flex items-center gap-2 mb-3 sm:mb-4">
@@ -62,7 +62,7 @@ export default function CulteEnLignePage() {
             {/* Live Badge */}
             <div
               className={`inline-flex items-center gap-2 px-2.5 sm:px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider mb-4 sm:mb-6 animate-in fade-in slide-in-from-top-4 duration-1000 ${
-                liveEnabled ? "bg-white text-red-600 border border-red-200 shadow-sm" : "bg-black text-white border border-black/80 shadow-sm"
+                liveEnabled ? "bg-card text-red-600 border border-red-200 shadow-sm" : "bg-card text-card-foreground border border-border shadow-sm"
               }`}
             >
               <span className="relative flex h-2 w-2">
