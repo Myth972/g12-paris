@@ -96,6 +96,7 @@ import {
   listConventionRegistrations,
   countConventionRegistrations,
   deleteConventionRegistration,
+  toggleConventionRegistrationActive,
   bulkDeleteConventionRegistrations,
   findUserByUsernameAndPassword,
   upsertUser,
@@ -3551,6 +3552,12 @@ return { url };
       return listConventionRegistrations();
     }),
 
+    listAll: adminProcedure.query(async () => {
+      const db = getDb();
+      if (!db) return [];
+      return db.select().from(conventionRegistrations).orderBy(desc(conventionRegistrations.createdAt));
+    }),
+
     count: adminProcedure.query(async () => {
       return countConventionRegistrations();
     }),
@@ -3568,6 +3575,12 @@ return { url };
         .orderBy(sql`date(${conventionRegistrations.createdAt}, 'unixepoch', 'localtime')`);
       return rows;
     }),
+
+    toggleActive: adminProcedure
+      .input(zod.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        return toggleConventionRegistrationActive(input.id);
+      }),
 
     delete: adminProcedure
       .input(zod.object({ id: z.number() }))

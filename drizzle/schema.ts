@@ -329,6 +329,7 @@ export const conventionRegistrations = sqliteTable("convention_registrations", {
   lastName: text("lastName").notNull(),
   email: text("email").notNull(),
   ticketCode: text("ticketCode").notNull(),
+  isActive: integer("isActive", { mode: "boolean" }).default(true).notNull(),
   createdAt: integer("createdAt", { mode: "timestamp" })
     .default(sql`(strftime('%s', 'now'))`)
     .notNull(),

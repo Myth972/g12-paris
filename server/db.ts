@@ -1368,6 +1368,23 @@ export async function countConventionRegistrations() {
   return rows[0]?.count ?? 0;
 }
 
+export async function toggleConventionRegistrationActive(id: number) {
+  const db = getDb();
+  assertDb(db);
+  const rows = await db
+    .select({ isActive: conventionRegistrations.isActive })
+    .from(conventionRegistrations)
+    .where(eq(conventionRegistrations.id, id))
+    .limit(1);
+  if (rows.length === 0) return { success: false };
+  const newValue = !rows[0].isActive;
+  await db
+    .update(conventionRegistrations)
+    .set({ isActive: newValue })
+    .where(eq(conventionRegistrations.id, id));
+  return { success: true, isActive: newValue };
+}
+
 export async function deleteConventionRegistration(id: number) {
   const db = getDb();
   assertDb(db);

@@ -2,6 +2,7 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Switch } from "@/components/ui/switch";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -12,7 +13,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Users, Trash2, Download, Loader2, Mail, User, Search, BarChart3, FileText, QrCode } from "lucide-react";
+import { Users, Trash2, Download, Loader2, Mail, User, Search, BarChart3, FileText, QrCode, ToggleLeft, ToggleRight } from "lucide-react";
 import { useState, useMemo } from "react";
 import { toast } from "sonner";
 import { jsPDF } from "jspdf";
@@ -26,7 +27,7 @@ export default function ConventionRegistrationsManager() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const utils = trpc.useUtils();
-  const { data: registrations, isLoading } = trpc.conventionRegistrations.list.useQuery();
+  const { data: registrations, isLoading } = trpc.conventionRegistrations.listAll.useQuery();
   const { data: totalCount } = trpc.conventionRegistrations.count.useQuery();
   const statsQuery = trpc.conventionRegistrations.stats.useQuery();
 
@@ -51,12 +52,22 @@ export default function ConventionRegistrationsManager() {
     onError: () => toast.error("Erreur lors de la suppression"),
   });
 
+  const toggleActiveMutation = trpc.conventionRegistrations.toggleActive.useMutation({
+    onSuccess: () => {
+      utils.conventionRegistrations.listAll.invalidate();
+      utils.conventionRegistrations.count.invalidate();
+      toast.success("Statut mis à jour");
+    },
+    onError: () => toast.error("Erreur lors de la mise à jour"),
+  });
+
   const items = registrations ?? [];
 
   const filteredItems = useMemo(() => {
-    if (!searchTerm.trim()) return items;
+    const activeItems = items.filter((r: any) => r.isActive !== false);
+    if (!searchTerm.trim()) return activeItems;
     const term = searchTerm.toLowerCase();
-    return items.filter((r: any) =>
+    return activeItems.filter((r: any) =>
       r.firstName.toLowerCase().includes(term) ||
       r.lastName.toLowerCase().includes(term) ||
       r.email.toLowerCase().includes(term) ||
@@ -83,10 +94,10 @@ export default function ConventionRegistrationsManager() {
       toast.error("Aucune inscription à exporter");
       return;
     }
-    const header = "Prénom,Nom,Email,Code,Date d'inscription\n";
+    const header = "Prénom,Nom,Email,Code,Actif,Date d'inscription\n";
     const rows = items.map((r: any) => {
       const date = new Date(r.createdAt).toLocaleDateString("fr-FR");
-      return `${r.firstName},${r.lastName},${r.email},${r.ticketCode || ""},${date}`;
+      return `${r.firstName},${r.lastName},${r.email},${r.ticketCode || ""},${r.isActive !== false ? "Oui" : "Non"},${date}`;
     }).join("\n");
     const bom = "\uFEFF";
     const blob = new Blob([bom + header + rows], { type: "text/csv;charset=utf-8;" });
@@ -256,12 +267,13 @@ export default function ConventionRegistrationsManager() {
                 <th className="p-3 text-left font-medium">Email</th>
                 <th className="p-3 text-left font-medium">Code</th>
                 <th className="p-3 text-left font-medium">Date</th>
+                <th className="p-3 w-10">Actif</th>
                 <th className="p-3 w-10"></th>
               </tr>
             </thead>
             <tbody>
               {filteredItems.map((reg: any) => (
-                <tr key={reg.id} className="border-t hover:bg-muted/30 transition-colors">
+                <tr key={reg.id} className={`border-t transition-colors ${reg.isActive !== false ? "hover:bg-muted/30" : "opacity-40 bg-muted/10"}`}>
                   <td className="p-3">
                     <Checkbox
                       checked={selectedItems.includes(reg.id)}
@@ -295,6 +307,13 @@ export default function ConventionRegistrationsManager() {
                       hour: "2-digit",
                       minute: "2-digit",
                     })}
+                  </td>
+                  <td className="p-3">
+                    <Switch
+                      checked={reg.isActive !== false}
+                      onCheckedChange={() => toggleActiveMutation.mutate({ id: reg.id })}
+                      aria-label={`Activer/Désactiver ${reg.firstName}`}
+                    />
                   </td>
                   <td className="p-3">
                     <Button
