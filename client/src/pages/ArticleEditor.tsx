@@ -352,108 +352,199 @@ export default function ArticleEditor() {
 
       {/* Form */}
       <div className="container max-w-6xl mx-auto py-4 sm:py-8">
-        <div className="space-y-4 sm:space-y-6">
-          {/* AI Provider */}
-          <div className="bg-card rounded-xl border border-border p-4 shadow-sm flex items-center justify-between">
-            <div>
-              <p className="text-sm font-semibold text-foreground">
-                {t('admin.articleEditor.aiProvider')}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {t('admin.articleEditor.aiProviderDesc')}
-              </p>
-            </div>
-            <AIProviderSelect size="sm" />
-          </div>
-          {/* Title */}
-          <div className="bg-card rounded-xl border border-border p-4 sm:p-6 shadow-sm">
-            <Label className="text-sm font-semibold text-foreground mb-2 block">
-              {t('admin.articleEditor.articleTitle')}
-            </Label>
-            <Input
-              value={title}
-              onChange={e => setTitle(e.target.value)}
-              placeholder={t('admin.articleEditor.titlePlaceholder')}
-              className="text-base sm:text-lg font-serif mobile-input"
-            />
-          </div>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 items-start">
 
-          {/* Excerpt */}
-          <div className="bg-card rounded-xl border border-border p-4 sm:p-6 shadow-sm">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-              <Label className="text-sm font-semibold text-foreground">
-                {t('admin.articleEditor.excerpt')}
-              </Label>
-              <div className="flex items-center gap-1.5">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 text-xs gap-1 text-primary hover:text-primary hover:bg-primary/10"
-                  disabled={generateExcerptMutation.isPending || !title}
-                  onClick={() =>
-                    generateExcerptMutation.mutate({ title, contentType: "article" })
-                  }
-                >
-                  {generateExcerptMutation.isPending ? (
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                  ) : (
-                    <Sparkles className="w-3 h-3" />
-                  )}
-                  <span className="hidden sm:inline">Générer</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 text-xs gap-1 text-amber-600 hover:text-amber-600 hover:bg-amber-500/10"
-                  disabled={improveTextMutation.isPending || !excerpt}
-                  onClick={() => handleImproveExcerpt("biblical")}
-                >
-                  {improveTextMutation.isPending ? (
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                  ) : (
-                    <BookHeart className="w-3 h-3" />
-                  )}
-                  <span className="hidden sm:inline">Biblique</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 text-xs gap-1 text-muted-foreground hover:text-foreground"
-                  disabled={improveTextMutation.isPending || !excerpt}
-                  onClick={() => handleImproveExcerpt("normal")}
-                >
-                  <Wand2 className="w-3 h-3" />
-                  <span className="hidden sm:inline">Améliorer</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 text-xs gap-1 text-primary hover:text-primary hover:bg-primary/10"
-                  disabled={spellCheckMutation.isPending || !excerpt}
-                  onClick={handleSpellCheckExcerpt}
-                >
-                  {spellCheckMutation.isPending ? (
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                  ) : (
-                    <SpellCheck className="w-3 h-3" />
-                  )}
-                  <span className="hidden sm:inline">Corriger</span>
-                </Button>
-              </div>
-            </div>
-            <Textarea
-              value={excerpt}
-              onChange={e => setExcerpt(e.target.value)}
-              placeholder={t('admin.articleEditor.excerptPlaceholder')}
-              rows={2}
-              className="resize-none mobile-input text-sm break-words"
-              spellCheck
-            />
-          </div>
-
-          <div className="bg-card rounded-xl border border-border p-4 sm:p-6 shadow-sm space-y-4">
-            <div>
+          {/* === LEFT COLUMN: Main Editor === */}
+          <div className="space-y-4 sm:space-y-6">
+            {/* Title */}
+            <div className="bg-card rounded-xl border border-border p-4 sm:p-6 shadow-sm">
               <Label className="text-sm font-semibold text-foreground mb-2 block">
+                {t('admin.articleEditor.articleTitle')}
+              </Label>
+              <Input
+                value={title}
+                onChange={e => setTitle(e.target.value)}
+                placeholder={t('admin.articleEditor.titlePlaceholder')}
+                className="text-base sm:text-lg font-serif mobile-input"
+              />
+            </div>
+
+            {/* Excerpt */}
+            <div className="bg-card rounded-xl border border-border p-4 sm:p-6 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+                <Label className="text-sm font-semibold text-foreground">
+                  {t('admin.articleEditor.excerpt')}
+                </Label>
+                <div className="flex items-center gap-1.5">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-xs gap-1 text-primary hover:text-primary hover:bg-primary/10"
+                    disabled={generateExcerptMutation.isPending || !title}
+                    onClick={() =>
+                      generateExcerptMutation.mutate({ title, contentType: "article" })
+                    }
+                  >
+                    {generateExcerptMutation.isPending ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-3 h-3" />
+                    )}
+                    <span className="hidden sm:inline">Générer</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-xs gap-1 text-amber-600 hover:text-amber-600 hover:bg-amber-500/10"
+                    disabled={improveTextMutation.isPending || !excerpt}
+                    onClick={() => handleImproveExcerpt("biblical")}
+                  >
+                    {improveTextMutation.isPending ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <BookHeart className="w-3 h-3" />
+                    )}
+                    <span className="hidden sm:inline">Biblique</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-xs gap-1 text-muted-foreground hover:text-foreground"
+                    disabled={improveTextMutation.isPending || !excerpt}
+                    onClick={() => handleImproveExcerpt("normal")}
+                  >
+                    <Wand2 className="w-3 h-3" />
+                    <span className="hidden sm:inline">Améliorer</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-xs gap-1 text-primary hover:text-primary hover:bg-primary/10"
+                    disabled={spellCheckMutation.isPending || !excerpt}
+                    onClick={handleSpellCheckExcerpt}
+                  >
+                    {spellCheckMutation.isPending ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <SpellCheck className="w-3 h-3" />
+                    )}
+                    <span className="hidden sm:inline">Corriger</span>
+                  </Button>
+                </div>
+              </div>
+              <Textarea
+                value={excerpt}
+                onChange={e => setExcerpt(e.target.value)}
+                placeholder={t('admin.articleEditor.excerptPlaceholder')}
+                rows={2}
+                className="resize-none mobile-input text-sm break-words"
+                spellCheck
+              />
+            </div>
+
+            {/* Content */}
+            <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden break-words">
+              <div className="px-4 sm:px-6 pt-4 sm:pt-5 pb-2 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
+                <div>
+                  <Label className="text-sm font-semibold text-foreground">
+                    {t('admin.articleEditor.content')}
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
+                    {t('admin.articleEditor.contentHelp')}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-xs gap-1 text-amber-600 hover:text-amber-600 hover:bg-amber-500/10"
+                    disabled={improveTextMutation.isPending || !content}
+                    onClick={() => handleImproveContent("biblical")}
+                  >
+                    {improveTextMutation.isPending ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <BookHeart className="w-3 h-3" />
+                    )}
+                    <span className="hidden sm:inline">Biblique</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-xs gap-1 text-muted-foreground hover:text-foreground"
+                    disabled={improveTextMutation.isPending || !content}
+                    onClick={() => handleImproveContent("normal")}
+                  >
+                    <Wand2 className="w-3 h-3" />
+                    <span className="hidden sm:inline">Améliorer</span>
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 text-xs gap-1 text-primary hover:text-primary hover:bg-primary/10"
+                    disabled={spellCheckMutation.isPending || !content}
+                    onClick={handleSpellCheckContent}
+                  >
+                    {spellCheckMutation.isPending ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      <SpellCheck className="w-3 h-3" />
+                    )}
+                    <span className="hidden sm:inline">Corriger</span>
+                  </Button>
+                </div>
+              </div>
+              <RichTextEditor
+                content={content}
+                onChange={setContent}
+                placeholder={t('admin.articleEditor.contentPlaceholder')}
+                minHeight="400px sm:500px"
+                spellcheck={true}
+              />
+              {extractHeadings(content).length > 0 && (
+                <div className="border-t border-border/60 bg-muted/20 px-4 sm:px-6 py-3">
+                  <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">
+                    <List className="w-3.5 h-3.5" />
+                    Sommaire affiché sur l'article
+                  </p>
+                  <ul className="space-y-1">
+                    {extractHeadings(content).map(h => (
+                      <li
+                        key={h.id}
+                        className="text-xs sm:text-sm text-muted-foreground truncate"
+                        style={{ paddingLeft: `${(h.level - 2) * 16}px` }}
+                      >
+                        {h.level === 2 ? "▪" : "·"} {h.title}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-[11px] text-muted-foreground/60 mt-2">
+                    Utilisez « Titre 2 » / « Titre 3 » dans la barre d'outils pour
+                    structurer l'article et générer le sommaire automatiquement.
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* === RIGHT COLUMN: Sidebar Meta (sticky) === */}
+          <div className="space-y-4 lg:sticky lg:top-20">
+            {/* AI Provider */}
+            <div className="bg-card rounded-xl border border-border p-4 shadow-sm flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-foreground">
+                  {t('admin.articleEditor.aiProvider')}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {t('admin.articleEditor.aiProviderDesc')}
+                </p>
+              </div>
+              <AIProviderSelect size="sm" />
+            </div>
+
+            {/* Category */}
+            <div className="bg-card rounded-xl border border-border p-4 shadow-sm space-y-3">
+              <Label className="text-sm font-semibold text-foreground block">
                 {t('admin.articleEditor.category')}
               </Label>
               <Select value={category} onValueChange={setCategory}>
@@ -468,287 +559,204 @@ export default function ArticleEditor() {
                   ))}
                 </SelectContent>
               </Select>
+
+              {category === "bibliothèque" && (
+                <div className="grid grid-cols-2 gap-3 pt-2 border-t">
+                  <div>
+                    <Label className="text-xs font-semibold text-muted-foreground mb-1 block uppercase tracking-wider">
+                      Type
+                    </Label>
+                    <Select value={libType} onValueChange={setLibType}>
+                      <SelectTrigger className="mobile-select-trigger">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {libCategories?.map((c: any) => (
+                          <SelectItem key={c.id} value={String(c.name)} className="capitalize">{String(c.name)}</SelectItem>
+                        )) || (
+                          <>
+                            <SelectItem value="livre">Livre</SelectItem>
+                            <SelectItem value="Livres">Livres</SelectItem>
+                            <SelectItem value="Livres PDF">Livres PDF</SelectItem>
+                            <SelectItem value="bible">Bible</SelectItem>
+                            <SelectItem value="Bibles">Bibles</SelectItem>
+                            <SelectItem value="offre">Offre / Pack</SelectItem>
+                          </>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label className="text-xs font-semibold text-muted-foreground mb-1 block uppercase tracking-wider">
+                      Thème
+                    </Label>
+                    <Select value={libTheme} onValueChange={setLibTheme}>
+                      <SelectTrigger className="mobile-select-trigger">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {libThemes?.map((t: any) => (
+                          <SelectItem key={t.id} value={String(t.name)} className="capitalize">{String(t.name)}</SelectItem>
+                        )) || (
+                          <>
+                            <SelectItem value="foi">Foi</SelectItem>
+                            <SelectItem value="Foi">Foi</SelectItem>
+                            <SelectItem value="Leadership">Leadership</SelectItem>
+                            <SelectItem value="Famille">Famille</SelectItem>
+                            <SelectItem value="famille">Famille</SelectItem>
+                            <SelectItem value="Etude Biblique">Étude Biblique</SelectItem>
+                            <SelectItem value="prière">Prière</SelectItem>
+                          </>
+                        )}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {category === "bibliothèque" && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t">
-                <div>
-                  <Label className="text-xs font-semibold text-muted-foreground mb-2 block uppercase tracking-wider">
-                    Type
-                  </Label>
-                  <Select value={libType} onValueChange={setLibType}>
-                    <SelectTrigger className="mobile-select-trigger">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {libCategories?.map((c: any) => (
-                        <SelectItem key={c.id} value={String(c.name)} className="capitalize">{String(c.name)}</SelectItem>
-                      )) || (
-                        <>
-                          <SelectItem value="livre">Livre</SelectItem>
-                          <SelectItem value="Livres">Livres</SelectItem>
-                          <SelectItem value="Livres PDF">Livres PDF</SelectItem>
-                          <SelectItem value="bible">Bible</SelectItem>
-                          <SelectItem value="Bibles">Bibles</SelectItem>
-                          <SelectItem value="offre">Offre / Pack</SelectItem>
-                        </>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label className="text-xs font-semibold text-muted-foreground mb-2 block uppercase tracking-wider">
-                    Thème
-                  </Label>
-                  <Select value={libTheme} onValueChange={setLibTheme}>
-                    <SelectTrigger className="mobile-select-trigger">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {libThemes?.map((t: any) => (
-                        <SelectItem key={t.id} value={String(t.name)} className="capitalize">{String(t.name)}</SelectItem>
-                      )) || (
-                        <>
-                          <SelectItem value="foi">Foi</SelectItem>
-                          <SelectItem value="Foi">Foi</SelectItem>
-                          <SelectItem value="Leadership">Leadership</SelectItem>
-                          <SelectItem value="Famille">Famille</SelectItem>
-                          <SelectItem value="famille">Famille</SelectItem>
-                          <SelectItem value="Etude Biblique">Étude Biblique</SelectItem>
-                          <SelectItem value="prière">Prière</SelectItem>
-                        </>
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
+            {/* Versets */}
+            <div className="bg-card rounded-xl border border-border p-4 shadow-sm space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-semibold text-foreground">
+                  {t('admin.articleEditor.verse')}
+                </Label>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-xs gap-1.5 text-primary hover:bg-primary/10 touch-manipulation"
+                  disabled={
+                    suggestVerseMutation.isPending ||
+                    createVerseMutation.isPending ||
+                    !title ||
+                    !content
+                  }
+                  onClick={() => suggestVerseMutation.mutate({ title, content })}
+                >
+                  {suggestVerseMutation.isPending ||
+                  createVerseMutation.isPending ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    <Sparkles className="w-3 h-3" />
+                  )}
+                  <span className="hidden sm:inline">IA</span>
+                </Button>
               </div>
-            )}
-          </div>
+              <Select value={verseId} onValueChange={setVerseId}>
+                <SelectTrigger className="w-full mobile-select-trigger">
+                  <SelectValue placeholder="Aucun" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Aucun</SelectItem>
+                  {verses.map((v: any) => (
+                    <SelectItem key={v.id} value={v.id.toString()}>
+                      {v.reference}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Versets */}
-          <div className="bg-card rounded-xl border border-border p-4 sm:p-6 shadow-sm">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
-              <Label className="text-sm font-semibold text-foreground">
-                {t('admin.articleEditor.verse')}
+            {/* Cover image */}
+            <div className="bg-card rounded-xl border border-border p-4 shadow-sm space-y-3">
+              <Label className="text-sm font-semibold text-foreground block">
+                {t('admin.articleEditor.coverImage')}
               </Label>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 text-xs gap-1.5 text-primary hover:bg-primary/10 touch-manipulation self-start"
-                disabled={
-                  suggestVerseMutation.isPending ||
-                  createVerseMutation.isPending ||
-                  !title ||
-                  !content
-                }
-                onClick={() => suggestVerseMutation.mutate({ title, content })}
-              >
-                {suggestVerseMutation.isPending ||
-                createVerseMutation.isPending ? (
-                  <Loader2 className="w-3 h-3 animate-spin" />
+              {coverImageUrl ? (
+                <div className="relative rounded-lg overflow-hidden border border-border">
+                  <img
+                    src={coverImageUrl}
+                    alt={t('admin.articleEditor.coverAlt')}
+                    className="w-full max-h-40 object-cover"
+                  />
+                  <Button
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2 h-7 w-7 touch-manipulation"
+                    onClick={() => {
+                      setCoverImageUrl("");
+                      setCoverImageKey("");
+                    }}
+                    aria-label="Supprimer l'image de couverture"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              ) : (
+                <div
+                  className="border-2 border-dashed border-border rounded-lg p-4 text-center cursor-pointer hover:border-primary/40 hover:bg-primary/[0.02] transition-colors touch-manipulation"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {uploading ? (
+                    <Loader2 className="w-6 h-6 text-muted-foreground mx-auto mb-1 animate-spin" />
+                  ) : (
+                    <ImageIcon className="w-6 h-6 text-muted-foreground mx-auto mb-1" />
+                  )}
+                  <p className="text-xs text-muted-foreground">
+                    {uploading
+                      ? t('admin.articleEditor.uploading')
+                      : t('admin.articleEditor.addImage')}
+                  </p>
+                  <p className="text-[11px] text-muted-foreground/70 mt-0.5">
+                    {t('admin.articleEditor.jpgPngWebP')}
+                  </p>
+                </div>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="hidden"
+                onChange={handleImageUpload}
+              />
+              {!coverImageUrl && (
+                <div>
+                  <Label className="text-xs text-muted-foreground mb-1 block">
+                    {t('admin.articleEditor.orUrl')}
+                  </Label>
+                  <Input
+                    placeholder="https://..."
+                    onChange={e => setCoverImageUrl(e.target.value)}
+                    className="mobile-input"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* YouTube URL */}
+            <div className="bg-card rounded-xl border border-border p-4 shadow-sm space-y-3">
+              <Label className="text-sm font-semibold text-foreground block">
+                {t('admin.articleEditor.youtubeVideo')}
+              </Label>
+              <Input
+                value={youtubeUrl}
+                onChange={e => setYoutubeUrl(e.target.value)}
+                placeholder="https://youtube.com/watch?v=..."
+                className="mobile-input"
+              />
+              {youtubeUrl && (
+                <div>
+                  <YouTubeEmbed url={youtubeUrl} />
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col gap-2">
+              <Button onClick={handleSave} disabled={saving} size="lg" className="w-full mobile-button touch-manipulation">
+                {saving ? (
+                  <Loader2 className="w-4 h-4 mr-1 animate-spin" />
                 ) : (
-                  <Sparkles className="w-3 h-3" />
+                  <Save className="w-4 h-4 mr-1" />
                 )}
-                <span className="hidden sm:inline">IA</span>
+                {isNew ? t('admin.articleEditor.create') : t('admin.articleEditor.save')}
+              </Button>
+              <Button variant="outline" onClick={() => setLocation("/admin")} className="w-full touch-manipulation">
+                {t('admin.articleEditor.cancel')}
               </Button>
             </div>
-            <Select value={verseId} onValueChange={setVerseId}>
-              <SelectTrigger className="w-full mobile-select-trigger">
-                <SelectValue placeholder="Aucun" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Aucun</SelectItem>
-                {verses.map((v: any) => (
-                  <SelectItem key={v.id} value={v.id.toString()}>
-                    {v.reference}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
 
-          {/* Cover image */}
-          <div className="bg-card rounded-xl border border-border p-4 sm:p-6 shadow-sm">
-            <Label className="text-sm font-semibold text-foreground mb-3 block">
-              {t('admin.articleEditor.coverImage')}
-            </Label>
-            {coverImageUrl ? (
-              <div className="relative rounded-lg overflow-hidden border border-border">
-                <img
-                  src={coverImageUrl}
-                  alt={t('admin.articleEditor.coverAlt')}
-                  className="w-full max-h-48 sm:max-h-64 object-cover"
-                />
-                <Button
-                  variant="destructive"
-                  size="icon"
-                  className="absolute top-2 right-2 h-8 w-8 touch-manipulation"
-                  onClick={() => {
-                    setCoverImageUrl("");
-                    setCoverImageKey("");
-                  }}
-                  aria-label="Supprimer l'image de couverture"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-            ) : (
-              <div
-                className="border-2 border-dashed border-border rounded-lg p-4 sm:p-8 text-center cursor-pointer hover:border-primary/40 hover:bg-primary/[0.02] transition-colors touch-manipulation"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                {uploading ? (
-                  <Loader2 className="w-8 h-8 text-muted-foreground mx-auto mb-2 animate-spin" />
-                ) : (
-                  <ImageIcon className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                )}
-                <p className="text-sm text-muted-foreground">
-                  {uploading
-                    ? t('admin.articleEditor.uploading')
-                    : t('admin.articleEditor.addImage')}
-                </p>
-                <p className="text-xs text-muted-foreground/70 mt-1">
-                  {t('admin.articleEditor.jpgPngWebP')}
-                </p>
-              </div>
-            )}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              className="hidden"
-              onChange={handleImageUpload}
-            />
-            {!coverImageUrl && (
-              <div className="mt-3">
-                <Label className="text-xs text-muted-foreground mb-1 block">
-                  {t('admin.articleEditor.orUrl')}
-                </Label>
-                <Input
-                  placeholder="https://..."
-                  onChange={e => setCoverImageUrl(e.target.value)}
-                  className="mobile-input"
-                />
-              </div>
-            )}
-          </div>
-
-          {/* YouTube URL */}
-          <div className="bg-card rounded-xl border border-border p-4 sm:p-6 shadow-sm">
-            <Label className="text-sm font-semibold text-foreground mb-2 block">
-              {t('admin.articleEditor.youtubeVideo')}
-            </Label>
-            <Input
-              value={youtubeUrl}
-              onChange={e => setYoutubeUrl(e.target.value)}
-              placeholder="https://youtube.com/watch?v=..."
-              className="mobile-input"
-            />
-            {youtubeUrl && (
-              <div className="mt-4">
-                <YouTubeEmbed url={youtubeUrl} />
-              </div>
-            )}
-          </div>
-
-          {/* Content */}
-          <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden break-words">
-            <div className="px-4 sm:px-6 pt-4 sm:pt-5 pb-2 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
-              <div>
-                <Label className="text-sm font-semibold text-foreground">
-                  {t('admin.articleEditor.content')}
-                </Label>
-                <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
-                  {t('admin.articleEditor.contentHelp')}
-                </p>
-              </div>
-              <div className="flex items-center gap-1.5 shrink-0">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 text-xs gap-1 text-amber-600 hover:text-amber-600 hover:bg-amber-500/10"
-                  disabled={improveTextMutation.isPending || !content}
-                  onClick={() => handleImproveContent("biblical")}
-                >
-                  {improveTextMutation.isPending ? (
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                  ) : (
-                    <BookHeart className="w-3 h-3" />
-                  )}
-                  <span className="hidden sm:inline">Biblique</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 text-xs gap-1 text-muted-foreground hover:text-foreground"
-                  disabled={improveTextMutation.isPending || !content}
-                  onClick={() => handleImproveContent("normal")}
-                >
-                  <Wand2 className="w-3 h-3" />
-                  <span className="hidden sm:inline">Améliorer</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 text-xs gap-1 text-primary hover:text-primary hover:bg-primary/10"
-                  disabled={spellCheckMutation.isPending || !content}
-                  onClick={handleSpellCheckContent}
-                >
-                  {spellCheckMutation.isPending ? (
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                  ) : (
-                    <SpellCheck className="w-3 h-3" />
-                  )}
-                  <span className="hidden sm:inline">Corriger</span>
-                </Button>
-              </div>
-            </div>
-            <RichTextEditor
-              content={content}
-              onChange={setContent}
-              placeholder={t('admin.articleEditor.contentPlaceholder')}
-              minHeight="300px sm:400px"
-              spellcheck={true}
-            />
-            {extractHeadings(content).length > 0 && (
-              <div className="border-t border-border/60 bg-muted/20 px-4 sm:px-6 py-3">
-                <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">
-                  <List className="w-3.5 h-3.5" />
-                  Sommaire affiché sur l'article
-                </p>
-                <ul className="space-y-1">
-                  {extractHeadings(content).map(h => (
-                    <li
-                      key={h.id}
-                      className="text-xs sm:text-sm text-muted-foreground truncate"
-                      style={{ paddingLeft: `${(h.level - 2) * 16}px` }}
-                    >
-                      {h.level === 2 ? "▪" : "·"} {h.title}
-                    </li>
-                  ))}
-                </ul>
-                <p className="text-[11px] text-muted-foreground/60 mt-2">
-                  Utilisez « Titre 2 » / « Titre 3 » dans la barre d'outils pour
-                  structurer l'article et générer le sommaire automatiquement.
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* Actions */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
-            <Button variant="outline" onClick={() => setLocation("/admin")} className="w-full sm:w-auto touch-manipulation">
-              {t('admin.articleEditor.cancel')}
-            </Button>
-            <Button onClick={handleSave} disabled={saving} size="lg" className="w-full sm:w-auto mobile-button touch-manipulation">
-              {saving ? (
-                <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-              ) : (
-                <Save className="w-4 h-4 mr-1" />
-              )}
-              {isNew ? t('admin.articleEditor.create') : t('admin.articleEditor.save')}
-            </Button>
-          </div>
         </div>
       </div>
     </div>

@@ -58,6 +58,41 @@ import {
 import { useBlobUpload } from "@/hooks/useBlobUpload";
 import { useTranslation } from "react-i18next";
 
+type SortField = "createdAt" | "title" | "price";
+
+function SortableHeader({
+  label,
+  field,
+  sortField,
+  sortDirection,
+  onSort,
+  className = "",
+}: {
+  label: string;
+  field: SortField;
+  sortField: SortField;
+  sortDirection: "asc" | "desc";
+  onSort: (field: SortField) => void;
+  className?: string;
+}) {
+  const isActive = sortField === field;
+  return (
+    <th
+      className={`px-6 py-4 cursor-pointer select-none hover:bg-muted/60 transition-colors ${className}`}
+      onClick={() => onSort(field)}
+    >
+      <span className="inline-flex items-center gap-1.5">
+        {label}
+        {isActive ? (
+          sortDirection === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />
+        ) : (
+          <ArrowUpDown className="w-3.5 h-3.5 opacity-30" />
+        )}
+      </span>
+    </th>
+  );
+}
+
 const MOCK_CONTENTS = [
   { id: 1, title: "Bible d'Étude Vie Nouvelle", type: "Livre", theme: "Étude", status: "Publié", date: "24/04/2026" },
   { id: 2, title: "Le Leadership Spirituel", type: "PDF", theme: "Leadership", status: "Brouillon", date: "23/04/2026" },
@@ -517,12 +552,12 @@ export default function AdminBibliotheque() {
                           onCheckedChange={toggleSelectAll}
                         />
                       </th>
-                      <th className="px-6 py-4">{t('admin.bibliotheque.colTitle')}</th>
-                      <th className="px-6 py-4">{t('admin.bibliotheque.colType')}</th>
-                      <th className="px-6 py-4">{t('admin.bibliotheque.colTheme')}</th>
-                      <th className="px-6 py-4">{t('admin.bibliotheque.colPrice')}</th>
-                      <th className="px-6 py-4">{t('admin.bibliotheque.colStatus')}</th>
-                      <th className="px-6 py-4">{t('admin.bibliotheque.colDate')}</th>
+                      <SortableHeader label={t('admin.bibliotheque.colTitle')} field="title" sortField={sortField} sortDirection={sortDirection} onSort={(f) => { setSortField(f); setSortDirection(d => sortField === f ? (d === "asc" ? "desc" : "asc") : "asc"); }} />
+                      <SortableHeader label={t('admin.bibliotheque.colType')} field="title" sortField={sortField} sortDirection={sortDirection} onSort={() => {}} className="cursor-default hover:bg-transparent" />
+                      <SortableHeader label={t('admin.bibliotheque.colTheme')} field="title" sortField={sortField} sortDirection={sortDirection} onSort={() => {}} className="cursor-default hover:bg-transparent" />
+                      <SortableHeader label={t('admin.bibliotheque.colPrice')} field="price" sortField={sortField} sortDirection={sortDirection} onSort={(f) => { setSortField(f); setSortDirection(d => sortField === f ? (d === "asc" ? "desc" : "asc") : "asc"); }} />
+                      <SortableHeader label={t('admin.bibliotheque.colStatus')} field="title" sortField={sortField} sortDirection={sortDirection} onSort={() => {}} className="cursor-default hover:bg-transparent" />
+                      <SortableHeader label={t('admin.bibliotheque.colDate')} field="createdAt" sortField={sortField} sortDirection={sortDirection} onSort={(f) => { setSortField(f); setSortDirection(d => sortField === f ? (d === "asc" ? "desc" : "asc") : "asc"); }} />
                       <th className="px-6 py-4 text-right">{t('admin.bibliotheque.colActions')}</th>
                     </tr>
                   </thead>
@@ -587,7 +622,7 @@ export default function AdminBibliotheque() {
                               {format(new Date(item.createdAt), 'dd/MM/yyyy', { locale: fr })}
                             </td>
                             <td className="px-6 py-4 text-right">
-                              <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="flex items-center justify-end gap-1">
                                 <Button 
                                   variant="ghost" 
                                   size="icon" 
@@ -716,22 +751,7 @@ export default function AdminBibliotheque() {
               </div>
             </div>
             
-            <div className="grid md:grid-cols-4 gap-6">
-              <div className="md:col-span-1 space-y-4">
-                <div className="bg-card border rounded-xl p-4 shadow-sm">
-                  <h3 className="font-semibold mb-4 text-sm uppercase tracking-wider text-muted-foreground">{t('admin.bibliotheque.folders')}</h3>
-                  <div className="space-y-1">
-                    {['Toutes les images', 'Couvertures Livres', 'Miniatures Vidéos', 'PDF & Documents', 'Ressources Jeunesse'].map((folder, i) => (
-                      <button key={i} className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${i === 0 ? 'bg-primary/10 text-primary font-medium' : 'hover:bg-muted text-foreground'}`}>
-                        {folder}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="md:col-span-3">
-                <div className="bg-card border rounded-xl p-6 shadow-sm">
+            <div className="bg-card border rounded-xl p-6 shadow-sm">
                   <div className="flex gap-4 mb-6">
                     <div className="relative flex-1">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -781,8 +801,6 @@ export default function AdminBibliotheque() {
                     )}
                   </div>
                 </div>
-              </div>
-            </div>
           </TabsContent>
 
           {/* TAB 3: CATEGORIES */}
@@ -1139,22 +1157,6 @@ export default function AdminBibliotheque() {
                       <span className="text-muted-foreground">{t('admin.bibliotheque.activeSubscribers')}</span>
                       <span className="font-bold text-lg text-primary">{subscribers?.length || 0}</span>
                     </div>
-                    <div className="flex justify-between items-center p-3 bg-muted/30 rounded-lg">
-                      <span className="text-muted-foreground">{t('admin.bibliotheque.avgOpenRate')}</span>
-                      <span className="font-bold text-lg text-green-500">--%</span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="bg-card border rounded-xl p-6 shadow-sm">
-                  <h3 className="font-bold mb-4">{t('admin.bibliotheque.recentSends')}</h3>
-                  <div className="space-y-3">
-                    {['Pack Étude Spécial', 'Nouveautés Avril', 'Sélection Pâques'].map((camp, i) => (
-                      <div key={i} className="text-sm border-b pb-2 last:border-0 last:pb-0">
-                        <p className="font-medium">{camp}</p>
-                        <p className="text-xs text-muted-foreground">Envoyé le 1{i}/04/2026 • 68% ouverture</p>
-                      </div>
-                    ))}
                   </div>
                 </div>
               </div>

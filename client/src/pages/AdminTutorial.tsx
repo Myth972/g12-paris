@@ -60,10 +60,26 @@ export default function AdminTutorial() {
     );
   }
 
+  const tocSections = [
+    { id: "display-order", icon: ListOrdered, label: t('admin.tutorial.displayOrder.title') },
+    { id: "content-layout", icon: Layout, label: t('admin.tutorial.contentLayout.title') },
+    { id: "video-loop", icon: HelpCircle, label: t('admin.tutorial.contentLayout.videoLoop.title') },
+    { id: "live-badge", icon: HelpCircle, label: t('admin.tutorial.contentLayout.liveBadge.title') },
+    { id: "convention", icon: Globe, label: t('admin.tutorial.convention.title') },
+    { id: "media-uploads", icon: ImageIcon, label: t('admin.tutorial.mediaUploads.title') },
+    { id: "library-advanced", icon: Library, label: t('admin.tutorial.contentLayout.libraryAdvanced.title') },
+    { id: "editor", icon: FileText, label: t('admin.tutorial.editor.title') },
+    { id: "design", icon: Palette, label: t('admin.tutorial.design.title') },
+    { id: "dashboard", icon: TrendingUp, label: t('admin.tutorial.dashboard.title') },
+  ];
+
+  const handleTocClick = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
     <div className="min-h-screen bg-background p-6">
-      <div className="max-w-4xl mx-auto space-y-8">
-        {/* Header */}
+      <div className="max-w-6xl mx-auto space-y-8">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <h1 className="text-3xl font-bold tracking-tight">{t('admin.tutorial.title')}</h1>
@@ -82,8 +98,28 @@ export default function AdminTutorial() {
           </Button>
         </div>
 
+        <div className="flex gap-8 items-start">
+          <nav className="hidden lg:block w-56 shrink-0 sticky top-20">
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3 px-3">Sommaire</p>
+            <ul className="space-y-0.5">
+              {tocSections.map((s) => (
+                <li key={s.id}>
+                  <button
+                    onClick={() => handleTocClick(s.id)}
+                    className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors text-left"
+                  >
+                    <s.icon className="w-4 h-4 shrink-0" />
+                    <span className="truncate">{s.label}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <div className="flex-1 min-w-0 space-y-8">
+
         {/* Section: Display Order */}
-        <section className="space-y-4">
+        <section id="display-order" className="space-y-4 scroll-mt-24">
           <div className="flex items-center gap-2 text-xl font-semibold">
             <ListOrdered className="h-6 w-6 text-primary" />
             <h2>{t('admin.tutorial.displayOrder.title')}</h2>
@@ -137,7 +173,7 @@ export default function AdminTutorial() {
         </section>
 
         {/* Section: Content Layout */}
-        <section className="space-y-4">
+        <section id="content-layout" className="space-y-4 scroll-mt-24">
           <div className="flex items-center gap-2 text-xl font-semibold">
             <Layout className="h-6 w-6 text-primary" />
             <h2>{t('admin.tutorial.contentLayout.title')}</h2>
@@ -185,7 +221,7 @@ export default function AdminTutorial() {
         </section>
 
         {/* Section: Video Loop */}
-        <section className="space-y-4">
+        <section id="video-loop" className="space-y-4 scroll-mt-24">
           <div className="flex items-center gap-2 text-xl font-semibold">
             <HelpCircle className="h-6 w-6 text-primary" />
             <h2>{t('admin.tutorial.contentLayout.videoLoop.title')}</h2>
@@ -198,7 +234,7 @@ export default function AdminTutorial() {
         </section>
 
         {/* Section: Live Badge */}
-        <section className="space-y-4">
+        <section id="live-badge" className="space-y-4 scroll-mt-24">
           <div className="flex items-center gap-2 text-xl font-semibold">
             <HelpCircle className="h-6 w-6 text-primary" />
             <h2>{t('admin.tutorial.contentLayout.liveBadge.title')}</h2>
@@ -217,7 +253,7 @@ export default function AdminTutorial() {
         </section>
 
         {/* Section: Convention G12 France */}
-        <section className="space-y-4">
+        <section id="convention" className="space-y-4 scroll-mt-24">
           <div className="flex items-center gap-2 text-xl font-semibold">
             <Globe className="h-6 w-6 text-primary" />
             <h2>{t('admin.tutorial.convention.title')}</h2>
@@ -277,7 +313,7 @@ export default function AdminTutorial() {
         </section>
 
         {/* Section: Médias & Uploads */}
-        <section className="space-y-4">
+        <section id="media-uploads" className="space-y-4 scroll-mt-24">
           <div className="flex items-center gap-2 text-xl font-semibold">
             <ImageIcon className="h-6 w-6 text-primary" />
             <h2>{t('admin.tutorial.mediaUploads.title')}</h2>
@@ -337,7 +373,7 @@ export default function AdminTutorial() {
         </section>
 
         {/* Section: Gestion Bibliothèque - Nouvelles fonctionnalités */}
-        <section className="space-y-4">
+        <section id="library-advanced" className="space-y-4 scroll-mt-24">
           <div className="flex items-center gap-2 text-xl font-semibold">
             <Library className="h-6 w-6 text-primary" />
             <h2>{t('admin.tutorial.contentLayout.libraryAdvanced.title')}</h2>
@@ -463,7 +499,7 @@ export default function AdminTutorial() {
         </section>
 
         {/* Section: Éditeur de contenu */}
-        <section className="space-y-4">
+        <section id="editor" className="space-y-4 scroll-mt-24">
           <div className="flex items-center gap-2 text-xl font-semibold">
             <FileText className="h-6 w-6 text-primary" />
             <h2>{t('admin.tutorial.editor.title')}</h2>
@@ -548,7 +584,7 @@ export default function AdminTutorial() {
         </section>
 
         {/* Section: Design & Identité */}
-        <section className="space-y-4">
+        <section id="design" className="space-y-4 scroll-mt-24">
           <div className="flex items-center gap-2 text-xl font-semibold">
             <Palette className="h-6 w-6 text-primary" />
             <h2>{t('admin.tutorial.design.title')}</h2>
@@ -607,7 +643,7 @@ export default function AdminTutorial() {
         </section>
 
         {/* Section: Dashboard Stats */}
-        <section className="space-y-4">
+        <section id="dashboard" className="space-y-4 scroll-mt-24">
           <div className="flex items-center gap-2 text-xl font-semibold">
             <TrendingUp className="h-6 w-6 text-primary" />
             <h2>{t('admin.tutorial.dashboard.title')}</h2>
@@ -652,6 +688,8 @@ export default function AdminTutorial() {
           <p className="text-sm text-muted-foreground">
             {t('admin.tutorial.footer.help')}
           </p>
+        </div>
+          </div>
         </div>
       </div>
     </div>

@@ -162,42 +162,57 @@ export default function AdminDesign() {
     }
   }, [settingsQuery.data]);
 
-  const handleSave = async () => {
+  const handleSave = async (keys?: string[]) => {
     try {
-      await Promise.all([
-        setSetting.mutateAsync({ key: "design.primaryColor", value: primaryColor }),
-        setSetting.mutateAsync({ key: "design.secondaryColor", value: secondaryColor }),
-        setSetting.mutateAsync({ key: "design.bgColor", value: bgColor }),
-        setSetting.mutateAsync({ key: "design.fontHeading", value: fontHeading }),
-        setSetting.mutateAsync({ key: "design.fontBody", value: fontBody }),
-        setSetting.mutateAsync({ key: "design.buttonStyle", value: buttonStyle }),
-        setSetting.mutateAsync({ key: "design.cardStyle", value: cardStyle }),
-        setSetting.mutateAsync({ key: "design.textColor", value: textColor }),
-        setSetting.mutateAsync({ key: "design.mutedTextColor", value: mutedTextColor }),
-        setSetting.mutateAsync({ key: "design.enableThemeToggle", value: String(enableThemeToggle) }),
-        setSetting.mutateAsync({ key: "design.defaultTheme", value: defaultTheme }),
-        setSetting.mutateAsync({ key: "design.logoLight", value: logoLight }),
-        setSetting.mutateAsync({ key: "design.logoDark", value: logoDark }),
-        setSetting.mutateAsync({ key: "design.defaultBanner", value: defaultBanner }),
-        setSetting.mutateAsync({ key: "convention.primaryColor", value: conventionPrimaryColor }),
-        setSetting.mutateAsync({ key: "convention.logoUrl", value: conventionLogoUrl }),
-        setSetting.mutateAsync({ key: "convention.bgUrl", value: conventionBgUrl }),
-        setSetting.mutateAsync({ key: "convention.bgUrlMiddle", value: conventionBgUrlMiddle }),
-        setSetting.mutateAsync({ key: "convention.bgUrlBottom", value: conventionBgUrlBottom }),
-        setSetting.mutateAsync({ key: "convention.liveEnabled", value: String(conventionLiveEnabled) }),
-        setSetting.mutateAsync({ key: "convention.youtubeVideoId", value: conventionYoutubeVideoId }),
-        setSetting.mutateAsync({ key: "convention.facebookVideoUrl", value: conventionFacebookVideoUrl }),
-        setSetting.mutateAsync({ key: "convention.showLogo", value: String(conventionShowLogo) }),
-        setSetting.mutateAsync({ key: "convention.showOfficialSite", value: String(conventionShowOfficialSite) }),
-        setSetting.mutateAsync({ key: "convention.showBilingualCTA", value: String(conventionShowBilingualCTA) }),
-        setSetting.mutateAsync({ key: "convention.registrationEnabled", value: String(conventionRegistrationEnabled) }),
-      ]);
+      const allSettings: [string, string][] = [
+        ["design.primaryColor", primaryColor],
+        ["design.secondaryColor", secondaryColor],
+        ["design.bgColor", bgColor],
+        ["design.fontHeading", fontHeading],
+        ["design.fontBody", fontBody],
+        ["design.buttonStyle", buttonStyle],
+        ["design.cardStyle", cardStyle],
+        ["design.textColor", textColor],
+        ["design.mutedTextColor", mutedTextColor],
+        ["design.enableThemeToggle", String(enableThemeToggle)],
+        ["design.defaultTheme", defaultTheme],
+        ["design.logoLight", logoLight],
+        ["design.logoDark", logoDark],
+        ["design.defaultBanner", defaultBanner],
+        ["convention.primaryColor", conventionPrimaryColor],
+        ["convention.logoUrl", conventionLogoUrl],
+        ["convention.bgUrl", conventionBgUrl],
+        ["convention.bgUrlMiddle", conventionBgUrlMiddle],
+        ["convention.bgUrlBottom", conventionBgUrlBottom],
+        ["convention.liveEnabled", String(conventionLiveEnabled)],
+        ["convention.youtubeVideoId", conventionYoutubeVideoId],
+        ["convention.facebookVideoUrl", conventionFacebookVideoUrl],
+        ["convention.showLogo", String(conventionShowLogo)],
+        ["convention.showOfficialSite", String(conventionShowOfficialSite)],
+        ["convention.showBilingualCTA", String(conventionShowBilingualCTA)],
+        ["convention.registrationEnabled", String(conventionRegistrationEnabled)],
+      ];
+      const toSave = keys ? allSettings.filter(([k]) => keys.some(prefix => k.startsWith(prefix))) : allSettings;
+      await Promise.all(toSave.map(([key, value]) => setSetting.mutateAsync({ key, value })));
       toast.success(t('admin.design.toastSaved'));
       await utils.siteSettings.getAll.invalidate();
     } catch (e) {
       toast.error(t('admin.design.toastSaveError'));
     }
   };
+
+  const SaveButton = ({ sectionKeys, label }: { sectionKeys?: string[]; label?: string }) => (
+    <Button
+      variant={sectionKeys ? "outline" : "default"}
+      size={sectionKeys ? "sm" : "default"}
+      onClick={() => handleSave(sectionKeys)}
+      disabled={setSetting.isPending}
+      className="gap-2"
+    >
+      {setSetting.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+      {setSetting.isPending ? t('admin.design.saving') : (label || t('admin.design.saved'))}
+    </Button>
+  );
 
   const handleExportConfig = () => {
     const config = {
@@ -293,7 +308,7 @@ export default function AdminDesign() {
               <h1 className="text-2xl font-bold font-serif">{t('admin.design.title')}</h1>
             </div>
           </div>
-          <Button onClick={handleSave} disabled={setSetting.isPending} className="gap-2">
+          <Button onClick={() => handleSave()} disabled={setSetting.isPending} className="gap-2">
             {setSetting.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             {setSetting.isPending ? t('admin.design.saving') : t('admin.design.saved')}
           </Button>
@@ -349,6 +364,9 @@ export default function AdminDesign() {
               <Input id="logo-dark-url" name="logoDark" placeholder={t('admin.design.orPasteUrl')} value={logoDark} onChange={(e) => setLogoDark(e.target.value)} className="text-xs" />
             </div>
           </div>
+          <div className="flex justify-end mt-6 pt-4 border-t">
+            <SaveButton sectionKeys={["design.logoLight", "design.logoDark"]} label={t('admin.design.saveLogos')} />
+          </div>
         </section>
 
         {/* Couleurs Principales */}
@@ -366,15 +384,12 @@ export default function AdminDesign() {
                 <Download className="w-4 h-4" />
                 {t('admin.tutorial.design.config.export')}
               </Button>
-              <label className="cursor-pointer">
-                <input type="file" accept=".json" onChange={handleImportConfig} className="hidden" />
-                <input type="file" id="config-import" accept=".json" onChange={handleImportConfig} className="hidden" />
               <label htmlFor="config-import" className="cursor-pointer">
+                <input type="file" id="config-import" accept=".json" onChange={handleImportConfig} className="hidden" />
                 <Button variant="outline" size="sm" className="gap-1 pointer-events-none">
                   <Upload className="w-4 h-4" />
                   {t('admin.tutorial.design.config.import')}
                 </Button>
-              </label>
               </label>
             </div>
           </div>
@@ -430,6 +445,9 @@ export default function AdminDesign() {
               </div>
               <p className="text-xs text-muted-foreground">{t('admin.design.bgColorDesc')}</p>
             </div>
+          </div>
+          <div className="flex justify-end mt-6 pt-4 border-t">
+            <SaveButton sectionKeys={["design.primaryColor", "design.secondaryColor", "design.bgColor", "design.textColor", "design.mutedTextColor"]} label={t('admin.design.saveColors')} />
           </div>
         </section>
 
@@ -532,6 +550,9 @@ export default function AdminDesign() {
               </div>
             </div>
           </div>
+          <div className="flex justify-end mt-6 pt-4 border-t">
+            <SaveButton sectionKeys={["design.fontHeading", "design.fontBody", "design.textColor", "design.mutedTextColor"]} label={t('admin.design.saveTypography')} />
+          </div>
         </section>
 
         {/* Mode Sombre / Clair */}
@@ -590,6 +611,9 @@ export default function AdminDesign() {
             </div>
              <p className="text-xs text-muted-foreground mt-3">{t('admin.design.defaultThemeDesc')}</p>
            </div>
+           <div className="flex justify-end mt-6 pt-4 border-t">
+             <SaveButton sectionKeys={["design.enableThemeToggle", "design.defaultTheme"]} label={t('admin.design.saveTheme')} />
+           </div>
          </section>
 
          {/* Prévisualisation du thème */}
@@ -639,17 +663,17 @@ export default function AdminDesign() {
                  </div>
                </div>
                {/* Dark Mode Preview */}
-               <div className={`bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-inner border border-border/20 ${previewDarkMode ? 'bg-black/50' : ''}`}>
-                 <h3 className="text-lg font-semibold font-serif mb-4">{t('admin.design.previewDark')}</h3>
+               <div className={`backdrop-blur-sm rounded-xl p-6 shadow-inner border ${previewDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white/90 border-border/20'}`}>
+                 <h3 className={`text-lg font-semibold font-serif mb-4 ${previewDarkMode ? 'text-gray-100' : ''}`}>{t('admin.design.previewDark')}</h3>
                  <div className="space-y-4">
-                    <div className="flex items-center gap-4 px-4 py-3 bg-primary/10 rounded-lg">
+                    <div className={`flex items-center gap-4 px-4 py-3 rounded-lg ${previewDarkMode ? 'bg-gray-800' : 'bg-primary/10'}`}>
                       <div className="w-8 h-8 rounded-full" style={{ backgroundColor: primaryColor }} />
                       <div className="w-8 h-8 rounded-full" style={{ backgroundColor: secondaryColor }} />
                       <div className="w-8 h-8 rounded-full" style={{ backgroundColor: bgColor }} />
-                      <span className="text-sm">{t('admin.design.colorPrimary')}</span>
+                      <span className={`text-sm ${previewDarkMode ? 'text-gray-300' : ''}`}>{t('admin.design.colorPrimary')}</span>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-sm font-medium" style={{ color: previewDarkMode ? '#fff' : textColor }}>
+                      <p className={`text-sm font-medium ${previewDarkMode ? 'text-gray-200' : ''}`} style={!previewDarkMode ? { color: textColor } : undefined}>
                         {t('admin.design.exampleDesc')}
                       </p>
                       <button className="inline-block bg-primary text-primary-foreground px-4 py-2 rounded text-sm font-medium hover:bg-primary/90">
@@ -697,6 +721,9 @@ export default function AdminDesign() {
               </label>
             </div>
           </div>
+          <div className="flex justify-end mt-6 pt-4 border-t">
+            <SaveButton sectionKeys={["design.buttonStyle"]} label={t('admin.design.saveButtonStyle')} />
+          </div>
         </section>
 
         {/* Style des Cartes */}
@@ -737,6 +764,9 @@ export default function AdminDesign() {
               </div>
             </label>
           </div>
+          <div className="flex justify-end mt-6 pt-4 border-t">
+            <SaveButton sectionKeys={["design.cardStyle"]} label={t('admin.design.saveCardStyle')} />
+          </div>
         </section>
 
         {/* Bannières Globales */}
@@ -773,6 +803,9 @@ export default function AdminDesign() {
               <Input id="default-banner-url" name="defaultBanner" placeholder={t('admin.design.orPasteUrl')} value={defaultBanner} onChange={(e) => setDefaultBanner(e.target.value)} />
               <p className="text-xs text-muted-foreground mt-1">{t('admin.design.bannerHelp')}</p>
             </div>
+          </div>
+          <div className="flex justify-end mt-6 pt-4 border-t">
+            <SaveButton sectionKeys={["design.defaultBanner"]} label={t('admin.design.saveBanner')} />
           </div>
         </section>
         {/* Section Convention G12 France */}
@@ -1089,6 +1122,9 @@ export default function AdminDesign() {
               />
               <p className="text-xs text-muted-foreground">Colle l'URL complète d'une vidéo Facebook (live ou replay). Si YouTube est renseigné, YouTube est affiché en priorité.</p>
             </div>
+          </div>
+          <div className="flex justify-end mt-6 pt-4 border-t">
+            <SaveButton sectionKeys={["convention."]} label="Enregistrer la Convention" />
           </div>
         </section>
 
