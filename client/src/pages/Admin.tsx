@@ -50,6 +50,9 @@ import {
   Eye,
   EyeOff,
   ArrowLeft,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
   Shield,
   Newspaper,
   Bell,
@@ -144,6 +147,8 @@ function ArticlesTab() {
   const [, setLocation] = useLocation();
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [selectedArticles, setSelectedArticles] = useState<number[]>([]);
+  const [sortField, setSortField] = useState<"title" | "createdAt" | "category">("createdAt");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const utils = trpc.useUtils();
 
   const { data, isLoading } = trpc.articles.adminList.useQuery();
@@ -165,6 +170,31 @@ function ArticlesTab() {
   });
 
   const articles = data?.items ?? [];
+
+  const sortedArticles = [...articles].sort((a: any, b: any) => {
+    let aVal: any, bVal: any;
+    if (sortField === "title") {
+      aVal = a.title?.toLowerCase() || "";
+      bVal = b.title?.toLowerCase() || "";
+    } else if (sortField === "category") {
+      aVal = a.category?.toLowerCase() || "";
+      bVal = b.category?.toLowerCase() || "";
+    } else {
+      aVal = new Date(a.createdAt).getTime();
+      bVal = new Date(b.createdAt).getTime();
+    }
+    if (sortDirection === "asc") return aVal > bVal ? 1 : -1;
+    return aVal < bVal ? 1 : -1;
+  });
+
+  const handleSort = (field: typeof sortField) => {
+    if (sortField === field) {
+      setSortDirection(d => d === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
+  };
 
   const toggleArticleSelectAll = () => {
     if (selectedArticles.length === articles.length) {
@@ -250,15 +280,30 @@ function ArticlesTab() {
                     onCheckedChange={toggleArticleSelectAll}
                   />
                 </TableHead>
-                <TableHead className="w-[40%]">{t('admin.articlesTab.columnTitle')}</TableHead>
-                <TableHead>{t('admin.articlesTab.columnCategory')}</TableHead>
+                <TableHead className="w-[40%] cursor-pointer select-none hover:bg-muted/60 transition-colors" onClick={() => handleSort("title")}>
+                  <span className="inline-flex items-center gap-1.5">
+                    {t('admin.articlesTab.columnTitle')}
+                    {sortField === "title" ? (sortDirection === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />) : <ArrowUpDown className="w-3.5 h-3.5 opacity-30" />}
+                  </span>
+                </TableHead>
+                <TableHead className="cursor-pointer select-none hover:bg-muted/60 transition-colors" onClick={() => handleSort("category")}>
+                  <span className="inline-flex items-center gap-1.5">
+                    {t('admin.articlesTab.columnCategory')}
+                    {sortField === "category" ? (sortDirection === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />) : <ArrowUpDown className="w-3.5 h-3.5 opacity-30" />}
+                  </span>
+                </TableHead>
                 <TableHead>{t('admin.articlesTab.columnStatus')}</TableHead>
-                <TableHead>{t('admin.articlesTab.columnDate')}</TableHead>
+                <TableHead className="cursor-pointer select-none hover:bg-muted/60 transition-colors" onClick={() => handleSort("createdAt")}>
+                  <span className="inline-flex items-center gap-1.5">
+                    {t('admin.articlesTab.columnDate')}
+                    {sortField === "createdAt" ? (sortDirection === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />) : <ArrowUpDown className="w-3.5 h-3.5 opacity-30" />}
+                  </span>
+                </TableHead>
                 <TableHead className="text-right">{t('admin.articlesTab.columnActions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {articles.map((article: any) => (
+              {sortedArticles.map((article: any) => (
                 <TableRow key={article.id}>
                   <TableCell>
                     <Checkbox
@@ -683,6 +728,71 @@ function NotificationsTab() {
   );
 }
 
+// ─── AI Sub-Tabs Wrapper ──────────────────────────────────────
+
+function AITabs() {
+  const { t } = useTranslation();
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
+  const [aiTab, setAiTab] = useState("assistant");
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 mb-2">
+        <Sparkles className="w-5 h-5 text-primary" />
+        <h3 className="text-lg font-serif font-bold">{t('admin.tabs.ai')}</h3>
+      </div>
+      <Tabs value={aiTab} onValueChange={setAiTab}>
+        <TabsList className="w-full justify-start gap-1 h-auto flex-wrap">
+          <TabsTrigger value="assistant" className="gap-1.5">
+            <Bot className="w-4 h-4" />
+            {t('admin.aiTab.assistantTitle')}
+          </TabsTrigger>
+          <TabsTrigger value="writer" className="gap-1.5">
+            <FileText className="w-4 h-4" />
+            Rédacteur
+          </TabsTrigger>
+          <TabsTrigger value="media" className="gap-1.5">
+            <Wand2 className="w-4 h-4" />
+            Médias
+          </TabsTrigger>
+          <TabsTrigger value="dashboard" className="gap-1.5">
+            <LayoutDashboard className="w-4 h-4" />
+            Dashboard
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="assistant">
+          <AIAssistantTab />
+          {isAdmin && (
+            <div className="mt-6">
+              <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
+                <ApiKeyConnector />
+              </Suspense>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="writer">
+          <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
+            <AIArticleWriter />
+          </Suspense>
+        </TabsContent>
+
+        <TabsContent value="media">
+          <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
+            <KlingStudio />
+          </Suspense>
+        </TabsContent>
+
+        <TabsContent value="dashboard">
+          <AIDashboard />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
 // ─── AI Assistant Tab ──────────────────────────────────────────
 
 function AIAssistantTab() {
@@ -971,7 +1081,7 @@ if (authLoading) {
     <div className="min-h-screen bg-secondary/30 overflow-y-auto">
       {/* Admin header */}
       <div className="bg-card border-b border-border">
-        <div className="container py-6">
+        <div className="container lg:max-w-7xl py-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 mb-1">
@@ -1042,7 +1152,7 @@ if (authLoading) {
       </div>
 
       {/* Stats Overview - identiques pour tous les rôles */}
-      <div className="container pt-6">
+      <div className="container lg:max-w-7xl pt-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-card border rounded-xl p-4 shadow-sm">
             <div className="flex items-center gap-3">
@@ -1091,7 +1201,7 @@ if (authLoading) {
         </div>
       </div>
 
-      <div className="container pt-2">
+      <div className="container lg:max-w-7xl pt-2">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <Link href="/admin/article/new">
             <div className="bg-card border border-border p-5 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50 flex items-center gap-4">
@@ -1145,7 +1255,7 @@ if (authLoading) {
       </div>
 
       {/* Tabs */}
-      <div className="container py-6">
+      <div className="container lg:max-w-7xl py-6">
         <Tabs defaultValue="articles" className="w-full">
           <TabsList className="mb-6 flex overflow-x-auto h-auto w-full justify-start gap-2 pb-2 scrollbar-thin">
             <TabsTrigger value="articles" className="gap-2">
@@ -1208,33 +1318,7 @@ if (authLoading) {
           {hasAdminAccess && (
             <>
           <TabsContent value="ai" className="space-y-6">
-            <AIAssistantTab />
-            {showFullAdmin && (
-              <div>
-                <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
-                  <ApiKeyConnector />
-                </Suspense>
-              </div>
-            )}
-            <div>
-              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                <FileText className="w-4 h-4 text-amber-500" />
-                Rédacteur IA
-              </h3>
-              <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
-                <AIArticleWriter />
-              </Suspense>
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                <Wand2 className="w-4 h-4 text-violet-500" />
-                AI Media Studio
-              </h3>
-              <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
-                <KlingStudio />
-              </Suspense>
-            </div>
-            <AIDashboard />
+            <AITabs />
           </TabsContent>
           <TabsContent value="communications" className="space-y-6">
             <NotificationsTab />
