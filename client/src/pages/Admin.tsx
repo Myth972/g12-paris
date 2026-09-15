@@ -1256,8 +1256,9 @@ if (authLoading) {
 
       {/* Tabs */}
       <div className="container lg:max-w-7xl py-6">
-        <Tabs defaultValue="articles" className="w-full">
-          <TabsList className="mb-6 flex overflow-x-auto h-auto w-full justify-start gap-2 pb-2 scrollbar-thin">
+        <Tabs defaultValue="articles" className="w-full flex flex-col lg:flex-row gap-6">
+          {/* Mobile: horizontal scrollable tabs */}
+          <TabsList className="lg:hidden mb-0 flex overflow-x-auto h-auto w-full justify-start gap-2 pb-2 scrollbar-thin shrink-0">
             <TabsTrigger value="articles" className="gap-2">
               <Newspaper className="w-4 h-4" />
               {t('admin.tabs.articles')}
@@ -1307,6 +1308,61 @@ if (authLoading) {
               </>
             )}
           </TabsList>
+
+          {/* Desktop: sidebar navigation */}
+          <TabsList className="hidden lg:flex flex-col w-56 shrink-0 bg-card border rounded-xl shadow-sm p-2 sticky top-20 h-fit gap-0.5">
+            <TabsTrigger value="articles" className="justify-start gap-2.5 w-full">
+              <Newspaper className="w-4 h-4" />
+              {t('admin.tabs.articles')}
+            </TabsTrigger>
+            <TabsTrigger value="accueil" className="justify-start gap-2.5 w-full">
+              <LayoutDashboard className="w-4 h-4" />
+              {t('admin.tabs.home')}
+            </TabsTrigger>
+            <TabsTrigger value="pages" className="justify-start gap-2.5 w-full">
+              <Newspaper className="w-4 h-4" />
+              {t('admin.tabs.pages')}
+            </TabsTrigger>
+            <TabsTrigger value="publications" className="justify-start gap-2.5 w-full">
+              <BookOpen className="w-4 h-4" />
+              {t('admin.tabs.publications')}
+            </TabsTrigger>
+            {hasAdminAccess && (
+              <>
+            <TabsTrigger value="ai" className="justify-start gap-2.5 w-full">
+              <Sparkles className="w-4 h-4 text-primary" />
+              {t('admin.tabs.ai')}
+            </TabsTrigger>
+            <TabsTrigger value="communications" className="justify-start gap-2.5 w-full">
+              <Mail className="w-4 h-4" />
+              Communications
+            </TabsTrigger>
+              </>
+            )}
+            <TabsTrigger value="cms" className="justify-start gap-2.5 w-full">
+              <Layout className="w-4 h-4 text-emerald-500" />
+              CMS
+            </TabsTrigger>
+            <TabsTrigger value="story-cards" className="justify-start gap-2.5 w-full">
+              <ImageIcon className="w-4 h-4 text-pink-500" />
+              Story Cards
+            </TabsTrigger>
+            {showFullAdmin && (
+              <>
+            <TabsTrigger value="users" className="justify-start gap-2.5 w-full">
+              <Users className="w-4 h-4" />
+              {t('admin.tabs.users')}
+            </TabsTrigger>
+            <TabsTrigger value="convention-registrations" className="justify-start gap-2.5 w-full">
+              <ClipboardList className="w-4 h-4 text-blue-500" />
+              Inscriptions
+            </TabsTrigger>
+              </>
+            )}
+          </TabsList>
+
+          {/* Content area — flex-1 on desktop */}
+          <div className="flex-1 min-w-0">
           <TabsContent value="articles">
             <ArticlesTab />
           </TabsContent>
@@ -1375,6 +1431,7 @@ if (authLoading) {
               <ConventionRegistrationsManager />
             </Suspense>
           </TabsContent>
+          </div>
         </Tabs>
       </div>
     </div>
