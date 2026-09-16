@@ -7,6 +7,7 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { appRouter } from "../server/routers.js";
 import { createContext } from "../server/_core/context.js";
 import { getCsrfCookieOptions } from "../server/_core/cookies.js";
+import { initAgents } from "../server/_core/agents.js";
 
 const app = express();
 
@@ -44,6 +45,9 @@ const ensureCsrfCookie = (req: any, res: any) => {
 };
 
 console.log("[Vercel API] Starting initialization...");
+
+// Initialize agents (in-memory registry)
+initAgents();
 
 // Log environment status (Safe keys only)
 console.log("[Vercel API] Env check:", {
