@@ -419,25 +419,25 @@ export default function AdminBibliotheque() {
     <div className="min-h-screen bg-muted/20 overflow-y-auto">
       {/* Header */}
       <div className="bg-card border-b sticky top-0 z-10">
-        <div className="container py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => setLocation("/admin")} aria-label="Retour">
+        <div className="container py-3 sm:py-4 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+            <Button variant="ghost" size="icon" className="shrink-0" onClick={() => setLocation("/admin")} aria-label="Retour">
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <div>
-              <div className="flex items-center gap-2">
-                <Library className="w-5 h-5 text-primary" />
-                <span className="text-sm font-semibold uppercase tracking-wider text-primary">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <Library className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
+                <span className="text-[11px] sm:text-sm font-semibold uppercase tracking-wider text-primary">
                   Administration
                 </span>
               </div>
-              <h1 className="text-2xl font-bold font-serif">{t('admin.bibliotheque.title')}</h1>
+              <h1 className="text-lg sm:text-2xl font-bold font-serif truncate">{t('admin.bibliotheque.title')}</h1>
             </div>
           </div>
-          <Button asChild className="rounded-xl shadow-lg shadow-primary/20">
+          <Button asChild className="rounded-xl shadow-lg shadow-primary/20 shrink-0" size="sm">
             <Link href="/admin/bibliotheque/edition/new">
-              <Plus className="w-4 h-4 mr-2" />
-              {t('admin.bibliotheque.newContent')}
+              <Plus className="w-4 h-4 sm:mr-2" />
+              <span className="hidden sm:inline">{t('admin.bibliotheque.newContent')}</span>
             </Link>
           </Button>
         </div>
@@ -445,7 +445,7 @@ export default function AdminBibliotheque() {
 
       <div className="container py-8">
         <Tabs defaultValue="contenus" className="space-y-6">
-          <TabsList className="bg-card border p-1 rounded-xl shadow-sm h-auto flex-wrap justify-start gap-2">
+          <TabsList className="bg-card border p-1 rounded-xl shadow-sm h-auto flex overflow-x-auto sm:flex-wrap no-scrollbar justify-start gap-2">
             <TabsTrigger value="contenus" className="gap-2 data-[state=active]:bg-primary/10 data-[state=active]:text-primary">
               <FileText className="w-4 h-4" />
               {t('admin.bibliotheque.tabContents')}
@@ -482,7 +482,7 @@ export default function AdminBibliotheque() {
               </div>
               <div className="flex gap-2 w-full md:w-auto flex-wrap">
                 <Select value={selectedType} onValueChange={(v) => { setSelectedType(v); setCurrentPage(1); }}>
-                  <SelectTrigger className="w-[140px]">
+                  <SelectTrigger className="w-full sm:w-[140px]">
                     <SelectValue placeholder={t('admin.bibliotheque.colType')} />
                   </SelectTrigger>
                   <SelectContent>
@@ -491,7 +491,7 @@ export default function AdminBibliotheque() {
                   </SelectContent>
                 </Select>
                 <Select value={selectedTheme} onValueChange={(v) => { setSelectedTheme(v); setCurrentPage(1); }}>
-                  <SelectTrigger className="w-[140px]">
+                  <SelectTrigger className="w-full sm:w-[140px]">
                     <SelectValue placeholder={t('admin.bibliotheque.colTheme')} />
                   </SelectTrigger>
                   <SelectContent>
@@ -500,7 +500,7 @@ export default function AdminBibliotheque() {
                   </SelectContent>
                 </Select>
                 <Select value={sortField} onValueChange={(v: any) => setSortField(v)}>
-                  <SelectTrigger className="w-[130px]">
+                  <SelectTrigger className="w-full sm:w-[130px]">
                     <SelectValue placeholder={t('admin.bibliotheque.sortBy')} />
                   </SelectTrigger>
                   <SelectContent>
@@ -519,20 +519,23 @@ export default function AdminBibliotheque() {
             </div>
 
             {selectedItems.length > 0 && (
-              <div className="flex items-center gap-4 bg-primary/10 border border-primary/30 rounded-xl p-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4 bg-primary/10 border border-primary/30 rounded-xl p-3 sm:p-4">
                 <span className="text-sm font-medium">{t('admin.bibliotheque.selectedCount', { count: selectedItems.length })}</span>
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-2">
                   <Button size="sm" variant="outline" onClick={handleBulkPublish} disabled={bulkPublishMutation.isPending}>
                     {bulkPublishMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Check className="w-4 h-4 mr-1" />}
-                    {t('admin.bibliotheque.publish')}
+                    <span className="hidden sm:inline">{t('admin.bibliotheque.publish')}</span>
+                    <span className="sm:hidden"><Check className="w-4 h-4" /></span>
                   </Button>
                   <Button size="sm" variant="outline" onClick={handleBulkUnpublish} disabled={bulkUnpublishMutation.isPending}>
                     {bulkUnpublishMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <X className="w-4 h-4 mr-1" />}
-                    {t('admin.bibliotheque.unpublish')}
+                    <span className="hidden sm:inline">{t('admin.bibliotheque.unpublish')}</span>
+                    <span className="sm:hidden"><X className="w-4 h-4" /></span>
                   </Button>
                   <Button size="sm" variant="destructive" onClick={handleBulkDelete} disabled={bulkDeleteMutation.isPending}>
                     {bulkDeleteMutation.isPending ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : <Trash2 className="w-4 h-4 mr-1" />}
-                    {t('admin.bibliotheque.delete')}
+                    <span className="hidden sm:inline">{t('admin.bibliotheque.delete')}</span>
+                    <span className="sm:hidden"><Trash2 className="w-4 h-4" /></span>
                   </Button>
                   <Button size="sm" variant="ghost" onClick={() => setSelectedItems([])}>
                     {t('admin.dialogs.confirmDelete.cancel')}
@@ -542,7 +545,8 @@ export default function AdminBibliotheque() {
             )}
 
             <div className="bg-card border rounded-xl shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
+              {/* Desktop: Table */}
+              <div className="overflow-x-auto hidden md:block">
                 <table className="w-full text-sm text-left">
                   <thead className="bg-muted/50 text-muted-foreground font-medium border-b">
                     <tr>
@@ -626,7 +630,7 @@ export default function AdminBibliotheque() {
                                 <Button 
                                   variant="ghost" 
                                   size="icon" 
-                                  className="h-8 w-8"
+                                  className="h-10 w-10 sm:h-8 sm:w-8"
                                   title={item.published ? t('admin.bibliotheque.unpublish') : t('admin.bibliotheque.publish')}
                                   aria-label={item.published ? t('admin.bibliotheque.unpublish') : t('admin.bibliotheque.publish')}
                                   onClick={() => handleTogglePublish(item)}
@@ -636,7 +640,7 @@ export default function AdminBibliotheque() {
                                 <Button 
                                   variant="ghost" 
                                   size="icon" 
-                                  className="h-8 w-8"
+                                  className="h-10 w-10 sm:h-8 sm:w-8"
                                   title={t('admin.bibliotheque.preview')}
                                   aria-label={t('admin.bibliotheque.preview')}
                                   asChild
@@ -647,7 +651,7 @@ export default function AdminBibliotheque() {
                                 </Button>
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Actions">
+                                    <Button variant="ghost" size="icon" className="h-10 w-10 sm:h-8 sm:w-8" aria-label="Actions">
                                       <MoreVertical className="w-4 h-4" />
                                     </Button>
                                   </DropdownMenuTrigger>
@@ -680,15 +684,93 @@ export default function AdminBibliotheque() {
                 </table>
               </div>
 
+              {/* Mobile: Card view */}
+              <div className="md:hidden divide-y">
+                {isLoading ? (
+                  <div className="px-4 py-12 text-center text-muted-foreground">
+                    <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
+                    {t('admin.bibliotheque.loadingContents')}
+                  </div>
+                ) : paginatedItems.length === 0 ? (
+                  <div className="px-4 py-12 text-center text-muted-foreground">
+                    {t('admin.bibliotheque.noContents')}
+                  </div>
+                ) : (
+                  paginatedItems.map((item: any) => {
+                    const isLibrary = item.category.startsWith("bibliothèque:");
+                    const type = isLibrary ? item.category.split(":")[1] : "Article";
+                    const theme = isLibrary ? item.category.split(":")[2] : "Général";
+                    return (
+                      <div key={item.id} className="px-4 py-3 space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <Checkbox
+                              checked={selectedItems.includes(item.id)}
+                              onCheckedChange={() => toggleSelectItem(item.id)}
+                              className="mt-0.5 shrink-0"
+                            />
+                            <div className="w-9 h-9 rounded bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                              {type === 'video' ? <Video size={16} /> :
+                               type === 'pdf' ? <Download size={16} /> :
+                               <FileText size={16} />}
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-bold text-sm truncate">{item.title}</p>
+                              <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                                <Badge variant="outline" className="text-[10px] px-1.5 py-0">{type}</Badge>
+                                <Badge
+                                  className={`text-[10px] px-1.5 py-0 ${item.published ? 'bg-green-500/10 text-green-600' : 'bg-amber-500/10 text-amber-600'}`}
+                                  variant="secondary"
+                                >
+                                  {item.published ? t('admin.bibliotheque.published') : t('admin.bibliotheque.draft')}
+                                </Badge>
+                                {item.price ? <span className="text-xs font-medium">{(item.price / 100).toFixed(2)}€</span> : null}
+                                <span className="text-[10px] text-muted-foreground">{format(new Date(item.createdAt), 'dd/MM/yy', { locale: fr })}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon" className="h-11 w-11 shrink-0" aria-label="Actions">
+                                <MoreVertical className="w-5 h-5" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => handleTogglePublish(item)}>
+                                {item.published ? <><X className="w-4 h-4 mr-2" /> {t('admin.bibliotheque.unpublish')}</> : <><Check className="w-4 h-4 mr-2" /> {t('admin.bibliotheque.publish')}</>}
+                              </DropdownMenuItem>
+                              <DropdownMenuItem asChild>
+                                <Link href={`/admin/bibliotheque/edition/${item.id}`} className="flex items-center cursor-pointer">
+                                  <Pencil className="w-4 h-4 mr-2" /> {t('admin.bibliotheque.edit')}
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem asChild>
+                                <Link href={`/bibliotheque/livre/${item.id}`} target="_blank" className="flex items-center cursor-pointer">
+                                  <Eye className="w-4 h-4 mr-2" /> {t('admin.bibliotheque.preview')}
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="text-red-600" onClick={() => handleDelete(item.id)}>
+                                <Trash2 className="w-4 h-4 mr-2" /> {t('admin.bibliotheque.delete')}
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
               {totalPages > 1 && (
-                <div className="flex items-center justify-between px-6 py-4 border-t">
-                  <div className="text-sm text-muted-foreground">
+                <div className="flex flex-col sm:flex-row items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-t gap-2">
+                  <div className="text-xs sm:text-sm text-muted-foreground">
                     {t('admin.bibliotheque.paginationShowing', { from: (currentPage - 1) * itemsPerPage + 1, to: Math.min(currentPage * itemsPerPage, filteredItems.length), total: filteredItems.length })}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1.5">
                     <Button 
                       variant="outline" 
-                      size="sm" 
+                      size="icon"
+                      className="h-8 w-8"
                       onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                       disabled={currentPage === 1}
                     >
@@ -709,7 +791,8 @@ export default function AdminBibliotheque() {
                         <Button 
                           key={pageNum}
                           variant={currentPage === pageNum ? "default" : "outline"} 
-                          size="sm"
+                          size="icon"
+                          className="h-8 w-8"
                           onClick={() => setCurrentPage(pageNum)}
                         >
                           {pageNum}
@@ -718,7 +801,8 @@ export default function AdminBibliotheque() {
                     })}
                     <Button 
                       variant="outline" 
-                      size="sm" 
+                      size="icon"
+                      className="h-8 w-8"
                       onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                       disabled={currentPage === totalPages}
                     >
@@ -777,7 +861,7 @@ export default function AdminBibliotheque() {
                               <Video size={32} />
                             </div>
                           )}
-                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                          <div className="absolute inset-0 bg-black/50 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                             <Button size="icon" variant="secondary" className="h-8 w-8 rounded-full" onClick={() => window.open(media.mediaUrl, '_blank')} aria-label="Voir le média">
                               <Eye className="w-4 h-4" />
                             </Button>
@@ -867,7 +951,7 @@ export default function AdminBibliotheque() {
                         <button
                           type="button"
                           onClick={() => setBiblioThemesLogo("")}
-                          className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold"
+                          className="absolute inset-0 bg-black/60 md:opacity-0 md:group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-semibold"
                         >
                           <Trash2 className="w-4 h-4 mr-1" /> {t('admin.bibliotheque.deleteLogo')}
                         </button>

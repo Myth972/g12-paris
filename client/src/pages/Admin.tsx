@@ -933,8 +933,8 @@ function AIAssistantTab() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="min-w-[220px]">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+          <div className="w-full sm:min-w-[220px]">
             <Select
               value={provider}
               onValueChange={value => {
@@ -1084,7 +1084,7 @@ if (authLoading) {
         <div className="container lg:max-w-7xl py-6">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
-              <div className="flex items-center gap-2 mb-1">
+              <div className="flex items-center gap-1.5 sm:gap-2 mb-1 flex-wrap">
                 <Shield className="w-5 h-5 text-primary" />
                 <span className="text-xs font-semibold uppercase tracking-wider text-primary font-sans">
                   {t('admin.title')}
@@ -1097,24 +1097,23 @@ if (authLoading) {
                     variant={editorMode ? "default" : "outline"}
                     size="sm"
                     onClick={() => setEditorMode(!editorMode)}
-                    className="ml-2 gap-1.5"
+                    className="gap-1.5 h-8"
                   >
                     <Pencil className="w-3.5 h-3.5" />
-                    Mode éditeur
+                    <span className="hidden sm:inline">Mode éditeur</span>
                   </Button>
                 )}
-<Button
-  variant="outline"
-  size="sm"
-  onClick={() => i18n.changeLanguage(i18n.language === "en" ? "fr" : "en")}
-  className="ml-2 flex items-center gap-1"
-  title="Changer la langue"
->
-  <Globe className="w-4 h-4" />
-  {i18n.language === "en" ? "EN" : "FR"}
-</Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => i18n.changeLanguage(i18n.language === "en" ? "fr" : "en")}
+                  className="h-8 w-8"
+                  title="Changer la langue"
+                >
+                  <Globe className="w-4 h-4" />
+                </Button>
               </div>
-              <h1 className="text-2xl font-serif font-bold text-foreground">
+              <h1 className="text-xl sm:text-2xl font-serif font-bold text-foreground">
                 {t('admin.dashboard')}
               </h1>
               {user && (
@@ -1126,13 +1125,13 @@ if (authLoading) {
             <div className="flex items-center gap-2">
               {hasAdminAccess && (
                 <>
-                  <Button variant="ghost" size="sm" asChild>
+                  <Button variant="ghost" size="sm" asChild className="h-9 sm:h-9">
                     <Link href="/admin/profile">
                       <User className="w-4 h-4 sm:mr-1" />
                       <span className="hidden sm:inline">{t('admin.myProfile')}</span>
                     </Link>
                   </Button>
-                  <Button variant="outline" size="sm" asChild>
+                  <Button variant="outline" size="sm" asChild className="h-9 sm:h-9">
                     <Link href="/admin/tutorial">
                       <HelpCircle className="w-4 h-4 sm:mr-1" />
                       <span className="hidden sm:inline">{t('admin.guide')}</span>
@@ -1140,7 +1139,7 @@ if (authLoading) {
                   </Button>
                 </>
               )}
-              <Button variant="outline" size="sm" asChild>
+              <Button variant="outline" size="sm" asChild className="h-9 sm:h-9">
                 <Link href="/">
                   <ArrowLeft className="w-4 h-4 sm:mr-1" />
                   <span className="hidden sm:inline">{t('admin.backToSite')}</span>
@@ -1256,25 +1255,26 @@ if (authLoading) {
 
       {/* Tabs */}
       <div className="container lg:max-w-7xl py-6">
-        <Tabs defaultValue="articles" className="w-full flex flex-col lg:flex-row gap-6">
+        <Tabs defaultValue="articles" className="w-full flex flex-col lg:flex-row gap-4 lg:gap-6">
           {/* Mobile: horizontal scrollable tabs */}
-          <TabsList className="lg:hidden mb-0 flex overflow-x-auto h-auto w-full justify-start gap-2 pb-2 scrollbar-thin shrink-0">
-            <TabsTrigger value="articles" className="gap-2">
-              <Newspaper className="w-4 h-4" />
-              {t('admin.tabs.articles')}
-            </TabsTrigger>
-            <TabsTrigger value="accueil" className="gap-2">
-              <LayoutDashboard className="w-4 h-4" />
-              {t('admin.tabs.home')}
-            </TabsTrigger>
-            <TabsTrigger value="pages" className="gap-2">
-              <Newspaper className="w-4 h-4" />
-              {t('admin.tabs.pages')}
-            </TabsTrigger>
-            <TabsTrigger value="publications" className="gap-2">
-              <BookOpen className="w-4 h-4" />
-              {t('admin.tabs.publications')}
-            </TabsTrigger>
+          <div className="relative lg:hidden">
+            <TabsList className="mb-0 flex overflow-x-auto h-auto w-full justify-start gap-1 pb-2 shrink-0 snap-x snap-mandatory no-scrollbar">
+              <TabsTrigger value="articles" className="gap-2">
+                <Newspaper className="w-4 h-4" />
+                {t('admin.tabs.articles')}
+              </TabsTrigger>
+              <TabsTrigger value="accueil" className="gap-2">
+                <LayoutDashboard className="w-4 h-4" />
+                {t('admin.tabs.home')}
+              </TabsTrigger>
+              <TabsTrigger value="pages" className="gap-2">
+                <Newspaper className="w-4 h-4" />
+                {t('admin.tabs.pages')}
+              </TabsTrigger>
+              <TabsTrigger value="publications" className="gap-2">
+                <BookOpen className="w-4 h-4" />
+                {t('admin.tabs.publications')}
+              </TabsTrigger>
             {hasAdminAccess && (
               <>
             <TabsTrigger value="ai" className="gap-2">
@@ -1308,6 +1308,9 @@ if (authLoading) {
               </>
             )}
           </TabsList>
+            {/* Right fade gradient indicator for mobile scroll */}
+            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-secondary/30 to-transparent pointer-events-none" />
+          </div>
 
           {/* Desktop: sidebar navigation */}
           <TabsList className="hidden lg:flex flex-col w-56 shrink-0 bg-card border rounded-xl shadow-sm p-2 sticky top-20 h-fit gap-0.5">

@@ -604,7 +604,7 @@ export default function AdminBibliothequeEditor() {
                     {coverImageUrl ? (
                       <>
                         <img src={coverImageUrl} alt="Cover" className="absolute inset-0 w-full h-full object-cover object-center" />
-                        <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center">
+                        <div className="absolute inset-0 bg-black/40 md:opacity-0 md:hover:opacity-100 transition-opacity flex items-center justify-center">
                           <Button size="sm" variant="secondary">{t('admin.bibliothequeEditor.replace')}</Button>
                         </div>
                       </>

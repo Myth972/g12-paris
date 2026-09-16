@@ -308,18 +308,18 @@ export default function AIArticleWriter() {
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8 overflow-hidden">
       {/* Header */}
       <div>
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/60 rounded-xl flex items-center justify-center shadow-lg shadow-primary/20">
+          <div className="w-10 h-10 bg-gradient-to-br from-primary to-primary/60 rounded-xl flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
             <Sparkles className="w-5 h-5 text-primary-foreground" />
           </div>
-          <div>
-            <h2 className="text-2xl font-bold font-serif">
+          <div className="min-w-0">
+            <h2 className="text-xl sm:text-2xl font-bold font-serif">
               Assistant de rédaction IA
             </h2>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Loop Engineering — Planification → Rédaction → Relecture → Enrichissement
             </p>
           </div>
@@ -438,9 +438,9 @@ export default function AIArticleWriter() {
               )}
 
               {result && (
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2">
                   <Button
-                    className="flex-1 gap-2"
+                    className="w-full sm:flex-1 gap-2"
                     onClick={handleSaveAsDraft}
                     disabled={createMutation.isPending}
                   >
@@ -453,7 +453,7 @@ export default function AIArticleWriter() {
                   </Button>
                   <Button
                     variant="outline"
-                    className="gap-2"
+                    className="w-full sm:w-auto gap-2"
                     onClick={handleRegenerate}
                   >
                     <RefreshCw className="w-4 h-4" />
@@ -754,7 +754,7 @@ export default function AIArticleWriter() {
                       <Button
                         variant="secondary"
                         size="sm"
-                        className="absolute top-2 right-2 gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                        className="absolute top-2 right-2 gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
                         onClick={() => handleGenerateCover()}
                         disabled={coverMutation.isPending}
                       >

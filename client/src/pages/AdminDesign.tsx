@@ -293,24 +293,24 @@ export default function AdminDesign() {
       `}} />
       {/* Header */}
       <div className="bg-card border-b sticky top-0 z-10 shadow-sm">
-        <div className="container py-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => setLocation("/admin")} aria-label="Retour">
+        <div className="container py-3 sm:py-4 flex items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+            <Button variant="ghost" size="icon" className="shrink-0" onClick={() => setLocation("/admin")} aria-label="Retour">
               <ArrowLeft className="w-5 h-5" />
             </Button>
-            <div>
-              <div className="flex items-center gap-2">
-                <Palette className="w-5 h-5 text-primary" />
-                <span className="text-xs font-semibold uppercase tracking-wider text-primary">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <Palette className="w-4 h-4 sm:w-5 sm:h-5 text-primary shrink-0" />
+                <span className="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-primary">
                   {t('admin.title')}
                 </span>
               </div>
-              <h1 className="text-2xl font-bold font-serif">{t('admin.design.title')}</h1>
+              <h1 className="text-lg sm:text-2xl font-bold font-serif truncate">{t('admin.design.title')}</h1>
             </div>
           </div>
-          <Button onClick={() => handleSave()} disabled={setSetting.isPending} className="gap-2">
+          <Button onClick={() => handleSave()} disabled={setSetting.isPending} className="gap-2 shrink-0" size="sm">
             {setSetting.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            {setSetting.isPending ? t('admin.design.saving') : t('admin.design.saved')}
+            <span className="hidden sm:inline">{setSetting.isPending ? t('admin.design.saving') : t('admin.design.saved')}</span>
           </Button>
         </div>
       </div>
@@ -318,11 +318,11 @@ export default function AdminDesign() {
       <div className="container py-8 max-w-5xl space-y-8">
         
         {/* Identité (Logos) */}
-        <section className="bg-card border rounded-2xl p-6 md:p-8 shadow-sm">
+        <section className="bg-card border rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm">
           <h2 className="text-xl font-bold font-serif flex items-center gap-2 border-b pb-4 mb-6">
             <ImageIcon className="w-5 h-5 text-primary" /> {t('admin.design.identityTitle')}
           </h2>
-          <div className="grid md:grid-cols-2 gap-8">
+          <div className="grid md:grid-cols-2 gap-5 sm:gap-8">
             <div className="space-y-3">
               <label htmlFor="logo-light-url" className="text-sm font-medium">{t('admin.design.logoLightLabel')}</label>
               <div 
