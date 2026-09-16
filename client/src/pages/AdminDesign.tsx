@@ -24,7 +24,8 @@ import {
   Monitor,
   Play,
   Video,
-  Trash2
+  Trash2,
+  ListOrdered
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
@@ -36,6 +37,22 @@ export default function AdminDesign() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
   const { t } = useTranslation();
+
+  const tocSections = [
+    { id: "identity", icon: ImageIcon, label: t('admin.design.identityTitle') },
+    { id: "colors", icon: Palette, label: t('admin.design.colorChartTitle') },
+    { id: "typography", icon: Type, label: t('admin.design.typographyTitle') },
+    { id: "darkmode", icon: Monitor, label: t('admin.design.displayModeTitle') },
+    { id: "preview", icon: Monitor, label: t('admin.design.previewTitle') },
+    { id: "buttons", icon: MousePointerClick, label: t('admin.design.buttonStyleTitle') },
+    { id: "cards", icon: LayoutTemplate, label: t('admin.design.cardStyleTitle') },
+    { id: "banners", icon: FileText, label: t('admin.design.bannerTitle') },
+    { id: "convention", icon: Shield, label: "Convention G12" },
+  ];
+
+  const handleTocClick = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
 
   if (user?.role !== "admin") {
     return (
@@ -315,10 +332,31 @@ export default function AdminDesign() {
         </div>
       </div>
 
-      <div className="container py-8 max-w-5xl space-y-8">
+      <div className="container py-8 max-w-6xl flex gap-8 items-start">
+        
+        {/* Sommaire sticky - desktop */}
+        <nav className="hidden lg:block w-56 shrink-0 sticky top-20">
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-3 px-3">Sommaire</p>
+          <ul className="space-y-0.5">
+            {tocSections.map((s) => (
+              <li key={s.id}>
+                <button
+                  onClick={() => handleTocClick(s.id)}
+                  className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-muted-foreground hover:bg-muted hover:text-foreground transition-colors text-left"
+                >
+                  <s.icon className="w-4 h-4 shrink-0" />
+                  <span className="truncate">{s.label}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        {/* Contenu principal */}
+        <div className="flex-1 min-w-0 space-y-8">
         
         {/* Identité (Logos) */}
-        <section className="bg-card border rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm">
+        <section id="identity" className="bg-card border rounded-2xl p-4 sm:p-6 md:p-8 shadow-sm scroll-mt-24">
           <h2 className="text-xl font-bold font-serif flex items-center gap-2 border-b pb-4 mb-6">
             <ImageIcon className="w-5 h-5 text-primary" /> {t('admin.design.identityTitle')}
           </h2>
@@ -370,7 +408,7 @@ export default function AdminDesign() {
         </section>
 
         {/* Couleurs Principales */}
-        <section className="bg-card border rounded-2xl p-6 md:p-8 shadow-sm">
+        <section id="colors" className="bg-card border rounded-2xl p-6 md:p-8 shadow-sm scroll-mt-24">
           <div className="flex items-center justify-between border-b pb-4 mb-6">
             <h2 className="text-xl font-bold font-serif flex items-center gap-2">
               <Palette className="w-5 h-5 text-primary" /> {t('admin.design.colorChartTitle')}
@@ -452,7 +490,7 @@ export default function AdminDesign() {
         </section>
 
         {/* Typographies */}
-        <section className="bg-card border rounded-2xl p-6 md:p-8 shadow-sm">
+        <section id="typography" className="bg-card border rounded-2xl p-6 md:p-8 shadow-sm scroll-mt-24">
           <h2 className="text-xl font-bold font-serif flex items-center gap-2 border-b pb-4 mb-6">
             <Type className="w-5 h-5 text-primary" /> {t('admin.design.typographyTitle')}
           </h2>
@@ -556,7 +594,7 @@ export default function AdminDesign() {
         </section>
 
         {/* Mode Sombre / Clair */}
-        <section className="bg-card border rounded-2xl p-6 md:p-8 shadow-sm">
+        <section id="darkmode" className="bg-card border rounded-2xl p-6 md:p-8 shadow-sm scroll-mt-24">
           <h2 className="text-xl font-bold font-serif flex items-center gap-2 border-b pb-4 mb-6">
             <Monitor className="w-5 h-5 text-primary" /> {t('admin.design.displayModeTitle')}
           </h2>
@@ -617,7 +655,7 @@ export default function AdminDesign() {
          </section>
 
          {/* Prévisualisation du thème */}
-         <section className="bg-card border rounded-2xl p-6 md:p-8 shadow-sm">
+         <section id="preview" className="bg-card border rounded-2xl p-6 md:p-8 shadow-sm scroll-mt-24">
            <h2 className="text-xl font-bold font-serif flex items-center gap-2 border-b pb-4 mb-6">
              <Monitor className="w-5 h-5 text-primary" /> {t('admin.design.previewTitle')}
            </h2>
@@ -687,7 +725,7 @@ export default function AdminDesign() {
          </section>
 
         {/* Style des Boutons */}
-        <section className="bg-card border rounded-2xl p-6 md:p-8 shadow-sm">
+        <section id="buttons" className="bg-card border rounded-2xl p-6 md:p-8 shadow-sm scroll-mt-24">
           <h2 className="text-xl font-bold font-serif flex items-center gap-2 border-b pb-4 mb-6">
              <MousePointerClick className="w-5 h-5 text-primary" /> {t('admin.design.buttonStyleTitle')}
           </h2>
@@ -727,7 +765,7 @@ export default function AdminDesign() {
         </section>
 
         {/* Style des Cartes */}
-        <section className="bg-card border rounded-2xl p-6 md:p-8 shadow-sm">
+        <section id="cards" className="bg-card border rounded-2xl p-6 md:p-8 shadow-sm scroll-mt-24">
           <h2 className="text-xl font-bold font-serif flex items-center gap-2 border-b pb-4 mb-6">
              <LayoutTemplate className="w-5 h-5 text-primary" /> {t('admin.design.cardStyleTitle')}
           </h2>
@@ -770,7 +808,7 @@ export default function AdminDesign() {
         </section>
 
         {/* Bannières Globales */}
-        <section className="bg-card border rounded-2xl p-6 md:p-8 shadow-sm">
+        <section id="banners" className="bg-card border rounded-2xl p-6 md:p-8 shadow-sm scroll-mt-24">
           <h2 className="text-xl font-bold font-serif flex items-center gap-2 border-b pb-4 mb-6">
              <FileText className="w-5 h-5 text-primary" /> {t('admin.design.bannerTitle')}
           </h2>
@@ -809,7 +847,7 @@ export default function AdminDesign() {
           </div>
         </section>
         {/* Section Convention G12 France */}
-        <section className="bg-card border rounded-2xl p-6 md:p-8 shadow-sm">
+        <section id="convention" className="bg-card border rounded-2xl p-6 md:p-8 shadow-sm scroll-mt-24">
           <h2 className="text-xl font-bold font-serif flex items-center gap-2 border-b pb-4 mb-6">
             <Shield className="w-5 h-5 text-primary" /> Personnalisation Convention G12 France
           </h2>
@@ -1128,6 +1166,7 @@ export default function AdminDesign() {
           </div>
         </section>
 
+        </div>{/* fin contenu principal */}
       </div>
     </div>
   );
