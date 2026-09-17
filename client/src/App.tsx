@@ -49,6 +49,9 @@ const ChatBot = lazy(() => import("./components/ChatBot").then(m => ({ default: 
 
 const ILoveYouJesus = lazy(() => import("./pages/ILoveYouJesus"));
 const ArticleDesignDemo = lazy(() => import("./pages/ArticleDesignDemo"));
+const EventsPage = lazy(() => import("./pages/EventsPage"));
+const EventsYouthPage = lazy(() => import("./pages/EventsYouthPage"));
+const EventsArchivesPage = lazy(() => import("./pages/EventsArchivesPage"));
 
 function PageLoader() {
   return (
@@ -160,6 +163,22 @@ function Router() {
         <Route path="/culte-en-ligne">
           <PublicLayout>
             <CulteEnLignePage />
+          </PublicLayout>
+        </Route>
+
+        <Route path="/evenements">
+          <PublicLayout>
+            <EventsPage />
+          </PublicLayout>
+        </Route>
+        <Route path="/evenements/jeunes">
+          <PublicLayout>
+            <EventsYouthPage />
+          </PublicLayout>
+        </Route>
+        <Route path="/evenements/archives">
+          <PublicLayout>
+            <EventsArchivesPage />
           </PublicLayout>
         </Route>
 

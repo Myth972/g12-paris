@@ -1158,6 +1158,51 @@ export async function deleteAnnouncement(id: number) {
   return { success: true };
 }
 
+// ─── Announcements Archives ────────────────────────────────────
+
+export async function listArchivedAnnouncements(category?: string) {
+  const db = getDb();
+  assertDb(db);
+
+  const conditions = [eq(announcements.archived, true)];
+  if (category && category !== "all") conditions.push(eq(announcements.category, category));
+
+  return db
+    .select()
+    .from(announcements)
+    .where(and(...conditions))
+    .orderBy(desc(announcements.eventDate));
+}
+
+export async function archiveAnnouncement(id: number) {
+  const db = getDb();
+  assertDb(db);
+
+  await db.update(announcements).set({ archived: true, updatedAt: new Date() }).where(eq(announcements.id, id));
+  const [row] = await db.select().from(announcements).where(eq(announcements.id, id)).limit(1);
+  return row;
+}
+
+export async function unarchiveAnnouncement(id: number) {
+  const db = getDb();
+  assertDb(db);
+
+  await db.update(announcements).set({ archived: false, updatedAt: new Date() }).where(eq(announcements.id, id));
+  const [row] = await db.select().from(announcements).where(eq(announcements.id, id)).limit(1);
+  return row;
+}
+
+export async function listAnnouncementsByCategory(category: string) {
+  const db = getDb();
+  assertDb(db);
+
+  return db
+    .select()
+    .from(announcements)
+    .where(and(eq(announcements.visible, true), eq(announcements.archived, false), eq(announcements.category, category)))
+    .orderBy(asc(announcements.displayOrder));
+}
+
 // ─── Bulk Delete Functions ──────────────────────────────────────
 
 export async function bulkDeleteNotifications(ids: number[]) {

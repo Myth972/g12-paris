@@ -221,7 +221,7 @@ const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, categor
             size="sm"
             className="rounded-full border-primary/30 text-primary hover:bg-primary/5 gap-1 text-[10px] sm:text-xs h-7 sm:h-8 px-3"
           >
-            <Link href="/">
+            <Link href="/evenements">
               Voir tous les événements
               <ChevronRight className="w-3 h-3" />
             </Link>

@@ -77,6 +77,10 @@ import {
   createAnnouncement,
   updateAnnouncement,
   deleteAnnouncement,
+  listArchivedAnnouncements,
+  archiveAnnouncement,
+  unarchiveAnnouncement,
+  listAnnouncementsByCategory,
   bulkDeleteNotifications,
   bulkDeleteArticles,
   bulkDeleteGalleryItems,
@@ -3409,6 +3413,8 @@ return { url };
         displayOrder: z.number().optional().default(0),
         textColor: z.string().optional(),
         titleColor: z.string().optional(),
+        category: z.enum(["general", "jeunes", "culte", "convention"]).optional().default("general"),
+        archived: z.boolean().optional().default(false),
       }))
       .mutation(async ({ input }) => {
         
@@ -3432,6 +3438,8 @@ return { url };
         visible: z.boolean().optional(),
         textColor: z.string().optional(),
         titleColor: z.string().optional(),
+        category: z.enum(["general", "jeunes", "culte", "convention"]).optional(),
+        archived: z.boolean().optional(),
       }))
       .mutation(async ({ input }) => {
         
@@ -3450,6 +3458,30 @@ return { url };
       .input(zod.object({ ids: z.array(z.number()).min(1).max(100) }))
       .mutation(async ({ input }) => {
         return bulkDeleteAnnouncements(input.ids);
+      }),
+
+    archives: publicProcedure
+      .input(z.object({ category: z.string().optional() }).optional())
+      .query(async ({ input }) => {
+        return listArchivedAnnouncements(input?.category);
+      }),
+
+    archive: editeurProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        return archiveAnnouncement(input.id);
+      }),
+
+    unarchive: editeurProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        return unarchiveAnnouncement(input.id);
+      }),
+
+    byCategory: publicProcedure
+      .input(z.object({ category: z.string() }))
+      .query(async ({ input }) => {
+        return listAnnouncementsByCategory(input.category);
       }),
   }),
 

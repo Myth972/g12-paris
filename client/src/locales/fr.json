@@ -1,16 +1,48 @@
 {
   "translation": {
+    "common": {
+      "back": "Retour",
+      "loading": "Chargement...",
+      "save": "Enregistrer",
+      "cancel": "Annuler",
+      "delete": "Supprimer",
+      "edit": "Modifier",
+      "confirm": "Confirmer",
+      "search": "Rechercher",
+      "noResults": "Aucun résultat",
+      "close": "Fermer"
+    },
     "nav": {
       "home": "Accueil",
       "dailyPost": "Publication du jour",
       "articles": "Articles",
       "library": "Bibliothèque",
       "galleries": "Galeries",
+      "events": "Événements",
       "onlineService": "Culte en ligne",
       "convention": "Convention G12 France",
       "vision": "À propos / Vision",
       "cart": "Panier",
-      "login": "Connexion"
+      "login": "Connexion",
+      "onlineServiceDirect": "Culte du dimanche"
+    },
+    "events": {
+      "title": "Nos Événements",
+      "description": "Découvrez tous nos événements à venir : cultes, conventions, activités jeunes et plus encore.",
+      "youth": "Événements Jeunes",
+      "archives": "Archives",
+      "flashEvents": "Événements Flash",
+      "empty": "Aucun événement trouvé",
+      "emptyDesc": "Il n'y a pas d'événements dans cette catégorie pour le moment.",
+      "youthTitle": "Activités Jeunes",
+      "youthDescription": "Retrouvez tous les événements et activités dédiés aux jeunes de notre communauté.",
+      "noYouth": "Aucun événement jeunes",
+      "noYouthDesc": "Les prochains événements jeunes seront bientôt annoncés.",
+      "allEvents": "Voir tous les événements",
+      "archivesTitle": "Archives des Événements",
+      "archivesDescription": "Retrouvez tous les événements passés, organisés par mois.",
+      "noArchives": "Aucune archive",
+      "noArchivesDesc": "Il n'y a pas d'événements archivés pour le moment."
     },
     "language": "Langue",
     "admin": {

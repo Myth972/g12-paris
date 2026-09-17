@@ -48,6 +48,7 @@ import {
   Volume2,
   Save,
   Upload,
+  Archive,
 } from "lucide-react";
 
 export default function HomeContentManager() {
@@ -331,13 +332,14 @@ function AnnouncementDialog({ open, onOpenChange, editing, onSubmit }: {
     ctaHref: "",
     textColor: "",
     titleColor: "",
+    category: "general",
   });
   const [isPending, setIsPending] = useState(false);
 
   const isEdit = !!editing;
 
   function resetForm() {
-    setForm({ title: "", description: "", mediaUrl: "", badge: "", eventDate: "", location: "", ctaLabel: "", ctaHref: "", textColor: "", titleColor: "" });
+    setForm({ title: "", description: "", mediaUrl: "", badge: "", eventDate: "", location: "", ctaLabel: "", ctaHref: "", textColor: "", titleColor: "", category: "general" });
   }
 
   function initForm(item: any) {
@@ -352,6 +354,7 @@ function AnnouncementDialog({ open, onOpenChange, editing, onSubmit }: {
       ctaHref: item.ctaHref || "",
       textColor: item.textColor || "",
       titleColor: item.titleColor || "",
+      category: item.category || "general",
     });
   }
 
@@ -390,6 +393,7 @@ function AnnouncementDialog({ open, onOpenChange, editing, onSubmit }: {
       ctaHref: form.ctaHref.trim() || undefined,
       textColor: form.textColor.trim() || undefined,
       titleColor: form.titleColor.trim() || undefined,
+      category: form.category,
     });
   }
 
@@ -419,6 +423,19 @@ function AnnouncementDialog({ open, onOpenChange, editing, onSubmit }: {
               <Label>Date</Label>
               <Input value={form.eventDate} onChange={e => setForm(p => ({ ...p, eventDate: e.target.value }))} placeholder="Date" />
             </div>
+          </div>
+          <div className="space-y-2">
+            <Label>Catégorie</Label>
+            <select
+              value={form.category}
+              onChange={e => setForm(p => ({ ...p, category: e.target.value }))}
+              className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+            >
+              <option value="general">Général</option>
+              <option value="jeunes">Jeunes</option>
+              <option value="culte">Culte</option>
+              <option value="convention">Convention</option>
+            </select>
           </div>
           <div className="space-y-2">
             <Label>Lieu</Label>
@@ -505,11 +522,12 @@ function AnnouncementDialog({ open, onOpenChange, editing, onSubmit }: {
 
 // ─── Item Card ───────────────────────────────────────────────────
 
-function ItemCard({ item, icon, onEdit, onDelete }: {
+function ItemCard({ item, icon, onEdit, onDelete, onArchive }: {
   item: any;
   icon: React.ReactNode;
   onEdit: () => void;
   onDelete: () => void;
+  onArchive?: () => void;
 }) {
   const editIcon = (
     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
@@ -543,6 +561,11 @@ function ItemCard({ item, icon, onEdit, onDelete }: {
           </div>
           <div className="flex items-center gap-1 shrink-0 pt-0.5">
             <Button variant="ghost" size="icon" className="h-7 w-7 text-foreground/60 hover:text-foreground" onClick={onEdit} aria-label="Modifier">{editIcon}</Button>
+            {onArchive && (
+              <Button variant="ghost" size="icon" className="h-7 w-7 text-amber-500/70 hover:text-amber-500" onClick={onArchive} aria-label="Archiver">
+                <Archive className="w-3.5 h-3.5" />
+              </Button>
+            )}
             <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive/70 hover:text-destructive" onClick={onDelete} aria-label="Supprimer">
               <Trash2 className="w-3.5 h-3.5" />
             </Button>
@@ -570,6 +593,10 @@ function AnnouncementsSection() {
   });
   const deleteMutation = trpc.announcements.delete.useMutation({
     onSuccess: () => { utils.announcements.adminList.invalidate(); utils.announcements.list.invalidate(); toast.success("Annonce supprimée"); },
+    onError: (e) => toast.error("Erreur: " + e.message),
+  });
+  const archiveMutation = trpc.announcements.archive.useMutation({
+    onSuccess: () => { utils.announcements.adminList.invalidate(); utils.announcements.list.invalidate(); toast.success("Annonce archivée"); },
     onError: (e) => toast.error("Erreur: " + e.message),
   });
 
@@ -700,13 +727,16 @@ function AnnouncementsSection() {
                       </div>
                     )}
                   </div>
-                  <CardContent className="p-2.5 sm:p-3">
+                   <CardContent className="p-2.5 sm:p-3">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5 mb-0.5">
                           <Icon className="w-3 h-3 text-primary" />
                           <p className="text-xs sm:text-sm font-semibold text-foreground truncate">{item.title}</p>
                         </div>
+                        {item.category && item.category !== "general" && (
+                          <span className="inline-block text-[9px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-1.5 py-0.5 rounded-full mb-1">{item.category}</span>
+                        )}
                         {item.description && (
                           <p className="text-[11px] text-foreground/70 leading-snug line-clamp-2">{item.description}</p>
                         )}
@@ -719,6 +749,9 @@ function AnnouncementsSection() {
                       <div className="flex items-center gap-1 shrink-0 pt-0.5">
                         <Button variant="ghost" size="icon" className="h-7 w-7 text-foreground/60 hover:text-foreground" onClick={() => { setEditing(item); setOpen(true); }} aria-label="Modifier">
                           <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-amber-500/70 hover:text-amber-500" onClick={() => { if (confirm("Archiver cette annonce ?")) archiveMutation.mutate({ id: item.id }); }} aria-label="Archiver">
+                          <Archive className="w-3.5 h-3.5" />
                         </Button>
                         <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive/70 hover:text-destructive" onClick={() => { if (confirm("Supprimer cette annonce ?")) deleteMutation.mutate({ id: item.id }); }} aria-label="Supprimer">
                           <Trash2 className="w-3.5 h-3.5" />
@@ -760,6 +793,10 @@ function FlashEventsSection() {
   });
   const deleteMutation = trpc.announcements.delete.useMutation({
     onSuccess: () => { utils.announcements.adminList.invalidate(); utils.announcements.list.invalidate(); toast.success("Événement supprimé"); },
+    onError: (e) => toast.error("Erreur: " + e.message),
+  });
+  const archiveMutation = trpc.announcements.archive.useMutation({
+    onSuccess: () => { utils.announcements.adminList.invalidate(); utils.announcements.list.invalidate(); toast.success("Événement archivé"); },
     onError: (e) => toast.error("Erreur: " + e.message),
   });
 
@@ -812,6 +849,7 @@ function FlashEventsSection() {
               icon={<Calendar className="w-3 h-3 text-primary" />}
               onEdit={() => { setEditing(item); setOpen(true); }}
               onDelete={() => { if (confirm("Supprimer cet événement ?")) deleteMutation.mutate({ id: item.id }); }}
+              onArchive={() => { if (confirm("Archiver cet événement ?")) archiveMutation.mutate({ id: item.id }); }}
             />
           ))}
         </div>

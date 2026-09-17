@@ -1,16 +1,48 @@
 {
   "translation": {
+    "common": {
+      "back": "Back",
+      "loading": "Loading...",
+      "save": "Save",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "edit": "Edit",
+      "confirm": "Confirm",
+      "search": "Search",
+      "noResults": "No results",
+      "close": "Close"
+    },
     "nav": {
       "home": "Home",
       "dailyPost": "Daily Post",
       "articles": "Articles",
       "library": "Library",
       "galleries": "Galleries",
+      "events": "Events",
       "onlineService": "Online Service",
       "convention": "Convention G12 France",
       "vision": "About / Vision",
       "cart": "Cart",
-      "login": "Login"
+      "login": "Login",
+      "onlineServiceDirect": "Sunday Service"
+    },
+    "events": {
+      "title": "Our Events",
+      "description": "Discover all our upcoming events: services, conventions, youth activities and more.",
+      "youth": "Youth Events",
+      "archives": "Archives",
+      "flashEvents": "Flash Events",
+      "empty": "No events found",
+      "emptyDesc": "There are no events in this category at the moment.",
+      "youthTitle": "Youth Activities",
+      "youthDescription": "Find all events and activities dedicated to the youth of our community.",
+      "noYouth": "No youth events",
+      "noYouthDesc": "Upcoming youth events will be announced soon.",
+      "allEvents": "View all events",
+      "archivesTitle": "Event Archives",
+      "archivesDescription": "Find all past events, organized by month.",
+      "noArchives": "No archives",
+      "noArchivesDesc": "There are no archived events at the moment."
     },
     "language": "Language",
     "admin": {

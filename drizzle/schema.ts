@@ -284,6 +284,8 @@ export const announcements = sqliteTable("announcements", {
   visible: integer("visible", { mode: "boolean" }).default(true).notNull(),
   textColor: text("textColor"),
   titleColor: text("titleColor"),
+  category: text("category").default("general").notNull(),
+  archived: integer("archived", { mode: "boolean" }).default(false).notNull(),
   createdAt: integer("createdAt", { mode: "timestamp" })
     .default(sql`(strftime('%s', 'now'))`)
     .notNull(),
@@ -294,6 +296,8 @@ export const announcements = sqliteTable("announcements", {
   index("idx_announcements_visible").on(table.visible),
   index("idx_announcements_type").on(table.type),
   index("idx_announcements_displayorder").on(table.displayOrder),
+  index("idx_announcements_category").on(table.category),
+  index("idx_announcements_archived").on(table.archived),
 ]);
 
 export type Announcement = typeof announcements.$inferSelect;

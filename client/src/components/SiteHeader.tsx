@@ -23,6 +23,7 @@ const NAV_LINKS: NavLink[] = [
   { href: "/", labelKey: "nav.home", defaultLabel: "Accueil" },
   { href: "/publication-du-jour", labelKey: "nav.dailyPost", defaultLabel: "Publication du jour" },
   { href: "/galeries", labelKey: "nav.galleries", defaultLabel: "Galeries" },
+  { href: "/evenements", labelKey: "nav.events", defaultLabel: "Événements" },
   { 
     labelKey: "nav.onlineService", 
     defaultLabel: "Culte en ligne",
