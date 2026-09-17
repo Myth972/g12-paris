@@ -411,17 +411,7 @@ export default function FloatingAudioPlayer() {
             </div>
 
             {/* Ouvrir sur YouTube — desktop */}
-            {currentTrack.youtubeUrl && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="w-8 h-8 rounded-full text-red-500 hover:text-red-600 hover:bg-red-500/10"
-                onClick={() => window.open(currentTrack.youtubeUrl, "_blank", "noopener,noreferrer")}
-                title="Écouter sur YouTube"
-              >
-                <Youtube className="w-4 h-4" />
-              </Button>
-            )}
+            {/* Supprimé : le bouton YouTube est déjà dans les contrôles centraux */}
 
             {/* Réduire */}
             <Button

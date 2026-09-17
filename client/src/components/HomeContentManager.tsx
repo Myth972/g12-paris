@@ -916,7 +916,7 @@ function BentoGridSection() {
     link: "",
   });
 
-  // Playlist audio du lecteur
+  // Playlist audio du lecteur — initialisée avec les tracks par défaut
   interface PlaylistTrack {
     id: string;
     title: string;
@@ -925,7 +925,15 @@ function BentoGridSection() {
     coverImageUrl: string;
     youtubeUrl: string;
   }
-  const [playlist, setPlaylist] = useState<PlaylistTrack[]>([]);
+  const defaultPlaylist: PlaylistTrack[] = DEFAULT_TRACKS.map(t => ({
+    id: t.id,
+    title: t.title,
+    subtitle: t.subtitle || "",
+    audioUrl: t.audioUrl,
+    coverImageUrl: t.coverImageUrl || "",
+    youtubeUrl: t.youtubeUrl || "",
+  }));
+  const [playlist, setPlaylist] = useState<PlaylistTrack[]>(defaultPlaylist);
 
   useEffect(() => {
     if (settingsQuery.data) {
@@ -957,26 +965,16 @@ function BentoGridSection() {
         imageUrl: (d["bento.event.imageUrl"] as string) || "",
         link: (d["bento.event.link"] as string) || "",
       });
-      // Charger la playlist audio depuis les settings (fallback = tracks par défaut)
+      // Charger la playlist audio depuis les settings
       try {
         const raw = d["audioPlaylist"] as string | undefined;
         if (raw) {
           const parsed = JSON.parse(raw);
           if (Array.isArray(parsed) && parsed.length > 0) {
             setPlaylist(parsed);
-            return;
           }
         }
       } catch { /* ignore */ }
-      // Si pas de playlist sauvegardée, charger les tracks par défaut pour les éditer
-      setPlaylist(DEFAULT_TRACKS.map(t => ({
-        id: t.id,
-        title: t.title,
-        subtitle: t.subtitle || "",
-        audioUrl: t.audioUrl,
-        coverImageUrl: t.coverImageUrl || "",
-        youtubeUrl: t.youtubeUrl || "",
-      })));
     }
   }, [settingsQuery.data]);
 
@@ -1504,10 +1502,34 @@ function BentoGridSection() {
                   Gérez les morceaux proposés dans le player flottant (méditations, louange, prédications).
                 </p>
               </div>
-              <Button size="sm" onClick={handleAddTrack} className="gap-1.5">
-                <Plus className="w-4 h-4" />
-                Ajouter un morceau
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="gap-1.5"
+                  onClick={() => window.open("https://pixabay.com/music/search/worship%20meditation%20christian/", "_blank")}
+                >
+                  <Music className="w-4 h-4 text-green-500" />
+                  Pixabay Music
+                </Button>
+                <Button size="sm" onClick={handleAddTrack} className="gap-1.5">
+                  <Plus className="w-4 h-4" />
+                  Ajouter un morceau
+                </Button>
+              </div>
+            </div>
+
+            <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-xl p-3 text-xs text-green-700 dark:text-green-300">
+              <p className="font-semibold mb-1">Sources gratuites recommandées :</p>
+              <ul className="list-disc list-inside space-y-0.5 text-[11px]">
+                <li><a href="https://pixabay.com/music/search/worship/" target="_blank" rel="noopener" className="underline">Pixabay — Worship</a> (850+ tracks, gratuit, pas d'attribution)</li>
+                <li><a href="https://pixabay.com/music/search/meditation%20prayer/" target="_blank" rel="noopener" className="underline">Pixabay — Méditation & Prière</a></li>
+                <li><a href="https://pixabay.com/music/search/christian%20piano/" target="_blank" rel="noopener" className="underline">Pixabay — Piano Chrétien</a></li>
+                <li><a href="https://uppbeat.io/music/category/worship" target="_blank" rel="noopener" className="underline">Uppbeat — Worship</a> (gratuit avec attribution)</li>
+              </ul>
+              <p className="mt-2 text-[10px] text-green-600 dark:text-green-400">
+                Téléchargez le MP3 depuis le site, puis uploadez-le ici via le bouton d'upload.
+              </p>
             </div>
 
             {playlist.length === 0 && (
