@@ -1,4 +1,4 @@
-import { Newspaper, Mail, Send, Facebook, Instagram, Youtube } from "lucide-react";
+import { Mail, Send, Facebook, Instagram, Youtube, MapPin, Phone } from "lucide-react";
 import { Link } from "wouter";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
@@ -6,14 +6,56 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import PageTextEditor from "@/components/PageTextEditor";
 import { useTranslation } from "react-i18next";
+
 export default function SiteFooter() {
   const { t } = useTranslation();
   const year = new Date().getFullYear();
+  const settingsQuery = trpc.siteSettings.getAll.useQuery();
+  const s = settingsQuery.data || {};
+
   const subscribeMutation = trpc.newsletter.subscribe.useMutation({
     onSuccess: () =>
       toast.success("Merci pour votre inscription à la newsletter !"),
     onError: e => toast.error(e.message || "Erreur lors de l'inscription"),
   });
+
+  const brandTitle = (s["footer.brandTitle"] as string) || "G12 Paris";
+  const brandSubtitle = (s["footer.brandSubtitle"] as string) || "infos médias";
+  const brandTagline = (s["footer.brandTagline"] as string) || "Votre source d'information de confiance sur l'actualité parisienne et nationale.";
+
+  const sectionsTitle = (s["footer.sectionsTitle"] as string) || t('footer.sections', 'Rubriques');
+  const newsletterTitle = (s["footer.newsletterTitle"] as string) || "Newsletter";
+  const newsletterDesc = (s["footer.newsletterDesc"] as string) || t('footer.newsletterDesc', 'Restez informé de nos derniers ajouts et publications.');
+  const emailPlaceholder = (s["footer.emailPlaceholder"] as string) || t('footer.emailPlaceholder', 'Votre adresse email');
+
+  const contactAddress = (s["footer.contactAddress"] as string) || "";
+  const contactPhone = (s["footer.contactPhone"] as string) || "";
+  const showContact = Boolean(contactAddress || contactPhone);
+
+  const facebookUrl = (s["footer.facebookUrl"] as string) || "https://www.facebook.com/G12France/";
+  const instagramUrl = (s["footer.instagramUrl"] as string) || "https://www.instagram.com/cci.paris/";
+  const youtubeUrl = (s["footer.youtubeUrl"] as string) || "https://www.youtube.com/@media.mpecciparis";
+
+  const copyright = (s["footer.copyright"] as string) || t('footer.copyright', `© ${year} G12 Paris infos médias. Tous droits réservés.`);
+
+  const socialLinks = [
+    { href: facebookUrl, icon: <Facebook className="w-5 h-5" />, label: "Facebook" },
+    { href: instagramUrl, icon: <Instagram className="w-5 h-5" />, label: "Instagram" },
+    { href: youtubeUrl, icon: <Youtube className="w-5 h-5" />, label: "YouTube" },
+  ];
+
+  const links = [
+    { labelKey: "nav.home", defaultLabel: "Accueil", href: "/" },
+    { labelKey: "nav.dailyPost", defaultLabel: "Publication du jour", href: "/publication-du-jour" },
+    { labelKey: "nav.galleries", defaultLabel: "Galeries", href: "/galeries" },
+    { labelKey: "nav.events", defaultLabel: "Événements", href: "/evenements" },
+    { labelKey: "nav.eventsYouth", defaultLabel: "Événements Jeunes", href: "/evenements/jeunes" },
+    { labelKey: "nav.eventsArchives", defaultLabel: "Archives Événements", href: "/evenements/archives" },
+    { labelKey: "nav.onlineService", defaultLabel: "Culte en ligne", href: "/culte-en-ligne" },
+    { labelKey: "nav.convention", defaultLabel: "Convention G12 France", href: "/culte-en-ligne/convention" },
+    { labelKey: "nav.library", defaultLabel: "Bibliothèque", href: "/bibliotheque" },
+    { labelKey: "nav.vision", defaultLabel: "À propos / Vision", href: "/bibliotheque/vision" },
+  ];
 
   return (
     <footer className="bg-foreground text-primary-foreground mt-auto">
@@ -30,35 +72,46 @@ export default function SiteFooter() {
                 />
               </span>
               <div>
-                <h3 className="text-base font-bold font-serif">G12 Paris</h3>
+                <h3 className="text-base font-bold font-serif">{brandTitle}</h3>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-primary-foreground/60 font-medium">
-                  infos médias
+                  {brandSubtitle}
                 </p>
               </div>
             </Link>
             <PageTextEditor
               pageKey="global"
               textKey="footer-blurb"
-              defaultText="Votre source d'information de confiance sur l'actualité parisienne et nationale."
+              defaultText={brandTagline}
               className="text-sm text-primary-foreground/70 leading-relaxed max-w-xs"
             />
+
+            {showContact && (
+              <div className="space-y-2 pt-2">
+                {contactAddress && (
+                  <p className="flex items-start gap-2 text-sm text-primary-foreground/60">
+                    <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span className="whitespace-pre-wrap">{contactAddress}</span>
+                  </p>
+                )}
+                {contactPhone && (
+                  <p className="flex items-center gap-2 text-sm text-primary-foreground/60">
+                    <Phone className="w-4 h-4 shrink-0" />
+                    <a href={`tel:${contactPhone.replace(/[^+\d]/g, "")}`} className="hover:text-primary-foreground transition-colors">
+                      {contactPhone}
+                    </a>
+                  </p>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Navigation */}
           <div>
             <h4 className="text-sm font-semibold uppercase tracking-wider text-primary-foreground/80 mb-4 font-sans">
-              {t('footer.sections', 'Rubriques')}
+              {sectionsTitle}
             </h4>
             <ul className="space-y-2">
-              {[
-                { labelKey: "nav.home", defaultLabel: "Accueil", href: "/" },
-                { labelKey: "nav.dailyPost", defaultLabel: "Publication du jour", href: "/publication-du-jour" },
-                { labelKey: "nav.galleries", defaultLabel: "Galeries", href: "/galeries" },
-                { labelKey: "nav.onlineService", defaultLabel: "Culte en ligne", href: "/culte-en-ligne" },
-                { labelKey: "nav.convention", defaultLabel: "Convention G12 France", href: "/culte-en-ligne/convention" },
-                { labelKey: "nav.library", defaultLabel: "Bibliothèque", href: "/bibliotheque" },
-                { labelKey: "nav.vision", defaultLabel: "À propos / Vision", href: "/bibliotheque/vision" },
-              ].map(cat => (
+              {links.map(cat => (
                 <li key={cat.href}>
                   <Link
                     href={cat.href}
@@ -75,10 +128,10 @@ export default function SiteFooter() {
           <div>
             <h4 className="text-sm font-semibold uppercase tracking-wider text-primary-foreground/80 mb-4 font-sans flex items-center gap-2">
               <Mail className="w-4 h-4" />
-              Newsletter
+              {newsletterTitle}
             </h4>
             <p className="text-sm text-primary-foreground/90 mb-4">
-              {t('footer.newsletterDesc', 'Restez informé de nos derniers ajouts et publications.')}
+              {newsletterDesc}
             </p>
             <form
               onSubmit={e => {
@@ -95,7 +148,7 @@ export default function SiteFooter() {
               <Input
                 type="email"
                 name="email"
-                placeholder={t('footer.emailPlaceholder', 'Votre adresse email')}
+                placeholder={emailPlaceholder}
                 className="bg-primary-foreground/10 border-none text-primary-foreground placeholder:text-primary-foreground/70 w-full h-11"
                 required
               />
@@ -115,11 +168,7 @@ export default function SiteFooter() {
         <div className="border-t border-primary-foreground/10 mt-8 pt-6">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-4">
-              {[
-                { href: "https://www.facebook.com/G12France/", icon: <Facebook className="w-5 h-5" />, label: "Facebook" },
-                { href: "https://www.instagram.com/cci.paris/", icon: <Instagram className="w-5 h-5" />, label: "Instagram" },
-                { href: "https://www.youtube.com/@media.mpecciparis", icon: <Youtube className="w-5 h-5" />, label: "YouTube" },
-              ].map(social => (
+              {socialLinks.map(social => (
                 <a
                   key={social.label}
                   href={social.href}
@@ -133,7 +182,7 @@ export default function SiteFooter() {
               ))}
             </div>
             <p className="text-xs text-primary-foreground/50">
-              {t('footer.copyright', `© ${year} G12 Paris infos médias. Tous droits réservés.`)}
+              {copyright}
             </p>
           </div>
         </div>

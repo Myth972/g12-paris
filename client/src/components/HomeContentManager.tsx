@@ -51,12 +51,15 @@ import {
   Upload,
   Archive,
   Youtube,
+  Eye,
 } from "lucide-react";
 
 export default function HomeContentManager() {
   return (
     <div className="space-y-10">
       <BentoGridSection />
+      <VisionPageSection />
+      <FooterSection />
       <WhatsAppSliderSection />
       <AnnouncementsSection />
       <FlashEventsSection />
@@ -965,16 +968,19 @@ function BentoGridSection() {
         imageUrl: (d["bento.event.imageUrl"] as string) || "",
         link: (d["bento.event.link"] as string) || "",
       });
-      // Charger la playlist audio depuis les settings
+      // Charger la playlist audio depuis les settings (fallback = tracks par défaut)
       try {
         const raw = d["audioPlaylist"] as string | undefined;
         if (raw) {
           const parsed = JSON.parse(raw);
           if (Array.isArray(parsed) && parsed.length > 0) {
             setPlaylist(parsed);
+            return;
           }
         }
       } catch { /* ignore */ }
+      // Playlist vide ou absente : réinitialiser avec les tracks par défaut
+      setPlaylist(defaultPlaylist);
     }
   }, [settingsQuery.data]);
 
@@ -1717,6 +1723,332 @@ function BentoGridSection() {
               <span className="text-[10px] text-muted-foreground">Déclencheur Ask G12</span>
             </div>
           </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Vision Page Section ─────────────────────────────────────────
+
+function VisionPageSection() {
+  const utils = trpc.useUtils();
+  const settingsQuery = trpc.siteSettings.getAll.useQuery();
+  const setSettingMutation = trpc.siteSettings.set.useMutation({
+    onSuccess: () => {
+      utils.siteSettings.getAll.invalidate();
+      toast.success("Page Vision enregistrée");
+    },
+    onError: err => toast.error("Erreur: " + err.message),
+  });
+  const { uploadFile, isUploading } = useBlobUpload();
+
+  const [form, setForm] = useState({
+    heroTitle: "", heroSubtitle: "", heroBadge: "", heroBg: "",
+    missionTitle: "", missionText: "", missionWhyTitle: "", missionWhyText: "", missionImage: "",
+    valuesTitle: "",
+    value1Title: "", value1Text: "", value1Color: "blue",
+    value2Title: "", value2Text: "", value2Color: "amber",
+    value3Title: "", value3Text: "", value3Color: "red",
+    ctaTitle: "", ctaText: "",
+  });
+
+  useEffect(() => {
+    if (settingsQuery.data) {
+      const d = settingsQuery.data;
+      setForm({
+        heroTitle: (d["vision.heroTitle"] as string) || "",
+        heroSubtitle: (d["vision.heroSubtitle"] as string) || "",
+        heroBadge: (d["vision.heroBadge"] as string) || "",
+        heroBg: (d["vision.heroBg"] as string) || "",
+        missionTitle: (d["vision.missionTitle"] as string) || "",
+        missionText: (d["vision.missionText"] as string) || "",
+        missionWhyTitle: (d["vision.whyTitle"] as string) || "",
+        missionWhyText: (d["vision.whyText"] as string) || "",
+        missionImage: (d["vision.missionImage"] as string) || "",
+        valuesTitle: (d["vision.valuesTitle"] as string) || "",
+        value1Title: (d["vision.value1Title"] as string) || "",
+        value1Text: (d["vision.value1Text"] as string) || "",
+        value1Color: (d["vision.value1Color"] as string) || "blue",
+        value2Title: (d["vision.value2Title"] as string) || "",
+        value2Text: (d["vision.value2Text"] as string) || "",
+        value2Color: (d["vision.value2Color"] as string) || "amber",
+        value3Title: (d["vision.value3Title"] as string) || "",
+        value3Text: (d["vision.value3Text"] as string) || "",
+        value3Color: (d["vision.value3Color"] as string) || "red",
+        ctaTitle: (d["vision.ctaTitle"] as string) || "",
+        ctaText: (d["vision.ctaText"] as string) || "",
+      });
+    }
+  }, [settingsQuery.data]);
+
+  const handleSave = () => {
+    const fields: [string, string][] = [
+      ["vision.heroTitle", form.heroTitle],
+      ["vision.heroSubtitle", form.heroSubtitle],
+      ["vision.heroBadge", form.heroBadge],
+      ["vision.heroBg", form.heroBg],
+      ["vision.missionTitle", form.missionTitle],
+      ["vision.missionText", form.missionText],
+      ["vision.whyTitle", form.missionWhyTitle],
+      ["vision.whyText", form.missionWhyText],
+      ["vision.missionImage", form.missionImage],
+      ["vision.valuesTitle", form.valuesTitle],
+      ["vision.value1Title", form.value1Title],
+      ["vision.value1Text", form.value1Text],
+      ["vision.value1Color", form.value1Color],
+      ["vision.value2Title", form.value2Title],
+      ["vision.value2Text", form.value2Text],
+      ["vision.value2Color", form.value2Color],
+      ["vision.value3Title", form.value3Title],
+      ["vision.value3Text", form.value3Text],
+      ["vision.value3Color", form.value3Color],
+      ["vision.ctaTitle", form.ctaTitle],
+      ["vision.ctaText", form.ctaText],
+    ];
+    for (const [key, value] of fields) {
+      setSettingMutation.mutate({ key, value });
+    }
+  };
+
+  const VInput = ({ label, field, placeholder, rows }: { label: string; field: keyof typeof form; placeholder?: string; rows?: number }) => (
+    <div className="space-y-1.5">
+      <Label className="text-[10px]">{label}</Label>
+      {rows ? (
+        <Textarea rows={rows} placeholder={placeholder} value={form[field]} onChange={e => setForm({ ...form, [field]: e.target.value })} />
+      ) : (
+        <Input placeholder={placeholder} value={form[field]} onChange={e => setForm({ ...form, [field]: e.target.value })} />
+      )}
+    </div>
+  );
+
+  return (
+    <Card className="border-border/60 shadow-sm overflow-hidden">
+      <div className="bg-primary/5 border-b border-border/40 p-4 sm:p-5">
+        <h2 className="text-lg font-serif font-bold text-foreground flex items-center gap-2">
+          <Eye className="w-5 h-5 text-primary" />
+          Page Vision / À propos
+        </h2>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Personnalisez le contenu de la page /bibliotheque/vision. Les champs vides utilisent les valeurs par défaut.
+        </p>
+      </div>
+      <CardContent className="p-4 sm:p-6 space-y-6">
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Hero</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-muted/20 p-4 rounded-xl border border-border/40">
+            <VInput label="Badge" field="heroBadge" placeholder="Notre Vision" />
+            <VInput label="Titre" field="heroTitle" placeholder="Équiper les croyants..." />
+            <VInput label="Sous-titre" field="heroSubtitle" placeholder="Nous croyons que..." rows={2} />
+            <div className="space-y-1.5">
+              <Label className="text-[10px]">Image de fond</Label>
+              <div className="flex gap-2">
+                <Input placeholder="https://..." value={form.heroBg} onChange={e => setForm({ ...form, heroBg: e.target.value })} />
+                <label className="relative cursor-pointer shrink-0">
+                  <Button type="button" variant="outline" size="sm" className="gap-1 h-9" disabled={isUploading} asChild>
+                    <span>{isUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}</span>
+                  </Button>
+                  <input type="file" accept="image/*" className="sr-only" onChange={async e => { const f = e.target.files?.[0]; if (!f) return; try { const r = await uploadFile({ file: f, folder: "vision" }); setForm(p => ({ ...p, heroBg: r.url })); toast.success("Image uploadée"); } catch { toast.error("Échec"); } }} disabled={isUploading} />
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Mission</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-muted/20 p-4 rounded-xl border border-border/40">
+            <VInput label="Titre mission" field="missionTitle" placeholder="Notre Mission" />
+            <VInput label="Titre 'Pourquoi'" field="missionWhyTitle" placeholder="Pourquoi proposer ces livres ?" />
+            <VInput label="Texte mission" field="missionText" placeholder="Notre mission n'est pas..." rows={3} />
+            <VInput label="Texte 'Pourquoi'" field="missionWhyText" placeholder="Dans un monde saturé..." rows={3} />
+            <div className="md:col-span-2 space-y-1.5">
+              <Label className="text-[10px]">Image mission</Label>
+              <div className="flex gap-2">
+                <Input placeholder="https://..." value={form.missionImage} onChange={e => setForm({ ...form, missionImage: e.target.value })} />
+                <label className="relative cursor-pointer shrink-0">
+                  <Button type="button" variant="outline" size="sm" className="gap-1 h-9" disabled={isUploading} asChild>
+                    <span>{isUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}</span>
+                  </Button>
+                  <input type="file" accept="image/*" className="sr-only" onChange={async e => { const f = e.target.files?.[0]; if (!f) return; try { const r = await uploadFile({ file: f, folder: "vision" }); setForm(p => ({ ...p, missionImage: r.url })); toast.success("Image uploadée"); } catch { toast.error("Échec"); } }} disabled={isUploading} />
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Valeurs</h3>
+          <div className="grid grid-cols-1 gap-3 bg-muted/20 p-4 rounded-xl border border-border/40">
+            <VInput label="Titre section" field="valuesTitle" placeholder="Nos Valeurs Fondamentales" />
+            {([1, 2, 3] as const).map(n => (
+              <div key={n} className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2 border-t border-border/30">
+                <VInput label={`Valeur ${n} — Titre`} field={`value${n}Title` as keyof typeof form} placeholder={`Valeur ${n}`} />
+                <VInput label={`Valeur ${n} — Texte`} field={`value${n}Text` as keyof typeof form} placeholder="Description..." rows={2} />
+                <div className="space-y-1.5">
+                  <Label className="text-[10px]">Couleur</Label>
+                  <Select value={form[`value${n}Color` as keyof typeof form] as string} onValueChange={v => setForm({ ...form, [`value${n}Color`]: v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="blue">Bleu</SelectItem>
+                      <SelectItem value="amber">Ambre</SelectItem>
+                      <SelectItem value="red">Rouge</SelectItem>
+                      <SelectItem value="green">Vert</SelectItem>
+                      <SelectItem value="purple">Violet</SelectItem>
+                      <SelectItem value="primary">Primary</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Appel à l'action</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-muted/20 p-4 rounded-xl border border-border/40">
+            <VInput label="Titre CTA" field="ctaTitle" placeholder="Prêt à approfondir votre foi ?" />
+            <VInput label="Texte CTA" field="ctaText" placeholder="Parcourez notre catalogue..." />
+          </div>
+        </div>
+
+        <div className="flex justify-end">
+          <Button size="sm" onClick={handleSave} disabled={setSettingMutation.isPending} className="gap-1.5">
+            <Save className="w-4 h-4" />
+            Enregistrer la page Vision
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Footer Section ──────────────────────────────────────────────
+
+function FooterSection() {
+  const utils = trpc.useUtils();
+  const settingsQuery = trpc.siteSettings.getAll.useQuery();
+  const setSettingMutation = trpc.siteSettings.set.useMutation({
+    onSuccess: () => {
+      utils.siteSettings.getAll.invalidate();
+      toast.success("Footer enregistré");
+    },
+    onError: err => toast.error("Erreur: " + err.message),
+  });
+
+  const [form, setForm] = useState({
+    brandTitle: "",
+    brandSubtitle: "",
+    brandTagline: "",
+    contactAddress: "",
+    contactPhone: "",
+    sectionsTitle: "",
+    newsletterTitle: "",
+    newsletterDesc: "",
+    emailPlaceholder: "",
+    facebookUrl: "",
+    instagramUrl: "",
+    youtubeUrl: "",
+    copyright: "",
+  });
+
+  useEffect(() => {
+    if (settingsQuery.data) {
+      const d = settingsQuery.data;
+      setForm({
+        brandTitle: (d["footer.brandTitle"] as string) || "",
+        brandSubtitle: (d["footer.brandSubtitle"] as string) || "",
+        brandTagline: (d["footer.brandTagline"] as string) || "",
+        contactAddress: (d["footer.contactAddress"] as string) || "",
+        contactPhone: (d["footer.contactPhone"] as string) || "",
+        sectionsTitle: (d["footer.sectionsTitle"] as string) || "",
+        newsletterTitle: (d["footer.newsletterTitle"] as string) || "",
+        newsletterDesc: (d["footer.newsletterDesc"] as string) || "",
+        emailPlaceholder: (d["footer.emailPlaceholder"] as string) || "",
+        facebookUrl: (d["footer.facebookUrl"] as string) || "",
+        instagramUrl: (d["footer.instagramUrl"] as string) || "",
+        youtubeUrl: (d["footer.youtubeUrl"] as string) || "",
+        copyright: (d["footer.copyright"] as string) || "",
+      });
+    }
+  }, [settingsQuery.data]);
+
+  const handleSave = () => {
+    const fields: [string, string][] = Object.entries(form) as [string, string][];
+    for (const [key, value] of fields) {
+      setSettingMutation.mutate({ key: `footer.${key}`, value });
+    }
+  };
+
+  const FInput = ({ label, field, placeholder }: { label: string; field: keyof typeof form; placeholder?: string }) => (
+    <div className="space-y-1.5">
+      <Label className="text-[10px]">{label}</Label>
+      <Input placeholder={placeholder} value={form[field]} onChange={e => setForm({ ...form, [field]: e.target.value })} />
+    </div>
+  );
+
+  return (
+    <Card className="border-border/60 shadow-sm overflow-hidden">
+      <div className="bg-primary/5 border-b border-border/40 p-4 sm:p-5">
+        <h2 className="text-lg font-serif font-bold text-foreground flex items-center gap-2">
+          <LayoutDashboard className="w-5 h-5 text-primary" />
+          Footer
+        </h2>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Personnalisez le contenu du pied de page. Les champs vides utilisent les valeurs par défaut.
+        </p>
+      </div>
+      <CardContent className="p-4 sm:p-6 space-y-6">
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Identité</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-muted/20 p-4 rounded-xl border border-border/40">
+            <FInput label="Nom du site" field="brandTitle" placeholder="G12 Paris" />
+            <FInput label="Sous-titre" field="brandSubtitle" placeholder="infos médias" />
+            <div className="md:col-span-2">
+              <FInput label="Texte de présentation" field="brandTagline" placeholder="Votre source d'information..." />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Contact</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-muted/20 p-4 rounded-xl border border-border/40">
+            <FInput label="Adresse" field="contactAddress" placeholder="12 rue de l'Église, 75015 Paris" />
+            <FInput label="Téléphone" field="contactPhone" placeholder="+33 1 23 45 67 89" />
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Sections</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-muted/20 p-4 rounded-xl border border-border/40">
+            <FInput label="Titre Rubriques" field="sectionsTitle" placeholder="Rubriques" />
+            <FInput label="Titre Newsletter" field="newsletterTitle" placeholder="Newsletter" />
+            <FInput label="Description Newsletter" field="newsletterDesc" placeholder="Restez informé..." />
+            <FInput label="Placeholder email" field="emailPlaceholder" placeholder="Votre adresse email" />
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Réseaux sociaux</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 bg-muted/20 p-4 rounded-xl border border-border/40">
+            <FInput label="Facebook URL" field="facebookUrl" placeholder="https://facebook.com/..." />
+            <FInput label="Instagram URL" field="instagramUrl" placeholder="https://instagram.com/..." />
+            <FInput label="YouTube URL" field="youtubeUrl" placeholder="https://youtube.com/..." />
+          </div>
+        </div>
+
+        <div>
+          <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">Bas de page</h3>
+          <div className="grid grid-cols-1 gap-3 bg-muted/20 p-4 rounded-xl border border-border/40">
+            <FInput label="Copyright" field="copyright" placeholder="© 2026 G12 Paris infos médias. Tous droits réservés." />
+          </div>
+        </div>
+
+        <div className="flex justify-end">
+          <Button size="sm" onClick={handleSave} disabled={setSettingMutation.isPending} className="gap-1.5">
+            <Save className="w-4 h-4" />
+            Enregistrer le Footer
+          </Button>
         </div>
       </CardContent>
     </Card>
