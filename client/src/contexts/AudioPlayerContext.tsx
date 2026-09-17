@@ -15,6 +15,7 @@ export interface AudioTrack {
   audioUrl: string;
   coverImageUrl?: string;
   duration?: number;
+  youtubeUrl?: string;
 }
 
 export const DEFAULT_TRACKS: AudioTrack[] = [
@@ -25,6 +26,7 @@ export const DEFAULT_TRACKS: AudioTrack[] = [
     audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
     coverImageUrl: "https://images.unsplash.com/photo-1507692049790-de58290a4334?w=400&q=80",
     duration: 372,
+    youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
   },
   {
     id: "culte-foi",
@@ -33,6 +35,7 @@ export const DEFAULT_TRACKS: AudioTrack[] = [
     audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
     coverImageUrl: "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?w=400&q=80",
     duration: 423,
+    youtubeUrl: "https://www.youtube.com/watch?v=9bZkp7q19f0",
   },
   {
     id: "louange-adoration",
@@ -41,6 +44,15 @@ export const DEFAULT_TRACKS: AudioTrack[] = [
     audioUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
     coverImageUrl: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=400&q=80",
     duration: 345,
+    youtubeUrl: "https://www.youtube.com/watch?v=kJQP7kiw5Fk",
+  },
+  {
+    id: "worship-youtube",
+    title: "Louange & Adoration — Playlist YouTube",
+    subtitle: "Low Tide Studios · Worship",
+    audioUrl: "",
+    coverImageUrl: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&q=80",
+    youtubeUrl: "https://www.youtube.com/@lowtidestudioss",
   },
 ];
 
@@ -145,6 +157,12 @@ export function AudioPlayerProvider({ children }: { children: ReactNode }) {
         audio.pause();
       }
       setIsOpen(true);
+      return;
+    }
+
+    // Track YouTube-only : ouvrir directement YouTube
+    if (!track.audioUrl && track.youtubeUrl) {
+      window.open(track.youtubeUrl, "_blank", "noopener,noreferrer");
       return;
     }
 

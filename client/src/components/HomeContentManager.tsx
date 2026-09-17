@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
+import { DEFAULT_TRACKS } from "@/contexts/AudioPlayerContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -49,6 +50,7 @@ import {
   Save,
   Upload,
   Archive,
+  Youtube,
 } from "lucide-react";
 
 export default function HomeContentManager() {
@@ -914,6 +916,17 @@ function BentoGridSection() {
     link: "",
   });
 
+  // Playlist audio du lecteur
+  interface PlaylistTrack {
+    id: string;
+    title: string;
+    subtitle: string;
+    audioUrl: string;
+    coverImageUrl: string;
+    youtubeUrl: string;
+  }
+  const [playlist, setPlaylist] = useState<PlaylistTrack[]>([]);
+
   useEffect(() => {
     if (settingsQuery.data) {
       const d = settingsQuery.data;
@@ -944,6 +957,26 @@ function BentoGridSection() {
         imageUrl: (d["bento.event.imageUrl"] as string) || "",
         link: (d["bento.event.link"] as string) || "",
       });
+      // Charger la playlist audio depuis les settings (fallback = tracks par défaut)
+      try {
+        const raw = d["audioPlaylist"] as string | undefined;
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setPlaylist(parsed);
+            return;
+          }
+        }
+      } catch { /* ignore */ }
+      // Si pas de playlist sauvegardée, charger les tracks par défaut pour les éditer
+      setPlaylist(DEFAULT_TRACKS.map(t => ({
+        id: t.id,
+        title: t.title,
+        subtitle: t.subtitle || "",
+        audioUrl: t.audioUrl,
+        coverImageUrl: t.coverImageUrl || "",
+        youtubeUrl: t.youtubeUrl || "",
+      })));
     }
   }, [settingsQuery.data]);
 
@@ -1021,6 +1054,32 @@ function BentoGridSection() {
     toast.info("Tuile 4 réinitialisée aux événements récents automatiques");
   };
 
+  const handleSavePlaylist = () => {
+    setSettingMutation.mutate({ key: "audioPlaylist", value: JSON.stringify(playlist) });
+  };
+
+  const handleAddTrack = () => {
+    setPlaylist(prev => [
+      ...prev,
+      {
+        id: `track-${Date.now()}`,
+        title: "",
+        subtitle: "",
+        audioUrl: "",
+        coverImageUrl: "",
+        youtubeUrl: "",
+      },
+    ]);
+  };
+
+  const handleRemoveTrack = (id: string) => {
+    setPlaylist(prev => prev.filter(t => t.id !== id));
+  };
+
+  const handleUpdateTrack = (id: string, field: keyof PlaylistTrack, value: string) => {
+    setPlaylist(prev => prev.map(t => (t.id === id ? { ...t, [field]: value } : t)));
+  };
+
   return (
     <Card className="border-border/60 shadow-sm overflow-hidden">
       <div className="bg-primary/5 border-b border-border/40 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -1066,7 +1125,7 @@ function BentoGridSection() {
       <CardContent className="p-4 sm:p-6 space-y-6">
         {/* Onglets de personnalisation des Tuiles */}
         <Tabs defaultValue="tuile1" className="w-full">
-          <TabsList className="grid grid-cols-2 sm:grid-cols-4 w-full h-auto p-1 bg-muted/40 rounded-xl mb-4">
+          <TabsList className="grid grid-cols-3 sm:grid-cols-5 w-full h-auto p-1 bg-muted/40 rounded-xl mb-4">
             <TabsTrigger value="tuile1" className="text-xs py-2 gap-1.5">
               <Zap className="w-3.5 h-3.5 text-amber-500" />
               Tuile 1 · Flagship
@@ -1082,6 +1141,10 @@ function BentoGridSection() {
             <TabsTrigger value="tuile4" className="text-xs py-2 gap-1.5">
               <Calendar className="w-3.5 h-3.5 text-blue-500" />
               Tuile 4 · Flash
+            </TabsTrigger>
+            <TabsTrigger value="playlist" className="text-xs py-2 gap-1.5">
+              <Music className="w-3.5 h-3.5 text-green-500" />
+              Playlist Audio
             </TabsTrigger>
           </TabsList>
 
@@ -1429,6 +1492,161 @@ function BentoGridSection() {
                   Enregistrer Tuile 4
                 </Button>
               </div>
+            </div>
+          </TabsContent>
+
+          {/* ─── ONGLET 5 : PLAYLIST AUDIO ─── */}
+          <TabsContent value="playlist" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-foreground">Playlist du Lecteur Audio</h3>
+                <p className="text-xs text-muted-foreground">
+                  Gérez les morceaux proposés dans le player flottant (méditations, louange, prédications).
+                </p>
+              </div>
+              <Button size="sm" onClick={handleAddTrack} className="gap-1.5">
+                <Plus className="w-4 h-4" />
+                Ajouter un morceau
+              </Button>
+            </div>
+
+            {playlist.length === 0 && (
+              <div className="text-center py-8 text-muted-foreground text-xs border border-dashed rounded-xl">
+                Aucun morceau configuré. Le lecteur utilise les morceaux par défaut.
+              </div>
+            )}
+
+            <div className="space-y-3">
+              {playlist.map((track, idx) => (
+                <div
+                  key={track.id}
+                  className="bg-muted/20 border border-border/40 rounded-xl p-4 space-y-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-primary bg-primary/10 w-6 h-6 rounded-full flex items-center justify-center">
+                        {idx + 1}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {track.youtubeUrl && !track.audioUrl ? "YouTube" : track.audioUrl ? "Audio local" : "Non configuré"}
+                      </span>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-destructive hover:text-destructive"
+                      onClick={() => handleRemoveTrack(track.id)}
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="space-y-1.5">
+                      <Label className="text-[10px]">Titre *</Label>
+                      <Input
+                        placeholder="Ex: Méditation : La Paix du Cœur"
+                        value={track.title}
+                        onChange={e => handleUpdateTrack(track.id, "title", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-[10px]">Sous-titre</Label>
+                      <Input
+                        placeholder="Ex: Pasteur G12 Paris"
+                        value={track.subtitle}
+                        onChange={e => handleUpdateTrack(track.id, "subtitle", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-[10px] flex items-center gap-1">
+                        <Music className="w-3 h-3" /> URL Audio (MP3/WAV/OGG)
+                      </Label>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="https://...fichier.mp3"
+                          value={track.audioUrl}
+                          onChange={e => handleUpdateTrack(track.id, "audioUrl", e.target.value)}
+                        />
+                        <label className="relative cursor-pointer shrink-0">
+                          <Button type="button" variant="outline" size="sm" className="gap-1 h-9" disabled={isUploading} asChild>
+                            <span>
+                              {isUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                            </span>
+                          </Button>
+                          <input
+                            type="file"
+                            accept="audio/*"
+                            className="sr-only"
+                            onChange={async e => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              try {
+                                const res = await uploadFile({ file, folder: "audio" });
+                                handleUpdateTrack(track.id, "audioUrl", res.url);
+                                if (!track.title) handleUpdateTrack(track.id, "title", file.name.replace(/\.[^.]+$/, ""));
+                                toast.success("Fichier audio uploadé");
+                              } catch { toast.error("Échec upload"); }
+                            }}
+                            disabled={isUploading}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                    <div className="space-y-1.5">
+                      <Label className="text-[10px] flex items-center gap-1">
+                        <Youtube className="w-3 h-3 text-red-500" /> URL YouTube (optionnel)
+                      </Label>
+                      <Input
+                        placeholder="https://youtube.com/watch?v=... ou https://youtube.com/@channel"
+                        value={track.youtubeUrl}
+                        onChange={e => handleUpdateTrack(track.id, "youtubeUrl", e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-1.5 md:col-span-2">
+                      <Label className="text-[10px] flex items-center gap-1">
+                        <ImageIcon className="w-3 h-3" /> Image de couverture (optionnel)
+                      </Label>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="https://...image.jpg"
+                          value={track.coverImageUrl}
+                          onChange={e => handleUpdateTrack(track.id, "coverImageUrl", e.target.value)}
+                        />
+                        <label className="relative cursor-pointer shrink-0">
+                          <Button type="button" variant="outline" size="sm" className="gap-1 h-9" disabled={isUploading} asChild>
+                            <span>
+                              {isUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                            </span>
+                          </Button>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="sr-only"
+                            onChange={async e => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              try {
+                                const res = await uploadFile({ file, folder: "covers" });
+                                handleUpdateTrack(track.id, "coverImageUrl", res.url);
+                                toast.success("Image uploadée");
+                              } catch { toast.error("Échec upload"); }
+                            }}
+                            disabled={isUploading}
+                          />
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end">
+              <Button size="sm" onClick={handleSavePlaylist} disabled={setSettingMutation.isPending} className="gap-1.5">
+                <Save className="w-4 h-4" />
+                Enregistrer la Playlist
+              </Button>
             </div>
           </TabsContent>
         </Tabs>

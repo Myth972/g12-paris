@@ -1,5 +1,6 @@
-import { useAudioPlayer, DEFAULT_TRACKS } from "@/contexts/AudioPlayerContext";
+import { useAudioPlayer, DEFAULT_TRACKS, type AudioTrack } from "@/contexts/AudioPlayerContext";
 import { useVisualEnabled } from "@/hooks/useVisualSetting";
+import { trpc } from "@/lib/trpc";
 import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +16,7 @@ import {
   Music,
   ListMusic,
   Loader2,
+  Youtube,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useMemo } from "react";
@@ -51,6 +53,23 @@ export default function FloatingAudioPlayer() {
   const [showVolume, setShowVolume] = useState(false);
   const [showPlaylist, setShowPlaylist] = useState(false);
 
+  // Playlist dynamique depuis les settings admin
+  const settingsQuery = trpc.siteSettings.getAll.useQuery();
+  const tracks: AudioTrack[] = useMemo(() => {
+    try {
+      const raw = settingsQuery.data?.["audioPlaylist"] as string | undefined;
+      if (raw) {
+        const parsed = JSON.parse(raw) as Array<{
+          id: string; title: string; subtitle?: string;
+          audioUrl: string; coverImageUrl?: string; youtubeUrl?: string;
+        }>;
+        const valid = parsed.filter(t => t.title && (t.audioUrl || t.youtubeUrl));
+        if (valid.length > 0) return valid;
+      }
+    } catch { /* ignore */ }
+    return DEFAULT_TRACKS;
+  }, [settingsQuery.data]);
+
   // Vitesse de lecture suivante
   const handleCycleSpeed = () => {
     const speeds = [1, 1.25, 1.5, 2];
@@ -73,7 +92,7 @@ export default function FloatingAudioPlayer() {
         initial={{ opacity: 0, y: 20, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 20, scale: 0.95 }}
-        className="fixed bottom-4 right-4 z-40 flex items-center gap-3 bg-card/90 dark:bg-card/95 backdrop-blur-xl border border-primary/20 shadow-2xl rounded-full pl-2 pr-3 py-1.5 cursor-pointer hover:border-primary/50 transition-colors"
+        className="fixed bottom-4 left-4 z-40 flex items-center gap-3 bg-card/90 dark:bg-card/95 backdrop-blur-xl border border-primary/20 shadow-2xl rounded-full pl-2 pr-3 py-1.5 cursor-pointer hover:border-primary/50 transition-colors"
         onClick={toggleMinimize}
       >
         <div className="relative w-8 h-8 rounded-full overflow-hidden shrink-0 border border-primary/30">
@@ -152,12 +171,14 @@ export default function FloatingAudioPlayer() {
           />
         </div>
 
-        <div className="container mx-auto px-3 sm:px-6 py-2.5 sm:py-3 flex flex-col md:flex-row items-center justify-between gap-2.5 md:gap-6">
-          
-          {/* 1. Track Info & Waveform */}
-          <div className="flex items-center gap-3 w-full md:w-1/3 min-w-0 justify-between md:justify-start">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-lg overflow-hidden shrink-0 shadow-md border border-border/50">
+        <div className="container mx-auto px-3 sm:px-6 py-2.5 sm:py-3">
+          {/* Mobile: 2 lignes / Desktop: 1 ligne */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2 md:gap-6">
+
+          {/* Ligne 1 mobile : Track Info + Play + Mini controls */}
+          <div className="flex items-center gap-2 sm:gap-3 w-full md:w-1/3 min-w-0">
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+              <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded-lg overflow-hidden shrink-0 shadow-md border border-border/50">
                 {currentTrack.coverImageUrl ? (
                   <img
                     src={currentTrack.coverImageUrl}
@@ -192,8 +213,24 @@ export default function FloatingAudioPlayer() {
               </div>
             </div>
 
-            {/* Bouton Playlist/Sélection rapide */}
-            <div className="relative">
+            {/* Play/Pause mobile principal */}
+            <Button
+              size="icon"
+              className="w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 transition-transform active:scale-95 shrink-0 md:hidden"
+              onClick={togglePlay}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+              ) : isPlaying ? (
+                <Pause className="w-4 h-4 sm:w-5 sm:h-5 fill-current" />
+              ) : (
+                <Play className="w-4 h-4 sm:w-5 sm:h-5 fill-current ml-0.5" />
+              )}
+            </Button>
+
+            {/* Bouton Playlist/Sélection rapide - desktop only */}
+            <div className="relative hidden md:block">
               <Button
                 variant="ghost"
                 size="icon"
@@ -211,7 +248,7 @@ export default function FloatingAudioPlayer() {
                     Méditations & Prédications
                   </div>
                   <div className="space-y-1 mt-1 max-h-48 overflow-y-auto">
-                    {DEFAULT_TRACKS.map(track => (
+                    {tracks.map(track => (
                       <button
                         key={track.id}
                         onClick={() => {
@@ -224,7 +261,11 @@ export default function FloatingAudioPlayer() {
                             : "hover:bg-muted/50 text-foreground"
                         }`}
                       >
-                        <Music className="w-3.5 h-3.5 shrink-0 text-primary" />
+                        {track.youtubeUrl && !track.audioUrl ? (
+                          <Youtube className="w-3.5 h-3.5 shrink-0 text-red-500" />
+                        ) : (
+                          <Music className="w-3.5 h-3.5 shrink-0 text-primary" />
+                        )}
                         <span className="truncate">{track.title}</span>
                       </button>
                     ))}
@@ -234,9 +275,9 @@ export default function FloatingAudioPlayer() {
             </div>
           </div>
 
-          {/* 2. Centre : Contrôles & Scrubber */}
+          {/* Ligne 2 mobile : Contrôles + Scrubber / Desktop: centre */}
           <div className="flex flex-col items-center gap-1 w-full md:w-2/5">
-            <div className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-1.5 sm:gap-4">
               {/* Recul 15s */}
               <Button
                 variant="ghost"
@@ -248,10 +289,10 @@ export default function FloatingAudioPlayer() {
                 <RotateCcw className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </Button>
 
-              {/* Play / Pause Principal */}
+              {/* Play / Pause Principal — desktop only (mobile uses the one in track info) */}
               <Button
                 size="icon"
-                className="w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 transition-transform active:scale-95"
+                className="hidden md:flex w-10 h-10 sm:w-11 sm:h-11 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 transition-transform active:scale-95"
                 onClick={togglePlay}
                 disabled={isLoading}
               >
@@ -279,17 +320,52 @@ export default function FloatingAudioPlayer() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-[10px] sm:text-xs font-semibold px-2 h-7 rounded-md text-muted-foreground hover:text-foreground"
+                className="text-[10px] sm:text-xs font-semibold px-1.5 sm:px-2 h-7 rounded-md text-muted-foreground hover:text-foreground"
                 onClick={handleCycleSpeed}
                 title="Vitesse de lecture"
               >
                 {playbackRate}x
               </Button>
+
+              {/* Ouvrir sur YouTube */}
+              {currentTrack.youtubeUrl && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                  onClick={() => window.open(currentTrack.youtubeUrl, "_blank", "noopener,noreferrer")}
+                  title="Écouter sur YouTube"
+                >
+                  <Youtube className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                </Button>
+              )}
+
+              {/* Réduire — mobile only */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-7 h-7 rounded-full text-muted-foreground hover:text-foreground md:hidden"
+                onClick={toggleMinimize}
+                title="Minimiser"
+              >
+                <ChevronDown className="w-3.5 h-3.5" />
+              </Button>
+
+              {/* Fermer — mobile only */}
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-7 h-7 rounded-full text-muted-foreground hover:text-destructive transition-colors md:hidden"
+                onClick={closePlayer}
+                title="Fermer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </Button>
             </div>
 
             {/* Slider de scrub avec timer */}
             <div className="w-full flex items-center gap-2 text-[10px] sm:text-xs text-muted-foreground font-mono">
-              <span className="w-10 text-right">{formatTime(currentTime)}</span>
+              <span className="w-9 sm:w-10 text-right">{formatTime(currentTime)}</span>
               <div className="flex-1">
                 <Slider
                   value={[currentTime]}
@@ -299,15 +375,15 @@ export default function FloatingAudioPlayer() {
                   className="cursor-pointer"
                 />
               </div>
-              <span className="w-10">{formatTime(activeDuration)}</span>
+              <span className="w-9 sm:w-10">{formatTime(activeDuration)}</span>
             </div>
           </div>
 
-          {/* 3. Droite : Volume & Actions de fermeture */}
-          <div className="flex items-center justify-end gap-2 w-full md:w-1/3">
+          {/* Droite : Volume & Actions — desktop only */}
+          <div className="hidden md:flex items-center justify-end gap-2 w-full md:w-1/3 md:pr-20">
             {/* Volume */}
             <div
-              className="relative hidden sm:flex items-center gap-1.5"
+              className="relative flex items-center gap-1.5"
               onMouseEnter={() => setShowVolume(true)}
               onMouseLeave={() => setShowVolume(false)}
             >
@@ -334,6 +410,19 @@ export default function FloatingAudioPlayer() {
               </div>
             </div>
 
+            {/* Ouvrir sur YouTube — desktop */}
+            {currentTrack.youtubeUrl && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-8 h-8 rounded-full text-red-500 hover:text-red-600 hover:bg-red-500/10"
+                onClick={() => window.open(currentTrack.youtubeUrl, "_blank", "noopener,noreferrer")}
+                title="Écouter sur YouTube"
+              >
+                <Youtube className="w-4 h-4" />
+              </Button>
+            )}
+
             {/* Réduire */}
             <Button
               variant="ghost"
@@ -357,6 +446,7 @@ export default function FloatingAudioPlayer() {
             </Button>
           </div>
 
+          </div>
         </div>
       </motion.aside>
     </AnimatePresence>

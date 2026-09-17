@@ -66,23 +66,19 @@ export function ChatBot() {
 
   return (
     <>
-      {/* Bouton flottant */}
-      <Button
-        className={cn(
-          "fixed bottom-4 right-4 h-12 w-12 sm:bottom-6 sm:right-6 sm:h-14 sm:w-14 rounded-full shadow-xl transition-all duration-300 hover:scale-105 z-50 p-0",
-          isOpen
-            ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-            : "bg-primary hover:bg-primary/90 text-primary-foreground"
-        )}
-        onClick={toggle}
-        aria-label={isOpen ? "Fermer le chat" : "Ouvrir le chat"}
-      >
-        {isOpen ? (
-          <X className="h-5 w-5 sm:h-6 sm:w-6" />
-        ) : (
+      {/* Bouton flottant — masqué quand le chat est ouvert */}
+      {!isOpen && (
+        <Button
+          className={cn(
+            "fixed bottom-4 right-4 h-12 w-12 sm:bottom-6 sm:right-6 sm:h-14 sm:w-14 rounded-full shadow-xl transition-all duration-300 hover:scale-105 z-50 p-0",
+            "bg-primary hover:bg-primary/90 text-primary-foreground"
+          )}
+          onClick={toggle}
+          aria-label="Ouvrir le chat"
+        >
           <MessageCircle className="h-5 w-5 sm:h-6 sm:w-6" />
-        )}
-      </Button>
+        </Button>
+      )}
 
       {/* Chat panel - Sheet responsive */}
       <Sheet open={isOpen} onOpenChange={setIsOpen}>
