@@ -30,7 +30,6 @@ export default function SiteFooter() {
 
   const contactAddress = (s["footer.contactAddress"] as string) || "";
   const contactPhone = (s["footer.contactPhone"] as string) || "";
-  const showContact = Boolean(contactAddress || contactPhone);
 
   const facebookUrl = (s["footer.facebookUrl"] as string) || "https://www.facebook.com/G12France/";
   const instagramUrl = (s["footer.instagramUrl"] as string) || "https://www.instagram.com/cci.paris/";
@@ -39,41 +38,38 @@ export default function SiteFooter() {
   const copyright = (s["footer.copyright"] as string) || t('footer.copyright', `© ${year} G12 Paris infos médias. Tous droits réservés.`);
 
   const socialLinks = [
-    { href: facebookUrl, icon: <Facebook className="w-5 h-5" />, label: "Facebook" },
-    { href: instagramUrl, icon: <Instagram className="w-5 h-5" />, label: "Instagram" },
-    { href: youtubeUrl, icon: <Youtube className="w-5 h-5" />, label: "YouTube" },
+    { href: facebookUrl, icon: <Facebook className="w-4 h-4" />, label: "Facebook" },
+    { href: instagramUrl, icon: <Instagram className="w-4 h-4" />, label: "Instagram" },
+    { href: youtubeUrl, icon: <Youtube className="w-4 h-4" />, label: "YouTube" },
   ];
 
+  // Liens essentiels uniquement (footer épuré)
   const links = [
     { labelKey: "nav.home", defaultLabel: "Accueil", href: "/" },
     { labelKey: "nav.dailyPost", defaultLabel: "Publication du jour", href: "/publication-du-jour" },
     { labelKey: "nav.galleries", defaultLabel: "Galeries", href: "/galeries" },
     { labelKey: "nav.events", defaultLabel: "Événements", href: "/evenements" },
-    { labelKey: "nav.eventsYouth", defaultLabel: "Événements Jeunes", href: "/evenements/jeunes" },
-    { labelKey: "nav.eventsArchives", defaultLabel: "Archives Événements", href: "/evenements/archives" },
-    { labelKey: "nav.onlineService", defaultLabel: "Culte en ligne", href: "/culte-en-ligne" },
-    { labelKey: "nav.convention", defaultLabel: "Convention G12 France", href: "/culte-en-ligne/convention" },
     { labelKey: "nav.library", defaultLabel: "Bibliothèque", href: "/bibliotheque" },
-    { labelKey: "nav.vision", defaultLabel: "À propos / Vision", href: "/bibliotheque/vision" },
+    { labelKey: "nav.vision", defaultLabel: "À propos", href: "/bibliotheque/vision" },
   ];
 
   return (
     <footer className="bg-foreground text-primary-foreground mt-auto">
-      <div className="container py-12">
+      <div className="container py-8 md:py-10">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Brand */}
           <div className="space-y-3">
-            <Link href="/" className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-2.5">
               <span className="g12-logo">
                 <img
                   src="/logo.webp"
                   alt="G12 Paris Médias"
-                  className="h-10 w-10 rounded-full object-cover border border-primary-foreground/20"
+                  className="h-9 w-9 rounded-full object-cover border border-primary-foreground/20"
                 />
               </span>
               <div>
-                <h3 className="text-base font-bold font-serif">{brandTitle}</h3>
-                <p className="text-[10px] uppercase tracking-[0.2em] text-primary-foreground/60 font-medium">
+                <h3 className="text-sm font-bold font-serif leading-tight">{brandTitle}</h3>
+                <p className="text-[9px] uppercase tracking-[0.2em] text-primary-foreground/60 font-medium">
                   {brandSubtitle}
                 </p>
               </div>
@@ -82,20 +78,20 @@ export default function SiteFooter() {
               pageKey="global"
               textKey="footer-blurb"
               defaultText={brandTagline}
-              className="text-sm text-primary-foreground/70 leading-relaxed max-w-xs"
+              className="text-[13px] text-primary-foreground/70 leading-relaxed max-w-xs"
             />
 
-            {showContact && (
-              <div className="space-y-2 pt-2">
+            {(contactAddress || contactPhone) && (
+              <div className="space-y-1.5 pt-1">
                 {contactAddress && (
-                  <p className="flex items-start gap-2 text-sm text-primary-foreground/60">
-                    <MapPin className="w-4 h-4 shrink-0 mt-0.5" />
+                  <p className="flex items-start gap-1.5 text-[13px] text-primary-foreground/60">
+                    <MapPin className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                     <span className="whitespace-pre-wrap">{contactAddress}</span>
                   </p>
                 )}
                 {contactPhone && (
-                  <p className="flex items-center gap-2 text-sm text-primary-foreground/60">
-                    <Phone className="w-4 h-4 shrink-0" />
+                  <p className="flex items-center gap-1.5 text-[13px] text-primary-foreground/60">
+                    <Phone className="w-3.5 h-3.5 shrink-0" />
                     <a href={`tel:${contactPhone.replace(/[^+\d]/g, "")}`} className="hover:text-primary-foreground transition-colors">
                       {contactPhone}
                     </a>
@@ -107,15 +103,15 @@ export default function SiteFooter() {
 
           {/* Navigation */}
           <div>
-            <h4 className="text-sm font-semibold uppercase tracking-wider text-primary-foreground/80 mb-4 font-sans">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-primary-foreground/80 mb-3 font-sans">
               {sectionsTitle}
             </h4>
-            <ul className="space-y-2">
+            <ul className="space-y-1.5">
               {links.map(cat => (
                 <li key={cat.href}>
                   <Link
                     href={cat.href}
-                    className="text-sm text-primary-foreground/60 hover:text-primary-foreground transition-colors"
+                    className="text-[13px] text-primary-foreground/60 hover:text-primary-foreground transition-colors"
                   >
                     {t(cat.labelKey, cat.defaultLabel)}
                   </Link>
@@ -126,11 +122,11 @@ export default function SiteFooter() {
 
           {/* Newsletter */}
           <div>
-            <h4 className="text-sm font-semibold uppercase tracking-wider text-primary-foreground/80 mb-4 font-sans flex items-center gap-2">
-              <Mail className="w-4 h-4" />
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-primary-foreground/80 mb-3 font-sans flex items-center gap-1.5">
+              <Mail className="w-3.5 h-3.5" />
               {newsletterTitle}
             </h4>
-            <p className="text-sm text-primary-foreground/90 mb-4">
+            <p className="text-[13px] text-primary-foreground/90 mb-3 leading-relaxed">
               {newsletterDesc}
             </p>
             <form
@@ -149,41 +145,42 @@ export default function SiteFooter() {
                 type="email"
                 name="email"
                 placeholder={emailPlaceholder}
-                className="bg-primary-foreground/10 border-none text-primary-foreground placeholder:text-primary-foreground/70 w-full h-11"
+                className="bg-primary-foreground/10 border-none text-primary-foreground placeholder:text-primary-foreground/70 w-full h-10 text-sm"
                 required
               />
               <Button
                 type="submit"
                 variant="default"
-                className="w-full sm:w-auto h-11 px-4 bg-primary text-white hover:bg-primary/90 shadow-md transition-all active:scale-95"
+                size="sm"
+                className="w-full sm:w-auto h-10 px-3.5 bg-primary text-white hover:bg-primary/90 shadow-md transition-all active:scale-95"
                 disabled={subscribeMutation.isPending}
               >
-                <Send className="w-4 h-4" />
+                <Send className="w-3.5 h-3.5" />
               </Button>
             </form>
           </div>
         </div>
 
-        {/* Social links */}
-        <div className="border-t border-primary-foreground/10 mt-8 pt-6">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-4">
+        {/* Barre inférieure fine */}
+        <div className="border-t border-primary-foreground/10 mt-8 pt-4">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p className="text-[11px] text-primary-foreground/45">
+              {copyright}
+            </p>
+            <div className="flex items-center gap-3">
               {socialLinks.map(social => (
                 <a
                   key={social.label}
                   href={social.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-primary-foreground/50 hover:text-primary-foreground transition-colors"
+                  className="p-1.5 text-primary-foreground/50 hover:text-primary-foreground transition-colors"
                   aria-label={social.label}
                 >
                   {social.icon}
                 </a>
               ))}
             </div>
-            <p className="text-xs text-primary-foreground/50">
-              {copyright}
-            </p>
           </div>
         </div>
       </div>

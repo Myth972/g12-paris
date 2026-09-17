@@ -341,12 +341,18 @@ export const appRouter = router({
           });
         }
 
+        // Tous les dossiers utilisés par les composants d'upload
         const allowedPrefixes = [
           "articles/",
           "gallery/",
           "page-content/",
           "site/",
           "verses/",
+          "audio/",
+          "announcements/",
+          "vision/",
+          "covers/",
+          "bento/",
         ];
         if (!allowedPrefixes.some(prefix => cleaned.startsWith(prefix))) {
           throw new TRPCError({
@@ -358,7 +364,8 @@ export const appRouter = router({
         if (
           input.contentType &&
           !input.contentType.startsWith("image/") &&
-          !input.contentType.startsWith("video/")
+          !input.contentType.startsWith("video/") &&
+          !input.contentType.startsWith("audio/")
         ) {
           throw new TRPCError({
             code: "BAD_REQUEST",
@@ -370,7 +377,7 @@ export const appRouter = router({
           pathname: cleaned,
           token: ENV.blobToken,
           maximumSizeInBytes: 500 * 1024 * 1024,
-          allowedContentTypes: ["image/*", "video/*"],
+          allowedContentTypes: ["image/*", "video/*", "audio/*"],
         });
 
         return { token, pathname: cleaned };
