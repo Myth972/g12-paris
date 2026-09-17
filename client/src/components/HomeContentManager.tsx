@@ -1125,24 +1125,24 @@ function BentoGridSection() {
       <CardContent className="p-4 sm:p-6 space-y-6">
         {/* Onglets de personnalisation des Tuiles */}
         <Tabs defaultValue="tuile1" className="w-full">
-          <TabsList className="grid grid-cols-3 sm:grid-cols-5 w-full h-auto p-1 bg-muted/40 rounded-xl mb-4">
-            <TabsTrigger value="tuile1" className="text-xs py-2 gap-1.5">
+          <TabsList className="flex sm:grid sm:grid-cols-5 w-full h-auto p-1 bg-muted/40 rounded-xl mb-4 overflow-x-auto no-scrollbar gap-1">
+            <TabsTrigger value="tuile1" className="text-xs py-2 gap-1.5 shrink-0">
               <Zap className="w-3.5 h-3.5 text-amber-500" />
               Tuile 1 · Flagship
             </TabsTrigger>
-            <TabsTrigger value="tuile2" className="text-xs py-2 gap-1.5">
+            <TabsTrigger value="tuile2" className="text-xs py-2 gap-1.5 shrink-0">
               <BookOpen className="w-3.5 h-3.5 text-primary" />
               Tuile 2 · Verset
             </TabsTrigger>
-            <TabsTrigger value="tuile3" className="text-xs py-2 gap-1.5">
+            <TabsTrigger value="tuile3" className="text-xs py-2 gap-1.5 shrink-0">
               <Radio className="w-3.5 h-3.5 text-red-500" />
               Tuile 3 · Radar
             </TabsTrigger>
-            <TabsTrigger value="tuile4" className="text-xs py-2 gap-1.5">
+            <TabsTrigger value="tuile4" className="text-xs py-2 gap-1.5 shrink-0">
               <Calendar className="w-3.5 h-3.5 text-blue-500" />
               Tuile 4 · Flash
             </TabsTrigger>
-            <TabsTrigger value="playlist" className="text-xs py-2 gap-1.5">
+            <TabsTrigger value="playlist" className="text-xs py-2 gap-1.5 shrink-0">
               <Music className="w-3.5 h-3.5 text-green-500" />
               Playlist Audio
             </TabsTrigger>
