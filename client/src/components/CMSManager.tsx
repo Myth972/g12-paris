@@ -52,8 +52,9 @@ const DEFAULT_NAV: NavItem[] = [
   { href: "/", label: "Accueil", visible: true, order: 0 },
   { href: "/publication-du-jour", label: "Publication du jour", visible: true, order: 1 },
   { href: "/galeries", label: "Galeries", visible: true, order: 2 },
-  { href: "/culte-en-ligne", label: "Culte en ligne", visible: true, order: 3 },
-  { href: "/bibliotheque", label: "Bibliothèque", visible: true, order: 4 },
+  { href: "/evenements", label: "Événements", visible: true, order: 3 },
+  { href: "/culte-en-ligne", label: "Culte en ligne", visible: true, order: 4 },
+  { href: "/bibliotheque", label: "Bibliothèque", visible: true, order: 5 },
 ];
 
 const DEFAULT_PAGES: PageContent[] = [
@@ -119,6 +120,42 @@ const DEFAULT_PAGES: PageContent[] = [
     heroSubtitle: "Une parole pour votre journée",
     sections: [
       { id: "content", label: "Contenu principal", visible: true },
+    ],
+  },
+  {
+    pageId: "evenements",
+    pageTitle: "Événements",
+    metaTitle: "Événements — G12 Paris",
+    metaDescription: "Découvrez tous nos événements à venir : cultes, conventions, activités jeunes et plus encore.",
+    heroTitle: "Nos Événements",
+    heroSubtitle: "Cultes, conventions, activités jeunes et plus encore",
+    sections: [
+      { id: "filters", label: "Filtres par catégorie", visible: true },
+      { id: "grid", label: "Grille d'événements", visible: true },
+      { id: "flash", label: "Événements Flash", visible: true },
+    ],
+  },
+  {
+    pageId: "evenements-jeunes",
+    pageTitle: "Événements Jeunes",
+    metaTitle: "Événements Jeunes — G12 Paris",
+    metaDescription: "Retrouvez tous les événements et activités dédiés aux jeunes de notre communauté.",
+    heroTitle: "Activités Jeunes",
+    heroSubtitle: "Événements et activités pour les jeunes",
+    sections: [
+      { id: "grid", label: "Grille événements jeunes", visible: true },
+    ],
+  },
+  {
+    pageId: "evenements-archives",
+    pageTitle: "Archives Événements",
+    metaTitle: "Archives des Événements — G12 Paris",
+    metaDescription: "Retrouvez tous les événements passés, organisés par mois.",
+    heroTitle: "Archives des Événements",
+    heroSubtitle: "Événements passés organisés par mois",
+    sections: [
+      { id: "filters", label: "Filtres par catégorie", visible: true },
+      { id: "timeline", label: "Timeline par mois", visible: true },
     ],
   },
 ];
