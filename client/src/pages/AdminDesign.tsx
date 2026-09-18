@@ -1232,15 +1232,15 @@ export default function AdminDesign() {
             </button>
           </div>
 
-          {/* Section Programme & Conférenciers (PDF) */}
+          {/* Section Programme d'inscription & Conférenciers (PDF) */}
           <div className="space-y-6 mt-6 pt-6 border-t">
             <h3 className="text-lg font-bold font-serif flex items-center gap-2">
-              <FileText className="w-5 h-5 text-primary" /> Programme & Conférenciers (PDF)
+              <FileText className="w-5 h-5 text-primary" /> Programme d'inscription & Conférenciers (PDF)
             </h3>
 
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <label htmlFor="convention-pdf-url" className="text-sm font-medium">URL du PDF (programme + conférenciers)</label>
+                <label htmlFor="convention-pdf-url" className="text-sm font-medium">URL du PDF (programme d'inscription + conférenciers)</label>
                 {conventionPdfUrl && (
                   <Button
                     type="button"
