@@ -1065,35 +1065,30 @@ export default function AdminDesign() {
             </div>
 
             <div className="space-y-3 border rounded-xl p-4 bg-muted/20">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1.5">
-                  <label className="text-xs text-muted-foreground">Voile (overlay) appliqué aux 3 fonds</label>
-                  <Select value={conventionOverlayStyle} onValueChange={setConventionOverlayStyle}>
-                    <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="auto">Auto (clair/sombre selon le thème)</SelectItem>
-                      <SelectItem value="light">Léger</SelectItem>
-                      <SelectItem value="dark">Sombre</SelectItem>
-                      <SelectItem value="gradient">Dégradé (primaire → fond)</SelectItem>
-                      <SelectItem value="none">Aucun</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex flex-col justify-end">
-                  <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
-                    <input
-                      type="checkbox"
-                      id="convention-bg-parallax"
-                      checked={conventionBgParallax}
-                      onChange={(e) => setConventionBgParallax(e.target.checked)}
-                      className="shrink-0 w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
-                    />
-                    <label htmlFor="convention-bg-parallax" className="min-w-0 leading-snug text-sm cursor-pointer">
-                      Effet parallax (bureau uniquement)
-                    </label>
-                  </div>
-                </div>
+              <div className="space-y-1.5">
+                <label className="text-xs text-muted-foreground">Voile (overlay) appliqué aux 3 fonds</label>
+                <Select value={conventionOverlayStyle} onValueChange={setConventionOverlayStyle}>
+                  <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="auto">Auto (clair/sombre selon le thème)</SelectItem>
+                    <SelectItem value="light">Léger</SelectItem>
+                    <SelectItem value="dark">Sombre</SelectItem>
+                    <SelectItem value="gradient">Dégradé (primaire → fond)</SelectItem>
+                    <SelectItem value="none">Aucun</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
+
+              <label htmlFor="convention-bg-parallax" className="flex items-center gap-x-2.5 cursor-pointer select-none leading-snug">
+                <input
+                  type="checkbox"
+                  id="convention-bg-parallax"
+                  checked={conventionBgParallax}
+                  onChange={(e) => setConventionBgParallax(e.target.checked)}
+                  className="shrink-0 w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
+                />
+                <span className="min-w-0 text-sm">Effet parallax (bureau uniquement)</span>
+              </label>
 
               <div className="pt-1">
                 <label className="text-xs text-muted-foreground">Aperçu des 3 arrière-plans (rendu réel avec le voile)</label>
