@@ -1,13 +1,21 @@
 import { useState, useEffect } from "react";
 import PageContentDisplay from "@/components/PageContentDisplay";
-import PageTitleEditor from "@/components/PageTitleEditor";
-import PageTextEditor from "@/components/PageTextEditor";
 import { Reveal } from "@/components/Reveal";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Play, Share2, ExternalLink, Check, Calendar, MapPin } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
+
+function renderWithLineBreaks(text: string) {
+  const lines = text.split("\n");
+  return lines.map((line, idx) => (
+    <span key={`${line}-${idx}`}>
+      {line}
+      {idx < lines.length - 1 ? <br /> : null}
+    </span>
+  ));
+}
 
 
 export default function ConventionG12FrancePage() {
@@ -34,6 +42,37 @@ export default function ConventionG12FrancePage() {
   const youtubeVideoIdRaw = settingsQuery.data?.["convention.youtubeVideoId"] as string | undefined;
   const facebookVideoUrl = settingsQuery.data?.["convention.facebookVideoUrl"] as string | undefined;
   const registrationEnabled = settingsQuery.data?.["convention.registrationEnabled"] === "true";
+  const mapEnabledRaw = settingsQuery.data?.["convention.mapEnabled"] as string | undefined;
+  const mapEnabled = mapEnabledRaw === "true";
+  const venueName = (settingsQuery.data?.["convention.venueName"] as string) || "Centre de Conférences";
+  const venueQuery = (settingsQuery.data?.["convention.venueQuery"] as string) || "Paris, France";
+  const venueAddress = (settingsQuery.data?.["convention.venueAddress"] as string) || "";
+
+  // Textes éditables (mêmes clés que l'ancien inline : pageText.convention-g12.* pageTitle.convention-g12.*)
+  const pageText = (key: string, fallback: string) =>
+    (settingsQuery.data?.[`pageText.convention-g12.${key}`] as string | undefined) ?? fallback;
+
+  const heroTitle = (settingsQuery.data?.["pageTitle.convention-g12.h1"] as string | undefined) ?? "Bienvenue à la Convention G12 France";
+  const heroH2 = (settingsQuery.data?.["pageTitle.convention-g12.h2"] as string | undefined) ?? "";
+  const heroText = pageText("hero", "Rejoignez-nous pour cet événement exceptionnel de transformation, d'équipement et de vision. Vivez la puissance de la vision G12 en France.");
+  const dateInfo = pageText("date_info", "Prochain événement");
+  const locationInfo = pageText("location_info", "En ligne & En présentiel");
+
+  const frTitle = pageText("bilingual_fr_title", "NOUS SOMMES DANS LES TEMPS\nET L'HEURE N'EST PLUS À L'ATTENTE");
+  const frBody = pageText("bilingual_fr_body", "Un appel résonne à nouveau. Aller, faire des disciples et voir une génération entière se lever pour Jésus!");
+  const frEventName = pageText("bilingual_fr_event_name", "CONVENTION G12 FRANCE 2026");
+  const frSubtitle = pageText("bilingual_fr_subtitle", "ALLEZ, FAITES DES DISCIPLES");
+  const frDates = pageText("bilingual_fr_dates", "30 & 31 OCTOBRE — 1ER NOVEMBRE");
+  const frLocation = pageText("bilingual_fr_location", "PARIS");
+  const frCta = pageText("bilingual_fr_cta", "Inscriptions bientôt ouvertes");
+
+  const enTitle = pageText("bilingual_en_title", "WE ARE LIVING IN THE TIMES\nAND THIS IS NO TIME TO WAIT");
+  const enBody = pageText("bilingual_en_body", "The call is sounding once again. To go, make disciples, and see an entire generation rise for Jesus!");
+  const enEventName = pageText("bilingual_en_event_name", "G12 FRANCE CONVENTION 2026");
+  const enSubtitle = pageText("bilingual_en_subtitle", "GO AND MAKE DISCIPLES");
+  const enDates = pageText("bilingual_en_dates", "OCTOBER 30 & 31 — NOVEMBER 1");
+  const enLocation = pageText("bilingual_en_location", "PARIS");
+  const enCta = pageText("bilingual_en_cta", "Registration Opens Soon");
 
   useEffect(() => {
     if (settingsQuery.data && registrationEnabled) {
@@ -136,38 +175,25 @@ export default function ConventionG12FrancePage() {
               </div>
             )}
 
-            <PageTitleEditor
-              pageKey="convention-g12"
-              defaultH1={"Bienvenue à la Convention G12 France"}
-              defaultH2=""
-              h1ClassName="text-3xl sm:text-4xl md:text-5xl font-bold font-serif text-foreground leading-tight mb-4"
-            />
-            
-            <PageTextEditor
-              pageKey="convention-g12"
-              textKey="hero"
-              defaultText="Rejoignez-nous pour cet événement exceptionnel de transformation, d'équipement et de vision. Vivez la puissance de la vision G12 en France."
-              className="mt-4 text-foreground/80 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto"
-            />
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold font-serif text-foreground leading-tight mb-4">
+              {renderWithLineBreaks(heroTitle)}
+            </h1>
+            {heroH2?.trim() ? (
+              <h2 className="text-xl sm:text-2xl font-serif text-foreground/90">{renderWithLineBreaks(heroH2)}</h2>
+            ) : null}
+
+            <p className="mt-4 text-foreground/80 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto whitespace-pre-wrap break-words">
+              {heroText}
+            </p>
 
             <div className="flex flex-wrap justify-center gap-4 mt-8">
               <div className="flex items-center gap-2 text-sm text-muted-foreground bg-white dark:bg-card px-4 py-2 rounded-full shadow-sm border">
                 <Calendar className="w-4 h-4 convention-primary-text text-primary" />
-                <PageTextEditor
-                  pageKey="convention-g12"
-                  textKey="date_info"
-                  defaultText="Prochain événement"
-                  className="inline-block"
-                />
+                {dateInfo}
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground bg-white dark:bg-card px-4 py-2 rounded-full shadow-sm border">
                 <MapPin className="w-4 h-4 convention-primary-text text-primary" />
-                <PageTextEditor
-                  pageKey="convention-g12"
-                  textKey="location_info"
-                  defaultText="En ligne & En présentiel"
-                  className="inline-block"
-                />
+                {locationInfo}
               </div>
             </div>
           </div>
@@ -290,6 +316,47 @@ export default function ConventionG12FrancePage() {
         </Reveal>
       )}
 
+      {/* Map / Localisation */}
+      {mapEnabled && (
+        <Reveal variant="fadeUp" delay={0.1}>
+        <section className="container py-10 px-4 sm:px-0">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl sm:text-3xl font-serif font-bold text-foreground mb-2">Où se déroule la Convention</h2>
+              <p className="text-sm sm:text-base text-muted-foreground flex items-center justify-center gap-1.5">
+                <MapPin className="w-4 h-4 text-primary" />
+                {venueName}
+                {venueAddress && <span className="hidden sm:inline"> — {venueAddress}</span>}
+              </p>
+            </div>
+            <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-xl border-4 border-white/10 dark:border-white/5 aspect-[16/9] min-h-[300px]">
+              <iframe
+                title={`Carte - ${venueName}`}
+                src={`https://www.google.com/maps?q=${encodeURIComponent(venueQuery)}&output=embed`}
+                className="absolute inset-0 w-full h-full"
+                style={{ border: 0 }}
+                loading="lazy"
+                allowFullScreen
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+            <div className="flex justify-center mt-5">
+              <Button asChild variant="outline" className="gap-2">
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venueQuery)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Ouvrir dans Google Maps
+                </a>
+              </Button>
+            </div>
+          </div>
+        </section>
+        </Reveal>
+      )}
+
       {/* Bottom Zone: Bilingual + Content */}
       <div 
         className="relative"
@@ -308,49 +375,28 @@ export default function ConventionG12FrancePage() {
             <div className="max-w-4xl mx-auto text-center space-y-10">
               {/* French */}
               <div className="space-y-3">
-                <PageTextEditor
-                  pageKey="convention-g12"
-                  textKey="bilingual_fr_title"
-                  defaultText={"NOUS SOMMES DANS LES TEMPS\nET L'HEURE N'EST PLUS À L'ATTENTE"}
-                  className="text-2xl sm:text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight"
-                />
-                <PageTextEditor
-                  pageKey="convention-g12"
-                  textKey="bilingual_fr_body"
-                  defaultText="Un appel résonne à nouveau. Aller, faire des disciples et voir une génération entière se lever pour Jésus!"
-                  className="text-foreground/80 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto"
-                />
+                <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight whitespace-pre-wrap">
+                  {renderWithLineBreaks(frTitle)}
+                </h3>
+                <p className="text-foreground/80 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto whitespace-pre-wrap break-words">
+                  {frBody}
+                </p>
                 <div className="pt-2 space-y-1">
-                  <PageTextEditor
-                    pageKey="convention-g12"
-                    textKey="bilingual_fr_event_name"
-                    defaultText="CONVENTION G12 FRANCE 2026"
-                    className="text-lg sm:text-xl font-bold font-serif convention-primary-text"
-                  />
-                  <PageTextEditor
-                    pageKey="convention-g12"
-                    textKey="bilingual_fr_subtitle"
-                    defaultText="ALLEZ, FAITES DES DISCIPLES"
-                    className="text-base sm:text-lg font-semibold text-foreground/90"
-                  />
-                  <PageTextEditor
-                    pageKey="convention-g12"
-                    textKey="bilingual_fr_dates"
-                    defaultText="30 & 31 OCTOBRE — 1ER NOVEMBRE"
-                    className="text-sm sm:text-base text-muted-foreground"
-                  />
-                  <PageTextEditor
-                    pageKey="convention-g12"
-                    textKey="bilingual_fr_location"
-                    defaultText="PARIS"
-                    className="text-sm sm:text-base text-muted-foreground"
-                  />
-                  <PageTextEditor
-                    pageKey="convention-g12"
-                    textKey="bilingual_fr_cta"
-                    defaultText="Inscriptions bientôt ouvertes"
-                    className="text-xs sm:text-sm font-medium uppercase tracking-wider text-muted-foreground mt-2"
-                  />
+                  <p className="text-lg sm:text-xl font-bold font-serif convention-primary-text">
+                    {frEventName}
+                  </p>
+                  <p className="text-base sm:text-lg font-semibold text-foreground/90">
+                    {frSubtitle}
+                  </p>
+                  <p className="text-sm sm:text-base text-muted-foreground">
+                    {frDates}
+                  </p>
+                  <p className="text-sm sm:text-base text-muted-foreground">
+                    {frLocation}
+                  </p>
+                  <p className="text-xs sm:text-sm font-medium uppercase tracking-wider text-muted-foreground mt-2">
+                    {frCta}
+                  </p>
                 </div>
               </div>
 
@@ -358,49 +404,28 @@ export default function ConventionG12FrancePage() {
 
               {/* English */}
               <div className="space-y-3">
-                <PageTextEditor
-                  pageKey="convention-g12"
-                  textKey="bilingual_en_title"
-                  defaultText={"WE ARE LIVING IN THE TIMES\nAND THIS IS NO TIME TO WAIT"}
-                  className="text-2xl sm:text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight"
-                />
-                <PageTextEditor
-                  pageKey="convention-g12"
-                  textKey="bilingual_en_body"
-                  defaultText="The call is sounding once again. To go, make disciples, and see an entire generation rise for Jesus!"
-                  className="text-foreground/80 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto"
-                />
+                <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight whitespace-pre-wrap">
+                  {renderWithLineBreaks(enTitle)}
+                </h3>
+                <p className="text-foreground/80 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto whitespace-pre-wrap break-words">
+                  {enBody}
+                </p>
                 <div className="pt-2 space-y-1">
-                  <PageTextEditor
-                    pageKey="convention-g12"
-                    textKey="bilingual_en_event_name"
-                    defaultText="G12 FRANCE CONVENTION 2026"
-                    className="text-lg sm:text-xl font-bold font-serif convention-primary-text"
-                  />
-                  <PageTextEditor
-                    pageKey="convention-g12"
-                    textKey="bilingual_en_subtitle"
-                    defaultText="GO AND MAKE DISCIPLES"
-                    className="text-base sm:text-lg font-semibold text-foreground/90"
-                  />
-                  <PageTextEditor
-                    pageKey="convention-g12"
-                    textKey="bilingual_en_dates"
-                    defaultText="OCTOBER 30 & 31 — NOVEMBER 1"
-                    className="text-sm sm:text-base text-muted-foreground"
-                  />
-                  <PageTextEditor
-                    pageKey="convention-g12"
-                    textKey="bilingual_en_location"
-                    defaultText="PARIS"
-                    className="text-sm sm:text-base text-muted-foreground"
-                  />
-                  <PageTextEditor
-                    pageKey="convention-g12"
-                    textKey="bilingual_en_cta"
-                    defaultText="Registration Opens Soon"
-                    className="text-xs sm:text-sm font-medium uppercase tracking-wider text-muted-foreground mt-2"
-                  />
+                  <p className="text-lg sm:text-xl font-bold font-serif convention-primary-text">
+                    {enEventName}
+                  </p>
+                  <p className="text-base sm:text-lg font-semibold text-foreground/90">
+                    {enSubtitle}
+                  </p>
+                  <p className="text-sm sm:text-base text-muted-foreground">
+                    {enDates}
+                  </p>
+                  <p className="text-sm sm:text-base text-muted-foreground">
+                    {enLocation}
+                  </p>
+                  <p className="text-xs sm:text-sm font-medium uppercase tracking-wider text-muted-foreground mt-2">
+                    {enCta}
+                  </p>
                 </div>
               </div>
             </div>

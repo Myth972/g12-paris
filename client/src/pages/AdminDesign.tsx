@@ -25,7 +25,8 @@ import {
   Play,
   Video,
   Trash2,
-  ListOrdered
+  ListOrdered,
+  MapPin
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
@@ -113,6 +114,10 @@ export default function AdminDesign() {
   const [conventionShowOfficialSite, setConventionShowOfficialSite] = useState(true);
   const [conventionShowBilingualCTA, setConventionShowBilingualCTA] = useState(true);
   const [conventionRegistrationEnabled, setConventionRegistrationEnabled] = useState(false);
+  const [conventionMapEnabled, setConventionMapEnabled] = useState(false);
+  const [conventionVenueName, setConventionVenueName] = useState("Centre de Conférences");
+  const [conventionVenueQuery, setConventionVenueQuery] = useState("Paris, France");
+  const [conventionVenueAddress, setConventionVenueAddress] = useState("");
 
   const { uploadFile } = useBlobUpload();
   const [uploading, setUploading] = useState<string | null>(null);
@@ -176,6 +181,10 @@ export default function AdminDesign() {
       if (settingsQuery.data["convention.showOfficialSite"] !== undefined) setConventionShowOfficialSite(settingsQuery.data["convention.showOfficialSite"] !== "false");
       if (settingsQuery.data["convention.showBilingualCTA"] !== undefined) setConventionShowBilingualCTA(settingsQuery.data["convention.showBilingualCTA"] !== "false");
       if (settingsQuery.data["convention.registrationEnabled"] !== undefined) setConventionRegistrationEnabled(settingsQuery.data["convention.registrationEnabled"] === "true");
+      if (settingsQuery.data["convention.mapEnabled"] !== undefined) setConventionMapEnabled(settingsQuery.data["convention.mapEnabled"] === "true");
+      if (settingsQuery.data["convention.venueName"]) setConventionVenueName(settingsQuery.data["convention.venueName"] as string);
+      if (settingsQuery.data["convention.venueQuery"]) setConventionVenueQuery(settingsQuery.data["convention.venueQuery"] as string);
+      if (settingsQuery.data["convention.venueAddress"]) setConventionVenueAddress(settingsQuery.data["convention.venueAddress"] as string);
     }
   }, [settingsQuery.data]);
 
@@ -208,6 +217,10 @@ export default function AdminDesign() {
         ["convention.showOfficialSite", String(conventionShowOfficialSite)],
         ["convention.showBilingualCTA", String(conventionShowBilingualCTA)],
         ["convention.registrationEnabled", String(conventionRegistrationEnabled)],
+        ["convention.mapEnabled", String(conventionMapEnabled)],
+        ["convention.venueName", conventionVenueName],
+        ["convention.venueQuery", conventionVenueQuery],
+        ["convention.venueAddress", conventionVenueAddress],
       ];
       const toSave = keys ? allSettings.filter(([k]) => keys.some(prefix => k.startsWith(prefix))) : allSettings;
       await Promise.all(toSave.map(([key, value]) => setSetting.mutateAsync({ key, value })));
@@ -1161,6 +1174,68 @@ export default function AdminDesign() {
               <p className="text-xs text-muted-foreground">Colle l'URL complète d'une vidéo Facebook (live ou replay). Si YouTube est renseigné, YouTube est affiché en priorité.</p>
             </div>
           </div>
+
+          {/* Section Lieu & Carte */}
+          <div className="space-y-6 mt-6 pt-6 border-t">
+            <h3 className="text-lg font-bold font-serif flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-primary" /> Lieu & Carte
+            </h3>
+
+            {/* Toggle Map */}
+            <div className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border">
+              <div>
+                <label htmlFor="convention-map-enabled" className="text-sm font-medium cursor-pointer">Afficher la carte Google Maps</label>
+                <p className="text-xs text-muted-foreground mt-1">Affiche une section avec la carte pour localiser le lieu de la Convention.</p>
+              </div>
+              <button
+                id="convention-map-enabled"
+                name="conventionMapEnabled"
+                type="button"
+                role="switch"
+                aria-checked={conventionMapEnabled}
+                onClick={() => setConventionMapEnabled(!conventionMapEnabled)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${conventionMapEnabled ? 'bg-primary' : 'bg-gray-300 dark:bg-gray-600'}`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${conventionMapEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+            </div>
+
+            {/* Fields */}
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <label htmlFor="convention-venue-name" className="text-sm font-medium">Nom du lieu</label>
+                <Input
+                  id="convention-venue-name"
+                  name="conventionVenueName"
+                  placeholder="ex: Centre de Conférences"
+                  value={conventionVenueName}
+                  onChange={(e) => setConventionVenueName(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="convention-venue-query" className="text-sm font-medium">Adresse / Recherche Google Maps</label>
+                <Input
+                  id="convention-venue-query"
+                  name="conventionVenueQuery"
+                  placeholder="ex: Palais des Congrès de Paris, France"
+                  value={conventionVenueQuery}
+                  onChange={(e) => setConventionVenueQuery(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">Adresse utilisée pour centrer la carte. Ex : "2 Place de la Porte Maillot, 75017 Paris".</p>
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="convention-venue-address" className="text-sm font-medium">Adresse affichée (optionnel)</label>
+                <Input
+                  id="convention-venue-address"
+                  name="conventionVenueAddress"
+                  placeholder="ex: 2 Place de la Porte Maillot, 75017 Paris"
+                  value={conventionVenueAddress}
+                  onChange={(e) => setConventionVenueAddress(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
           <div className="flex justify-end mt-6 pt-4 border-t">
             <SaveButton sectionKeys={["convention."]} label="Enregistrer la Convention" />
           </div>

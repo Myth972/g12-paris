@@ -52,6 +52,7 @@ import {
   Archive,
   Youtube,
   Eye,
+  Globe,
 } from "lucide-react";
 
 export default function HomeContentManager() {
@@ -59,6 +60,7 @@ export default function HomeContentManager() {
     <div className="space-y-10">
       <BentoGridSection />
       <VisionPageSection />
+      <ConventionPageSection />
       <FooterSection />
       <WhatsAppSliderSection />
       <AnnouncementsSection />
@@ -2048,6 +2050,111 @@ function FooterSection() {
           <Button size="sm" onClick={handleSave} disabled={setSettingMutation.isPending} className="gap-1.5">
             <Save className="w-4 h-4" />
             Enregistrer le Footer
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Convention Page Section ─────────────────────────────────────
+
+function ConventionPageSection() {
+  const utils = trpc.useUtils();
+  const settingsQuery = trpc.siteSettings.getAll.useQuery();
+  const setSettingMutation = trpc.siteSettings.set.useMutation({
+    onSuccess: () => {
+      utils.siteSettings.getAll.invalidate();
+      toast.success("Page Convention enregistrée");
+    },
+    onError: err => toast.error("Erreur: " + err.message),
+  });
+
+  const fieldDefs: { key: string; label: string; rows?: number; group: string }[] = [
+    { key: "pageTitle.convention-g12.h1", label: "Titre principal (H1)", group: "Hero" },
+    { key: "pageTitle.convention-g12.h2", label: "Sous-titre (H2)", group: "Hero" },
+    { key: "pageText.convention-g12.hero", label: "Description hero", rows: 3, group: "Hero" },
+    { key: "pageText.convention-g12.date_info", label: "Badge date (ex: Prochain événement)", group: "Hero" },
+    { key: "pageText.convention-g12.location_info", label: "Badge lieu (ex: En ligne & En présentiel)", group: "Hero" },
+    { key: "pageText.convention-g12.bilingual_fr_title", label: "Titre FR", rows: 2, group: "Bloc bilingue FR" },
+    { key: "pageText.convention-g12.bilingual_fr_body", label: "Texte FR", rows: 3, group: "Bloc bilingue FR" },
+    { key: "pageText.convention-g12.bilingual_fr_event_name", label: "Nom événement FR", group: "Bloc bilingue FR" },
+    { key: "pageText.convention-g12.bilingual_fr_subtitle", label: "Sous-titre FR", group: "Bloc bilingue FR" },
+    { key: "pageText.convention-g12.bilingual_fr_dates", label: "Dates FR", group: "Bloc bilingue FR" },
+    { key: "pageText.convention-g12.bilingual_fr_location", label: "Lieu FR", group: "Bloc bilingue FR" },
+    { key: "pageText.convention-g12.bilingual_fr_cta", label: "CTA FR", group: "Bloc bilingue FR" },
+    { key: "pageText.convention-g12.bilingual_en_title", label: "Titre EN", rows: 2, group: "Bloc bilingue EN" },
+    { key: "pageText.convention-g12.bilingual_en_body", label: "Texte EN", rows: 3, group: "Bloc bilingue EN" },
+    { key: "pageText.convention-g12.bilingual_en_event_name", label: "Event name EN", group: "Bloc bilingue EN" },
+    { key: "pageText.convention-g12.bilingual_en_subtitle", label: "Subtitle EN", group: "Bloc bilingue EN" },
+    { key: "pageText.convention-g12.bilingual_en_dates", label: "Dates EN", group: "Bloc bilingue EN" },
+    { key: "pageText.convention-g12.bilingual_en_location", label: "Location EN", group: "Bloc bilingue EN" },
+    { key: "pageText.convention-g12.bilingual_en_cta", label: "CTA EN", group: "Bloc bilingue EN" },
+  ];
+
+  const [values, setValues] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (settingsQuery.data) {
+      const next: Record<string, string> = {};
+      for (const def of fieldDefs) {
+        next[def.key] = (settingsQuery.data[def.key] as string) || "";
+      }
+      setValues(next);
+    }
+  }, [settingsQuery.data]);
+
+  const handleSave = () => {
+    for (const [key, value] of Object.entries(values)) {
+      setSettingMutation.mutate({ key, value });
+    }
+  };
+
+  const groups = ["Hero", "Bloc bilingue FR", "Bloc bilingue EN"];
+
+  return (
+    <Card className="border-border/60 shadow-sm overflow-hidden">
+      <div className="bg-primary/5 border-b border-border/40 p-4 sm:p-5">
+        <h2 className="text-lg font-serif font-bold text-foreground flex items-center gap-2">
+          <Globe className="w-5 h-5 text-primary" />
+          Page Convention G12
+        </h2>
+        <p className="text-xs text-muted-foreground mt-0.5">
+          Textes de la page /culte-en-ligne/convention. Les champs vides utilisent les valeurs par défaut.
+        </p>
+      </div>
+      <CardContent className="p-4 sm:p-6 space-y-6">
+        {groups.map(group => (
+          <div key={group}>
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">{group}</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-muted/20 p-4 rounded-xl border border-border/40">
+              {fieldDefs.filter(d => d.group === group).map(def => (
+                <div key={def.key} className={def.rows ? "md:col-span-2" : ""}>
+                  <div className="space-y-1.5">
+                    <Label className="text-[10px]">{def.label}</Label>
+                    {def.rows ? (
+                      <Textarea
+                        rows={def.rows}
+                        value={values[def.key] || ""}
+                        onChange={e => setValues(v => ({ ...v, [def.key]: e.target.value }))}
+                      />
+                    ) : (
+                      <Input
+                        value={values[def.key] || ""}
+                        onChange={e => setValues(v => ({ ...v, [def.key]: e.target.value }))}
+                      />
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+
+        <div className="flex justify-end">
+          <Button size="sm" onClick={handleSave} disabled={setSettingMutation.isPending} className="gap-1.5">
+            <Save className="w-4 h-4" />
+            Enregistrer la page Convention
           </Button>
         </div>
       </CardContent>
