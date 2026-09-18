@@ -366,7 +366,8 @@ export const appRouter = router({
           input.contentType &&
           !input.contentType.startsWith("image/") &&
           !input.contentType.startsWith("video/") &&
-          !input.contentType.startsWith("audio/")
+          !input.contentType.startsWith("audio/") &&
+          input.contentType !== "application/pdf"
         ) {
           throw new TRPCError({
             code: "BAD_REQUEST",
@@ -378,7 +379,7 @@ export const appRouter = router({
           pathname: cleaned,
           token: ENV.blobToken,
           maximumSizeInBytes: 500 * 1024 * 1024,
-          allowedContentTypes: ["image/*", "video/*", "audio/*"],
+          allowedContentTypes: ["image/*", "video/*", "audio/*", "application/pdf"],
         });
 
         return { token, pathname: cleaned };

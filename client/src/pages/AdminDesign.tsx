@@ -112,6 +112,7 @@ export default function AdminDesign() {
   const [conventionYoutubeVideoId, setConventionYoutubeVideoId] = useState("");
   const [conventionFacebookVideoUrl, setConventionFacebookVideoUrl] = useState("");
   const [conventionVimeoVideoUrl, setConventionVimeoVideoUrl] = useState("");
+  const [conventionPdfUrl, setConventionPdfUrl] = useState("");
   const [conventionShowLogo, setConventionShowLogo] = useState(true);
   const [conventionShowOfficialSite, setConventionShowOfficialSite] = useState(true);
   const [conventionShowBilingualCTA, setConventionShowBilingualCTA] = useState(true);
@@ -141,6 +142,7 @@ export default function AdminDesign() {
   const conventionBgRef = useRef<HTMLInputElement>(null);
   const conventionBgMiddleRef = useRef<HTMLInputElement>(null);
   const conventionBgBottomRef = useRef<HTMLInputElement>(null);
+  const conventionPdfRef = useRef<HTMLInputElement>(null);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logoLight' | 'logoDark' | 'banner' | 'conventionLogo' | 'conventionBg' | 'conventionBgMiddle' | 'conventionBgBottom') => {
     const file = e.target.files?.[0];
@@ -162,6 +164,22 @@ export default function AdminDesign() {
       toast.error(t('admin.design.toastImageError'));
     } finally {
       setUploading(null);
+    }
+  };
+
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || file.type !== "application/pdf") return;
+    setUploading("conventionPdf");
+    try {
+      const result = await uploadFile({ file, folder: "design" });
+      setConventionPdfUrl(result.url);
+      toast.success("PDF téléchargé");
+    } catch {
+      toast.error("Erreur lors du téléchargement du PDF");
+    } finally {
+      setUploading(null);
+      e.target.value = "";
     }
   };
 
@@ -192,6 +210,7 @@ export default function AdminDesign() {
       if (settingsQuery.data["convention.youtubeVideoId"]) setConventionYoutubeVideoId(settingsQuery.data["convention.youtubeVideoId"] as string);
       if (settingsQuery.data["convention.facebookVideoUrl"]) setConventionFacebookVideoUrl(settingsQuery.data["convention.facebookVideoUrl"] as string);
       if (settingsQuery.data["convention.vimeoVideoUrl"]) setConventionVimeoVideoUrl(settingsQuery.data["convention.vimeoVideoUrl"] as string);
+      if (settingsQuery.data["convention.pdfUrl"]) setConventionPdfUrl(settingsQuery.data["convention.pdfUrl"] as string);
       if (settingsQuery.data["convention.showLogo"] !== undefined) setConventionShowLogo(settingsQuery.data["convention.showLogo"] !== "false");
       if (settingsQuery.data["convention.showOfficialSite"] !== undefined) setConventionShowOfficialSite(settingsQuery.data["convention.showOfficialSite"] !== "false");
       if (settingsQuery.data["convention.showBilingualCTA"] !== undefined) setConventionShowBilingualCTA(settingsQuery.data["convention.showBilingualCTA"] !== "false");
@@ -240,6 +259,7 @@ export default function AdminDesign() {
         ["convention.youtubeVideoId", conventionYoutubeVideoId],
         ["convention.facebookVideoUrl", conventionFacebookVideoUrl],
         ["convention.vimeoVideoUrl", conventionVimeoVideoUrl],
+        ["convention.pdfUrl", conventionPdfUrl],
         ["convention.showLogo", String(conventionShowLogo)],
         ["convention.showOfficialSite", String(conventionShowOfficialSite)],
         ["convention.showBilingualCTA", String(conventionShowBilingualCTA)],
@@ -1210,6 +1230,66 @@ export default function AdminDesign() {
             >
               <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${conventionRegistrationEnabled ? 'translate-x-6' : 'translate-x-1'}`} />
             </button>
+          </div>
+
+          {/* Section Programme & Conférenciers (PDF) */}
+          <div className="space-y-6 mt-6 pt-6 border-t">
+            <h3 className="text-lg font-bold font-serif flex items-center gap-2">
+              <FileText className="w-5 h-5 text-primary" /> Programme & Conférenciers (PDF)
+            </h3>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label htmlFor="convention-pdf-url" className="text-sm font-medium">URL du PDF (programme + conférenciers)</label>
+                {conventionPdfUrl && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setConventionPdfUrl("")}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 h-7 px-2 text-xs"
+                    aria-label="Supprimer le PDF"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 mr-1" />
+                    Supprimer
+                  </Button>
+                )}
+              </div>
+              <input
+                ref={conventionPdfRef}
+                type="file"
+                accept="application/pdf"
+                className="hidden"
+                id="convention-pdf-upload"
+                onChange={handlePdfUpload}
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="gap-2 w-full sm:w-auto"
+                onClick={() => conventionPdfRef.current?.click()}
+                disabled={uploading === "conventionPdf"}
+              >
+                {uploading === "conventionPdf" ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Upload className="w-4 h-4" />
+                )}
+                {uploading === "conventionPdf" ? "Téléversement..." : "Téléverser le fichier PDF"}
+              </Button>
+              <Input
+                id="convention-pdf-url"
+                name="conventionPdfUrl"
+                autoComplete="off"
+                placeholder="https://.../invitation.pdf"
+                value={conventionPdfUrl}
+                onChange={(e) => setConventionPdfUrl(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Ce PDF (programme, photo des conférenciers...) sera proposé en téléchargement sur la page Convention et envoyé dans l'email de confirmation d'inscription.
+              </p>
+            </div>
           </div>
 
           {/* Section Lives & Vidéos */}

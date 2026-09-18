@@ -3,7 +3,7 @@ import PageContentDisplay from "@/components/PageContentDisplay";
 import { Reveal } from "@/components/Reveal";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
-import { Play, Share2, ExternalLink, Check, Calendar, MapPin } from "lucide-react";
+import { Play, Share2, ExternalLink, Check, Calendar, MapPin, Download, TrainFront } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 
@@ -42,6 +42,7 @@ export default function ConventionG12FrancePage() {
   const youtubeVideoIdRaw = settingsQuery.data?.["convention.youtubeVideoId"] as string | undefined;
   const facebookVideoUrl = settingsQuery.data?.["convention.facebookVideoUrl"] as string | undefined;
   const vimeoVideoUrl = settingsQuery.data?.["convention.vimeoVideoUrl"] as string | undefined;
+  const conventionPdfUrl = (settingsQuery.data?.["convention.pdfUrl"] as string) || "";
   const registrationEnabled = settingsQuery.data?.["convention.registrationEnabled"] === "true";
   const mapEnabledRaw = settingsQuery.data?.["convention.mapEnabled"] as string | undefined;
   const mapEnabled = mapEnabledRaw === "true";
@@ -409,6 +410,14 @@ export default function ConventionG12FrancePage() {
                   </a>
                 </Button>
               )}
+              {conventionPdfUrl && (
+                <Button asChild variant="outline" className="gap-2">
+                  <a href={conventionPdfUrl} target="_blank" rel="noopener noreferrer" className="gap-2" download>
+                    <Download className="w-4 h-4" />
+                    Télécharger le programme (PDF)
+                  </a>
+                </Button>
+              )}
               {showOfficialSite && (
                 <Button asChild variant="default" className="gap-2 convention-primary-bg bg-primary hover:bg-primary/90 text-white border-0">
                   <a href="https://conventiong12france.com/" target="_blank" rel="noopener noreferrer">
@@ -447,7 +456,17 @@ export default function ConventionG12FrancePage() {
                 referrerPolicy="no-referrer-when-downgrade"
               />
             </div>
-            <div className="flex justify-center mt-5">
+            <div className="flex flex-wrap justify-center gap-3 mt-5">
+              <Button asChild variant="outline" className="gap-2">
+                <a
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(venueQuery)}&travelmode=transit`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <TrainFront className="w-4 h-4" />
+                  Transports / Itinéraire
+                </a>
+              </Button>
               <Button asChild variant="outline" className="gap-2">
                 <a
                   href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venueQuery)}`}

@@ -1,6 +1,9 @@
 import { Resend } from "resend";
 import { ENV } from "./env.js";
 import { countAllArticles } from "../db.js"; // or wherever you get articles from
+import { getDb } from "../db.js";
+import { eq } from "drizzle-orm";
+import { siteSettings } from "../../drizzle/schema.js";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const DEFAULT_FROM = "G12 Paris <onboarding@resend.dev>"; // Fallback if domain not verified
@@ -157,6 +160,24 @@ export async function sendConventionConfirmation(email: string, firstName: strin
     return;
   }
 
+  let conventionPdfUrl = "";
+  try {
+    const db = getDb();
+    if (db) {
+      const rows = await db.select().from(siteSettings).where(eq(siteSettings.key, "convention.pdfUrl")).limit(1);
+      if (rows[0]?.value) conventionPdfUrl = rows[0].value;
+    }
+  } catch (error) {
+    console.warn("Failed to read convention.pdfUrl:", error);
+  }
+
+  const pdfBlock = conventionPdfUrl
+    ? `
+          <div style="text-align: center; margin: 25px 0;">
+            <a href="${conventionPdfUrl}" download style="display: inline-block; background: #0f172a; color: white; padding: 14px 30px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">Télécharger le programme (PDF)</a>
+          </div>`
+    : "";
+
   try {
     const { error } = await resend.emails.send({
       from: ACTUAL_FROM,
@@ -175,6 +196,7 @@ export async function sendConventionConfirmation(email: string, firstName: strin
           <div style="text-align: center; margin: 25px 0;">
             <a href="https://www.helloasso.com/associations/mci-lyon/evenements/convention-g12-france-2026" style="display: inline-block; background: #D97706; color: white; padding: 14px 30px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px;">Acheter mes billets</a>
           </div>
+          ${pdfBlock}
           <p style="color: #64748b; font-size: 14px;">Vous recevrez des informations pratiques (lieu, horaires, programme) dans les prochains jours.</p>
           <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; text-align: center; color: #94a3b8; font-size: 12px;">
             <p>© ${new Date().getFullYear()} G12 Paris</p>
