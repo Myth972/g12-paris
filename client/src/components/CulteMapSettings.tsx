@@ -18,7 +18,7 @@ export default function CulteMapSettings() {
     onError: err => toast.error("Erreur: " + err.message),
   });
 
-  const [enabled, setEnabled] = useState(false);
+  const [enabled, setEnabled] = useState(true);
   const [venueName, setVenueName] = useState("");
   const [venueQuery, setVenueQuery] = useState("");
   const [venueAddress, setVenueAddress] = useState("");
@@ -26,7 +26,11 @@ export default function CulteMapSettings() {
 
   useEffect(() => {
     if (settingsQuery.data) {
-      setEnabled(settingsQuery.data["culte.mapEnabled"] === "true");
+      setEnabled(
+        settingsQuery.data["culte.mapEnabled"] === undefined
+          ? true
+          : settingsQuery.data["culte.mapEnabled"] === "true"
+      );
       setVenueName((settingsQuery.data["culte.venueName"] as string) || "");
       setVenueQuery((settingsQuery.data["culte.venueQuery"] as string) || "");
       setVenueAddress((settingsQuery.data["culte.venueAddress"] as string) || "");
@@ -43,7 +47,6 @@ export default function CulteMapSettings() {
   };
 
   const previewQuery = venueQuery || "Paris, France";
-  const previewEnabled = enabled || false;
 
   return (
     <Card>
@@ -132,11 +135,11 @@ export default function CulteMapSettings() {
           </Button>
         </div>
 
-        {previewEnabled && (
-          <div className="space-y-3">
-            <div className="flex items-center gap-1.5 text-sm font-medium">
-              <Eye className="w-4 h-4" /> Aperçu de la carte
-            </div>
+        <div className="space-y-3">
+          <div className="flex items-center gap-1.5 text-sm font-medium">
+            <Eye className="w-4 h-4" /> Aperçu de la carte
+            {!enabled && <span className="text-xs font-normal text-muted-foreground">(carte affichée sur la page car activée par défaut — décochez pour masquer)</span>}
+          </div>
             <div className="relative rounded-lg overflow-hidden border aspect-video min-h-[200px]">
               <iframe
                 title="Aperçu carte Google Maps"
@@ -158,7 +161,6 @@ export default function CulteMapSettings() {
               Ouvrir dans Google Maps
             </a>
           </div>
-        )}
       </CardContent>
     </Card>
   );

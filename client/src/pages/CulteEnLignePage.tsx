@@ -18,7 +18,7 @@ export default function CulteEnLignePage() {
   const liveEnabled = liveEnabledRaw !== "false";
   const youtubeVideoId = settingsQuery.data?.culteYoutubeVideoId as string | undefined;
 
-  const mapEnabled = settingsQuery.data?.["culte.mapEnabled"] === "true";
+  const mapEnabled = settingsQuery.data?.["culte.mapEnabled"] !== "false";
   const venueName = (settingsQuery.data?.["culte.venueName"] as string) || "G12 Paris";
   const venueQuery = (settingsQuery.data?.["culte.venueQuery"] as string) || "Paris, France";
   const venueAddress = (settingsQuery.data?.["culte.venueAddress"] as string) || "";

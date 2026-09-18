@@ -1094,24 +1094,28 @@ export default function AdminDesign() {
               </div>
 
               <div className="pt-1">
-                <label className="text-xs text-muted-foreground">Aperçu des 3 arrière-plans</label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-2">
+                <label className="text-xs text-muted-foreground">Aperçu des 3 arrière-plans (rendu réel avec le voile)</label>
+                <div className="space-y-3 mt-2">
                   {[
                     { label: "Haut", url: conventionBgUrl, opacity: conventionBgOpacity, size: conventionBgSize, position: conventionBgPosition },
                     { label: "Milieu", url: conventionBgUrlMiddle, opacity: conventionBgOpacityMiddle, size: conventionBgSizeMiddle, position: conventionBgPositionMiddle },
                     { label: "Bas", url: conventionBgUrlBottom, opacity: conventionBgOpacityBottom, size: conventionBgSizeBottom, position: conventionBgPositionBottom },
                   ].map(z => (
-                    <div key={z.label} className="relative h-28 rounded-lg overflow-hidden border bg-muted/40">
-                      {z.url && (
+                    <div key={z.label} className="relative h-36 rounded-lg overflow-hidden border bg-muted/40">
+                      {z.url ? (
                         <>
                           <div
                             className="absolute inset-0 bg-center"
                             style={{ backgroundImage: `url(${z.url})`, backgroundSize: z.size, backgroundPosition: z.position, opacity: Number(z.opacity) / 100 }}
                           />
-                          <div className={`absolute inset-0 ${conventionOverlayClass(z.url && conventionOverlayStyle !== "none" ? conventionOverlayStyle : "")}`} />
+                          <div className={`absolute inset-0 ${conventionOverlayClass(true, conventionOverlayStyle)}`} />
                         </>
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center text-xs text-muted-foreground">
+                          {z.label} — aucune image
+                        </div>
                       )}
-                      <span className="absolute bottom-1 left-2 text-[10px] font-medium text-muted-foreground bg-background/80 rounded px-1.5 py-0.5">
+                      <span className="absolute top-2 left-2 text-[10px] font-semibold uppercase tracking-wider text-foreground bg-background/80 rounded px-1.5 py-0.5">
                         {z.label}
                       </span>
                     </div>
@@ -1362,7 +1366,8 @@ export default function AdminDesign() {
   );
 }
 
-function conventionOverlayClass(style: string): string {
+function conventionOverlayClass(hasBg: boolean, style: string): string {
+  if (!hasBg) return "";
   switch (style) {
     case "light":
       return "bg-white/60 dark:bg-black/60";
