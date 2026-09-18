@@ -48,6 +48,43 @@ export default function ConventionG12FrancePage() {
   const venueQuery = (settingsQuery.data?.["convention.venueQuery"] as string) || "Paris, France";
   const venueAddress = (settingsQuery.data?.["convention.venueAddress"] as string) || "";
 
+  // Réglages avancés des arrière-plans
+  const readNumSetting = (key: string, fallback: number) => {
+    const raw = settingsQuery.data?.[key] as string | undefined;
+    const num = Number(raw);
+    return raw !== undefined && Number.isFinite(num) ? num : fallback;
+  };
+  const clampOpacity = (value: number) => Math.max(0, Math.min(100, value));
+  const bgOpacity = clampOpacity(readNumSetting("convention.bgOpacity", 100));
+  const bgSize = (settingsQuery.data?.["convention.bgSize"] as string) || "cover";
+  const bgPosition = (settingsQuery.data?.["convention.bgPosition"] as string) || "center";
+  const bgOpacityMiddle = clampOpacity(readNumSetting("convention.bgOpacityMiddle", 100));
+  const bgSizeMiddle = (settingsQuery.data?.["convention.bgSizeMiddle"] as string) || "cover";
+  const bgPositionMiddle = (settingsQuery.data?.["convention.bgPositionMiddle"] as string) || "center";
+  const bgOpacityBottom = clampOpacity(readNumSetting("convention.bgOpacityBottom", 100));
+  const bgSizeBottom = (settingsQuery.data?.["convention.bgSizeBottom"] as string) || "cover";
+  const bgPositionBottom = (settingsQuery.data?.["convention.bgPositionBottom"] as string) || "center";
+  const overlayStyle = (settingsQuery.data?.["convention.overlayStyle"] as string) || "auto";
+  const bgParallax = settingsQuery.data?.["convention.bgParallax"] === "true";
+
+  const overlayClass = (hasBg: boolean) => {
+    if (!hasBg) return "";
+    switch (overlayStyle) {
+      case "light":
+        return "bg-white/60 dark:bg-black/60";
+      case "dark":
+        return "bg-black/60";
+      case "gradient":
+        return "bg-gradient-to-b from-primary/10 via-background/50 to-background/90";
+      case "none":
+        return "";
+      default:
+        return "bg-white/80 dark:bg-black/80";
+    }
+  };
+
+  const parallaxClass = bgParallax ? "convention-parallax" : "";
+
   // Textes éditables (mêmes clés que l'ancien inline : pageText.convention-g12.* pageTitle.convention-g12.*)
   const pageText = (key: string, fallback: string) =>
     (settingsQuery.data?.[`pageText.convention-g12.${key}`] as string | undefined) ?? fallback;
@@ -139,14 +176,15 @@ export default function ConventionG12FrancePage() {
       <Reveal variant="fadeDown" duration={0.7}>
       <section 
         className="relative py-8 sm:py-12 md:py-16 overflow-hidden"
-        style={bgUrl ? { 
-          backgroundImage: `url(${bgUrl})`, 
-          backgroundSize: 'cover', 
-          backgroundPosition: 'center' 
-        } : {}}
       >
+        {bgUrl && (
+          <div
+            className={`absolute inset-0 bg-center bg-cover ${parallaxClass}`}
+            style={{ backgroundImage: `url(${bgUrl})`, backgroundSize: bgSize, backgroundPosition: bgPosition, opacity: bgOpacity / 100 }}
+          />
+        )}
         {!bgUrl && <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-background to-background pointer-events-none" />}
-        <div className={`absolute inset-0 ${bgUrl ? 'bg-white/80 dark:bg-black/80' : 'bg-gradient-to-br from-primary/10 to-destructive/5 dark:from-primary/5 dark:to-destructive/5'} pointer-events-none`} />
+        <div className={`absolute inset-0 ${overlayClass(!!bgUrl)} pointer-events-none`} />
         
         <div className="container relative z-10 px-4 sm:px-0">
           <div className="mb-6">
@@ -206,13 +244,14 @@ export default function ConventionG12FrancePage() {
         <Reveal variant="fadeUp" delay={0.1}>
         <section 
           className="container pb-8 px-4 sm:px-0 mt-8 relative"
-          style={bgUrlMiddle ? { 
-            backgroundImage: `url(${bgUrlMiddle})`, 
-            backgroundSize: 'cover', 
-            backgroundPosition: 'center' 
-          } : {}}
         >
-          {bgUrlMiddle && <div className="absolute inset-0 bg-white/80 dark:bg-black/80 pointer-events-none" />}
+          {bgUrlMiddle && (
+            <div
+              className={`absolute inset-0 bg-cover bg-center rounded-xl ${parallaxClass}`}
+              style={{ backgroundImage: `url(${bgUrlMiddle})`, backgroundSize: bgSizeMiddle, backgroundPosition: bgPositionMiddle, opacity: bgOpacityMiddle / 100 }}
+            />
+          )}
+          {bgUrlMiddle && <div className={`absolute inset-0 ${overlayClass(true)} pointer-events-none`} />}
           <div className="max-w-4xl mx-auto relative z-10">
             {/* YouTube */}
             {youtubeVideoId && (
@@ -360,13 +399,14 @@ export default function ConventionG12FrancePage() {
       {/* Bottom Zone: Bilingual + Content */}
       <div 
         className="relative"
-        style={bgUrlBottom ? { 
-          backgroundImage: `url(${bgUrlBottom})`, 
-          backgroundSize: 'cover', 
-          backgroundPosition: 'center' 
-        } : {}}
       >
-        {bgUrlBottom && <div className="absolute inset-0 bg-white/80 dark:bg-black/80 pointer-events-none" />}
+        {bgUrlBottom && (
+          <div
+            className={`absolute inset-0 bg-cover bg-center ${parallaxClass}`}
+            style={{ backgroundImage: `url(${bgUrlBottom})`, backgroundSize: bgSizeBottom, backgroundPosition: bgPositionBottom, opacity: bgOpacityBottom / 100 }}
+          />
+        )}
+        {bgUrlBottom && <div className={`absolute inset-0 ${overlayClass(true)} pointer-events-none`} />}
         <div className="relative z-10">
           {/* Bilingual Call to Action */}
           {showBilingualCTA && (

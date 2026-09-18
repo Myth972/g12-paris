@@ -353,6 +353,7 @@ export const appRouter = router({
           "vision/",
           "covers/",
           "bento/",
+          "design/",
         ];
         if (!allowedPrefixes.some(prefix => cleaned.startsWith(prefix))) {
           throw new TRPCError({

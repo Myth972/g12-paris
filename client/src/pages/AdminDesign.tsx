@@ -31,6 +31,7 @@ import {
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useBlobUpload } from "@/hooks/useBlobUpload";
+import { optimizeImageFile } from "@/lib/optimizeImage";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTranslation } from "react-i18next";
 
@@ -118,6 +119,17 @@ export default function AdminDesign() {
   const [conventionVenueName, setConventionVenueName] = useState("Centre de Conférences");
   const [conventionVenueQuery, setConventionVenueQuery] = useState("Paris, France");
   const [conventionVenueAddress, setConventionVenueAddress] = useState("");
+  const [conventionBgOpacity, setConventionBgOpacity] = useState("100");
+  const [conventionBgSize, setConventionBgSize] = useState("cover");
+  const [conventionBgPosition, setConventionBgPosition] = useState("center");
+  const [conventionBgOpacityMiddle, setConventionBgOpacityMiddle] = useState("100");
+  const [conventionBgSizeMiddle, setConventionBgSizeMiddle] = useState("cover");
+  const [conventionBgPositionMiddle, setConventionBgPositionMiddle] = useState("center");
+  const [conventionBgOpacityBottom, setConventionBgOpacityBottom] = useState("100");
+  const [conventionBgSizeBottom, setConventionBgSizeBottom] = useState("cover");
+  const [conventionBgPositionBottom, setConventionBgPositionBottom] = useState("center");
+  const [conventionOverlayStyle, setConventionOverlayStyle] = useState("auto");
+  const [conventionBgParallax, setConventionBgParallax] = useState(false);
 
   const { uploadFile } = useBlobUpload();
   const [uploading, setUploading] = useState<string | null>(null);
@@ -135,7 +147,8 @@ export default function AdminDesign() {
     
     setUploading(type);
     try {
-      const result = await uploadFile({ file, folder: 'design' });
+      const optimized = await optimizeImageFile(file);
+      const result = await uploadFile({ file: optimized, folder: 'design' });
       if (type === 'logoLight') setLogoLight(result.url);
       if (type === 'logoDark') setLogoDark(result.url);
       if (type === 'banner') setDefaultBanner(result.url);
@@ -185,6 +198,17 @@ export default function AdminDesign() {
       if (settingsQuery.data["convention.venueName"]) setConventionVenueName(settingsQuery.data["convention.venueName"] as string);
       if (settingsQuery.data["convention.venueQuery"]) setConventionVenueQuery(settingsQuery.data["convention.venueQuery"] as string);
       if (settingsQuery.data["convention.venueAddress"]) setConventionVenueAddress(settingsQuery.data["convention.venueAddress"] as string);
+      if (settingsQuery.data["convention.bgOpacity"]) setConventionBgOpacity(settingsQuery.data["convention.bgOpacity"] as string);
+      if (settingsQuery.data["convention.bgSize"]) setConventionBgSize(settingsQuery.data["convention.bgSize"] as string);
+      if (settingsQuery.data["convention.bgPosition"]) setConventionBgPosition(settingsQuery.data["convention.bgPosition"] as string);
+      if (settingsQuery.data["convention.bgOpacityMiddle"]) setConventionBgOpacityMiddle(settingsQuery.data["convention.bgOpacityMiddle"] as string);
+      if (settingsQuery.data["convention.bgSizeMiddle"]) setConventionBgSizeMiddle(settingsQuery.data["convention.bgSizeMiddle"] as string);
+      if (settingsQuery.data["convention.bgPositionMiddle"]) setConventionBgPositionMiddle(settingsQuery.data["convention.bgPositionMiddle"] as string);
+      if (settingsQuery.data["convention.bgOpacityBottom"]) setConventionBgOpacityBottom(settingsQuery.data["convention.bgOpacityBottom"] as string);
+      if (settingsQuery.data["convention.bgSizeBottom"]) setConventionBgSizeBottom(settingsQuery.data["convention.bgSizeBottom"] as string);
+      if (settingsQuery.data["convention.bgPositionBottom"]) setConventionBgPositionBottom(settingsQuery.data["convention.bgPositionBottom"] as string);
+      if (settingsQuery.data["convention.overlayStyle"]) setConventionOverlayStyle(settingsQuery.data["convention.overlayStyle"] as string);
+      if (settingsQuery.data["convention.bgParallax"] !== undefined) setConventionBgParallax(settingsQuery.data["convention.bgParallax"] === "true");
     }
   }, [settingsQuery.data]);
 
@@ -221,6 +245,17 @@ export default function AdminDesign() {
         ["convention.venueName", conventionVenueName],
         ["convention.venueQuery", conventionVenueQuery],
         ["convention.venueAddress", conventionVenueAddress],
+        ["convention.bgOpacity", conventionBgOpacity],
+        ["convention.bgSize", conventionBgSize],
+        ["convention.bgPosition", conventionBgPosition],
+        ["convention.bgOpacityMiddle", conventionBgOpacityMiddle],
+        ["convention.bgSizeMiddle", conventionBgSizeMiddle],
+        ["convention.bgPositionMiddle", conventionBgPositionMiddle],
+        ["convention.bgOpacityBottom", conventionBgOpacityBottom],
+        ["convention.bgSizeBottom", conventionBgSizeBottom],
+        ["convention.bgPositionBottom", conventionBgPositionBottom],
+        ["convention.overlayStyle", conventionOverlayStyle],
+        ["convention.bgParallax", String(conventionBgParallax)],
       ];
       const toSave = keys ? allSettings.filter(([k]) => keys.some(prefix => k.startsWith(prefix))) : allSettings;
       await Promise.all(toSave.map(([key, value]) => setSetting.mutateAsync({ key, value })));
@@ -933,6 +968,14 @@ export default function AdminDesign() {
               </div>
               <input type="file" ref={conventionBgRef} className="hidden" accept="image/*" onChange={(e) => handleUpload(e, 'conventionBg')} id="convention-bg-upload" name="conventionBgUpload" />
               <Input id="convention-bg-url" name="conventionBgUrl" placeholder={t('admin.design.orPasteUrl')} value={conventionBgUrl} onChange={(e) => setConventionBgUrl(e.target.value)} className="text-xs" />
+              <ConventionBgTuning
+                opacity={conventionBgOpacity}
+                setOpacity={setConventionBgOpacity}
+                size={conventionBgSize}
+                setSize={setConventionBgSize}
+                position={conventionBgPosition}
+                setPosition={setConventionBgPosition}
+              />
             </div>
 
             <div className="space-y-3">
@@ -968,6 +1011,14 @@ export default function AdminDesign() {
               </div>
               <input type="file" ref={conventionBgMiddleRef} className="hidden" accept="image/*" onChange={(e) => handleUpload(e, 'conventionBgMiddle')} id="convention-bg-middle-upload" name="conventionBgMiddleUpload" />
               <Input id="convention-bg-middle-url" name="conventionBgMiddleUrl" placeholder={t('admin.design.orPasteUrl')} value={conventionBgUrlMiddle} onChange={(e) => setConventionBgUrlMiddle(e.target.value)} className="text-xs" />
+              <ConventionBgTuning
+                opacity={conventionBgOpacityMiddle}
+                setOpacity={setConventionBgOpacityMiddle}
+                size={conventionBgSizeMiddle}
+                setSize={setConventionBgSizeMiddle}
+                position={conventionBgPositionMiddle}
+                setPosition={setConventionBgPositionMiddle}
+              />
             </div>
 
             <div className="space-y-3">
@@ -1003,6 +1054,70 @@ export default function AdminDesign() {
               </div>
               <input type="file" ref={conventionBgBottomRef} className="hidden" accept="image/*" onChange={(e) => handleUpload(e, 'conventionBgBottom')} id="convention-bg-bottom-upload" name="conventionBgBottomUpload" />
               <Input id="convention-bg-bottom-url" name="conventionBgBottomUrl" placeholder={t('admin.design.orPasteUrl')} value={conventionBgUrlBottom} onChange={(e) => setConventionBgUrlBottom(e.target.value)} className="text-xs" />
+              <ConventionBgTuning
+                opacity={conventionBgOpacityBottom}
+                setOpacity={setConventionBgOpacityBottom}
+                size={conventionBgSizeBottom}
+                setSize={setConventionBgSizeBottom}
+                position={conventionBgPositionBottom}
+                setPosition={setConventionBgPositionBottom}
+              />
+            </div>
+
+            <div className="space-y-3 border rounded-xl p-4 bg-muted/20">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs text-muted-foreground">Voile (overlay) appliqué aux 3 fonds</label>
+                  <Select value={conventionOverlayStyle} onValueChange={setConventionOverlayStyle}>
+                    <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="auto">Auto (clair/sombre selon le thème)</SelectItem>
+                      <SelectItem value="light">Léger</SelectItem>
+                      <SelectItem value="dark">Sombre</SelectItem>
+                      <SelectItem value="gradient">Dégradé (primaire → fond)</SelectItem>
+                      <SelectItem value="none">Aucun</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-3 sm:pt-5">
+                  <input
+                    type="checkbox"
+                    id="convention-bg-parallax"
+                    checked={conventionBgParallax}
+                    onChange={(e) => setConventionBgParallax(e.target.checked)}
+                    className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
+                  />
+                  <label htmlFor="convention-bg-parallax" className="text-sm cursor-pointer">
+                    Effet parallax (bureau uniquement)
+                  </label>
+                </div>
+              </div>
+
+              <div className="pt-1">
+                <label className="text-xs text-muted-foreground">Aperçu des 3 arrière-plans</label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-2">
+                  {[
+                    { label: "Haut", url: conventionBgUrl, opacity: conventionBgOpacity, size: conventionBgSize, position: conventionBgPosition },
+                    { label: "Milieu", url: conventionBgUrlMiddle, opacity: conventionBgOpacityMiddle, size: conventionBgSizeMiddle, position: conventionBgPositionMiddle },
+                    { label: "Bas", url: conventionBgUrlBottom, opacity: conventionBgOpacityBottom, size: conventionBgSizeBottom, position: conventionBgPositionBottom },
+                  ].map(z => (
+                    <div key={z.label} className="relative h-28 rounded-lg overflow-hidden border bg-muted/40">
+                      {z.url && (
+                        <>
+                          <div
+                            className="absolute inset-0 bg-center"
+                            style={{ backgroundImage: `url(${z.url})`, backgroundSize: z.size, backgroundPosition: z.position, opacity: Number(z.opacity) / 100 }}
+                          />
+                          <div className={`absolute inset-0 ${conventionOverlayClass(z.url && conventionOverlayStyle !== "none" ? conventionOverlayStyle : "")}`} />
+                        </>
+                      )}
+                      <span className="absolute bottom-1 left-2 text-[10px] font-medium text-muted-foreground bg-background/80 rounded px-1.5 py-0.5">
+                        {z.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
           
@@ -1242,6 +1357,78 @@ export default function AdminDesign() {
         </section>
 
         </div>{/* fin contenu principal */}
+      </div>
+    </div>
+  );
+}
+
+function conventionOverlayClass(style: string): string {
+  switch (style) {
+    case "light":
+      return "bg-white/60 dark:bg-black/60";
+    case "dark":
+      return "bg-black/60";
+    case "gradient":
+      return "bg-gradient-to-b from-primary/10 via-background/50 to-background/90";
+    case "none":
+      return "";
+    default:
+      return "bg-white/80 dark:bg-black/80";
+  }
+}
+
+function ConventionBgTuning({
+  opacity,
+  setOpacity,
+  size,
+  setSize,
+  position,
+  setPosition,
+}: {
+  opacity: string;
+  setOpacity: (v: string) => void;
+  size: string;
+  setSize: (v: string) => void;
+  position: string;
+  setPosition: (v: string) => void;
+}) {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-3">
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between">
+          <label className="text-xs text-muted-foreground">Opacité du fond</label>
+          <span className="text-xs font-medium text-foreground">{opacity}%</span>
+        </div>
+        <input
+          type="range"
+          min="0"
+          max="100"
+          step="5"
+          value={opacity}
+          onChange={(e) => setOpacity(e.target.value)}
+          className="w-full accent-primary"
+        />
+      </div>
+      <div className="space-y-1.5">
+        <label className="text-xs text-muted-foreground">Ajustement de l'image</label>
+        <Select value={size} onValueChange={setSize}>
+          <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="cover">Couvrir (cover)</SelectItem>
+            <SelectItem value="contain">Contenir (contain)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-1.5">
+        <label className="text-xs text-muted-foreground">Position</label>
+        <Select value={position} onValueChange={setPosition}>
+          <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="center">Centré</SelectItem>
+            <SelectItem value="top">Haut</SelectItem>
+            <SelectItem value="bottom">Bas</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );
