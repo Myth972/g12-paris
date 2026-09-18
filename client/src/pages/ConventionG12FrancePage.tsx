@@ -41,6 +41,7 @@ export default function ConventionG12FrancePage() {
   const showBilingualCTA = showBilingualCTARaw !== "false"; // Defaults to true
   const youtubeVideoIdRaw = settingsQuery.data?.["convention.youtubeVideoId"] as string | undefined;
   const facebookVideoUrl = settingsQuery.data?.["convention.facebookVideoUrl"] as string | undefined;
+  const vimeoVideoUrl = settingsQuery.data?.["convention.vimeoVideoUrl"] as string | undefined;
   const registrationEnabled = settingsQuery.data?.["convention.registrationEnabled"] === "true";
   const mapEnabledRaw = settingsQuery.data?.["convention.mapEnabled"] as string | undefined;
   const mapEnabled = mapEnabledRaw === "true";
@@ -136,6 +137,31 @@ export default function ConventionG12FrancePage() {
   };
 
   const youtubeVideoId = extractYouTubeId(youtubeVideoIdRaw);
+
+  // Extract Vimeo video ID from full URL if needed
+  const extractVimeoId = (input: string | undefined): string | null => {
+    if (!input) return null;
+    const trimmed = input.trim();
+    if (!trimmed) return null;
+    // Already an ID (numeric)
+    if (/^\d+$/.test(trimmed)) return trimmed;
+    // Try to extract from various Vimeo URL formats
+    const patterns = [
+      /vimeo\.com\/video\/(\d+)/,
+      /player\.vimeo\.com\/video\/(\d+)/,
+      /vimeo\.com\/channels\/[^/]+\/(\d+)/,
+      /vimeo\.com\/groups\/[^/]+\/videos\/(\d+)/,
+      /vimeo\.com\/showcase\/[^/]+\/video\/(\d+)/,
+      /vimeo\.com\/(\d+)/,
+    ];
+    for (const pattern of patterns) {
+      const match = trimmed.match(pattern);
+      if (match && match[1]) return match[1];
+    }
+    return null;
+  };
+
+  const vimeoVideoId = extractVimeoId(vimeoVideoUrl);
 
   const [copied, setCopied] = useState(false);
   const [iframeErrored, setIframeErrored] = useState(false);
@@ -240,7 +266,7 @@ export default function ConventionG12FrancePage() {
       </Reveal>
 
       {/* Video Section */}
-      {(youtubeVideoId || facebookVideoUrl || liveEnabled) && (
+      {(youtubeVideoId || vimeoVideoId || facebookVideoUrl || liveEnabled) && (
         <Reveal variant="fadeUp" delay={0.1}>
         <section 
           className="container pb-8 px-4 sm:px-0 mt-8 relative"
@@ -266,8 +292,42 @@ export default function ConventionG12FrancePage() {
               </div>
             )}
 
-            {/* Facebook (seulement si pas de YouTube) */}
-            {!youtubeVideoId && facebookVideoUrl && !iframeErrored && (
+            {/* Vimeo (seulement si pas de YouTube) */}
+            {!youtubeVideoId && vimeoVideoId && !iframeErrored && (
+              <div className="relative aspect-video bg-black rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-4 border-white/10 dark:border-white/5">
+                <iframe
+                  src={`https://player.vimeo.com/video/${vimeoVideoId}${liveEnabled ? "?autoplay=1&byline=0&title=0&portrait=0" : ""}`}
+                  title="Convention G12 France en direct - Vimeo"
+                  className="absolute inset-0 w-full h-full"
+                  allow="autoplay; fullscreen; picture-in-picture"
+                  allowFullScreen
+                  onError={() => setIframeErrored(true)}
+                />
+              </div>
+            )}
+
+            {/* Fallback Vimeo si l'iframe échoue */}
+            {!youtubeVideoId && vimeoVideoId && iframeErrored && (
+              <div className="relative aspect-video rounded-xl sm:rounded-2xl overflow-hidden bg-gradient-to-br from-slate-800 via-slate-900 to-black">
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 text-white">
+                  <div className="w-20 h-20 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center mb-5 ring-4 ring-white/20">
+                    <Play className="w-10 h-10 text-white" />
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-bold font-serif mb-2">Vidéo Vimeo</h3>
+                  <p className="text-sm sm:text-base text-white/80 mb-6 max-w-md">La vidéo est disponible sur Vimeo.</p>
+                  <Button asChild size="lg" className="bg-card text-card-foreground hover:bg-card/90 font-semibold gap-2 shadow-lg">
+                    <a href={`https://vimeo.com/${vimeoVideoId}`} target="_blank" rel="noopener noreferrer">
+                      <Play className="w-5 h-5 fill-current" />
+                      Regarder sur Vimeo
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Facebook (seulement si pas de YouTube ni Vimeo) */}
+            {!youtubeVideoId && !vimeoVideoId && facebookVideoUrl && !iframeErrored && (
               <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-4 border-white/10 dark:border-white/5 bg-black">
                 <div className="relative w-full" style={{ paddingBottom: "56.25%" }}>
                   <iframe
@@ -286,7 +346,7 @@ export default function ConventionG12FrancePage() {
             )}
 
             {/* Fallback Facebook si l'iframe échoue */}
-            {!youtubeVideoId && facebookVideoUrl && iframeErrored && (
+            {!youtubeVideoId && !vimeoVideoId && facebookVideoUrl && iframeErrored && (
               <div className="relative aspect-video rounded-xl sm:rounded-2xl overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-900">
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6 text-white">
                   <div className="w-20 h-20 rounded-full bg-white/15 backdrop-blur-sm flex items-center justify-center mb-5 ring-4 ring-white/20">
@@ -306,7 +366,7 @@ export default function ConventionG12FrancePage() {
             )}
 
             {/* Placeholder live sans source */}
-            {!youtubeVideoId && !facebookVideoUrl && liveEnabled && (
+            {!youtubeVideoId && !vimeoVideoId && !facebookVideoUrl && liveEnabled && (
               <div className="relative aspect-video bg-black rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-4 border-white/10 dark:border-white/5">
                 <div className="absolute inset-0 flex items-center justify-center bg-muted">
                   <div className="text-center">
@@ -333,7 +393,15 @@ export default function ConventionG12FrancePage() {
                   </a>
                 </Button>
               )}
-              {!youtubeVideoId && facebookVideoUrl && (
+              {!youtubeVideoId && vimeoVideoId && (
+                <Button asChild variant="ghost">
+                  <a href={`https://vimeo.com/${vimeoVideoId}`} target="_blank" rel="noopener noreferrer" className="gap-2">
+                    <ExternalLink className="w-4 h-4" />
+                    Ouvrir sur Vimeo
+                  </a>
+                </Button>
+              )}
+              {!youtubeVideoId && !vimeoVideoId && facebookVideoUrl && (
                 <Button asChild variant="ghost">
                   <a href={facebookVideoUrl} target="_blank" rel="noopener noreferrer" className="gap-2">
                     <ExternalLink className="w-4 h-4" />

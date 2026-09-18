@@ -111,6 +111,7 @@ export default function AdminDesign() {
   const [conventionLiveEnabled, setConventionLiveEnabled] = useState(false);
   const [conventionYoutubeVideoId, setConventionYoutubeVideoId] = useState("");
   const [conventionFacebookVideoUrl, setConventionFacebookVideoUrl] = useState("");
+  const [conventionVimeoVideoUrl, setConventionVimeoVideoUrl] = useState("");
   const [conventionShowLogo, setConventionShowLogo] = useState(true);
   const [conventionShowOfficialSite, setConventionShowOfficialSite] = useState(true);
   const [conventionShowBilingualCTA, setConventionShowBilingualCTA] = useState(true);
@@ -190,6 +191,7 @@ export default function AdminDesign() {
       if (settingsQuery.data["convention.liveEnabled"] !== undefined) setConventionLiveEnabled(settingsQuery.data["convention.liveEnabled"] === "true");
       if (settingsQuery.data["convention.youtubeVideoId"]) setConventionYoutubeVideoId(settingsQuery.data["convention.youtubeVideoId"] as string);
       if (settingsQuery.data["convention.facebookVideoUrl"]) setConventionFacebookVideoUrl(settingsQuery.data["convention.facebookVideoUrl"] as string);
+      if (settingsQuery.data["convention.vimeoVideoUrl"]) setConventionVimeoVideoUrl(settingsQuery.data["convention.vimeoVideoUrl"] as string);
       if (settingsQuery.data["convention.showLogo"] !== undefined) setConventionShowLogo(settingsQuery.data["convention.showLogo"] !== "false");
       if (settingsQuery.data["convention.showOfficialSite"] !== undefined) setConventionShowOfficialSite(settingsQuery.data["convention.showOfficialSite"] !== "false");
       if (settingsQuery.data["convention.showBilingualCTA"] !== undefined) setConventionShowBilingualCTA(settingsQuery.data["convention.showBilingualCTA"] !== "false");
@@ -237,6 +239,7 @@ export default function AdminDesign() {
         ["convention.liveEnabled", String(conventionLiveEnabled)],
         ["convention.youtubeVideoId", conventionYoutubeVideoId],
         ["convention.facebookVideoUrl", conventionFacebookVideoUrl],
+        ["convention.vimeoVideoUrl", conventionVimeoVideoUrl],
         ["convention.showLogo", String(conventionShowLogo)],
         ["convention.showOfficialSite", String(conventionShowOfficialSite)],
         ["convention.showBilingualCTA", String(conventionShowBilingualCTA)],
@@ -1288,6 +1291,35 @@ export default function AdminDesign() {
                 onChange={(e) => setConventionFacebookVideoUrl(e.target.value)}
               />
               <p className="text-xs text-muted-foreground">Colle l'URL complète d'une vidéo Facebook (live ou replay). Si YouTube est renseigné, YouTube est affiché en priorité.</p>
+            </div>
+
+            {/* Vimeo Video */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label htmlFor="convention-vimeo-video-url" className="text-sm font-medium">Vidéo Vimeo (URL complète)</label>
+                {conventionVimeoVideoUrl && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setConventionVimeoVideoUrl("")}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10 h-7 px-2 text-xs"
+                    aria-label="Supprimer la vidéo Vimeo"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 mr-1" />
+                    Supprimer
+                  </Button>
+                )}
+              </div>
+              <Input
+                id="convention-vimeo-video-url"
+                name="conventionVimeoVideoUrl"
+                autoComplete="off"
+                placeholder="ex: https://vimeo.com/123456789"
+                value={conventionVimeoVideoUrl}
+                onChange={(e) => setConventionVimeoVideoUrl(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">Colle l'URL complète d'une vidéo Vimeo (live ou replay). Priorité d'affichage : YouTube puis Vimeo puis Facebook.</p>
             </div>
           </div>
 
