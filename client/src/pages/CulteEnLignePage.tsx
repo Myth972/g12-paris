@@ -175,10 +175,17 @@ export default function CulteEnLignePage() {
         </Reveal>
       )}
 
+      {/* Content section */}
+      <Reveal variant="fadeUp" delay={0.15}>
+      <section className="container pb-12 sm:pb-16 pt-0 px-4 sm:px-0">
+        <PageContentDisplay pageId="culte-en-ligne" layout="split" />
+      </section>
+      </Reveal>
+
       {/* Map / Localisation */}
       {mapEnabled && (
         <Reveal variant="fadeUp" delay={0.1}>
-        <section className="container py-10 px-4 sm:px-0">
+        <section className="container pb-12 sm:pb-16 px-4 sm:px-0">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-6">
               <h2 className="text-2xl sm:text-3xl font-serif font-bold text-foreground mb-2">Où nous retrouver</h2>
@@ -221,13 +228,6 @@ export default function CulteEnLignePage() {
         </section>
         </Reveal>
       )}
-
-      {/* Content section */}
-      <Reveal variant="fadeUp" delay={0.15}>
-      <section className="container pb-12 sm:pb-16 pt-0 px-4 sm:px-0">
-        <PageContentDisplay pageId="culte-en-ligne" layout="split" />
-      </section>
-      </Reveal>
     </div>
   );
 }
