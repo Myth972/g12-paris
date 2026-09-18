@@ -5,7 +5,7 @@ import PageTextEditor from "@/components/PageTextEditor";
 import { Reveal } from "@/components/Reveal";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
-import { Play, Share2, ExternalLink, Copy, Check } from "lucide-react";
+import { Play, Share2, ExternalLink, Copy, Check, MapPin, Clock } from "lucide-react";
 import { Link } from "wouter";
 
 export default function CulteEnLignePage() {
@@ -17,6 +17,12 @@ export default function CulteEnLignePage() {
   const liveEnabledRaw = settingsQuery.data?.culteLiveEnabled as string | undefined;
   const liveEnabled = liveEnabledRaw !== "false";
   const youtubeVideoId = settingsQuery.data?.culteYoutubeVideoId as string | undefined;
+
+  const mapEnabled = settingsQuery.data?.["culte.mapEnabled"] === "true";
+  const venueName = (settingsQuery.data?.["culte.venueName"] as string) || "G12 Paris";
+  const venueQuery = (settingsQuery.data?.["culte.venueQuery"] as string) || "Paris, France";
+  const venueAddress = (settingsQuery.data?.["culte.venueAddress"] as string) || "";
+  const venueSchedule = (settingsQuery.data?.["culte.venueSchedule"] as string) || "";
 
   const [copied, setCopied] = useState(false);
 
@@ -163,6 +169,53 @@ export default function CulteEnLignePage() {
                   </a>
                 </Button>
               )}
+            </div>
+          </div>
+        </section>
+        </Reveal>
+      )}
+
+      {/* Map / Localisation */}
+      {mapEnabled && (
+        <Reveal variant="fadeUp" delay={0.1}>
+        <section className="container py-10 px-4 sm:px-0">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-6">
+              <h2 className="text-2xl sm:text-3xl font-serif font-bold text-foreground mb-2">Où nous retrouver</h2>
+              <p className="text-sm sm:text-base text-muted-foreground flex items-center justify-center gap-1.5">
+                <MapPin className="w-4 h-4 text-primary" />
+                {venueName}
+                {venueAddress && <span className="hidden sm:inline"> — {venueAddress}</span>}
+              </p>
+              {venueSchedule && (
+                <p className="text-sm sm:text-base text-foreground/80 flex items-center justify-center gap-1.5 mt-1">
+                  <Clock className="w-4 h-4 text-primary" />
+                  {venueSchedule}
+                </p>
+              )}
+            </div>
+            <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-xl border-4 border-white/10 dark:border-white/5 aspect-[16/9] min-h-[300px]">
+              <iframe
+                title={`Carte - ${venueName}`}
+                src={`https://www.google.com/maps?q=${encodeURIComponent(venueQuery)}&output=embed`}
+                className="absolute inset-0 w-full h-full"
+                style={{ border: 0 }}
+                loading="lazy"
+                allowFullScreen
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+            <div className="flex justify-center mt-5">
+              <Button asChild variant="outline" className="gap-2">
+                <a
+                  href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venueQuery)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Ouvrir dans Google Maps
+                </a>
+              </Button>
             </div>
           </div>
         </section>

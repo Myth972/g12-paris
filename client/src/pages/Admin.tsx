@@ -107,6 +107,7 @@ import HomeHeroBackgroundSettings from "@/components/HomeHeroBackgroundSettings"
 import CulteHeroBackgroundSettings from "@/components/CulteHeroBackgroundSettings";
 import CulteBannerSettings from "@/components/CulteBannerSettings";
 import CulteVideoSettings from "@/components/CulteVideoSettings";
+import CulteMapSettings from "@/components/CulteMapSettings";
 
 import { Message } from "@/components/AIChatBox";
 
@@ -1401,6 +1402,7 @@ if (authLoading) {
                 <CulteHeroBackgroundSettings />
                 <CulteBannerSettings />
                 <CulteVideoSettings />
+                <CulteMapSettings />
                 <PageContentManager pageId="home" pageName="Accueil" />
                 <PageContentManager
                   pageId="culte-en-ligne"
