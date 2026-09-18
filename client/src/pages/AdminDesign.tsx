@@ -1328,6 +1328,7 @@ export default function AdminDesign() {
                 <Input
                   id="convention-venue-name"
                   name="conventionVenueName"
+                  autoComplete="off"
                   placeholder="ex: Centre de Conférences"
                   value={conventionVenueName}
                   onChange={(e) => setConventionVenueName(e.target.value)}
@@ -1338,6 +1339,7 @@ export default function AdminDesign() {
                 <Input
                   id="convention-venue-query"
                   name="conventionVenueQuery"
+                  autoComplete="off"
                   placeholder="ex: Palais des Congrès de Paris, France"
                   value={conventionVenueQuery}
                   onChange={(e) => setConventionVenueQuery(e.target.value)}
@@ -1349,6 +1351,7 @@ export default function AdminDesign() {
                 <Input
                   id="convention-venue-address"
                   name="conventionVenueAddress"
+                  autoComplete="off"
                   placeholder="ex: 2 Place de la Porte Maillot, 75017 Paris"
                   value={conventionVenueAddress}
                   onChange={(e) => setConventionVenueAddress(e.target.value)}

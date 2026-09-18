@@ -81,6 +81,7 @@ export default function CulteMapSettings() {
               placeholder="ex: Centre de l'Église G12 Paris"
               value={venueName}
               onChange={e => setVenueName(e.target.value)}
+              autoComplete="off"
             />
           </div>
           <div className="space-y-2">
@@ -99,6 +100,7 @@ export default function CulteMapSettings() {
               placeholder="ex: 10 rue de la Paix, 75002 Paris"
               value={venueQuery}
               onChange={e => setVenueQuery(e.target.value)}
+              autoComplete="off"
             />
             <p className="text-xs text-muted-foreground">
               Adresse utilisée pour centrer la carte.
@@ -111,6 +113,7 @@ export default function CulteMapSettings() {
               placeholder="ex: 10 rue de la Paix, 75002 Paris"
               value={venueAddress}
               onChange={e => setVenueAddress(e.target.value)}
+              autoComplete="off"
             />
           </div>
         </div>
