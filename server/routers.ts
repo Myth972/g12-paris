@@ -552,7 +552,7 @@ export const appRouter = router({
           affiliateUrl: z.string().url().nullable().optional(),
         })
       )
-      .mutation(async ({ input }) => {
+      .mutation(async ({ ctx, input }) => {
         const { id, ...data } = input;
         const existing = await getArticleById(id);
         if (!existing) {
@@ -600,7 +600,19 @@ export const appRouter = router({
             });
           }).catch(() => {});
         }
-        return updateArticle(id, updateData);
+        const updated = await updateArticle(id, updateData);
+        if (data.published === true && existing.published !== true) {
+          triggerArticlePublished({
+            articleId: id,
+            title: typeof updateData.title === "string" ? updateData.title : existing.title,
+            authorId: ctx.user.id,
+            category:
+              typeof updateData.category === "string"
+                ? updateData.category
+                : existing.category ?? undefined,
+          }).catch(() => {});
+        }
+        return updated;
       }),
 
     delete: editeurProcedure
