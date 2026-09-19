@@ -299,8 +299,84 @@ export default function AdminTutorial() {
                       <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
                       <span><strong>{t('admin.tutorial.convention.facebookLabel')}</strong> — {t('admin.tutorial.convention.facebookDesc')}</span>
                     </li>
+                    <li className="flex items-start gap-2">
+                      <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                      <span><strong>{t('admin.tutorial.convention.vimeoLabel')}</strong> — {t('admin.tutorial.convention.vimeoDesc')}</span>
+                    </li>
                   </ul>
                 </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm">{t('admin.tutorial.convention.mapTitle')}</h4>
+                  <ul className="text-sm space-y-1 text-muted-foreground">
+                    <li className="flex items-start gap-2">
+                      <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                      <span>{t('admin.tutorial.convention.mapDesc')}</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                      <span>{t('admin.tutorial.convention.mapButton')}</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                      <span>{t('admin.tutorial.convention.mapCulte')}</span>
+                    </li>
+                  </ul>
+                </div>
+
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm">{t('admin.tutorial.convention.pdfTitle')}</h4>
+                  <ul className="text-sm space-y-1 text-muted-foreground">
+                    <li className="flex items-start gap-2">
+                      <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                      <span>{t('admin.tutorial.convention.pdfDesc')}</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                      <span>{t('admin.tutorial.convention.pdfUpload')}</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                      <span>{t('admin.tutorial.convention.pdfPage')}</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                      <span>{t('admin.tutorial.convention.pdfEmail')}</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="font-medium text-sm">{t('admin.tutorial.convention.advancedBgTitle')}</h4>
+                <ul className="text-sm space-y-1 text-muted-foreground">
+                  <li className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <span>{t('admin.tutorial.convention.advancedBgDesc')}</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <span><strong>{t('admin.tutorial.convention.opacityLabel')}</strong> — {t('admin.tutorial.convention.opacityDesc')}</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <span><strong>{t('admin.tutorial.convention.fitLabel')}</strong> — {t('admin.tutorial.convention.fitDesc')}</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <span><strong>{t('admin.tutorial.convention.overlayLabel')}</strong> — {t('admin.tutorial.convention.overlayDesc')}</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <span><strong>{t('admin.tutorial.convention.parallaxLabel')}</strong> — {t('admin.tutorial.convention.parallaxDesc')}</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Info className="h-4 w-4 mt-0.5 text-primary shrink-0" />
+                    <span><strong>{t('admin.tutorial.convention.previewLabel')}</strong> — {t('admin.tutorial.convention.previewDesc')}</span>
+                  </li>
+                </ul>
               </div>
 
               <div className="bg-primary/5 border border-primary/20 p-3 rounded-md">
