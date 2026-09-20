@@ -52,9 +52,9 @@ export default function AboutVisionPage() {
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
       <Reveal variant="fadeDown" duration={0.7}>
-      <section className="relative py-24 lg:py-32 overflow-hidden bg-foreground">
+      <section className="relative py-24 lg:py-32 overflow-hidden bg-slate-950">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1491841550275-ad7854e35ca6?q=80&w=2000')] bg-cover bg-center opacity-30 mix-blend-overlay" style={heroBg ? { backgroundImage: `url('${heroBg}')` } : undefined} />
-        <div className="absolute inset-0 bg-gradient-to-t from-foreground via-foreground/80 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/80 to-transparent" />
         
         <div className="container relative z-10 text-center text-white">
           <span className="text-amber-400 font-bold tracking-widest uppercase text-sm mb-6 block">
@@ -63,7 +63,7 @@ export default function AboutVisionPage() {
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-serif font-bold mb-6 max-w-4xl mx-auto leading-tight">
             {heroTitle}
           </h1>
-          <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed">
+          <p className="text-lg md:text-xl text-white/80 max-w-2xl mx-auto font-light leading-relaxed">
             {heroSubtitle}
           </p>
         </div>

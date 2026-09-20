@@ -1228,7 +1228,7 @@ if (authLoading) {
           {showFullAdmin && (
           <Link href="/admin/design">
             <div className="bg-card border border-border p-5 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50 flex items-center gap-4">
-              <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center text-purple-600 group-hover:scale-110 transition-transform flex-shrink-0">
+              <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center text-purple-600 group-hover:scale-110 transition-transform flex-shrink-0 dark:text-purple-400">
                 <Palette className="w-5 h-5" />
               </div>
               <div>

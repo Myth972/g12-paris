@@ -72,7 +72,7 @@ export default function SiteHeader() {
   const enableThemeToggle = switchable || settings?.["design.enableThemeToggle"] === "true";
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 backdrop-blur-md border-b border-border/60">
+    <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/60">
       {/* Top accent bar */}
       <div className="h-1 bg-gradient-to-r from-primary via-ring to-primary" />
 

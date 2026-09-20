@@ -842,7 +842,7 @@ export default function AdminBibliothequeEditor() {
                   <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">{t('admin.bibliothequeEditor.seoScore')}</span>
-                      <span className={`text-lg font-bold ${score >= 70 ? 'text-green-600' : score >= 40 ? 'text-amber-600' : 'text-red-600'}`}>
+                      <span className={`text-lg font-bold ${score >= 70 ? 'text-green-600 dark:text-green-400' : score >= 40 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'}`}>
                         {score}%
                       </span>
                     </div>

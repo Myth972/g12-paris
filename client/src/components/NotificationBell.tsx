@@ -27,26 +27,26 @@ import { motion, AnimatePresence } from "framer-motion";
 const TYPE_CONFIG = {
   info: {
     icon: Info,
-    color: "text-blue-500",
-    bg: "bg-blue-50",
+    color: "text-blue-500 dark:text-blue-400",
+    bg: "bg-blue-50 dark:bg-blue-500/10",
     label: "Info",
   },
   alerte: {
     icon: AlertTriangle,
-    color: "text-amber-500",
-    bg: "bg-amber-50",
+    color: "text-amber-500 dark:text-amber-400",
+    bg: "bg-amber-50 dark:bg-amber-500/10",
     label: "Alerte",
   },
   nouveauté: {
     icon: Sparkles,
-    color: "text-emerald-500",
-    bg: "bg-emerald-50",
+    color: "text-emerald-500 dark:text-emerald-400",
+    bg: "bg-emerald-50 dark:bg-emerald-500/10",
     label: "Nouveauté",
   },
   important: {
     icon: AlertCircle,
-    color: "text-red-500",
-    bg: "bg-red-50",
+    color: "text-red-500 dark:text-red-400",
+    bg: "bg-red-50 dark:bg-red-500/10",
     label: "Important",
   },
 };
@@ -185,7 +185,7 @@ const NotificationBell = memo(function NotificationBell() {
         sideOffset={8}
       >
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-3 sm:px-4 py-3 bg-white border-b border-border/60">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-3 sm:px-4 py-3 bg-card border-b border-border/60">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-bold text-foreground">Notifications</h3>
             {unreadCount > 0 && (
@@ -230,7 +230,7 @@ const NotificationBell = memo(function NotificationBell() {
               {Object.entries(groupedNotifications).map(
                 ([label, groupItems], groupIdx) => (
                   <div key={label} className="mt-2">
-                    <div className="px-4 py-2 sticky top-0 bg-white/95 backdrop-blur-sm z-10">
+                    <div className="px-4 py-2 sticky top-0 bg-card/95 backdrop-blur-sm z-10">
                       <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/70 flex items-center gap-2">
                         <Calendar className="w-3 h-3" />
                         {label}

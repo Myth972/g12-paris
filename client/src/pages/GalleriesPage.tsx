@@ -361,7 +361,7 @@ export default function GalleriesPage() {
                     <div className="absolute top-4 right-4 text-amber-400/20">
                       <Quote className="w-16 h-16" />
                     </div>
-                    <p className="text-xs uppercase tracking-[0.2em] font-bold text-amber-600/80 mb-3">
+                    <p className="text-xs uppercase tracking-[0.2em] font-bold text-amber-600/80 dark:text-amber-400/80 mb-3">
                       Verset du Jour
                     </p>
                     <p className="text-lg md:text-xl italic text-foreground/90 font-serif leading-relaxed mb-4">

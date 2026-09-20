@@ -719,7 +719,7 @@ export default function AdminBibliotheque() {
                               <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
                                 <Badge variant="outline" className="text-[10px] px-1.5 py-0">{type}</Badge>
                                 <Badge
-                                  className={`text-[10px] px-1.5 py-0 ${item.published ? 'bg-green-500/10 text-green-600' : 'bg-amber-500/10 text-amber-600'}`}
+                                  className={`text-[10px] px-1.5 py-0 ${item.published ? 'bg-green-500/10 text-green-600 dark:text-green-400' : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'}`}
                                   variant="secondary"
                                 >
                                   {item.published ? t('admin.bibliotheque.published') : t('admin.bibliotheque.draft')}
@@ -1162,7 +1162,7 @@ export default function AdminBibliotheque() {
             <div className="flex items-center justify-between">
               <h2 className="text-2xl font-serif font-bold">{t('admin.bibliotheque.newsletterEditor')}</h2>
               <Button 
-                className="gap-2 bg-primary text-white hover:bg-primary/90 rounded-xl shadow-md px-6"
+                className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl shadow-md px-6"
                 onClick={() => sendDigestMutation.mutate({ 
                   category: "bibliothèque", 
                   subject: newsletterSubject 

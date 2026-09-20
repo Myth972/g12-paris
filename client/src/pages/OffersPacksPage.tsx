@@ -142,7 +142,7 @@ export default function OffersPacksPage() {
               
               <Dialog open={isDevisOpen} onOpenChange={setIsDevisOpen}>
                 <DialogTrigger asChild>
-                  <Button className="bg-primary text-white hover:bg-primary/90 rounded-xl px-8 py-6 h-auto text-lg shadow-lg shadow-primary/20">
+                  <Button className="bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-8 py-6 h-auto text-lg shadow-lg shadow-primary/20">
                     {settings["page.offres.bulkBtn"] || "Demander un devis personnalisé"}
                   </Button>
                 </DialogTrigger>
