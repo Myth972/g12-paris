@@ -76,10 +76,10 @@ export default function ProfilePage() {
   };
 
   const roleColors: Record<string, string> = {
-    admin: "bg-red-100 text-red-800 border-red-200",
-    editeur: "bg-blue-100 text-blue-800 border-blue-200",
-    bibliotheque: "bg-green-100 text-green-800 border-green-200",
-    user: "bg-gray-100 text-gray-800 border-gray-200",
+    admin: "bg-red-100 text-red-800 border-red-200 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/30",
+    editeur: "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/30",
+    bibliotheque: "bg-green-100 text-green-800 border-green-200 dark:bg-green-500/10 dark:text-green-400 dark:border-green-500/30",
+    user: "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-500/10 dark:text-gray-300 dark:border-gray-500/30",
   };
 
   return (
@@ -177,7 +177,7 @@ export default function ProfilePage() {
               </div>
               {passwordMessage && (
                 <div className={`flex items-center gap-2 p-3 rounded-lg ${
-                  passwordMessage.type === "success" ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
+                  passwordMessage.type === "success" ? "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400" : "bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400"
                 }`}>
                   {passwordMessage.type === "success" ? <CheckCircle2 className="w-4 h-4" /> : null}
                   {passwordMessage.text}

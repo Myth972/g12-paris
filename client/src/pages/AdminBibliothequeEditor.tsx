@@ -382,17 +382,17 @@ export default function AdminBibliothequeEditor() {
               </span>
             )}
             {autoSaveStatus === "saved" && (
-              <span className="text-xs text-green-600 flex items-center gap-1 hidden sm:flex">
+              <span className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1 hidden sm:flex">
                 <CheckCircle2 className="w-3 h-3" />
               </span>
             )}
             {autoSaveStatus === "error" && (
-              <span className="text-xs text-red-600 flex items-center gap-1">
+              <span className="text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
                 <AlertCircle className="w-3 h-3" />
               </span>
             )}
             {hasUnsavedChanges && autoSaveStatus === "idle" && (
-              <span className="text-xs text-amber-600 flex items-center gap-1">
+              <span className="text-xs text-amber-600 dark:text-amber-400 flex items-center gap-1">
                 <FileEdit className="w-3 h-3" />
               </span>
             )}
@@ -855,7 +855,7 @@ export default function AdminBibliothequeEditor() {
                     {issues.length > 0 && (
                       <div className="space-y-1">
                         {issues.map((issue, i) => (
-                          <p key={i} className="text-xs text-red-600 flex items-center gap-1">
+                          <p key={i} className="text-xs text-red-600 dark:text-red-400 flex items-center gap-1">
                             <AlertCircle className="w-3 h-3" /> {issue}
                           </p>
                         ))}

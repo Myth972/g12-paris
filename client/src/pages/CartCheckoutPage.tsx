@@ -58,7 +58,7 @@ export default function CartCheckoutPage() {
                     <div>
                       <h3 className="font-bold text-base line-clamp-2">{item.title}</h3>
                       <p className="text-sm text-muted-foreground">{item.type}</p>
-                      <button className="text-sm text-red-500 hover:text-red-700 mt-2 font-medium">Supprimer</button>
+                      <button className="text-sm text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 mt-2 font-medium">Supprimer</button>
                     </div>
                   </div>
                   
@@ -113,7 +113,7 @@ export default function CartCheckoutPage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Frais de port</span>
-                  <span className="font-medium text-green-600">Offerts</span>
+                  <span className="font-medium text-green-600 dark:text-green-400">Offerts</span>
                 </div>
                 <div className="border-t pt-4 flex justify-between items-center">
                   <span className="font-bold text-lg">Total</span>

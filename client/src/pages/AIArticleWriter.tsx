@@ -502,7 +502,7 @@ export default function AIArticleWriter() {
                         <p
                           className={`text-sm font-medium ${
                             isDone
-                              ? "text-green-600"
+                              ? "text-green-600 dark:text-green-400"
                               : isActive
                                 ? "text-foreground"
                                 : "text-muted-foreground"
@@ -628,7 +628,7 @@ export default function AIArticleWriter() {
                       Vérification qualité (Checker)
                       <Badge
                         variant="outline"
-                        className={`ml-auto ${result.review.approved ? "border-green-500 text-green-600" : "border-amber-500 text-amber-600"}`}
+                        className={`ml-auto ${result.review.approved ? "border-green-500 text-green-600 dark:text-green-400" : "border-amber-500 text-amber-600 dark:text-amber-400"}`}
                       >
                         {result.review.score}/10
                       </Badge>
@@ -641,7 +641,7 @@ export default function AIArticleWriter() {
                     />
                     {result.review.issues.length > 0 && (
                       <div>
-                        <p className="text-sm font-medium mb-1 flex items-center gap-1 text-amber-600">
+                        <p className="text-sm font-medium mb-1 flex items-center gap-1 text-amber-600 dark:text-amber-400">
                           <XCircle className="w-3.5 h-3.5" />
                           Problèmes
                         </p>

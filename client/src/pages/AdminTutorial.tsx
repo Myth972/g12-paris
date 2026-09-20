@@ -740,7 +740,7 @@ export default function AdminTutorial() {
                   <p className="text-xs text-muted-foreground">{t('admin.tutorial.dashboard.stats.articlesDesc')}</p>
                 </div>
                 <div className="p-4 bg-emerald-500/10 rounded-lg border border-emerald-500/20">
-                  <Users className="w-5 h-5 text-emerald-600 mb-2" />
+                  <Users className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mb-2" />
                   <p className="text-lg font-bold">{t('admin.tutorial.dashboard.stats.subscribers')}</p>
                   <p className="text-xs text-muted-foreground">{t('admin.tutorial.dashboard.stats.subscribersDesc')}</p>
                 </div>
@@ -750,7 +750,7 @@ export default function AdminTutorial() {
                   <p className="text-xs text-muted-foreground">{t('admin.tutorial.dashboard.stats.galleryDesc')}</p>
                 </div>
                 <div className="p-4 bg-amber-500/5 rounded-lg border border-amber-500/20">
-                  <Library className="w-5 h-5 text-amber-600 mb-2" />
+                  <Library className="w-5 h-5 text-amber-600 dark:text-amber-300 mb-2" />
                   <p className="text-lg font-bold">{t('admin.tutorial.dashboard.stats.library')}</p>
                   <p className="text-xs text-muted-foreground">{t('admin.tutorial.dashboard.stats.libraryDesc')}</p>
                 </div>

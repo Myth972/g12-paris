@@ -339,9 +339,9 @@ export default function ArticleDetail() {
                 {aiSuggestions.map((s, i) => (
                   <div key={i} className="flex items-start gap-3 p-2 rounded-lg bg-muted/30">
                     <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
-                      s.priority === "haute" ? "bg-red-500/10 text-red-600" :
-                      s.priority === "moyenne" ? "bg-amber-500/10 text-amber-600" :
-                      "bg-blue-500/10 text-blue-600"
+                      s.priority === "haute" ? "bg-red-500/10 text-red-600 dark:text-red-400" :
+                      s.priority === "moyenne" ? "bg-amber-500/10 text-amber-600 dark:text-amber-400" :
+                      "bg-blue-500/10 text-blue-600 dark:text-blue-400"
                     }`}>
                       {s.type}
                     </span>

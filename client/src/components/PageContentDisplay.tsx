@@ -94,7 +94,7 @@ function PageContentItemDisplay({ item }: { item: PageContentItem }) {
       </div>
 
       {/* Caption */}
-      <div className="py-3 px-4 text-center bg-white/20 backdrop-blur-lg border-t border-border/10">
+      <div className="py-3 px-4 text-center bg-white/20 dark:bg-white/5 backdrop-blur-lg border-t border-border/10">
         <p className={`text-xs sm:text-sm text-primary/80 font-medium tracking-tight ${isExpanded ? "" : "line-clamp-2"}`}>
           {item.title}
         </p>

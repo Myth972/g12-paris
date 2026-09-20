@@ -68,7 +68,7 @@ export default function CulteEnLignePage() {
             {/* Live Badge */}
             <div
               className={`inline-flex items-center gap-2 px-2.5 sm:px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider mb-4 sm:mb-6 animate-in fade-in slide-in-from-top-4 duration-1000 ${
-                liveEnabled ? "bg-card text-red-600 border border-red-200 shadow-sm" : "bg-card text-card-foreground border border-border shadow-sm"
+                liveEnabled ? "bg-card text-red-600 dark:text-red-400 border border-red-200 dark:border-red-500/30 shadow-sm" : "bg-card text-card-foreground border border-border shadow-sm"
               }`}
             >
               <span className="relative flex h-2 w-2">

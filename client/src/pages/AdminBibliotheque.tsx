@@ -614,8 +614,8 @@ export default function AdminBibliotheque() {
                             <td className="px-6 py-4">
                               <Badge 
                                 className={
-                                  item.published ? 'bg-green-500/10 text-green-600 hover:bg-green-500/20' : 
-                                  'bg-amber-500/10 text-amber-600 hover:bg-amber-500/20'
+                                  item.published ? 'bg-green-500/10 text-green-600 dark:text-green-400 hover:bg-green-500/20' : 
+                                  'bg-amber-500/10 text-amber-600 dark:text-amber-400 hover:bg-amber-500/20'
                                 }
                                 variant="secondary"
                               >
@@ -667,7 +667,7 @@ export default function AdminBibliotheque() {
                                       </Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem 
-                                      className="text-red-600 flex items-center cursor-pointer"
+                                      className="text-red-600 dark:text-red-400 flex items-center cursor-pointer"
                                       onClick={() => handleDelete(item.id)}
                                     >
                                       <Trash2 className="w-4 h-4 mr-2" /> {t('admin.bibliotheque.delete')}
@@ -749,7 +749,7 @@ export default function AdminBibliotheque() {
                                   <Eye className="w-4 h-4 mr-2" /> {t('admin.bibliotheque.preview')}
                                 </Link>
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="text-red-600" onClick={() => handleDelete(item.id)}>
+                              <DropdownMenuItem className="text-red-600 dark:text-red-400" onClick={() => handleDelete(item.id)}>
                                 <Trash2 className="w-4 h-4 mr-2" /> {t('admin.bibliotheque.delete')}
                               </DropdownMenuItem>
                             </DropdownMenuContent>

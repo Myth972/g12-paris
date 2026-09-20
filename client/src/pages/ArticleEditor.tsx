@@ -395,7 +395,7 @@ export default function ArticleEditor() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 text-xs gap-1 text-amber-600 hover:text-amber-600 hover:bg-amber-500/10"
+                    className="h-8 text-xs gap-1 text-amber-600 dark:text-amber-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-500/10"
                     disabled={improveTextMutation.isPending || !excerpt}
                     onClick={() => handleImproveExcerpt("biblical")}
                   >
@@ -457,7 +457,7 @@ export default function ArticleEditor() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 text-xs gap-1 text-amber-600 hover:text-amber-600 hover:bg-amber-500/10"
+                    className="h-8 text-xs gap-1 text-amber-600 dark:text-amber-400 hover:text-amber-600 dark:hover:text-amber-400 hover:bg-amber-500/10"
                     disabled={improveTextMutation.isPending || !content}
                     onClick={() => handleImproveContent("biblical")}
                   >

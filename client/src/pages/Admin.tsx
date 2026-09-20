@@ -120,23 +120,23 @@ function formatDate(date: Date): string {
 }
 
 const NOTIF_TYPE_CONFIG: Record<string, { icon: any; color: string; bg: string; labelKey: string }> = {
-  info: { icon: Info, color: "text-blue-500", bg: "bg-blue-50", labelKey: "admin.notificationsTab.typeInfo" },
+  info: { icon: Info, color: "text-blue-500 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-500/10", labelKey: "admin.notificationsTab.typeInfo" },
   alerte: {
     icon: AlertTriangle,
-    color: "text-amber-500",
-    bg: "bg-amber-50",
+    color: "text-amber-500 dark:text-amber-400",
+    bg: "bg-amber-50 dark:bg-amber-500/10",
     labelKey: "admin.notificationsTab.typeAlert",
   },
   nouveauté: {
     icon: Sparkles,
-    color: "text-emerald-500",
-    bg: "bg-emerald-50",
+    color: "text-emerald-500 dark:text-emerald-400",
+    bg: "bg-emerald-50 dark:bg-emerald-500/10",
     labelKey: "admin.notificationsTab.typeNew",
   },
   important: {
     icon: AlertCircle,
-    color: "text-red-500",
-    bg: "bg-red-50",
+    color: "text-red-500 dark:text-red-400",
+    bg: "bg-red-50 dark:bg-red-500/10",
     labelKey: "admin.notificationsTab.typeImportant",
   },
 };
@@ -338,7 +338,7 @@ function ArticlesTab() {
                   <TableCell>
                     <Badge
                       variant={article.published ? "default" : "outline"}
-                      className={`text-xs ${!article.published ? "bg-white text-blue-600 border-blue-300" : ""}`}
+                      className={`text-xs ${!article.published ? "bg-white text-blue-600 border-blue-300 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-800" : ""}`}
                     >
                       {article.published ? t('admin.articlesTab.published') : t('admin.articlesTab.draft')}
                     </Badge>
@@ -1167,7 +1167,7 @@ if (authLoading) {
           </div>
           <div className="bg-card border rounded-xl p-4 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center text-green-600">
+              <div className="w-10 h-10 bg-green-500/10 rounded-lg flex items-center justify-center text-green-600 dark:text-green-400">
                 <Users className="w-5 h-5" />
               </div>
               <div>
@@ -1178,7 +1178,7 @@ if (authLoading) {
           </div>
           <div className="bg-card border rounded-xl p-4 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center text-blue-600">
+              <div className="w-10 h-10 bg-blue-500/10 rounded-lg flex items-center justify-center text-blue-600 dark:text-blue-400">
                 <ImageIcon className="w-5 h-5" />
               </div>
               <div>
@@ -1189,7 +1189,7 @@ if (authLoading) {
           </div>
           <div className="bg-card border rounded-xl p-4 shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center text-amber-600">
+              <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center text-amber-600 dark:text-amber-400">
                 <Library className="w-5 h-5" />
               </div>
               <div>
@@ -1216,7 +1216,7 @@ if (authLoading) {
           </Link>
           <Link href="/admin/bibliotheque">
             <div className="bg-card border border-border p-5 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50 flex items-center gap-4">
-              <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center text-amber-600 group-hover:scale-110 transition-transform flex-shrink-0">
+              <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center text-amber-600 group-hover:scale-110 transition-transform flex-shrink-0 dark:text-amber-400">
                 <Library className="w-5 h-5" />
               </div>
               <div>
@@ -1241,7 +1241,7 @@ if (authLoading) {
           {showFullAdmin && (
           <Link href="/admin/agents">
             <div className="bg-card border border-border p-5 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50 flex items-center gap-4">
-              <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform flex-shrink-0">
+              <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform flex-shrink-0 dark:text-emerald-400">
                 <Bot className="w-5 h-5" />
               </div>
               <div>
@@ -1506,10 +1506,10 @@ function UsersTab() {
   };
 
   const roleColors: Record<string, string> = {
-    admin: "bg-red-100 text-red-800",
-    editeur: "bg-blue-100 text-blue-800",
-    bibliotheque: "bg-green-100 text-green-800",
-    user: "bg-gray-100 text-gray-800",
+    admin: "bg-red-100 text-red-800 dark:bg-red-500/10 dark:text-red-400",
+    editeur: "bg-blue-100 text-blue-800 dark:bg-blue-500/10 dark:text-blue-400",
+    bibliotheque: "bg-green-100 text-green-800 dark:bg-green-500/10 dark:text-green-400",
+    user: "bg-gray-100 text-gray-800 dark:bg-gray-500/10 dark:text-gray-300",
   };
 
   if (user?.role !== "admin") {
