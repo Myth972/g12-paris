@@ -750,8 +750,8 @@ export default function AdminDesign() {
               </p>
 
              {/* Aperçu fidèle du site selon le mode sélectionné */}
-             <div className={`rounded-xl p-6 shadow-inner border transition-colors duration-200 ${previewDarkMode ? 'dark' : ''}`}>
-               <h3 className={`text-lg font-semibold font-serif mb-4 ${previewDarkMode ? 'text-gray-100' : 'text-foreground'}`}>
+             <div className={`rounded-xl p-6 shadow-inner border transition-colors duration-200 ${previewDarkMode ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-border'}`}>
+               <h3 className={`text-lg font-semibold font-serif mb-4 ${previewDarkMode ? 'text-slate-100' : 'text-foreground'}`}>
                  {previewDarkMode ? t('admin.design.previewDark') : t('admin.design.previewLight')}
                </h3>
                <div className="space-y-4">
@@ -759,11 +759,11 @@ export default function AdminDesign() {
                    <div className="w-8 h-8 rounded-full" style={{ backgroundColor: primaryColor }} />
                    <div className="w-8 h-8 rounded-full" style={{ backgroundColor: secondaryColor }} />
                    <div className="w-8 h-8 rounded-full" style={{ backgroundColor: bgColor }} />
-                   <span className={`text-sm ${previewDarkMode ? 'text-gray-400' : 'text-muted-foreground'}`}>{t('admin.design.colorPrimary')}</span>
+                   <span className={`text-sm ${previewDarkMode ? 'text-slate-400' : 'text-muted-foreground'}`}>{t('admin.design.colorPrimary')}</span>
                  </div>
-                 <div className={`rounded-lg p-4 border ${previewDarkMode ? 'bg-slate-900/60 border-slate-700' : 'bg-card border-border'}`}>
-                   <p className="text-base font-serif font-semibold mb-1" style={{ color: textColor }}>{t('admin.design.exampleTitle')}</p>
-                   <p className="text-sm leading-relaxed mb-4" style={{ color: mutedTextColor }}>
+                 <div className={`rounded-lg p-4 border ${previewDarkMode ? 'bg-slate-900 border-slate-700' : 'bg-white border-border'}`}>
+                   <p className="text-base font-serif font-semibold mb-1" style={{ color: previewDarkMode ? '#e2e8f0' : textColor }}>{t('admin.design.exampleTitle')}</p>
+                   <p className="text-sm leading-relaxed mb-4" style={{ color: previewDarkMode ? '#94a3b8' : mutedTextColor }}>
                      {t('admin.design.exampleDesc')}
                    </p>
                    <button
