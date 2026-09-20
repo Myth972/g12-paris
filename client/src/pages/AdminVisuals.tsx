@@ -106,22 +106,6 @@ export default function AdminVisuals() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
 
-  if (user?.role !== "admin") {
-    return (
-      <div className="container py-20 text-center">
-        <Shield className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-        <h2 className="text-xl font-serif font-bold mb-2">Accès restreint</h2>
-        <p className="text-muted-foreground mb-6">
-          Vous devez être administrateur pour accéder à cette page.
-        </p>
-        <Button variant="outline" onClick={() => setLocation("/")}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Retour à l'accueil
-        </Button>
-      </div>
-    );
-  }
-
   const settingsQuery = trpc.siteSettings.getAll.useQuery();
   const setSetting = trpc.siteSettings.set.useMutation();
 
@@ -161,6 +145,22 @@ export default function AdminVisuals() {
       toast.error("Erreur lors de l'enregistrement");
     }
   };
+
+  if (user?.role !== "admin") {
+    return (
+      <div className="container py-20 text-center">
+        <Shield className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+        <h2 className="text-xl font-serif font-bold mb-2">Accès restreint</h2>
+        <p className="text-muted-foreground mb-6">
+          Vous devez être administrateur pour accéder à cette page.
+        </p>
+        <Button variant="outline" onClick={() => setLocation("/")}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Retour à l'accueil
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-muted/20 pb-20 overflow-y-auto">

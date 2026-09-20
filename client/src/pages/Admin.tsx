@@ -1044,7 +1044,9 @@ export default function Admin() {
   const mediaCount = galleryListData?.items?.length ?? 0;
   const catCount = catData?.length ?? 0;
 
-if (authLoading) {
+  const [editorMode, setEditorMode] = useState(false);
+
+  if (authLoading) {
     return (
       <div className="container py-10">
         <Skeleton className="h-8 w-48 mb-6" />
@@ -1059,7 +1061,6 @@ if (authLoading) {
   const isBibliotheque = userRole === "bibliotheque";
   const hasAdminAccess = isAdmin || isEditeur || isBibliotheque;
 
-  const [editorMode, setEditorMode] = useState(false);
   const showFullAdmin = isAdmin && !editorMode;
 
   if (!isAdmin && !isEditeur && !isBibliotheque) {

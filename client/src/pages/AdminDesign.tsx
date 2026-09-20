@@ -56,21 +56,6 @@ export default function AdminDesign() {
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  if (user?.role !== "admin") {
-    return (
-      <div className="container py-20 text-center">
-        <Shield className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-        <h2 className="text-xl font-serif font-bold mb-2">{t('admin.restrictedAccess')}</h2>
-        <p className="text-muted-foreground mb-6">
-          {t('admin.restrictedAccessDesc')}
-        </p>
-        <Button variant="outline" onClick={() => setLocation("/")}>
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          {t('admin.backToHome')}
-        </Button>
-      </div>
-    );
-  }
   const utils = trpc.useUtils();
   const settingsQuery = trpc.siteSettings.getAll.useQuery();
   const setSetting = trpc.siteSettings.set.useMutation();
@@ -351,6 +336,22 @@ export default function AdminDesign() {
     setBgColor("#F8FAFC");
     toast.success(t('admin.design.toastReset'));
   };
+
+  if (user?.role !== "admin") {
+    return (
+      <div className="container py-20 text-center">
+        <Shield className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+        <h2 className="text-xl font-serif font-bold mb-2">{t('admin.restrictedAccess')}</h2>
+        <p className="text-muted-foreground mb-6">
+          {t('admin.restrictedAccessDesc')}
+        </p>
+        <Button variant="outline" onClick={() => setLocation("/")}>
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          {t('admin.backToHome')}
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-muted/20 pb-20 overflow-y-auto">
