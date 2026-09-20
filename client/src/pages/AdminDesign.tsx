@@ -360,6 +360,9 @@ export default function AdminDesign() {
           ${secondaryColor ? `--secondary: ${secondaryColor} !important;` : ''}
           ${bgColor ? `--background: ${bgColor} !important;` : ''}
         }
+        .dark {
+          ${primaryColor ? `--primary: ${primaryColor} !important;` : ''}
+        }
         ${textColor ? `
           :root:not(.dark) body, :root:not(.dark) .text-foreground, :root:not(.dark) .text-card-foreground { color: ${textColor} !important; }
         ` : ''}
@@ -725,7 +728,7 @@ export default function AdminDesign() {
            </h2>
            <div className="space-y-6">
              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold">{t('admin.design.previewDarkMode')}</p>
+               <p className="text-sm font-semibold">{t('admin.design.previewDarkMode')}</p>
                <button
                  type="button"
                  role="switch"
@@ -745,43 +748,31 @@ export default function AdminDesign() {
              <p className="text-xs text-muted-foreground">
                 {t('admin.design.previewDesc')}
               </p>
-             <div className="grid gap-6 md:grid-cols-2">
-               {/* Light Mode Preview */}
-               <div className="bg-white/90 backdrop-blur-sm rounded-xl p-6 shadow-inner border border-border/20">
-                  <h3 className="text-lg font-semibold font-serif mb-4">{t('admin.design.previewLight')}</h3>
-                  <div className="space-y-4">
-                    <div className="flex items-center gap-4 px-4 py-3 bg-primary/10 rounded-lg">
-                      <div className="w-8 h-8 rounded-full" style={{ backgroundColor: primaryColor }} />
-                      <div className="w-8 h-8 rounded-full" style={{ backgroundColor: secondaryColor }} />
-                      <div className="w-8 h-8 rounded-full" style={{ backgroundColor: bgColor }} />
-                      <span className="text-sm">{t('admin.design.colorPrimary')}</span>
-                    </div>
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium" style={{ color: textColor }}>{t('admin.design.exampleDesc')}</p>
-                      <button className="inline-block bg-primary text-primary-foreground px-4 py-2 rounded text-sm font-medium hover:bg-primary/90">
-                        {t('admin.design.actionButton')}
-                      </button>
-                   </div>
+
+             {/* Aperçu fidèle du site selon le mode sélectionné */}
+             <div className={`rounded-xl p-6 shadow-inner border transition-colors duration-200 ${previewDarkMode ? 'dark' : ''}`}>
+               <h3 className={`text-lg font-semibold font-serif mb-4 ${previewDarkMode ? 'text-gray-100' : 'text-foreground'}`}>
+                 {previewDarkMode ? t('admin.design.previewDark') : t('admin.design.previewLight')}
+               </h3>
+               <div className="space-y-4">
+                 <div className={`flex items-center gap-4 px-4 py-3 rounded-lg ${previewDarkMode ? 'bg-white/5' : 'bg-slate-100'}`}>
+                   <div className="w-8 h-8 rounded-full" style={{ backgroundColor: primaryColor }} />
+                   <div className="w-8 h-8 rounded-full" style={{ backgroundColor: secondaryColor }} />
+                   <div className="w-8 h-8 rounded-full" style={{ backgroundColor: bgColor }} />
+                   <span className={`text-sm ${previewDarkMode ? 'text-gray-400' : 'text-muted-foreground'}`}>{t('admin.design.colorPrimary')}</span>
                  </div>
-               </div>
-               {/* Dark Mode Preview */}
-               <div className={`backdrop-blur-sm rounded-xl p-6 shadow-inner border ${previewDarkMode ? 'bg-gray-900 border-gray-700' : 'bg-white/90 border-border/20'}`}>
-                 <h3 className={`text-lg font-semibold font-serif mb-4 ${previewDarkMode ? 'text-gray-100' : ''}`}>{t('admin.design.previewDark')}</h3>
-                 <div className="space-y-4">
-                    <div className={`flex items-center gap-4 px-4 py-3 rounded-lg ${previewDarkMode ? 'bg-gray-800' : 'bg-primary/10'}`}>
-                      <div className="w-8 h-8 rounded-full" style={{ backgroundColor: primaryColor }} />
-                      <div className="w-8 h-8 rounded-full" style={{ backgroundColor: secondaryColor }} />
-                      <div className="w-8 h-8 rounded-full" style={{ backgroundColor: bgColor }} />
-                      <span className={`text-sm ${previewDarkMode ? 'text-gray-300' : ''}`}>{t('admin.design.colorPrimary')}</span>
-                    </div>
-                    <div className="space-y-2">
-                      <p className={`text-sm font-medium ${previewDarkMode ? 'text-gray-200' : ''}`} style={!previewDarkMode ? { color: textColor } : undefined}>
-                        {t('admin.design.exampleDesc')}
-                      </p>
-                      <button className="inline-block bg-primary text-primary-foreground px-4 py-2 rounded text-sm font-medium hover:bg-primary/90">
-                        {t('admin.design.actionButton')}
-                      </button>
-                   </div>
+                 <div className={`rounded-lg p-4 border ${previewDarkMode ? 'bg-slate-900/60 border-slate-700' : 'bg-card border-border'}`}>
+                   <p className="text-base font-serif font-semibold mb-1" style={{ color: textColor }}>{t('admin.design.exampleTitle')}</p>
+                   <p className="text-sm leading-relaxed mb-4" style={{ color: mutedTextColor }}>
+                     {t('admin.design.exampleDesc')}
+                   </p>
+                   <button
+                     type="button"
+                     style={{ backgroundColor: primaryColor, color: previewDarkMode ? '#0f172a' : '#ffffff' }}
+                     className="inline-block px-4 py-2 rounded text-sm font-medium"
+                   >
+                     {t('admin.design.actionButton')}
+                   </button>
                  </div>
                </div>
              </div>

@@ -237,6 +237,9 @@ function DynamicDesign() {
           ${secondary ? `--secondary: ${secondary} !important;` : ''}
           ${bg ? `--background: ${bg} !important;` : ''}
         }
+        .dark {
+          ${primary ? `--primary: ${primary} !important;` : ''}
+        }
         ${textColor ? `
           :root:not(.dark) body,
           :root:not(.dark) .text-foreground,
