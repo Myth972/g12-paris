@@ -23,6 +23,7 @@ const PROVIDER_URLS: Record<string, string> = {
   groq: "https://console.groq.com/keys",
   google: "https://aistudio.google.com/apikey",
   minimax: "https://platform.minimaxi.com/user-center/basic-information",
+  aimlapi: "https://aimlapi.com/keys",
   kling: "https://klingai.com/user/api-keys",
   replicate: "https://replicate.com/account/api-tokens",
   ollama: "",

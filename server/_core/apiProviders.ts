@@ -30,6 +30,13 @@ export const DEFAULT_PROVIDERS: ApiProviderConfig[] = [
   { provider: "minimax", label: "MiniMax", model: "MiniMax-M2.1", enabled: true },
   { provider: "ollama", label: "Ollama (local)", model: "llama3.2", enabled: true },
   {
+    provider: "aimlapi",
+    label: "AIMLAPI",
+    model: "flux/schnell",
+    baseUrl: "https://api.aimlapi.com/v1/images/generations",
+    enabled: true,
+  },
+  {
     provider: "kling",
     label: "Kling AI",
     model: "kling-v1",

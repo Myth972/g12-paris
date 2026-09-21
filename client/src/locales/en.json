@@ -626,6 +626,7 @@
         "negativePrompt": "Negative (avoid)",
         "negativePlaceholder": "blurry, low quality, text, watermark...",
         "format": "Format",
+        "model": "AI model",
         "generateImage": "Generate image",
         "generating": "Generating (~15s)…",
         "fluxGenerates": "Flux is generating your image…",

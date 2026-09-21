@@ -2245,23 +2245,57 @@ generateImage: adminProcedure
             .enum(["1:1", "16:9", "9:16", "4:3", "3:4"])
             .default("16:9"),
           negativePrompt: z.string().optional(),
+          model: z
+            .enum([
+              "flux-1-schnell",
+              "sdxl-base",
+              "dreamshaper-8-lcm",
+              "sdxl-lightning",
+            ])
+            .default("flux-1-schnell"),
         })
       )
       .mutation(async ({ input }) => {
         let imageUrl: string | undefined;
 
+        // Modèle Cloudflare Workers AI sélectionné
+        const CLOUDFLARE_MODELS: Record<string, string> = {
+          "flux-1-schnell": "@cf/black-forest-labs/flux-1-schnell",
+          "sdxl-base": "@cf/stabilityai/stable-diffusion-xl-base-1.0",
+          "dreamshaper-8-lcm": "@cf/lykon/dreamshaper-8-lcm",
+          "sdxl-lightning": "@cf/byte-dance/stable-diffusion-xl-lightning",
+        };
+        const cfModelId = CLOUDFLARE_MODELS[input.model];
+
+        // Dimensions par format (multiples de 64 pour SDXL)
+        const DIMS: Record<string, { width: number; height: number }> = {
+          "1:1": { width: 1024, height: 1024 },
+          "16:9": { width: 1216, height: 832 },
+          "9:16": { width: 832, height: 1216 },
+          "4:3": { width: 1152, height: 896 },
+          "3:4": { width: 896, height: 1152 },
+        };
+        const dims = DIMS[input.aspectRatio] || DIMS["16:9"];
+
         // Try Cloudflare Workers AI first
         if (ENV.cloudflareApiToken && ENV.cloudflareAccountId) {
           try {
+            const cfBody: Record<string, unknown> = { prompt: input.prompt.substring(0, 500) };
+            // flux-1-schnell ne gère ni dimensions ni negative_prompt
+            if (input.model !== "flux-1-schnell") {
+              cfBody["width"] = dims.width;
+              cfBody["height"] = dims.height;
+              if (input.negativePrompt) cfBody["negative_prompt"] = input.negativePrompt.substring(0, 500);
+            }
             const cfResponse = await fetch(
-              `https://api.cloudflare.com/client/v4/accounts/${ENV.cloudflareAccountId}/ai/run/@cf/black-forest-labs/flux-1-schnell`,
+              `https://api.cloudflare.com/client/v4/accounts/${ENV.cloudflareAccountId}/ai/run/${cfModelId}`,
               {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
                   Authorization: `Bearer ${ENV.cloudflareApiToken}`,
                 },
-                body: JSON.stringify({ prompt: input.prompt.substring(0, 500) }),
+                body: JSON.stringify(cfBody),
               }
             );
             if (cfResponse.ok) {
@@ -2272,19 +2306,28 @@ generateImage: adminProcedure
           } catch { /* fallback */ }
         }
 
-        // Fallback: aimlapi
-        if (!imageUrl && ENV.aimlApiKey) {
+        // Fallback: aimlapi (clé prioritaire DB via connecteur admin, puis .env)
+        const { getApiKey } = await import("./_core/apiKeys.js");
+        const aimlKey = (await getApiKey("aimlapi")) || ENV.aimlApiKey;
+        if (!imageUrl && aimlKey) {
           try {
+            // Synchronisation modèle sélectionné <-> aimlapi (fallback flux par défaut)
+            const AIML_MODELS: Record<string, string> = {
+              "flux-1-schnell": "flux/schnell",
+              "sdxl-base": "stabilityai/stable-diffusion-xl-base-1.0",
+              "dreamshaper-8-lcm": "flux/schnell",
+              "sdxl-lightning": "flux/schnell",
+            };
             const aimlResponse = await fetch(
               "https://api.aimlapi.com/v1/images/generations",
               {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
-                  Authorization: `Bearer ${ENV.aimlApiKey}`,
+                  Authorization: `Bearer ${aimlKey}`,
                 },
                 body: JSON.stringify({
-                  model: "flux/schnell",
+                  model: AIML_MODELS[input.model] || "flux/schnell",
                   prompt: input.prompt,
                   aspect_ratio: input.aspectRatio === "16:9" ? "16:9" : "1:1",
                   n: 1,
@@ -2481,7 +2524,17 @@ generateImage: adminProcedure
           aspectRatio: z.enum(["1:1", "16:9", "9:16"]).default("16:9"),
           negativePrompt: z.string().optional(),
           imageUrl: z.string().url().optional(),
-          model: z.enum(["kwaivgi/kling-v1.6-standard", "kwaivgi/kling-v1.6-pro", "kwaivgi/kling-v2.6", "kwaivgi/kling-v3"]).default("kwaivgi/kling-v2.6"),
+          model: z
+            .enum([
+              "kwaivgi/kling-v1.6-standard",
+              "kwaivgi/kling-v1.6-pro",
+              "kwaivgi/kling-v2.1",
+              "kwaivgi/kling-v2.5-turbo-pro",
+              "kwaivgi/kling-v2.6",
+              "kwaivgi/kling-v3-video",
+              "kwaivgi/kling-v3-omni-video",
+            ])
+            .default("kwaivgi/kling-v2.6"),
           audio: z.boolean().default(false),
         })
       )
@@ -2497,6 +2550,11 @@ generateImage: adminProcedure
         }
 
         // Submit prediction to Replicate
+        const isV3 = input.model.includes("v3");
+        const supportsAudio =
+          input.model.includes("v2.6") ||
+          input.model.includes("v3") ||
+          input.model.includes("v2.5-turbo-pro");
         const submitResp = await fetch("https://api.replicate.com/v1/predictions", {
           method: "POST",
           headers: {
@@ -2511,7 +2569,11 @@ generateImage: adminProcedure
               duration: input.duration === "5" ? 5 : 10,
               aspect_ratio: input.aspectRatio,
               negative_prompt: input.negativePrompt || "",
-              audio: input.audio,
+              ...(supportsAudio
+                ? isV3
+                  ? { generate_audio: input.audio }
+                  : { audio: input.audio }
+                : {}),
               ...(input.imageUrl ? { image: input.imageUrl } : {}),
             },
           }),

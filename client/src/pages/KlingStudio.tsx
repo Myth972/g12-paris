@@ -31,6 +31,23 @@ import { useTranslation } from "react-i18next";
 const ASPECT_RATIOS_IMAGE = ["16:9", "1:1", "9:16", "4:3", "3:4"] as const;
 const ASPECT_RATIOS_VIDEO = ["16:9", "1:1", "9:16"] as const;
 
+const IMAGE_MODELS = [
+  { value: "flux-1-schnell", label: "Flux 1 Schnell (rapide)" },
+  { value: "sdxl-base", label: "Stable Diffusion XL (qualité)" },
+  { value: "dreamshaper-8-lcm", label: "Dreamshaper 8 LCM" },
+  { value: "sdxl-lightning", label: "SDXL Lightning (instantané)" },
+] as const;
+
+const VIDEO_MODELS = [
+  { value: "kwaivgi/kling-v3-omni-video", label: "Kling 3.0 Omni (récent)" },
+  { value: "kwaivgi/kling-v3-video", label: "Kling Video 3.0 (Dernière version)" },
+  { value: "kwaivgi/kling-v2.6", label: "Kling v2.6 (Recommandé)" },
+  { value: "kwaivgi/kling-v2.5-turbo-pro", label: "Kling 2.5 Turbo Pro" },
+  { value: "kwaivgi/kling-v2.1", label: "Kling v2.1" },
+  { value: "kwaivgi/kling-v1.6-pro", label: "Kling v1.6 Pro" },
+  { value: "kwaivgi/kling-v1.6-standard", label: "Kling v1.6 Standard" },
+] as const;
+
 const PROMPT_SUGGESTIONS = [
   "Paysage céleste lumineux avec des rayons de soleil perçant les nuages, cinématographique",
   "Église moderne à Paris au lever du soleil, style photographique",
@@ -47,6 +64,8 @@ export default function KlingStudio() {
   // Image state
   const [imgPrompt, setImgPrompt] = useState("");
   const [imgNegative, setImgNegative] = useState("");
+  const [imgModel, setImgModel] =
+    useState<(typeof IMAGE_MODELS)[number]["value"]>("flux-1-schnell");
   const [imgRatio, setImgRatio] =
     useState<(typeof ASPECT_RATIOS_IMAGE)[number]>("16:9");
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(
@@ -169,6 +188,25 @@ export default function KlingStudio() {
               </div>
 
               <div>
+                <Label className="text-sm font-medium mb-2 block">{t('admin.kling.model')}</Label>
+                <Select
+                  value={imgModel}
+                  onValueChange={v => setImgModel(v as (typeof IMAGE_MODELS)[number]["value"])}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {IMAGE_MODELS.map(m => (
+                      <SelectItem key={m.value} value={m.value}>
+                        {m.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
                 <Label className="text-sm font-medium mb-2 block">{t('admin.kling.format')}</Label>
                 <Select
                   value={imgRatio}
@@ -201,6 +239,7 @@ export default function KlingStudio() {
                 onClick={() =>
                   generateImageMutation.mutate({
                     prompt: imgPrompt,
+                    model: imgModel,
                     aspectRatio: imgRatio,
                     negativePrompt: imgNegative || undefined,
                   })
@@ -398,10 +437,11 @@ export default function KlingStudio() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="kwaivgi/kling-v3">Kling v3 (Dernière version)</SelectItem>
-                    <SelectItem value="kwaivgi/kling-v2.6">Kling v2.6 (Recommandé)</SelectItem>
-                    <SelectItem value="kwaivgi/kling-v1.6-pro">Kling v1.6 Pro</SelectItem>
-                    <SelectItem value="kwaivgi/kling-v1.6-standard">Kling v1.6 Standard</SelectItem>
+                    {VIDEO_MODELS.map(m => (
+                      <SelectItem key={m.value} value={m.value}>
+                        {m.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
