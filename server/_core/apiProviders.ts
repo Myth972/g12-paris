@@ -62,10 +62,15 @@ function getDbOrThrow() {
 }
 
 async function seedIfEmpty(db: ReturnType<typeof getDb>): Promise<void> {
-  const rows = await db.select().from(apiProvidersTable).limit(1);
-  if (rows.length === 0) {
+  const rows = await db.select().from(apiProvidersTable);
+  const existing = new Set(
+    (rows as Array<{ provider: string }>).map(r => r.provider)
+  );
+
+  const missing = DEFAULT_PROVIDERS.filter(p => !existing.has(p.provider));
+  if (missing.length > 0) {
     await db.insert(apiProvidersTable).values(
-      DEFAULT_PROVIDERS.map(p => ({
+      missing.map(p => ({
         provider: p.provider,
         label: p.label,
         model: p.model,

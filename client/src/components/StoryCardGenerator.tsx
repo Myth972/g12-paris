@@ -114,6 +114,12 @@ export default function StoryCardGenerator({
       ? excerpt.slice(0, 117) + "..."
       : excerpt || "";
 
+  // Toggle "Story Cards" : si désactivé dans les réglages du site, on masque
+  // le bouton (fonctionnalité non encore opérationnelle par défaut).
+  const storyCardsEnabled =
+    settingsQuery.data?.["story_cards_enabled"] === "true";
+  if (!storyCardsEnabled) return null;
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>

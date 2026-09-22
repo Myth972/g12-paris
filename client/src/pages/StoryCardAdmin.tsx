@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
 import {
   Download,
   Share2,
@@ -47,6 +48,21 @@ export default function StoryCardAdmin() {
   const settingsQuery = trpc.siteSettings.getAll.useQuery();
   const primaryColor =
     (settingsQuery.data?.["design.primaryColor"] as string) || "#D97706";
+
+  const setStoryCardsEnabled = trpc.siteSettings.set.useMutation({
+    onSuccess: () => {
+      settingsQuery.refetch();
+      toast.success("Préférence Story Cards mise à jour");
+    },
+  });
+  const isStoryCardsEnabled =
+    (settingsQuery.data?.["story_cards_enabled"] ?? "false") === "true";
+  const toggleStoryCards = () => {
+    setStoryCardsEnabled.mutate({
+      key: "story_cards_enabled",
+      value: isStoryCardsEnabled ? "false" : "true",
+    });
+  };
 
   const [search, setSearch] = useState("");
   const [selectedArticle, setSelectedArticle] = useState<Article | null>(null);
@@ -146,6 +162,21 @@ export default function StoryCardAdmin() {
         <p className="text-sm text-muted-foreground mt-1">
           Générez des images de partage pour les réseaux sociaux.
         </p>
+
+        <div className="flex items-center justify-between gap-4 mt-3 pb-4 border-b border-border">
+          <div>
+            <p className="text-sm font-medium">
+              Story Cards activées
+            </p>
+            <p className="text-xs text-muted-foreground mt-0.5">
+              Masque ou affiche le bouton Story Card sur les pages articles.
+            </p>
+          </div>
+          <Switch
+            checked={isStoryCardsEnabled}
+            onCheckedChange={toggleStoryCards}
+          />
+        </div>
       </div>
 
       {/* Search */}
