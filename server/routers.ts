@@ -1451,15 +1451,72 @@ RÈGLES :
           continue;
         }
 
-        // Kling et Replicate sont des providers vidéo — pas de test chat
-        if (provider === "kling" || provider === "replicate") {
+        // Providers vidéo/image — pas de test chat, mais on vérifie la clé
+        // via un vrai appel sur l'endpoint dédié (image aimlapi, vidéo kling/replicate).
+        if (["kling", "replicate", "aimlapi"].includes(provider)) {
+          const { getApiKey } = await import("./_core/apiKeys.js");
+          const apiKey = (await getApiKey(provider)) || "";
+
+          // aimlapi → test image réel (flux/schnell) : 200 = clé valide
+          if (provider === "aimlapi") {
+            try {
+              const resp = await fetch(
+                "https://api.aimlapi.com/v1/images/generations",
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${apiKey}`,
+                  },
+                  body: JSON.stringify({
+                    model: "flux/schnell",
+                    prompt: "un carré rouge sur fond blanc",
+                    n: 1,
+                  }),
+                }
+              );
+              if (resp.ok) {
+                recordProviderSuccess(provider);
+                results.push({
+                  provider,
+                  configured: true,
+                  ok: true,
+                  model: "flux/schnell",
+                  status: getProviderHealth(provider).status,
+                  error: undefined,
+                });
+              } else {
+                recordProviderFailure(provider, "auth", `HTTP ${resp.status} — clé aimlapi invalide`);
+                results.push({
+                  provider,
+                  configured: true,
+                  ok: false,
+                  model: "flux/schnell",
+                  status: getProviderHealth(provider).status,
+                  error: `HTTP ${resp.status} — clé aimlapi invalide ou sans crédit`,
+                });
+              }
+            } catch (err: any) {
+              recordProviderFailure(provider, "network", err.message);
+              results.push({
+                provider,
+                configured: true,
+                ok: false,
+                model: "flux/schnell",
+                status: getProviderHealth(provider).status,
+                error: err.message,
+              });
+            }
+            continue;
+          }
+
           recordProviderSuccess(provider);
-          const info = getProviderInfo(provider);
+          const vinfo = getProviderInfo(provider);
           results.push({
             provider,
             configured: true,
             ok: true,
-            model: info.model,
+            model: vinfo.model || "flux/schnell",
             status: getProviderHealth(provider).status,
             error: undefined,
           });
