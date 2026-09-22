@@ -38,6 +38,51 @@ const PROVIDER_HINTS: Record<string, string> = {
   ollama: "Ollama local — aucune clé requise",
 };
 
+/**
+ * Métadonnées connues par provider : permet de pré-remplir automatiquement
+ * le modèle et l'URL lorsque l'utilisateur saisit l'identifiant du provider.
+ * L'utilisateur n'a donc pas besoin de connaître le modèle exact.
+ */
+const KNOWN_PROVIDER_META: Record<
+  string,
+  { label: string; model: string; baseUrl?: string }
+> = {
+  groq: {
+    label: "Groq",
+    model: "openai/gpt-oss-120b",
+    baseUrl: "https://api.groq.com/openai/v1/chat/completions",
+  },
+  google: {
+    label: "Google Gemini",
+    model: "gemini-3.5-flash",
+    baseUrl: "https://generativelanguage.googleapis.com/v1beta",
+  },
+  minimax: {
+    label: "MiniMax",
+    model: "MiniMax-M2.1",
+    baseUrl: "https://api.minimaxi.com/v1",
+  },
+  aimlapi: {
+    label: "AIMLAPI",
+    model: "flux/schnell",
+    baseUrl: "https://api.aimlapi.com/v1/images/generations",
+  },
+  kling: {
+    label: "Kling AI",
+    model: "kling-v1",
+    baseUrl: "https://api.klingai.com/v1/chat/completions",
+  },
+  replicate: {
+    label: "Replicate",
+    model: "kwaivgi/kling-v2.6",
+    baseUrl: "https://api.replicate.com/v1/predictions",
+  },
+  ollama: {
+    label: "Ollama (local)",
+    model: "llama3.2",
+  },
+};
+
 export default function ApiKeyConnector() {
   const utils = trpc.useUtils();
   const { data: statuses, isLoading } = trpc.ai.apiKeys.list.useQuery();
@@ -159,9 +204,21 @@ export default function ApiKeyConnector() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input
-              placeholder="Identifiant (ex: openai)"
+              placeholder="Identifiant (ex: aimlapi)"
               value={newProvider.provider}
-              onChange={e => setNewProvider(p => ({ ...p, provider: e.target.value }))}
+              onChange={e => {
+                const slug = e.target.value.trim().toLowerCase();
+                setNewProvider(prev => {
+                  const meta = KNOWN_PROVIDER_META[slug];
+                  if (!meta) return { ...prev, provider: e.target.value };
+                  return {
+                    provider: e.target.value,
+                    label: meta.label,
+                    model: meta.model,
+                    baseUrl: meta.baseUrl ?? "",
+                  };
+                });
+              }}
               className="text-xs"
             />
             <Input
@@ -171,9 +228,19 @@ export default function ApiKeyConnector() {
               className="text-xs"
             />
             <Input
-              placeholder="Modèle (ex: gpt-4o-mini)"
-              value={newProvider.model}
-              onChange={e => setNewProvider(p => ({ ...p, model: e.target.value }))}
+              placeholder="Identifiant (ex: aimlapi)"
+              value={newProvider.provider}
+              onChange={e => {
+                const provider = e.target.value.trim().toLowerCase();
+                const meta = KNOWN_PROVIDER_META[provider];
+                setNewProvider(p => ({
+                  ...p,
+                  provider: e.target.value,
+                  label: meta ? meta.label : p.label,
+                  model: meta ? meta.model : p.model,
+                  baseUrl: meta ? meta.baseUrl ?? "" : p.baseUrl,
+                }));
+              }}
               className="text-xs"
             />
             <Input
