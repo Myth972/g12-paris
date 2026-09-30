@@ -1,4 +1,5 @@
 import { trpc } from "@/lib/trpc";
+import { SITE_URL } from "@shared/const";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -148,7 +149,7 @@ export default function ConventionRegistrationsManager() {
       }
       try {
         const qrDataUrl = await QRCode.toDataURL(
-          `https://g12parismedia.com/convention/verify?code=${reg.ticketCode}`,
+          `${SITE_URL}/convention/verify?code=${reg.ticketCode}`,
           { width: 150, margin: 1 }
         );
         doc.addImage(qrDataUrl, "PNG", 14, y, 25, 25);

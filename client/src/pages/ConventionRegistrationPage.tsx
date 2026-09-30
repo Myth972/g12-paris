@@ -9,6 +9,7 @@ import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 import QRCode from "qrcode";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { SITE_URL } from "@shared/const";
 
 
 export default function ConventionRegistrationPage() {
@@ -38,7 +39,7 @@ export default function ConventionRegistrationPage() {
     onSuccess: (data) => {
       if (data.registration.ticketCode) {
         QRCode.toDataURL(
-          `https://g12parismedia.com/convention/verify?code=${data.registration.ticketCode}`,
+          `${SITE_URL}/convention/verify?code=${data.registration.ticketCode}`,
           { width: 200, margin: 2, color: { dark: "#1e293b", light: "#ffffff" } }
         ).then(setQrUrl).catch(() => {});
       }
