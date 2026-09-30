@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "wouter";
 import { useTranslation } from "react-i18next";
 import { trpc } from "@/lib/trpc";
@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Calendar, Filter, Loader2, Church, Users, BookOpen, Star, Archive } from "lucide-react";
 import AnnouncementCard, { type Announcement } from "@/components/AnnouncementCard";
+import { useSeo } from "@/lib/seo";
+import { eventJsonLd } from "@/lib/structuredData";
 
 const CATEGORIES = [
   { key: "all", label: "Tous", icon: Filter, color: "bg-gray-500" },
@@ -24,8 +26,9 @@ export default function EventsPage() {
 
   const isLoading = loadingAnnouncements || loadingFlash;
 
-  const allEvents: (Announcement & { category?: string; id?: number })[] = [
-    ...(announcements ?? []).map((a: any) => ({
+  const allEvents: (Announcement & { category?: string; id?: number })[] = useMemo(
+    () => [
+      ...(announcements ?? []).map((a: any) => ({
       imageUrl: a.mediaUrl,
       title: a.title,
       description: a.description,
@@ -55,11 +58,38 @@ export default function EventsPage() {
       category: a.category,
       id: a.id,
     })),
-  ];
+    ],
+    [announcements, flashEvents]
+  );
 
   const filteredEvents = activeCategory === "all"
     ? allEvents
     : allEvents.filter((e: any) => e.category === activeCategory);
+
+  const eventStructuredData = useMemo(
+    () =>
+      allEvents
+        .filter((event) => event.date)
+        .map((event) =>
+          eventJsonLd({
+            name: event.title,
+            description: event.description || undefined,
+            startDate: event.date,
+            location: event.location,
+            image: event.imageUrl,
+            url: "/evenements",
+          })
+        ),
+    [allEvents]
+  );
+
+  useSeo({
+    title: "Événements",
+    description:
+      "Conférences, conventions et rencontres G12 Paris : toutes les dates à venir.",
+    url: "/evenements",
+    jsonLd: eventStructuredData.length > 0 ? eventStructuredData : undefined,
+  });
 
   const getCategoryInfo = (key: string) => CATEGORIES.find((c) => c.key === key) ?? CATEGORIES[0];
 

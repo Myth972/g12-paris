@@ -7,6 +7,7 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Play, Share2, ExternalLink, Copy, Check, MapPin, Clock } from "lucide-react";
 import { Link } from "wouter";
+import { useSeo } from "@/lib/seo";
 
 export default function CulteEnLignePage() {
   const settingsQuery = trpc.siteSettings.getAll.useQuery();
@@ -25,6 +26,14 @@ export default function CulteEnLignePage() {
   const venueSchedule = (settingsQuery.data?.["culte.venueSchedule"] as string) || "";
 
   const [copied, setCopied] = useState(false);
+
+  useSeo({
+    title: "Culte en ligne",
+    description:
+      "Regardez le culte G12 Paris en ligne : diffusion, informations pratiques et accès à la salle.",
+    url: "/culte-en-ligne",
+    image: heroBgUrl,
+  });
 
   const handleShare = async () => {
     const url = window.location.href;

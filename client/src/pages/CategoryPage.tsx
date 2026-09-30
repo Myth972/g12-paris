@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Newspaper, ChevronRight } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useParams } from "wouter";
+import { useSeo } from "@/lib/seo";
 
 const CATEGORY_LABELS: Record<string, string> = {
   actualité: "Actualités",
@@ -34,6 +35,13 @@ export default function CategoryPage() {
   const articles = data?.items ?? [];
   const total = data?.total ?? 0;
   const hasMore = offset + limit < total;
+
+  useSeo({
+    title: categoryLabel,
+    description: `Toutes les publications de la rubrique ${categoryLabel} sur G12 Paris Infos Médias.`,
+    url: `/categorie/${encodeURIComponent(category)}`,
+    image: (articles[0]?.coverImageUrl as string) || undefined,
+  });
 
   return (
     <div className="min-h-screen">

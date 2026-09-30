@@ -23,6 +23,7 @@ import { ChevronRight, Quote, Heart, Sparkles, BookOpen, ImageIcon, Pencil, Save
 import { useState, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useMotionEnabled } from "@/hooks/useMotionEnabled";
+import { useSeo } from "@/lib/seo";
 import Autoplay from "embla-carousel-autoplay";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Input } from "@/components/ui/input";
@@ -83,6 +84,13 @@ export default function GalleriesPage() {
     refetchOnWindowFocus: false,
   });
   const { data: featuredData } = trpc.gallery.featured.useQuery();
+
+  useSeo({
+    title: "Galeries",
+    description:
+      "Photos et vidéos des campagnes, événements et temps forts de G12 Paris.",
+    url: "/galeries",
+  });
 
   const items = data?.items ?? [];
   const total = data?.total ?? 0;

@@ -2,14 +2,19 @@ import "dotenv/config";
 import express from "express";
 import path from "path";
 import crypto from "crypto";
+import rateLimit from "express-rate-limit";
 import { parse as parseCookieHeader } from "cookie";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { appRouter } from "../server/routers.js";
 import { createContext } from "../server/_core/context.js";
 import { getCsrfCookieOptions } from "../server/_core/cookies.js";
 import { initAgents } from "../server/_core/agents.js";
+import { buildRobotsTxt, buildSitemapXml } from "../server/sitemap.js";
 
 const app = express();
+
+// Disable the "X-Powered-By" header (information disclosure)
+app.disable("x-powered-by");
 
 // Constants identical to server/_core/index.ts
 const CSRF_COOKIE_NAME = "csrf_token";
@@ -19,6 +24,15 @@ const CSRF_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 7;
 // Configure body parser (Vercel has its own limits but we set them here for consistency)
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
+// Security headers
+app.use((req: any, res: any, next: any) => {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("X-Frame-Options", "DENY");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("Permissions-Policy", "geolocation=(), microphone=(), camera=()");
+  next();
+});
 
 // Serve uploaded files (important for local dev and self-hosted)
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
@@ -43,6 +57,52 @@ const ensureCsrfCookie = (req: any, res: any) => {
   }
   return token;
 };
+
+// Double-submit CSRF validation — same contract as server/_core/index.ts
+const csrfProtect: express.RequestHandler = (req, res, next) => {
+  if (!["POST", "PUT", "PATCH", "DELETE"].includes(req.method)) {
+    return next();
+  }
+  const cookieToken = readCsrfCookie(req);
+  const headerToken = req.headers[CSRF_HEADER_NAME] as string | undefined;
+  if (!cookieToken || !headerToken || headerToken !== cookieToken) {
+    return res.status(403).json({ error: "Invalid CSRF token" });
+  }
+  return next();
+};
+
+const isProduction = process.env.NODE_ENV === "production";
+
+const apiRateLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: isProduction ? 120 : 300,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests" },
+});
+
+const aiRateLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: isProduction ? 20 : 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Trop de requêtes IA. Réessayez dans 1 minute." },
+});
+
+const conventionRateLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 3,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Trop d'inscriptions. Réessayez dans 1 heure." },
+  keyGenerator: (req) => {
+    return (
+      (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ||
+      req.ip ||
+      "unknown"
+    );
+  },
+});
 
 console.log("[Vercel API] Starting initialization...");
 
@@ -82,9 +142,44 @@ app.get("/api/health", (req: any, res: any) => {
   });
 });
 
-// tRPC API
+// Sitemap XML (lu en base à chaque requête).
+// Déclaré sur /api/sitemap.xml (appel direct) et /sitemap.xml (rewrite Vercel,
+// qui preserve le chemin d'origine dans req.url).
+app.get(["/api/sitemap.xml", "/sitemap.xml"], async (req: any, res: any) => {
+  try {
+    const xml = await buildSitemapXml();
+    res.setHeader("Content-Type", "application/xml; charset=utf-8");
+    res.setHeader(
+      "Cache-Control",
+      "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400"
+    );
+    res.status(200).send(xml);
+  } catch (error) {
+    console.error("[Vercel API] Sitemap Error:", error);
+    res.status(500).type("text/plain").send("Sitemap unavailable");
+  }
+});
+
+// robots.txt
+app.get(["/api/robots.txt", "/robots.txt"], (req: any, res: any) => {
+  res.setHeader("Content-Type", "text/plain; charset=utf-8");
+  res.setHeader("Cache-Control", "public, max-age=3600, s-maxage=86400");
+  res.status(200).send(buildRobotsTxt());
+});
+
+// tRPC API — rate limiting + protection CSRF (aligné sur server/_core/index.ts)
 app.use(
   "/api/trpc",
+  (req, res, next) => {
+    if (req.path.startsWith("/ai.")) {
+      return aiRateLimiter(req, res, next);
+    }
+    if (req.path.startsWith("/conventionRegistrations.create")) {
+      return conventionRateLimiter(req, res, next);
+    }
+    return apiRateLimiter(req, res, next);
+  },
+  csrfProtect,
   createExpressMiddleware({
     router: appRouter,
     createContext,

@@ -2,9 +2,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { AlertCircle, Home } from "lucide-react";
 import { useLocation } from "wouter";
+import { useSeo } from "@/lib/seo";
 
 export default function NotFound() {
   const [, setLocation] = useLocation();
+
+  useSeo({
+    title: "Page introuvable",
+    description: "La page demandée n'existe pas ou a été déplacée.",
+    noIndex: true,
+  });
 
   const handleGoHome = () => {
     setLocation("/");

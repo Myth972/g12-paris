@@ -25,6 +25,7 @@ import { useState, useCallback } from "react";
 import PageTitleEditor from "@/components/PageTitleEditor";
 import PageTextEditor from "@/components/PageTextEditor";
 import FloatingParticles from "@/components/FloatingParticles";
+import { useSeo } from "@/lib/seo";
 import { toast } from "sonner";
 
 const containerVars = {
@@ -56,6 +57,14 @@ export default function PublicationDuJour() {
     trpc.gallery.featured.useQuery();
   const { data: latestVerse, isLoading: verseLoading, error: verseError } = trpc.verses.latest.useQuery();
   const items = galleryData ?? [];
+
+  useSeo({
+    title: "Publication du jour",
+    description:
+      "Le verset du jour et la publication mise en avant par G12 Paris Infos Médias.",
+    url: "/publication-du-jour",
+    image: (galleryData?.[0]?.coverImageUrl as string) || undefined,
+  });
 
   const updateVerseMutation = trpc.verses.update.useMutation({
     onSuccess: () => {

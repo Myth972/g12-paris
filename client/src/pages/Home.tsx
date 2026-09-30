@@ -17,6 +17,8 @@ import { motion } from "framer-motion";
 import { Newspaper, ChevronRight, Church, BookOpen, Mic2, Calendar, Users, FileText, Image, Clock } from "lucide-react";
 import AnimatedCounter from "@/components/AnimatedCounter";
 import { useVisualEnabled } from "@/hooks/useVisualSetting";
+import { useSeo } from "@/lib/seo";
+import { organizationJsonLd, webSiteJsonLd } from "@/lib/structuredData";
 import { useState, useMemo, useEffect } from "react";
 
 const announcementIcons = [Church, Mic2, BookOpen];
@@ -82,6 +84,17 @@ const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, categor
     Math.min(60, Number(heroOpacityRaw ?? 18))
   );
   const heroOpacity = heroOpacityPercent / 100;
+
+  const homeStructuredData = useMemo(
+    () => [webSiteJsonLd(), organizationJsonLd()],
+    []
+  );
+
+  useSeo({
+    url: "/",
+    image: (articles[0]?.coverImageUrl as string) || undefined,
+    jsonLd: homeStructuredData,
+  });
 
   useEffect(() => {
     const handleScroll = () => {

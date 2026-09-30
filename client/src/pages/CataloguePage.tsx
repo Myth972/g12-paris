@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, SlidersHorizontal, Loader2, Book, ExternalLink } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useSeo } from "@/lib/seo";
 
 export default function CataloguePage() {
   const [search] = useLocation();
@@ -28,6 +29,13 @@ export default function CataloguePage() {
   const [maxPrice, setMaxPrice] = useState<number>(params.get("maxPrice") ? parseInt(params.get("maxPrice")!) : 200);
   const [sortOrder, setSortOrder] = useState(params.get("sort") || "newest");
   const [debouncedSearch, setDebouncedSearch] = useState(searchTerm);
+
+  useSeo({
+    title: "Catalogue de la bibliothèque",
+    description:
+      "Parcourez le catalogue : bibles, études bibliques, livres jeunesse et ressources pour la famille.",
+    url: "/bibliotheque/catalogue",
+  });
 
   // Debounce search
   useEffect(() => {

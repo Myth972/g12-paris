@@ -1,17 +1,32 @@
 {
   "name": "G12 Paris Infos Médias",
   "short_name": "G12 Paris",
-  "description": "Votre source d'information de confiance sur l'actualité",
+  "description": "Actualités, publications, galeries, événements et bibliothèque. Votre source d'information de confiance.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
+  "lang": "fr",
   "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "theme_color": "#d92323",
   "icons": [
     {
-      "src": "/logo.png",
-      "sizes": "any",
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

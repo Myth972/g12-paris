@@ -16,7 +16,7 @@ import {
   Loader2,
   Sparkles,
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useLocation, useParams, Link } from "wouter";
 import { Streamdown } from "streamdown";
 import { toast } from "sonner";
@@ -28,6 +28,8 @@ import {
   injectHeadingIds,
   type TocSection,
 } from "@/lib/articleHeadings";
+import { useSeo } from "@/lib/seo";
+import { newsArticleJsonLd } from "@/lib/structuredData";
 
 function formatDate(date: Date): string {
   return new Date(date).toLocaleDateString("fr-FR", {
@@ -140,6 +142,38 @@ export default function ArticleDetail() {
       toast.error("Impossible de copier le lien");
     }
   };
+
+  const articleStructuredData = useMemo(
+    () =>
+      article
+        ? newsArticleJsonLd({
+            title: article.title,
+            description: article.excerpt || undefined,
+            slug: article.slug,
+            image: article.coverImageUrl || undefined,
+            publishedTime: article.createdAt
+              ? new Date(article.createdAt).toISOString()
+              : undefined,
+            modifiedTime: article.updatedAt
+              ? new Date(article.updatedAt).toISOString()
+              : undefined,
+            author: (article as any)?.authorName || undefined,
+          })
+        : undefined,
+    [article]
+  );
+
+  useSeo({
+    title: article?.title,
+    description: article?.excerpt || undefined,
+    image: article?.coverImageUrl || undefined,
+    url: article ? `/article/${article.slug}` : undefined,
+    type: "article",
+    publishedTime: article?.createdAt ? new Date(article.createdAt).toISOString() : undefined,
+    modifiedTime: article?.updatedAt ? new Date(article.updatedAt).toISOString() : undefined,
+    author: (article as any)?.authorName || undefined,
+    jsonLd: articleStructuredData,
+  });
 
   if (isLoading) {
     return (

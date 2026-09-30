@@ -13,6 +13,7 @@ import { getCsrfCookieOptions } from "./cookies.js";
 import { serveStatic, setupVite } from "./vite.js";
 import { initAgents } from "./agents.js";
 import { initScheduler } from "./scheduler.js";
+import { buildRobotsTxt, buildSitemapXml } from "../sitemap.js";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -42,6 +43,21 @@ async function startServer() {
 
   initAgents();
   initScheduler();
+
+  // Disable the "X-Powered-By" header (information disclosure)
+  app.disable("x-powered-by");
+
+  // Security headers
+  app.use((_req, res, next) => {
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.setHeader("X-Frame-Options", "DENY");
+    res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+    res.setHeader(
+      "Permissions-Policy",
+      "geolocation=(), microphone=(), camera=()"
+    );
+    next();
+  });
 
   const CSRF_COOKIE_NAME = "csrf_token";
   const CSRF_HEADER_NAME = "x-csrf-token";
@@ -82,6 +98,29 @@ async function startServer() {
   app.get("/api/csrf", (req, res) => {
     const token = ensureCsrfCookie(req, res);
     res.status(200).json({ token });
+  });
+
+  // Sitemap XML (lu en base à chaque requête)
+  app.get(["/api/sitemap.xml", "/sitemap.xml"], async (req, res) => {
+    try {
+      const xml = await buildSitemapXml();
+      res.setHeader("Content-Type", "application/xml; charset=utf-8");
+      res.setHeader(
+        "Cache-Control",
+        "public, max-age=0, s-maxage=3600, stale-while-revalidate=86400"
+      );
+      res.status(200).send(xml);
+    } catch (error) {
+      console.error("[Sitemap] Error:", error);
+      res.status(500).type("text/plain").send("Sitemap unavailable");
+    }
+  });
+
+  // robots.txt
+  app.get(["/api/robots.txt", "/robots.txt"], (req, res) => {
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+    res.setHeader("Cache-Control", "public, max-age=3600, s-maxage=86400");
+    res.status(200).send(buildRobotsTxt());
   });
 
   const apiRateLimiter = rateLimit({

@@ -10,11 +10,19 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useState } from "react";
 import { toast } from "sonner";
+import { useSeo } from "@/lib/seo";
 
 export default function BibliothequePage() {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  useSeo({
+    title: "Bibliothèque",
+    description:
+      "Livres, études bibliques et ressources spirituelles pour approfondir votre foi.",
+    url: "/bibliotheque",
+  });
   
    const quickAccess = [
      { icon: BookOpen, label: "Bibles", href: "/bibliotheque/catalogue?theme=bibles" },
