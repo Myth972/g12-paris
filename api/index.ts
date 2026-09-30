@@ -2,7 +2,6 @@ import "dotenv/config";
 import express from "express";
 import path from "path";
 import crypto from "crypto";
-import rateLimit from "express-rate-limit";
 import { parse as parseCookieHeader } from "cookie";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { appRouter } from "../server/routers.js";
@@ -10,6 +9,13 @@ import { createContext } from "../server/_core/context.js";
 import { getCsrfCookieOptions } from "../server/_core/cookies.js";
 import { initAgents } from "../server/_core/agents.js";
 import { buildRobotsTxt, buildSitemapXml } from "../server/sitemap.js";
+import { runWeeklyDigest } from "../server/_core/scheduler.js";
+import { cronHelpPayload, isValidCronRequest } from "../server/_core/cronAuth.js";
+import {
+  aiRateLimiter,
+  apiRateLimiter,
+  conventionRateLimiter,
+} from "../server/_core/rateLimit.js";
 
 const app = express();
 
@@ -73,37 +79,6 @@ const csrfProtect: express.RequestHandler = (req, res, next) => {
 
 const isProduction = process.env.NODE_ENV === "production";
 
-const apiRateLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: isProduction ? 120 : 300,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: "Too many requests" },
-});
-
-const aiRateLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: isProduction ? 20 : 60,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: "Trop de requêtes IA. Réessayez dans 1 minute." },
-});
-
-const conventionRateLimiter = rateLimit({
-  windowMs: 60 * 60 * 1000,
-  max: 3,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: "Trop d'inscriptions. Réessayez dans 1 heure." },
-  keyGenerator: (req) => {
-    return (
-      (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ||
-      req.ip ||
-      "unknown"
-    );
-  },
-});
-
 console.log("[Vercel API] Starting initialization...");
 
 // Initialize agents (in-memory registry)
@@ -165,6 +140,35 @@ app.get(["/api/robots.txt", "/robots.txt"], (req: any, res: any) => {
   res.setHeader("Content-Type", "text/plain; charset=utf-8");
   res.setHeader("Cache-Control", "public, max-age=3600, s-maxage=86400");
   res.status(200).send(buildRobotsTxt());
+});
+
+// ─── Cron Vercel ──────────────────────────────────────────────────
+// node-cron ne survit pas à l'exécution d'une fonction serverless :
+// c'est donc Vercel Cron qui déclenche le digest hebdomadaire en prod.
+// CRON_SECRET est obligatoire en production (comparaison à temps constant).
+
+app.get("/api/cron/newsletter", async (req: any, res: any) => {
+  if (!isValidCronRequest(req, isProduction)) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+
+  try {
+    const result = await runWeeklyDigest();
+    console.log("[Cron] Newsletter digest:", result);
+
+    if (result.status === "skipped") {
+      return res.status(200).json({ ok: true, ...result });
+    }
+    return res.status(200).json({ ok: true, ...result });
+  } catch (error) {
+    console.error("[Cron] Newsletter digest failed:", error);
+    return res.status(500).json({ error: "Digest failed" });
+  }
+});
+
+// État des crons (utile pour vérifier le déploiement depuis le navigateur)
+app.get("/api/cron", (req: any, res: any) => {
+  res.status(200).json(cronHelpPayload());
 });
 
 // tRPC API — rate limiting + protection CSRF (aligné sur server/_core/index.ts)

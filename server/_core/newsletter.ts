@@ -4,6 +4,7 @@ import { countAllArticles } from "../db.js"; // or wherever you get articles fro
 import { getDb } from "../db.js";
 import { eq } from "drizzle-orm";
 import { siteSettings } from "../../drizzle/schema.js";
+import { SITE_URL } from "../../shared/const.js";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 const DEFAULT_FROM = "G12 Paris <onboarding@resend.dev>"; // Fallback if domain not verified
@@ -103,7 +104,7 @@ export async function sendWeeklyDigest(emails: string[], articles: any[], subjec
       <div style="margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px;">
         <h2 style="color: #1e293b; margin-bottom: 5px;">${article.title}</h2>
         <p style="color: #475569; font-size: 14px;">${article.excerpt || article.content.substring(0, 150) + "..."}</p>
-        <a href="https://g12parismedia.com/articles/${article.slug}" style="color: #D97706; font-weight: bold; text-decoration: none;">Lire la suite →</a>
+        <a href="${SITE_URL}/article/${encodeURIComponent(article.slug)}" style="color: #D97706; font-weight: bold; text-decoration: none;">Lire la suite →</a>
       </div>
     `
     )

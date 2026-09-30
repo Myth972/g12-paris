@@ -120,6 +120,7 @@ import { sdk } from "./_core/sdk.js";
 import { COOKIE_NAME, ONE_YEAR_MS } from "../shared/const.js";
 import { getSessionCookieOptions } from "./_core/cookies.js";
 import { sendWelcomeEmail, sendWeeklyDigest, sendCustomNewsletter, sendConventionConfirmation } from "./_core/newsletter.js";
+import { stripHtml, truncateText } from "./articleSearchIndex.js";
 import {
   triggerArticlePublished,
   triggerUserRegistered,
@@ -453,6 +454,49 @@ export const appRouter = router({
         ]);
         return { items, total, limit, offset };
       }),
+
+    // Index full-text renvoyé une fois au client, puis recherché localement.
+    // Évite un appel IA (payant) pour chaque recherche par mot-clé.
+    searchIndex: publicProcedure.query(async () => {
+      const db = getDb();
+      if (!db) return [];
+
+      return withCache("article-search-index", async () => {
+        const rows = await db
+          .select({
+            id: articles.id,
+            title: articles.title,
+            slug: articles.slug,
+            excerpt: articles.excerpt,
+            content: articles.content,
+            coverImageUrl: articles.coverImageUrl,
+            youtubeUrl: articles.youtubeUrl,
+            category: articles.category,
+            createdAt: articles.createdAt,
+          })
+          .from(articles)
+          .where(eq(articles.published, true))
+          .orderBy(desc(articles.createdAt))
+          .limit(1000);
+
+        return rows.map((a: any) => {
+          const body = stripHtml(a.excerpt || "") || stripHtml(a.content || "");
+          return {
+            id: a.id,
+            title: a.title,
+            slug: a.slug,
+            excerpt: truncateText(body, 220),
+            // 4000 caractères suffisent à couvrir l'essentiel d'un article
+            // tout en gardant l'index léger sur mobile.
+            contentText: truncateText(stripHtml(a.content || ""), 4000),
+            coverImageUrl: a.coverImageUrl,
+            youtubeUrl: a.youtubeUrl,
+            category: a.category,
+            createdAt: a.createdAt,
+          };
+        });
+      }, 10 * 60_000);
+    }),
 
     bySlug: publicProcedure
       .input(zod.object({ slug: z.string() }))

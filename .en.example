@@ -47,6 +47,31 @@ AWS_S3_BUCKET=your-bucket-name
 BLOB_READ_WRITE_TOKEN=vercel_blob_your-read-write-token-here
 
 # ------------------------------------------
+# Newsletter (Resend)
+# ------------------------------------------
+# Indispensable au digest hebdomadaire envoyé par /api/cron/newsletter.
+# https://resend.com
+RESEND_API_KEY=re_your-resend-api-key-here
+
+# ------------------------------------------
+# Vercel Cron
+# ------------------------------------------
+# Secret utilisé par Vercel pour appeler /api/cron/newsletter.
+# Vercel l'envoie automatiquement dans l'en-tête Authorization.
+# Générer avec : openssl rand -hex 32
+# Sans cette variable, la route /api/cron/* est refusée en production.
+CRON_SECRET=your-cron-secret-minimum-32-characters
+
+# ------------------------------------------
+# Rate limiting distribué (Upstash Redis) — optionnel
+# ------------------------------------------
+# Sans ces variables, le rate limiting reste en mémoire : sur Vercel chaque
+# instance serverless repart à zéro, donc la limite n'est pas réelle.
+# Créer une base gratuite sur https://console.upstash.com (10k req/jour).
+UPSTASH_REDIS_REST_URL=https://your-db.upstash.io
+UPSTASH_REDIS_REST_TOKEN=your-upstash-redis-token-here
+
+# ------------------------------------------
 # Développement
 # ------------------------------------------
 DEV=true

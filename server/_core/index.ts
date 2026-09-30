@@ -4,7 +4,6 @@ import { createServer } from "http";
 import net from "net";
 import path from "path";
 import crypto from "crypto";
-import rateLimit from "express-rate-limit";
 import { parse as parseCookieHeader } from "cookie";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { appRouter } from "../routers.js";
@@ -12,8 +11,14 @@ import { createContext } from "./context.js";
 import { getCsrfCookieOptions } from "./cookies.js";
 import { serveStatic, setupVite } from "./vite.js";
 import { initAgents } from "./agents.js";
-import { initScheduler } from "./scheduler.js";
+import { initScheduler, runWeeklyDigest } from "./scheduler.js";
 import { buildRobotsTxt, buildSitemapXml } from "../sitemap.js";
+import { isValidCronRequest } from "./cronAuth.js";
+import {
+  aiRateLimiter,
+  apiRateLimiter,
+  conventionRateLimiter,
+} from "./rateLimit.js";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -123,33 +128,22 @@ async function startServer() {
     res.status(200).send(buildRobotsTxt());
   });
 
-  const apiRateLimiter = rateLimit({
-    windowMs: 60 * 1000,
-    max: process.env.NODE_ENV === "development" ? 300 : 120,
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: { error: "Too many requests" },
-  });
-
-  // Rate limiter spécifique pour les endpoints IA (plus strict)
-  const aiRateLimiter = rateLimit({
-    windowMs: 60 * 1000,
-    max: process.env.NODE_ENV === "development" ? 60 : 20,
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: { error: "Trop de requêtes IA. Réessayez dans 1 minute." },
-  });
-
-  // Rate limiter spécifique pour les inscriptions Convention (3 par IP par heure)
-  const conventionRateLimiter = rateLimit({
-    windowMs: 60 * 60 * 1000, // 1 hour
-    max: 3, // 3 registrations per IP per hour
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: { error: "Trop d'inscriptions. Réessayez dans 1 heure." },
-    keyGenerator: (req) => {
-      return (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.ip || "unknown";
-    },
+  // ─── Cron ───────────────────────────────────────────────────────
+  // Sur Vercel c'est la route équivalente de api/index.ts qui est appelée
+  // par Vercel Cron. Elle est exposée ici pour pouvoir déclencher et
+  // vérifier le digest manuellement en développement.
+  app.get("/api/cron/newsletter", async (req, res) => {
+    if (!isValidCronRequest(req, process.env.NODE_ENV === "production")) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    try {
+      const result = await runWeeklyDigest();
+      console.log("[Cron] Newsletter digest:", result);
+      res.status(200).json({ ok: true, ...result });
+    } catch (error) {
+      console.error("[Cron] Newsletter digest failed:", error);
+      res.status(500).json({ error: "Digest failed" });
+    }
   });
 
   const csrfProtect: express.RequestHandler = (req, res, next) => {
