@@ -9,6 +9,7 @@ import { createContext } from "../server/_core/context.js";
 import { getCsrfCookieOptions } from "../server/_core/cookies.js";
 import { initAgents } from "../server/_core/agents.js";
 import { buildRobotsTxt, buildSitemapXml } from "../server/sitemap.js";
+import { registerImageOptimizer } from "../server/imageResizer.js";
 import { runWeeklyDigest } from "../server/_core/scheduler.js";
 import { cronHelpPayload, isValidCronRequest } from "../server/_core/cronAuth.js";
 import {
@@ -141,6 +142,9 @@ app.get(["/api/robots.txt", "/robots.txt"], (req: any, res: any) => {
   res.setHeader("Cache-Control", "public, max-age=3600, s-maxage=86400");
   res.status(200).send(buildRobotsTxt());
 });
+
+// Optimisation d'images à la volée (AVIF/WebP + srcset responsive client)
+registerImageOptimizer(app);
 
 // ─── Cron Vercel ──────────────────────────────────────────────────
 // node-cron ne survit pas à l'exécution d'une fonction serverless :

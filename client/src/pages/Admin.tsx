@@ -81,6 +81,7 @@ import {
   Lightbulb,
   ClipboardList,
   Settings,
+  PenLine,
 } from "lucide-react";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { useAiProvider } from "@/hooks/useAiProvider";
@@ -101,6 +102,7 @@ const AIDashboard = lazy(() => import("@/components/AIDashboard"));
 const ApiKeyConnector = lazy(() => import("@/components/ApiKeyConnector"));
 const CMSManager = lazy(() => import("@/components/CMSManager"));
 const AIArticleWriter = lazy(() => import("./AIArticleWriter"));
+const AIComposer = lazy(() => import("@/components/AIComposer"));
 const StoryCardAdmin = lazy(() => import("./StoryCardAdmin"));
 
 import HomeHeroBackgroundSettings from "@/components/HomeHeroBackgroundSettings";
@@ -110,6 +112,13 @@ import CulteVideoSettings from "@/components/CulteVideoSettings";
 import CulteMapSettings from "@/components/CulteMapSettings";
 
 import { Message } from "@/components/AIChatBox";
+
+/** Lit le paramètre ?tab= d'une location wouter ("/admin?tab=ai"). */
+function readAdminTabParam(loc: string): string | null {
+  const qIndex = loc.indexOf("?");
+  if (qIndex === -1) return null;
+  return new URLSearchParams(loc.slice(qIndex + 1)).get("tab");
+}
 
 function formatDate(date: Date): string {
   return new Date(date).toLocaleDateString("fr-FR", {
@@ -735,7 +744,7 @@ function AITabs() {
   const { t } = useTranslation();
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
-  const [aiTab, setAiTab] = useState("assistant");
+  const [aiTab, setAiTab] = useState("composer");
 
   return (
     <div className="space-y-4">
@@ -745,6 +754,10 @@ function AITabs() {
       </div>
       <Tabs value={aiTab} onValueChange={setAiTab}>
         <TabsList className="w-full justify-start gap-1 h-auto flex-wrap">
+          <TabsTrigger value="composer" className="gap-1.5">
+            <PenLine className="w-4 h-4" />
+            Composer
+          </TabsTrigger>
           <TabsTrigger value="assistant" className="gap-1.5">
             <Bot className="w-4 h-4" />
             {t('admin.aiTab.assistantTitle')}
@@ -762,6 +775,12 @@ function AITabs() {
             Dashboard
           </TabsTrigger>
         </TabsList>
+
+        <TabsContent value="composer">
+          <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
+            <AIComposer />
+          </Suspense>
+        </TabsContent>
 
         <TabsContent value="assistant">
           <AIAssistantTab />
@@ -1032,7 +1051,7 @@ export default function Admin() {
   const { user, loading: authLoading } = useAuth({
     redirectOnUnauthenticated: true,
   });
-  const [, setLocation] = useLocation();
+  const [loc, setLocation] = useLocation();
 
   const { data: articlesData } = trpc.articles.adminList.useQuery();
   const { data: nlData } = trpc.newsletter.listSubscribers.useQuery();
@@ -1046,6 +1065,50 @@ export default function Admin() {
 
   const [editorMode, setEditorMode] = useState(false);
 
+  // Rôles calculés avant les retours anticipés (règle des hooks).
+  const userRole = user?.role || "user";
+  const isAdmin = userRole === "admin";
+  const isEditeur = userRole === "editeur";
+  const isBibliotheque = userRole === "bibliotheque";
+  const hasAdminAccess = isAdmin || isEditeur || isBibliotheque;
+
+  const showFullAdmin = isAdmin && !editorMode;
+
+  // Onglets accessibles selon le rôle, pour valider un lien /admin?tab=...
+  const allowedTabs: string[] = [
+    "articles",
+    "accueil",
+    "pages",
+    "publications",
+    "story-cards",
+    "cms",
+  ];
+  if (hasAdminAccess) allowedTabs.push("ai", "communications");
+  if (showFullAdmin) allowedTabs.push("users", "convention-registrations");
+
+  // Onglet courant piloté par l'URL : /admin?tab=... (favoris, liens rapides,
+  // préremplissage depuis le Composer IA). Valeur par défaut : articles.
+  const urlTab = readAdminTabParam(loc);
+  const [activeTab, setActiveTab] = useState<string>(() =>
+    urlTab && allowedTabs.includes(urlTab) ? urlTab : "articles"
+  );
+
+  // Synchronise l'onglet quand l'URL change sans re-render complet
+  // (ex : setLocation("/admin?tab=accueil") depuis le Composer IA).
+  useEffect(() => {
+    if (urlTab && allowedTabs.includes(urlTab) && urlTab !== activeTab) {
+      setActiveTab(urlTab);
+    }
+    // Dépendance volontairement resserrée sur loc : les autres valeurs sont
+    // recalculeées à chaque rendu et n'exigent pas de relancer l'effet.
+  }, [loc]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    // Lien partageable : l'onglet actif apparaît dans l'URL sans recharger.
+    window.history.replaceState(null, "", `/admin?tab=${value}`);
+  };
+
   if (authLoading) {
     return (
       <div className="container py-10">
@@ -1054,14 +1117,6 @@ export default function Admin() {
       </div>
     );
   }
-
-  const userRole = user?.role || "user";
-  const isAdmin = userRole === "admin";
-  const isEditeur = userRole === "editeur";
-  const isBibliotheque = userRole === "bibliotheque";
-  const hasAdminAccess = isAdmin || isEditeur || isBibliotheque;
-
-  const showFullAdmin = isAdmin && !editorMode;
 
   if (!isAdmin && !isEditeur && !isBibliotheque) {
     return (
@@ -1257,7 +1312,7 @@ export default function Admin() {
 
       {/* Tabs */}
       <div className="container lg:max-w-7xl py-6">
-        <Tabs defaultValue="articles" className="w-full flex flex-col lg:flex-row gap-4 lg:gap-6">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full flex flex-col lg:flex-row gap-4 lg:gap-6">
           {/* Mobile: horizontal scrollable tabs */}
           <div className="relative lg:hidden">
             <TabsList className="mb-0 flex overflow-x-auto h-auto w-full justify-start gap-1 pb-2 shrink-0 snap-x snap-mandatory no-scrollbar">
@@ -1314,8 +1369,11 @@ export default function Admin() {
             <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-secondary/30 to-transparent pointer-events-none" />
           </div>
 
-          {/* Desktop: sidebar navigation */}
+          {/* Desktop: sidebar navigation — 4 groupes pour la lisibilité */}
           <TabsList className="hidden lg:flex flex-col w-56 shrink-0 bg-card border rounded-xl shadow-sm p-2 sticky top-20 h-fit gap-0.5">
+            <p className="px-2 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70 select-none">
+              Contenu
+            </p>
             <TabsTrigger value="articles" className="justify-start gap-2.5 w-full">
               <Newspaper className="w-4 h-4" />
               {t('admin.tabs.articles')}
@@ -1332,8 +1390,15 @@ export default function Admin() {
               <BookOpen className="w-4 h-4" />
               {t('admin.tabs.publications')}
             </TabsTrigger>
+            <TabsTrigger value="story-cards" className="justify-start gap-2.5 w-full">
+              <ImageIcon className="w-4 h-4 text-pink-500" />
+              Story Cards
+            </TabsTrigger>
             {hasAdminAccess && (
               <>
+            <p className="px-2 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70 select-none">
+              IA & Communication
+            </p>
             <TabsTrigger value="ai" className="justify-start gap-2.5 w-full">
               <Sparkles className="w-4 h-4 text-primary" />
               {t('admin.tabs.ai')}
@@ -1344,23 +1409,26 @@ export default function Admin() {
             </TabsTrigger>
               </>
             )}
+            {showFullAdmin && (
+              <>
+            <TabsTrigger value="convention-registrations" className="justify-start gap-2.5 w-full">
+              <ClipboardList className="w-4 h-4 text-blue-500" />
+              Inscriptions
+            </TabsTrigger>
+              </>
+            )}
+            <p className="px-2 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70 select-none">
+              Administration
+            </p>
             <TabsTrigger value="cms" className="justify-start gap-2.5 w-full">
               <Layout className="w-4 h-4 text-emerald-500" />
               CMS
-            </TabsTrigger>
-            <TabsTrigger value="story-cards" className="justify-start gap-2.5 w-full">
-              <ImageIcon className="w-4 h-4 text-pink-500" />
-              Story Cards
             </TabsTrigger>
             {showFullAdmin && (
               <>
             <TabsTrigger value="users" className="justify-start gap-2.5 w-full">
               <Users className="w-4 h-4" />
               {t('admin.tabs.users')}
-            </TabsTrigger>
-            <TabsTrigger value="convention-registrations" className="justify-start gap-2.5 w-full">
-              <ClipboardList className="w-4 h-4 text-blue-500" />
-              Inscriptions
             </TabsTrigger>
               </>
             )}

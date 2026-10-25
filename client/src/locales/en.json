@@ -12,6 +12,9 @@
       "noResults": "No results",
       "close": "Close"
     },
+    "offline": {
+      "banner": "Offline mode — showing the last saved content"
+    },
     "nav": {
       "home": "Home",
       "dailyPost": "Daily Post",

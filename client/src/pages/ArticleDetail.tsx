@@ -16,13 +16,15 @@ import {
   Loader2,
   Sparkles,
 } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect, type MouseEvent } from "react";
 import { useLocation, useParams, Link } from "wouter";
 import { Streamdown } from "streamdown";
 import { toast } from "sonner";
 import ReadingProgressBar from "@/components/ReadingProgressBar";
 import ScrollToTopButton from "@/components/ScrollToTopButton";
 import StoryCardGenerator from "@/components/StoryCardGenerator";
+import ShareButtons from "@/components/ShareButtons";
+import Lightbox, { type LightboxItem } from "@/components/Lightbox";
 import {
   extractHeadings,
   injectHeadingIds,
@@ -133,6 +135,42 @@ export default function ArticleDetail() {
   const contentHtml = article
     ? injectHeadingIds(article.content, sections)
     : "";
+
+  /* ---------- Lightbox sur les images du corps de l'article ---------- */
+  const proseRef = useRef<HTMLDivElement>(null);
+  const [contentImages, setContentImages] = useState<LightboxItem[]>([]);
+  const [contentImageIndex, setContentImageIndex] = useState<number | null>(null);
+
+  // Collecte les <img> du corps une fois le contenu rendu : chaque image de
+  // l'article devient un media de la lightbox (navigation ← / → entre elles).
+  useEffect(() => {
+    const node = proseRef.current;
+    if (!node || !article) {
+      setContentImages([]);
+      return;
+    }
+    const imgs = Array.from(node.querySelectorAll("img")).filter(img =>
+      img.getAttribute("src")
+    );
+    setContentImages(
+      imgs.map(img => ({
+        type: "image",
+        mediaUrl: img.getAttribute("src") ?? "",
+        title: img.alt || article.title,
+      }))
+    );
+    // Le DOM ne change que lorsque le contenu de l'article change.
+  }, [contentHtml]);
+
+  // Clic délégué sur n'importe quelle image du corps → lightbox plein écran.
+  const handleContentClick = (e: MouseEvent<HTMLDivElement>) => {
+    const img = (e.target as HTMLElement).closest("img");
+    if (!img || !proseRef.current) return;
+    // Une image-lien (dans un <a>) garde son comportement de lien.
+    if (img.closest("a")) return;
+    const idx = Array.from(proseRef.current.querySelectorAll("img")).indexOf(img);
+    if (idx >= 0) setContentImageIndex(idx);
+  };
 
   const handleShare = async () => {
     try {
@@ -278,6 +316,12 @@ export default function ArticleDetail() {
               <Share2 className="w-3.5 h-3.5 mr-1.5" />
               Partager
             </Button>
+            {/* Partage rapide WhatsApp / Facebook (OG image de l'article en aperçu) */}
+            <ShareButtons
+              message={article.title}
+              url={typeof window !== "undefined" ? window.location.href : undefined}
+              className="ml-1"
+ />
             <StoryCardGenerator
               title={article.title}
               excerpt={article.excerpt}
@@ -334,7 +378,11 @@ export default function ArticleDetail() {
         >
           {hasToc && <ArticleToc sections={sections} />}
 
-          <div className="prose-article break-words">
+          <div
+            ref={proseRef}
+            onClick={handleContentClick}
+            className="prose-article break-words [&_img]:cursor-zoom-in [&_img]:transition-opacity [&_img:hover]:opacity-90"
+          >
             <Streamdown>{contentHtml}</Streamdown>
           </div>
         </div>
@@ -436,8 +484,17 @@ export default function ArticleDetail() {
             <Share2 className="w-4 h-4 mr-1" />
             Partager
           </Button>
+          <ShareButtons message={article.title} className="ml-1" />
         </div>
       </div>
+
+      {/* Lightbox des images du corps de l'article */}
+      <Lightbox
+        items={contentImages}
+        index={contentImageIndex}
+        onClose={() => setContentImageIndex(null)}
+        onIndexChange={setContentImageIndex}
+      />
     </article>
   );
 }

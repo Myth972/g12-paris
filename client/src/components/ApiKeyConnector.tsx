@@ -3,6 +3,7 @@ import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import {
   KeyRound,
   Save,
@@ -127,6 +128,21 @@ export default function ApiKeyConnector() {
       utils.ai.stats.invalidate();
     },
     onError: err => toast.error(err.message || "Erreur lors de la suppression"),
+  });
+
+  // Bascule activation/désactivation à chaud (interrupteur par ligne) :
+  // conserve label/modèle/baseUrl, l'état entre en vigueur immédiatement.
+  const toggleMutation = trpc.ai.providers.toggle.useMutation({
+    onSuccess: (_data, vars) => {
+      toast.success(
+        vars.enabled
+          ? `Provider ${vars.provider} activé`
+          : `Provider ${vars.provider} désactivé`
+      );
+      utils.ai.apiKeys.list.invalidate();
+      utils.ai.stats.invalidate();
+    },
+    onError: err => toast.error(err.message || "Erreur lors du changement d'état"),
   });
 
   const updateProviders = trpc.ai.updateProviders.useMutation({
@@ -395,6 +411,34 @@ export default function ApiKeyConnector() {
               </div>
 
               <div className="flex items-center gap-2 flex-shrink-0">
+                {/* Interrupteur actif/inactif : contrôle le fallback du chat.
+                    Une clé manquante reste saisissable même si désactivé. */}
+                <div className="flex items-center gap-1.5">
+                  <Switch
+                    checked={status.enabled}
+                    disabled={toggleMutation.isPending}
+                    aria-label={
+                      status.enabled
+                        ? `Désactiver ${status.provider}`
+                        : `Activer ${status.provider}`
+                    }
+                    onCheckedChange={checked =>
+                      toggleMutation.mutate({
+                        provider: status.provider,
+                        enabled: checked,
+                      })
+                    }
+                  />
+                  <span
+                    className={`text-[10px] w-16 ${
+                      status.enabled
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    {status.enabled ? "activé" : "désactivé"}
+                  </span>
+                </div>
                 {PROVIDER_URLS[status.provider] && (
                   <a
                     href={PROVIDER_URLS[status.provider]}

@@ -21,10 +21,11 @@ import {
   Upload,
   Loader2,
 } from "lucide-react";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import PageTitleEditor from "@/components/PageTitleEditor";
 import PageTextEditor from "@/components/PageTextEditor";
 import FloatingParticles from "@/components/FloatingParticles";
+import Lightbox, { type LightboxItem } from "@/components/Lightbox";
 import { useSeo } from "@/lib/seo";
 import { toast } from "sonner";
 
@@ -96,15 +97,34 @@ export default function PublicationDuJour() {
     index: idx,
   }));
 
-  const openImageInNewTab = useCallback((url: string) => {
-    window.open(url, '_blank', 'noopener,noreferrer');
-  }, []);
+
 
   const [editing, setEditing] = useState(false);
   const [draftRef, setDraftRef] = useState("");
   const [draftText, setDraftText] = useState("");
   const [draftSummary, setDraftSummary] = useState("");
   const [draftImageUrl, setDraftImageUrl] = useState("");
+
+  /* ---------- Lightbox plein écran des images de la page ---------- */
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+
+  // L'image du verset ouvre la lightbox (avec son texte en bannière) ; les
+  // « Publications du Jour » suivent, avec navigation entre toutes les images.
+  const verseLbItem: LightboxItem | null = verseImage
+    ? {
+        type: "image",
+        mediaUrl: verseImage,
+        title: "Verset du Jour",
+        verse:
+          verse && !editing
+            ? { text: verse.text, reference: verse.reference, summary: verse.summary }
+            : null,
+      }
+    : null;
+  const lightboxItems: LightboxItem[] = [
+    ...(verseLbItem ? [verseLbItem] : []),
+    ...imageItems,
+  ];
 
   const startEditing = () => {
     if (!verse) return;
@@ -242,7 +262,13 @@ export default function PublicationDuJour() {
                 )}
 
                 {verseImage && !editing && (
-                  <div className="w-full max-w-xl mb-8 rounded-2xl overflow-hidden border border-border/40 shadow-lg">
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    aria-label="Agrandir l'image du verset"
+                    className="w-full max-w-xl mb-8 rounded-2xl overflow-hidden border border-border/40 shadow-lg cursor-zoom-in [&_img]:transition-opacity [&_img:hover]:opacity-90"
+                    onClick={() => setLightboxIndex(0)}
+                  >
                       <img
                         src={getImageUrl(verseImage)}
                         alt="Verset du Jour"
@@ -412,7 +438,11 @@ export default function PublicationDuJour() {
                           whileHover={motionEnabled ? { scale: 1.08, rotate: 3, zIndex: 30 } : {}}
                           whileTap={motionEnabled ? { scale: 0.95 } : {}}
                           transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                           onClick={() => openImageInNewTab(getImageUrl(pair.image!.mediaUrl))}
+                           onClick={() =>
+                              setLightboxIndex(
+                                (verseLbItem ? 1 : 0) + pair.index
+                              )
+                            }
                           className={`absolute ${isEven ? 'left-0 md:left-4' : 'right-0 md:right-4'} top-0 md:top-10 w-[85%] md:w-[60%] h-[75%] md:h-[80%] z-0 rounded-2xl overflow-hidden shadow-2xl border-4 border-border/40 cursor-pointer group hover:shadow-primary/30 transition-shadow active:scale-[0.97]`}
                         >
                            <img
@@ -500,6 +530,14 @@ export default function PublicationDuJour() {
           </div>
         </motion.section>
       </motion.div>
+
+      {/* Lightbox plein écran : zoom, swipe, navigation entre les images */}
+      <Lightbox
+        items={lightboxItems}
+        index={lightboxIndex}
+        onClose={() => setLightboxIndex(null)}
+        onIndexChange={setLightboxIndex}
+      />
     </div>
   );
 }

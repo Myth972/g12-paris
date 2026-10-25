@@ -1,9 +1,16 @@
 import { trpc } from "@/lib/trpc";
 import YouTubeEmbed from "@/components/YouTubeEmbed";
+import Lightbox, { type LightboxItem } from "@/components/Lightbox";
+import OptimizedImage from "@/components/OptimizedImage";
 import { Skeleton } from "@/components/ui/skeleton";
 import { motion } from "framer-motion";
 import { useMotionEnabled } from "@/hooks/useMotionEnabled";
 import { useState } from "react";
+
+const CARD_SIZES = {
+  cards: "(max-width: 767px) 100vw, (max-width: 1279px) 50vw, 50vw",
+  grid: "(max-width: 767px) 100vw, 33vw",
+} as const;
 
 interface PageContentDisplayProps {
   pageId?: string;
@@ -53,7 +60,17 @@ const itemVars: any = {
   visible: { y: 0, opacity: 1, scale: 1, transition: { type: "spring", stiffness: 100, damping: 15 } },
 };
 
-function PageContentItemDisplay({ item }: { item: PageContentItem }) {
+function PageContentItemDisplay({
+  item,
+  onImageClick,
+  sizeHint,
+}: {
+  item: PageContentItem;
+  /** Ouverture de la lightbox plein écran sur cette image */
+  onImageClick?: (item: PageContentItem) => void;
+  /** sizes pour le srcset responsive des vignettes optimisées */
+  sizeHint?: string;
+}) {
   const motionEnabled = useMotionEnabled();
   const [isExpanded, setIsExpanded] = useState(false);
   
@@ -70,10 +87,16 @@ function PageContentItemDisplay({ item }: { item: PageContentItem }) {
       {/* Media */}
       <div className="overflow-hidden relative">
         {item.contentType === "image" && (
-          <img
+          <OptimizedImage
             src={item.mediaUrl}
             alt={item.title}
-            className="w-full aspect-[16/10] object-cover group-hover:scale-105 transition-transform duration-1000 ease-in-out"
+            sizes={sizeHint}
+            onClick={(e) => {
+              // La lightbox prend le pas sur l'extension de la légende.
+              e.stopPropagation();
+              onImageClick?.(item);
+            }}
+            className="w-full aspect-[16/10] object-cover group-hover:scale-105 transition-transform duration-1000 ease-in-out cursor-zoom-in"
           />
         )}
         {item.contentType === "youtube_video" && item.youtubeUrl && (
@@ -141,6 +164,7 @@ export default function PageContentDisplay({
   layout = "default",
   featuredOnly = false,
 }: PageContentDisplayProps) {
+  const sizeHint = CARD_SIZES[mode];
   const motionEnabled = useMotionEnabled();
   const byPageQuery = trpc.pageContent.byPage.useQuery(
     { pageId: pageId as string },
@@ -151,7 +175,20 @@ export default function PageContentDisplay({
   });
 
   const { data, isLoading } = featuredOnly ? featuredQuery : byPageQuery;
-  const items = data ?? [];
+  const items: PageContentItem[] = data ?? [];
+
+  /* ---------- Lightbox plein écran des images de la page ---------- */
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const imageItems = items.filter(item => item.contentType === "image");
+  const lightboxItems: LightboxItem[] = imageItems.map(item => ({
+    type: "image",
+    mediaUrl: item.mediaUrl,
+    title: item.title || item.description || "Image",
+  }));
+  const openLightbox = (item: PageContentItem) => {
+    const idx = imageItems.findIndex(i => i.id === item.id);
+    if (idx >= 0) setLightboxIndex(idx);
+  };
 
   const cols =
     mode === "grid"
@@ -185,6 +222,7 @@ export default function PageContentDisplay({
     const restItems = items.slice(1);
 
     return (
+      <>
       <motion.div
         variants={containerVars}
         initial={motionEnabled ? "hidden" : "visible"}
@@ -195,21 +233,30 @@ export default function PageContentDisplay({
       >
         {firstItem && (
           <div className="max-w-3xl mx-auto w-full">
-            <PageContentItemDisplay item={firstItem} />
+            <PageContentItemDisplay item={firstItem} onImageClick={openLightbox} sizeHint={sizeHint} />
           </div>
         )}
         {restItems.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto">
             {restItems.map((item: PageContentItem) => (
-              <PageContentItemDisplay key={item.id} item={item} />
+              <PageContentItemDisplay key={item.id} item={item} onImageClick={openLightbox} sizeHint={sizeHint} />
             ))}
           </div>
         )}
       </motion.div>
+
+      <Lightbox
+        items={lightboxItems}
+        index={lightboxIndex}
+        onClose={() => setLightboxIndex(null)}
+        onIndexChange={setLightboxIndex}
+      />
+    </>
     );
   }
 
   return (
+    <>
     <motion.div
       className={cols}
       variants={containerVars}
@@ -219,8 +266,16 @@ export default function PageContentDisplay({
       viewport={motionEnabled ? { once: true, margin: "-100px" } : undefined}
     >
       {items.map((item: PageContentItem) => (
-        <PageContentItemDisplay key={item.id} item={item} />
+        <PageContentItemDisplay key={item.id} item={item} onImageClick={openLightbox} sizeHint={sizeHint} />
       ))}
     </motion.div>
+
+    <Lightbox
+      items={lightboxItems}
+      index={lightboxIndex}
+      onClose={() => setLightboxIndex(null)}
+      onIndexChange={setLightboxIndex}
+    />
+    </>
   );
 }

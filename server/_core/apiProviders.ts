@@ -7,7 +7,9 @@ import { getDb } from "../db.js";
  *
  * La liste des providers est stockée en base (table api_providers) :
  *  - ajout/suppression à chaud sans redéploiement,
- *  - seed initial des providers par défaut (sans AIMLAPI),
+ *  - seed initial des providers par défaut (chat avec Groq et Google
+ *    uniquement ; MiniMax/Ollama/AIMLAPI et moteurs vidéo listés mais
+ *    désactivés par défaut — l'admin les active via le connecteur de clés),
  *  - un provider supprimé est retiré du fallback et du connecteur.
  */
 
@@ -27,28 +29,34 @@ export const DEFAULT_PROVIDERS: ApiProviderConfig[] = [
     model: "gemini-3.5-flash",
     enabled: true,
   },
-  { provider: "minimax", label: "MiniMax", model: "MiniMax-M2.1", enabled: true },
-  { provider: "ollama", label: "Ollama (local)", model: "llama3.2", enabled: true },
+  // Les providers suivants sont listés (gérables via le connecteur de clés)
+  // mais désactivés par défaut : le fallback du chat ne s'appuie que sur
+  // Groq et Google tant que l'admin n'a pas activé les autres explicitement.
+  { provider: "minimax", label: "MiniMax", model: "MiniMax-M2.1", enabled: false },
+  { provider: "ollama", label: "Ollama (local)", model: "llama3.2", enabled: false },
   {
     provider: "aimlapi",
     label: "AIMLAPI",
     model: "flux/schnell",
     baseUrl: "https://api.aimlapi.com/v1/images/generations",
-    enabled: true,
+    // Provider d'images/vidéo : désactivé par défaut pour que le fallback du
+    // chat (listEnabledProviders) ne bascule jamais vers un endpoint d'images
+    // sans clé configurée. L'admin l'active via le connecteur de clés.
+    enabled: false,
   },
   {
     provider: "kling",
     label: "Kling AI",
     model: "kling-v1",
     baseUrl: "https://api.klingai.com/v1/chat/completions",
-    enabled: true,
+    enabled: false,
   },
   {
     provider: "replicate",
     label: "Replicate",
     model: "kwaivgi/kling-v2.6",
     baseUrl: "https://api.replicate.com/v1/predictions",
-    enabled: true,
+    enabled: false,
   },
 ];
 
@@ -61,24 +69,25 @@ function getDbOrThrow() {
   return db;
 }
 
+/**
+ * Seed initial des providers par défaut — UNIQUEMENT si la table est vide
+ * (premier démarrage). Resseeder tout défaut « manquant » à chaque lecture
+ * annulerait silencieusement la suppression (blacklist) d'un provider par
+ * le connecteur ; une ligne supprimée doit rester supprimée.
+ */
 async function seedIfEmpty(db: ReturnType<typeof getDb>): Promise<void> {
   const rows = await db.select().from(apiProvidersTable);
-  const existing = new Set(
-    (rows as Array<{ provider: string }>).map(r => r.provider)
-  );
+  if (rows.length > 0) return;
 
-  const missing = DEFAULT_PROVIDERS.filter(p => !existing.has(p.provider));
-  if (missing.length > 0) {
-    await db.insert(apiProvidersTable).values(
-      missing.map(p => ({
-        provider: p.provider,
-        label: p.label,
-        model: p.model,
-        baseUrl: p.baseUrl ?? null,
-        enabled: p.enabled,
-      }))
-    );
-  }
+  await db.insert(apiProvidersTable).values(
+    DEFAULT_PROVIDERS.map(p => ({
+      provider: p.provider,
+      label: p.label,
+      model: p.model,
+      baseUrl: p.baseUrl ?? null,
+      enabled: p.enabled,
+    }))
+  );
 }
 
 /** Liste tous les providers enregistrés (avec seed initial si table vide). */

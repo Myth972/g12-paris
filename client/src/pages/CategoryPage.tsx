@@ -1,10 +1,12 @@
 import { trpc } from "@/lib/trpc";
 import ArticleCard from "@/components/ArticleCard";
 import PageContentDisplay from "@/components/PageContentDisplay";
+import { Reveal, staggerContainer, staggerItem } from "@/components/Reveal";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Newspaper, ChevronRight } from "lucide-react";
 import { useState, useMemo } from "react";
+import { motion } from "framer-motion";
 import { useParams } from "wouter";
 import { useSeo } from "@/lib/seo";
 
@@ -46,32 +48,36 @@ export default function CategoryPage() {
   return (
     <div className="min-h-screen">
       {/* Header */}
-      <section className="bg-gradient-to-b from-primary/[0.03] to-transparent py-10 md:py-14">
-        <div className="container">
-          <div className="flex items-center gap-2 mb-3">
-            <div className="w-8 h-0.5 bg-primary rounded-full" />
-            <span className="text-xs font-semibold uppercase tracking-[0.15em] text-primary font-sans">
-              Rubrique
-            </span>
+      <Reveal variant="fadeDown">
+        <section className="bg-gradient-to-b from-primary/[0.03] to-transparent py-10 md:py-14">
+          <div className="container">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-0.5 bg-primary rounded-full" />
+              <span className="text-xs font-semibold uppercase tracking-[0.15em] text-primary font-sans">
+                Rubrique
+              </span>
+            </div>
+            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold font-serif text-foreground">
+              {categoryLabel}
+            </h2>
           </div>
-          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold font-serif text-foreground">
-            {categoryLabel}
-          </h2>
-        </div>
-      </section>
+        </section>
+      </Reveal>
 
       {/* Custom content section */}
-      <section className="container py-16 border-t border-border/30">
-        <div className="mb-8">
-          <h3 className="text-2xl font-serif font-bold text-foreground mb-2">
-            Contenu en vedette
-          </h3>
-          <p className="text-muted-foreground">
-            Images, vidéos et contenus spéciaux
-          </p>
-        </div>
-        <PageContentDisplay pageId={category} />
-      </section>
+      <Reveal variant="fadeUp" delay={0.1}>
+        <section className="container py-16 border-t border-border/30">
+          <div className="mb-8">
+            <h3 className="text-2xl font-serif font-bold text-foreground mb-2">
+              Contenu en vedette
+            </h3>
+            <p className="text-muted-foreground">
+              Images, vidéos et contenus spéciaux
+            </p>
+          </div>
+          <PageContentDisplay pageId={category} />
+        </section>
+      </Reveal>
 
       {/* Articles grid */}
       <section className="container pb-16 border-t border-border/30 pt-16">
@@ -105,11 +111,20 @@ export default function CategoryPage() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Grille avec apparition en cascade (même pattern que la Home) */}
+            <motion.div
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+              variants={staggerContainer}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-80px" }}
+            >
               {articles.map((article: any) => (
-                <ArticleCard key={article.id} article={article} />
+                <motion.div key={article.id} variants={staggerItem}>
+                  <ArticleCard article={article} />
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
 
             {total > limit && (
               <div className="flex items-center justify-center gap-3 mt-10">

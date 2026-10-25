@@ -12,6 +12,9 @@
       "noResults": "Aucun résultat",
       "close": "Fermer"
     },
+    "offline": {
+      "banner": "Mode hors connexion — vous consultez le dernier contenu enregistré"
+    },
     "nav": {
       "home": "Accueil",
       "dailyPost": "Publication du jour",

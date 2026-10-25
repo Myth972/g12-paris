@@ -13,6 +13,7 @@ import { serveStatic, setupVite } from "./vite.js";
 import { initAgents } from "./agents.js";
 import { initScheduler, runWeeklyDigest } from "./scheduler.js";
 import { buildRobotsTxt, buildSitemapXml } from "../sitemap.js";
+import { registerImageOptimizer } from "../imageResizer.js";
 import { isValidCronRequest } from "./cronAuth.js";
 import {
   aiRateLimiter,
@@ -127,6 +128,9 @@ async function startServer() {
     res.setHeader("Cache-Control", "public, max-age=3600, s-maxage=86400");
     res.status(200).send(buildRobotsTxt());
   });
+
+  // Optimisation d'images à la volée (AVIF/WebP + srcset responsive client)
+  registerImageOptimizer(app);
 
   // ─── Cron ───────────────────────────────────────────────────────
   // Sur Vercel c'est la route équivalente de api/index.ts qui est appelée

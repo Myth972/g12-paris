@@ -3,12 +3,8 @@ import { getImageUrl } from "@/lib/imageUrl";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import Lightbox from "@/components/Lightbox";
+import OptimizedImage from "@/components/OptimizedImage";
 import {
   Carousel,
   CarouselContent,
@@ -17,6 +13,7 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 import YouTubeEmbed from "@/components/YouTubeEmbed";
+
 import PageTitleEditor from "@/components/PageTitleEditor";
 import PageTextEditor from "@/components/PageTextEditor";
 import { ChevronRight, Quote, Heart, Sparkles, BookOpen, ImageIcon, Pencil, Save, X, Loader2, Upload } from "lucide-react";
@@ -59,17 +56,14 @@ const itemVars: any = {
   visible: { y: 0, opacity: 1, scale: 1, transition: { type: "spring", stiffness: 100, damping: 15 } },
 };
 
-const getMosaicSpan = (index: number) => {
-  const cycle = index % 6;
-  if (cycle === 0) return "lg:col-span-2";
-  return "";
-};
+
 
 export default function GalleriesPage() {
   const motionEnabled = useMotionEnabled();
   const [page, setPage] = useState(0);
   const [activeCategory, setActiveCategory] = useState("");
-  const [selectedItem, setSelectedItem] = useState<any>(null);
+  // Lightbox plein écran : liste navigable + index courant (null = fermée)
+  const [lightbox, setLightbox] = useState<{ items: any[]; index: number } | null>(null);
   const limit = 12;
 
   const offset = useMemo(() => page * limit, [page]);
@@ -412,17 +406,18 @@ export default function GalleriesPage() {
             className="w-full"
           >
             <CarouselContent>
-              {carouselItems.map((item: any) => (
+              {carouselItems.map((item: any, idx: number) => (
                 <CarouselItem key={item.id} className="md:basis-1/3 lg:basis-1/4 pl-4">
                   <div
                     className="group rounded-xl overflow-hidden border border-border/50 bg-card cursor-pointer hover:border-amber-400/30 transition-all duration-300 hover:shadow-[0_0_20px_rgba(251,191,36,0.1)]"
-                    onClick={() => setSelectedItem(item)}
+                    onClick={() => setLightbox({ items: carouselItems, index: idx })}
                   >
                     <div className="aspect-[4/3] overflow-hidden bg-muted">
                       {item.type === "image" ? (
-                        <img
-                          src={getImageUrl(item.mediaUrl)}
+                        <OptimizedImage
+                          src={item.mediaUrl}
                           alt={item.title}
+                          sizes="(max-width: 767px) 80vw, (max-width: 1023px) 33vw, 25vw"
                           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                         />
                       ) : (
@@ -430,7 +425,7 @@ export default function GalleriesPage() {
                           {(() => {
                             const thumb = item.coverImageUrl || (item.youtubeUrl ? getYouTubeThumbnail(item.youtubeUrl) : null);
                             if (thumb) return (
-                              <img src={thumb} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+                              <img src={thumb} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" decoding="async" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
                             );
                             if (item.mediaUrl && !item.youtubeUrl) return (
                               <video src={getImageUrl(item.mediaUrl)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
@@ -524,7 +519,7 @@ export default function GalleriesPage() {
           <>
             <motion.div
               key={`gallery-grid-${activeCategory}-${page}`}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
+              className="columns-1 sm:columns-2 lg:columns-3 gap-5"
               variants={containerVars}
               initial={motionEnabled ? "hidden" : "visible"}
               whileInView={motionEnabled ? "visible" : undefined}
@@ -532,25 +527,24 @@ export default function GalleriesPage() {
               viewport={motionEnabled ? { once: true, margin: "-100px" } : undefined}
             >
               {items.map((item: any, idx: number) => {
-                const spanClass = getMosaicSpan(idx);
                 return (
                   <motion.div
                     key={item.id}
                     variants={itemVars}
-                    className={`group bg-card rounded-xl overflow-hidden border border-border/50 hover:border-amber-400/30 transition-all duration-500 touch-manipulation cursor-pointer ${spanClass}`}
+                    className="group bg-card rounded-xl overflow-hidden border border-border/50 hover:border-amber-400/30 transition-all duration-500 touch-manipulation cursor-pointer break-inside-avoid-column mb-5"
                     whileHover={motionEnabled ? { y: -6, scale: 1.02, zIndex: 10 } : undefined}
-                    onClick={() => setSelectedItem(item)}
+                    onClick={() => setLightbox({ items, index: idx })}
                   >
-                    {/* Media */}
-                    <div className="relative overflow-hidden bg-muted aspect-[4/3]">
+                    {/* Media — masonry : hauteur naturelle pour les images, 4/3 pour les vignettes vidéo */}
+                    <div className={`relative overflow-hidden bg-muted ${item.type !== "image" ? "aspect-[4/3]" : ""}`}>
                       {item.type === "image" ? (
-                        <img
-                          src={getImageUrl(item.mediaUrl)}
+                        <OptimizedImage
+                          src={item.mediaUrl}
                           alt={item.title}
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 select-none"
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          className="w-full h-auto object-cover group-hover:scale-110 transition-transform duration-700 select-none"
                           onContextMenu={(e) => e.preventDefault()}
                           draggable={false}
-                          loading="eager"
                           onError={e => {
                             const img = e.target as HTMLImageElement;
                             img.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect fill='%23e2e8f0' width='100' height='100'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='%2394a3b8' font-size='14'%3EImage%3C/text%3E%3C/svg%3E";
@@ -561,7 +555,7 @@ export default function GalleriesPage() {
                           {(() => {
                             const thumb = item.coverImageUrl || (item.youtubeUrl ? getYouTubeThumbnail(item.youtubeUrl) : null);
                             if (thumb) return (
-                              <img src={thumb} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 select-none" loading="eager" onError={e => {
+                              <img src={thumb} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 select-none" loading="lazy" decoding="async" onError={e => {
                                 const img = e.target as HTMLImageElement;
                                 img.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect fill='%23e2e8f0' width='100' height='100'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='%2394a3b8' font-size='14'%3EVideo%3C/text%3E%3C/svg%3E";
                               }} />
@@ -676,80 +670,15 @@ export default function GalleriesPage() {
         )}
       </motion.section>
 
-      {/* Verse detail modal */}
-      <Dialog open={!!selectedItem} onOpenChange={(o) => !o && setSelectedItem(null)}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          {selectedItem && (
-            <>
-              <DialogHeader>
-                <DialogTitle className="font-serif text-xl">
-                  {selectedItem.title}
-                </DialogTitle>
-              </DialogHeader>
-              <div className="space-y-6">
-                <div className="rounded-xl overflow-hidden border border-border/50 bg-muted">
-                  {selectedItem.type === "image" ? (
-                    <img
-                      src={getImageUrl(selectedItem.mediaUrl)}
-                      alt={selectedItem.title}
-                      className="w-full h-auto max-h-[50vh] object-contain"
-                    />
-                  ) : selectedItem.youtubeUrl ? (
-                    <YouTubeEmbed url={selectedItem.youtubeUrl} />
-                  ) : (
-                    <video
-                      src={getImageUrl(selectedItem.mediaUrl)}
-                      controls
-                      muted
-                      loop={selectedItem.loop}
-                      className="w-full aspect-video"
-                    />
-                  )}
-                </div>
-
-                {selectedItem.verse && (
-                  <div className="relative bg-gradient-to-br from-amber-50/50 via-background to-blue-50/30 dark:from-amber-950/20 dark:to-blue-950/20 rounded-xl border border-amber-200/30 dark:border-amber-800/30 p-6">
-                    <Quote className="absolute top-4 right-4 w-10 h-10 text-amber-400/20" />
-                    <div className="flex items-center gap-2 mb-3">
-                      <BookOpen className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                      <span className="text-xs uppercase tracking-widest font-bold text-amber-600/80 dark:text-amber-400/80">
-                        Verset biblique
-                      </span>
-                    </div>
-                    <p className="text-lg italic text-foreground/90 font-serif leading-relaxed mb-3">
-                      « {selectedItem.verse.text} »
-                    </p>
-                    <p className="text-sm font-bold text-amber-700 dark:text-amber-400">
-                      {selectedItem.verse.reference}
-                    </p>
-                    {selectedItem.verse.summary && (
-                      <div className="mt-4 pt-4 border-t border-border/50">
-                        <p className="text-xs uppercase tracking-widest font-bold text-muted-foreground mb-2">
-                          Méditation
-                        </p>
-                        <p className="text-sm text-muted-foreground leading-relaxed">
-                          {selectedItem.verse.summary}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {selectedItem.category && selectedItem.category !== "general" && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span className="text-xs uppercase tracking-wider font-medium">Catégorie :</span>
-                    <span>
-                      {selectedItem.category === "foi" && "🙏 Foi"}
-                      {selectedItem.category === "louange" && "🎵 Louange"}
-                      {selectedItem.category === "esperance" && "✨ Espérance"}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+      {/* Lightbox plein écran : zoom, swipe, clavier (Échap / ← →) */}
+      {lightbox && (
+        <Lightbox
+          items={lightbox.items}
+          index={lightbox.index}
+          onClose={() => setLightbox(null)}
+          onIndexChange={(i) => setLightbox({ items: lightbox.items, index: i })}
+        />
+      )}
     </div>
   );
 }

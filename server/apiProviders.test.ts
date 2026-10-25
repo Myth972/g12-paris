@@ -16,18 +16,34 @@ describe("apiProviders — liste dynamique des providers", () => {
     }
   });
 
-  it("liste les providers par défaut sans AIMLAPI", async () => {
+  it("liste les providers par défaut : tous présents, seuls Groq et Google activés", async () => {
     const providers = await listProviders();
-    expect(providers.map(p => p.provider)).not.toContain("aimlapi");
+    // Tous les providers par défaut figurent dans la liste (le connecteur
+    // de clés doit pouvoir les gérer), mais seul le duo de chat Groq +
+    // Google est activé : les autres (MiniMax, Ollama, AIMLAPI, Kling,
+    // Replicate) attendent une activation explicite de l'admin.
     expect(providers.map(p => p.provider)).toEqual(
-      expect.arrayContaining(["groq", "google", "minimax", "ollama"])
+      expect.arrayContaining([
+        "groq",
+        "google",
+        "minimax",
+        "ollama",
+        "aimlapi",
+        "kling",
+        "replicate",
+      ])
     );
+    const enabledByDefault = providers.filter(p => p.enabled).map(p => p.provider);
+    expect(enabledByDefault).toHaveLength(2);
+    expect(enabledByDefault).toEqual(expect.arrayContaining(["groq", "google"]));
   });
 
-  it("retourne les providers activés", async () => {
+  it("retourne les providers activés : fallback du chat limité à Groq et Google", async () => {
     const enabled = await listEnabledProviders();
+    expect(enabled).toHaveLength(2);
+    expect(enabled).toEqual(expect.arrayContaining(["groq", "google"]));
+    expect(enabled).not.toContain("minimax");
     expect(enabled).not.toContain("aimlapi");
-    expect(enabled).toContain("groq");
   });
 
   it("récupère la config d'un provider", async () => {

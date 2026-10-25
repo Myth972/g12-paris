@@ -4,10 +4,22 @@ import { useTranslation } from "react-i18next";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Filter, Loader2, Church, Users, BookOpen, Star, Archive } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Calendar, Filter, Church, Users, BookOpen, Star, Archive } from "lucide-react";
+import { motion } from "framer-motion";
+import { staggerContainer, staggerItem } from "@/components/Reveal";
 import AnnouncementCard, { type Announcement } from "@/components/AnnouncementCard";
+import ConventionCountdown from "@/components/ConventionCountdown";
+import { downloadIcs } from "@/lib/conventionCalendar";
+import { CalendarPlus } from "lucide-react";
 import { useSeo } from "@/lib/seo";
 import { eventJsonLd } from "@/lib/structuredData";
+
+/** Nom de fichier .ics lisible dérivé du titre de l'événement */
+function icsFilename(title: string): string {
+  const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 48);
+  return `evenement-${slug || "g12"}.ics`;
+}
 
 const CATEGORIES = [
   { key: "all", label: "Tous", icon: Filter, color: "bg-gray-500" },
@@ -151,9 +163,17 @@ export default function EventsPage() {
 
         {/* Loading */}
         {isLoading && (
-          <div className="text-center py-16">
-            <Loader2 className="w-8 h-8 animate-spin mx-auto mb-3 text-primary" />
-            <p className="text-muted-foreground">{t("common.loading") ?? "Chargement..."}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="rounded-xl overflow-hidden border border-border/50">
+                <Skeleton className="aspect-[16/10] w-full" />
+                <div className="p-4 space-y-3">
+                  <Skeleton className="h-5 w-3/4" />
+                  <Skeleton className="h-4 w-full" />
+                  <Skeleton className="h-3 w-1/3" />
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
@@ -168,23 +188,65 @@ export default function EventsPage() {
           </div>
         )}
 
-        {/* Events grid */}
+        {/* Events grid — apparition en cascade */}
         {!isLoading && filteredEvents.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <motion.div
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-60px" }}
+          >
             {filteredEvents.map((event: any, idx: number) => {
               const catInfo = getCategoryInfo(event.category ?? "general");
               const Icon = catInfo.icon;
+              // Compte à rebours + .ics pour les événements à venir
+              const start = event.date ? new Date(event.date) : null;
+              const isUpcoming = !!start && Number.isFinite(start.getTime()) && start.getTime() > Date.now();
+              const end = start ? new Date(start.getTime() + 4 * 3_600_000) : null; // fenêtre « en cours » de 4 h
               return (
-                <div key={event.id ?? idx} className="relative group">
+                <motion.div key={event.id ?? idx} variants={staggerItem} className="relative group">
                   <Badge className={`absolute top-3 left-3 z-10 ${catInfo.color} text-white border-0`}>
                     <Icon className="w-3 h-3 mr-1" />
                     {catInfo.label}
                   </Badge>
                   <AnnouncementCard announcement={event} />
-                </div>
+                  {isUpcoming && start && end && (
+                    <div className="mt-2 flex flex-col items-center gap-2 rounded-xl border border-border/50 bg-background/80 backdrop-blur px-3 py-3">
+                      <ConventionCountdown
+                        startISO={start.toISOString()}
+                        endISO={end.toISOString()}
+                        compact
+                        liveLabel="C'est maintenant !"
+                        className="w-full"
+                      />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 w-full justify-center text-xs gap-1.5"
+                        onClick={() =>
+                          downloadIcs(
+                            {
+                              title: event.title,
+                              description: event.description || undefined,
+                              location: event.location || undefined,
+                              url: window.location.href,
+                              start,
+                              end: end,
+                            },
+                            icsFilename(event.title ?? "event-g12")
+                          )
+                        }
+                      >
+                        <CalendarPlus className="w-3.5 h-3.5" />
+                        Ajouter au calendrier
+                      </Button>
+                    </div>
+                  )}
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
         )}
 
         {/* Flash events section */}

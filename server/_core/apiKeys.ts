@@ -16,6 +16,8 @@ export interface ApiKeyStatus {
   source: "env" | "db" | "none";
   masked: string;
   credits?: string | null;
+  /** Provider activé ? (fallback du chat) — piloté par l'admin. */
+  enabled: boolean;
 }
 
 // Cache en mémoire pour éviter un SELECT à chaque appel IA.
@@ -151,7 +153,7 @@ export async function listApiKeyStatus(): Promise<ApiKeyStatus[]> {
   const { listProviders } = await import("./apiProviders.js");
   const providers = await listProviders();
   const results: ApiKeyStatus[] = [];
-  for (const { provider } of providers) {
+  for (const { provider, enabled } of providers) {
     const envValue = envKeyFor(provider);
     const dbValue = await getApiKey(provider);
     const effective = dbValue ?? envValue;
@@ -169,6 +171,7 @@ export async function listApiKeyStatus(): Promise<ApiKeyStatus[]> {
       source,
       masked: effective ? maskKey(effective) : "",
       credits,
+      enabled,
     });
   }
   return results;

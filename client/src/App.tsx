@@ -13,6 +13,7 @@ import GlowCursor from "./components/GlowCursor";
 import { AudioPlayerProvider } from "./contexts/AudioPlayerContext";
 import FloatingAudioPlayer from "./components/FloatingAudioPlayer";
 import ScrollToTopButton from "./components/ScrollToTopButton";
+import OfflineBanner from "./components/OfflineBanner";
 
 // Lazy-loaded pages
 const Home = lazy(() => import("./pages/Home"));
@@ -281,6 +282,7 @@ function AppWithTheme() {
       <DynamicDesign />
       <TooltipProvider>
         <AudioPlayerProvider>
+          <OfflineBanner />
           <GlowCursor />
           <Toaster />
           <Router />

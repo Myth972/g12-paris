@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { COMPOSER_PREFILL_KEY } from "@/components/AIComposer";
 import { trpc } from "@/lib/trpc";
 import { DEFAULT_TRACKS } from "@/contexts/AudioPlayerContext";
 import { Button } from "@/components/ui/button";
@@ -321,11 +322,13 @@ function WhatsAppSliderSection() {
 
 // ─── Shared Announcement Dialog ──────────────────────────────────
 
-function AnnouncementDialog({ open, onOpenChange, editing, onSubmit }: {
+function AnnouncementDialog({ open, onOpenChange, editing, onSubmit, initialValues }: {
   open: boolean;
   onOpenChange: (v: boolean) => void;
   editing: any | null;
   onSubmit: (data: any) => void;
+  /** Brouillon IA (Composer) : préremplit le formulaire à l'ouverture. */
+  initialValues?: any | null;
 }) {
   const { uploadFile, isUploading } = useBlobUpload();
   const [form, setForm] = useState({
@@ -368,9 +371,10 @@ function AnnouncementDialog({ open, onOpenChange, editing, onSubmit }: {
   React.useEffect(() => {
     if (open) {
       if (editing) initForm(editing);
+      else if (initialValues) initForm(initialValues);
       else resetForm();
     }
-  }, [open, editing]);
+  }, [open, editing, initialValues]);
 
   async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -612,6 +616,24 @@ function AnnouncementsSection() {
   const [selectedAnnouncements, setSelectedAnnouncements] = useState<number[]>([]);
   const list = items ?? [];
 
+  // Préremplissage venant du Composer IA (onglet IA → Composer).
+  const [aiPrefill, setAiPrefill] = useState<any | null>(null);
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(COMPOSER_PREFILL_KEY);
+      if (!raw) return;
+      const pre = JSON.parse(raw);
+      if (pre?.target === "announcement" && pre.form) {
+        sessionStorage.removeItem(COMPOSER_PREFILL_KEY);
+        setAiPrefill(pre.form);
+        setEditing(null);
+        setOpen(true);
+      }
+    } catch {
+      sessionStorage.removeItem(COMPOSER_PREFILL_KEY);
+    }
+  }, []);
+
   const allSelected = list.length > 0 && selectedAnnouncements.length === list.length;
   const someSelected = selectedAnnouncements.length > 0 && selectedAnnouncements.length < list.length;
 
@@ -775,9 +797,10 @@ function AnnouncementsSection() {
 
       <AnnouncementDialog
         open={open}
-        onOpenChange={v => { if (!v) { setOpen(false); setEditing(null); } }}
+        onOpenChange={v => { if (!v) { setOpen(false); setEditing(null); setAiPrefill(null); } }}
         editing={editing}
         onSubmit={handleSubmit}
+        initialValues={aiPrefill}
       />
     </div>
   );
@@ -810,6 +833,24 @@ function FlashEventsSection() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any | null>(null);
   const list = items ?? [];
+
+  // Préremplissage venant du Composer IA (onglet IA → Composer).
+  const [aiPrefill, setAiPrefill] = useState<any | null>(null);
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(COMPOSER_PREFILL_KEY);
+      if (!raw) return;
+      const pre = JSON.parse(raw);
+      if (pre?.target === "flash-event" && pre.form) {
+        sessionStorage.removeItem(COMPOSER_PREFILL_KEY);
+        setAiPrefill(pre.form);
+        setEditing(null);
+        setOpen(true);
+      }
+    } catch {
+      sessionStorage.removeItem(COMPOSER_PREFILL_KEY);
+    }
+  }, []);
 
   function handleSubmit(data: any) {
     const payload = { ...data, type: "flash-event" as const, variant: "default" as const };
@@ -864,9 +905,10 @@ function FlashEventsSection() {
 
       <AnnouncementDialog
         open={open}
-        onOpenChange={v => { if (!v) { setOpen(false); setEditing(null); } }}
+        onOpenChange={v => { if (!v) { setOpen(false); setEditing(null); setAiPrefill(null); } }}
         editing={editing}
         onSubmit={handleSubmit}
+        initialValues={aiPrefill}
       />
     </div>
   );

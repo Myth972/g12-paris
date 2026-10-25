@@ -11,7 +11,22 @@ import "./i18n";
 import { SpeedInsights } from "@vercel/speed-insights/react";
 import { Analytics } from "@vercel/analytics/react";
 
-const queryClient = new QueryClient();
+// API hors ligne : le service worker met en cache les dernières réponses
+// tRPC publiques (articles, galeries, annonces, versets, réglages de page).
+// Pour afficher ce contenu hors connexion, les réponses déjà reçues doivent
+// rester en mémoire cache de React Query (gcTime par défaut : 5 min — trop
+// court, le service worker serait inutilement le seul à conserver les données).
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // ~30 jours : les données consultées restent affichables hors ligne.
+      gcTime: 1000 * 60 * 60 * 24 * 30,
+      // Les requêtes en échec réseau sont retentées automatiquement au
+      // retour de la connexion (listener «online» ci-dessous).
+      retry: 1,
+    },
+  },
+});
 const CSRF_COOKIE_NAME = "csrf_token";
 const CSRF_HEADER_NAME = "x-csrf-token";
 
@@ -103,6 +118,15 @@ const isLocalhost = Boolean(
         /^127(?:\.(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)){3}$/
       ))
 );
+
+// Retour de connexion : rafraîchit toutes les requêtes affichées pour
+// resynchroniser le contenu. L'écran ne « clignote » pas : TanStack Query
+// conserve les dernières données valides pendant la revalidation.
+if (typeof window !== "undefined") {
+  window.addEventListener("online", () => {
+    void queryClient.invalidateQueries();
+  });
+}
 
 createRoot(document.getElementById("root")!).render(
   <trpc.Provider client={trpcClient} queryClient={queryClient}>

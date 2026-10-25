@@ -1246,6 +1246,164 @@ export const appRouter = router({
         }
       }),
 
+    // Composer éditorial : l'IA rédige un brouillon structuré (article, annonce
+    // ou flash-event) à partir d'une demande en français. AUCUNE écriture en
+    // base : la procédure retourne seulement le brouillon, validé par Zod ; la
+    // création réelle passe toujours par les procédures existantes revues par
+    // un humain.
+    compose: editeurProcedure
+      .input(
+        z.object({
+          kind: z.enum(["article", "announcement", "flash-event"]),
+          brief: z.string().min(1).max(2000),
+          eventDate: z.string().max(120).optional(),
+          location: z.string().max(200).optional(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const userId = ctx.user?.id?.toString() || "anonymous";
+        const db = getDb();
+        let provider: "google" | "groq" | "minimax" | "aimlapi" | "ollama" | undefined;
+        if (db) {
+          const rows = await db
+            .select()
+            .from(siteSettings)
+            .where(eq(siteSettings.key, "aiProvider"))
+            .limit(1);
+          provider = rows[0]?.value as any;
+        }
+
+        // Schéma de sortie selon le type demandé : l'IA doit produire exactement
+        // ces champs, sinon le brouillon est refusé (pas de sauvegarde au hasard).
+        const draftSchema =
+          input.kind === "article"
+            ? z.object({
+                title: z.string().min(1).max(500),
+                excerpt: z.string().max(1000).optional().default(""),
+                content: z.string().min(1),
+                category: z.string().max(100).optional().default("actualité"),
+              })
+            : z.object({
+                title: z.string().min(1).max(300),
+                description: z.string().max(1000).optional().default(""),
+                badge: z.string().max(60).optional(),
+                category: z
+                  .enum(["general", "jeunes", "culte", "convention"])
+                  .optional()
+                  .default("general"),
+                eventDate: z.string().max(120).optional(),
+                location: z.string().max(200).optional(),
+                ctaLabel: z.string().max(80).optional(),
+                ctaHref: z.string().max(500).optional(),
+              });
+
+        const systemPrompt =
+          input.kind === "article"
+            ? `Tu es le rédacteur web principal du site G12 Paris Infos Médias (communauté chrétienne). Rédige en français, sur un ton inspirant, précis et respectueux, adapté au grand public.
+À partir de la demande de l'administrateur, réponds UNIQUEMENT par un objet JSON valide, sans aucun texte autour et sans bloc de code :
+{"title":"titre accrocheur (120 caractères max)","excerpt":"résumé attrayant de 2 phrases max","content":"article HTML complet (300 à 600 mots) avec des <h2> pour les sections, des <p>, et un <blockquote> avec référence biblique si pertinent","category":"catégorie courte en minuscules (ex : actualité, enseignement, témoignage)"}`
+            : `Tu prépares ${
+                input.kind === "flash-event"
+                  ? "un événement à la une (flash) qui s'affichera sur l'accueil et la page Événements"
+                  : "une annonce affichée sur la page d'accueil"
+              } du site G12 Paris Infos Médias. Rédige en français, ton chaleureux et sobre.
+Réponds UNIQUEMENT par un objet JSON valide, sans aucun texte autour et sans bloc de code :
+{"title":"titre court","description":"annonce concise de 1 à 3 phrases","badge":"badge très court ou chaîne vide","category":"general|jeunes|culte|convention","eventDate":"date et heure lisibles si connues, sinon chaîne vide","location":"lieu si connu, sinon chaîne vide","ctaLabel":"texte du bouton ou chaîne vide","ctaHref":"/chemin-du-site ou chaîne vide"}` +
+              (input.kind === "flash-event"
+                ? " Le champ eventDate est obligatoire."
+                : "");
+
+        const contextParts = [
+          input.eventDate ? `Date/heure de l'événement (à respecter) : ${input.eventDate}` : null,
+          input.location ? `Lieu (à respecter) : ${input.location}` : null,
+        ].filter(Boolean);
+
+        const prompt = `Demande : ${input.brief}${
+          contextParts.length ? `\n${contextParts.join("\n")}` : ""
+        }`;
+
+        const startTime = Date.now();
+        const inputTokens = estimateTokens(prompt) + 400;
+        checkUserQuota(userId, inputTokens);
+
+        // Extraction tolérante du JSON : supprime d'éventuels blocs de code ou
+        // phrases d'amorce autour de l'objet.
+        const extractJsonObject = (text: string): string => {
+          let cleaned = text.trim();
+          const first = cleaned.indexOf("{");
+          const last = cleaned.lastIndexOf("}");
+          if (first >= 0 && last > first) {
+            cleaned = cleaned.slice(first, last + 1);
+          }
+          return cleaned;
+        };
+
+        try {
+          const response = await invokeLLMWithFallback({
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: prompt },
+            ],
+            provider,
+          });
+          const raw = (response.choices[0].message.content as string) || "";
+
+          let parsedJson: unknown;
+          try {
+            parsedJson = JSON.parse(extractJsonObject(raw));
+          } catch {
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message:
+                "La réponse IA n'était pas un JSON exploitable. Reformule la demande ou réessaie.",
+            });
+          }
+          const draft = draftSchema.safeParse(parsedJson);
+          if (!draft.success) {
+            throw new TRPCError({
+              code: "INTERNAL_SERVER_ERROR",
+              message:
+                "Le brouillon IA ne respecte pas le format attendu. Réessaie ou ajuste ta demande.",
+            });
+          }
+
+          const outputTokens = estimateTokens(raw);
+          logAiUsage({
+            timestamp: new Date(),
+            userId,
+            provider: provider || "groq",
+            model: response.model,
+            endpoint: "ai.compose",
+            inputTokens,
+            outputTokens,
+            totalTokens: inputTokens + outputTokens,
+            success: true,
+            durationMs: Date.now() - startTime,
+          });
+          return {
+            kind: input.kind,
+            draft: draft.data,
+            model: response.model,
+            provider: provider || "groq",
+          };
+        } catch (err: any) {
+          logAiUsage({
+            timestamp: new Date(),
+            userId,
+            provider: provider || "groq",
+            model: "unknown",
+            endpoint: "ai.compose",
+            inputTokens,
+            outputTokens: 0,
+            totalTokens: inputTokens,
+            success: false,
+            error: err.message,
+            durationMs: Date.now() - startTime,
+          });
+          throw err;
+        }
+      }),
+
     chatbot: publicProcedure
       .input(
         zod.object({
@@ -1660,14 +1818,17 @@ RÈGLES :
         }),
     }),
 
-    // ─── Gestion dynamique des providers ───────────────────────────
+    // ─── Gestion dynamique des providers (connecteur de clés) ─────
+    // adminOnlyProcedure : l'UI (ApiKeyConnector) est réservée à l'admin,
+    // l'API doit suivre — un éditeur ne doit pas modifier la liste des
+    // providers (activation/désactivation/suppression du fallback IA).
     providers: router({
-      list: adminProcedure.query(async () => {
+      list: adminOnlyProcedure.query(async () => {
         const { listProviders } = await import("./_core/apiProviders.js");
         return listProviders();
       }),
 
-      add: adminProcedure
+      add: adminOnlyProcedure
         .input(
           zod.object({
             provider: z.string().min(1).max(50),
@@ -1690,7 +1851,7 @@ RÈGLES :
           return { ok: true };
         }),
 
-      remove: adminProcedure
+      remove: adminOnlyProcedure
         .input(zod.object({ provider: z.string().min(1) }))
         .mutation(async ({ input }) => {
           const { removeProvider, resetProviderCache } = await import("./_core/apiProviders.js");
@@ -1699,6 +1860,34 @@ RÈGLES :
           resetProviderCache();
           resetProviderHealth(input.provider as any);
           return { ok: true };
+        }),
+
+      // Bascule activation/désactivation à chaud sans renvoyer la charge
+      // complète (l'interrupteur par ligne du connecteur) : conserve label,
+      // modèle et baseUrl existants.
+      toggle: adminOnlyProcedure
+        .input(zod.object({ provider: z.string().min(1), enabled: z.boolean() }))
+        .mutation(async ({ input }) => {
+          const { getProviderConfig, upsertProvider, resetProviderCache } =
+            await import("./_core/apiProviders.js");
+          const current = await getProviderConfig(input.provider);
+          if (!current) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: `Provider "${input.provider}" introuvable`,
+            });
+          }
+          if (current.enabled === input.enabled) {
+            return { ok: true }; // idempotent : rien à faire
+          }
+          // upsertProvider ne touche que les champs fournis : label/model/
+          // baseUrl restent intacts.
+          await upsertProvider({
+            provider: input.provider.toLowerCase().replace(/[^a-z0-9-]/g, "-"),
+            enabled: input.enabled,
+          });
+          resetProviderCache();
+          return { ok: true, enabled: input.enabled };
         }),
     }),
 

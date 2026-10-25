@@ -12,6 +12,9 @@
       "cart": "Carrito",
       "login": "Iniciar sesión"
     },
+    "offline": {
+      "banner": "Modo sin conexión — mostrando el último contenido guardado"
+    },
     "language": "Idioma"
   }
 }

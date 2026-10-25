@@ -106,6 +106,8 @@ export default function AdminDesign() {
   const [conventionVenueName, setConventionVenueName] = useState("Centre de Conférences");
   const [conventionVenueQuery, setConventionVenueQuery] = useState("Paris, France");
   const [conventionVenueAddress, setConventionVenueAddress] = useState("");
+  const [conventionEventStart, setConventionEventStart] = useState("2026-10-30T09:00");
+  const [conventionEventEnd, setConventionEventEnd] = useState("2026-11-01T19:00");
   const [conventionBgOpacity, setConventionBgOpacity] = useState("100");
   const [conventionBgSize, setConventionBgSize] = useState("cover");
   const [conventionBgPosition, setConventionBgPosition] = useState("center");
@@ -204,6 +206,8 @@ export default function AdminDesign() {
       if (settingsQuery.data["convention.venueName"]) setConventionVenueName(settingsQuery.data["convention.venueName"] as string);
       if (settingsQuery.data["convention.venueQuery"]) setConventionVenueQuery(settingsQuery.data["convention.venueQuery"] as string);
       if (settingsQuery.data["convention.venueAddress"]) setConventionVenueAddress(settingsQuery.data["convention.venueAddress"] as string);
+      if (settingsQuery.data["convention.eventStart"]) setConventionEventStart(settingsQuery.data["convention.eventStart"] as string);
+      if (settingsQuery.data["convention.eventEnd"]) setConventionEventEnd(settingsQuery.data["convention.eventEnd"] as string);
       if (settingsQuery.data["convention.bgOpacity"]) setConventionBgOpacity(settingsQuery.data["convention.bgOpacity"] as string);
       if (settingsQuery.data["convention.bgSize"]) setConventionBgSize(settingsQuery.data["convention.bgSize"] as string);
       if (settingsQuery.data["convention.bgPosition"]) setConventionBgPosition(settingsQuery.data["convention.bgPosition"] as string);
@@ -253,6 +257,8 @@ export default function AdminDesign() {
         ["convention.venueName", conventionVenueName],
         ["convention.venueQuery", conventionVenueQuery],
         ["convention.venueAddress", conventionVenueAddress],
+        ["convention.eventStart", conventionEventStart],
+        ["convention.eventEnd", conventionEventEnd],
         ["convention.bgOpacity", conventionBgOpacity],
         ["convention.bgSize", conventionBgSize],
         ["convention.bgPosition", conventionBgPosition],
@@ -1448,6 +1454,28 @@ export default function AdminDesign() {
                   value={conventionVenueAddress}
                   onChange={(e) => setConventionVenueAddress(e.target.value)}
                 />
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="convention-event-start" className="text-sm font-medium">Début de la Convention</label>
+                <Input
+                  id="convention-event-start"
+                  name="conventionEventStart"
+                  type="datetime-local"
+                  value={conventionEventStart}
+                  onChange={(e) => setConventionEventStart(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">Utilisée par le compte à rebours et le fichier « Ajouter au calendrier » (.ics).</p>
+              </div>
+              <div className="space-y-2">
+                <label htmlFor="convention-event-end" className="text-sm font-medium">Fin de la Convention</label>
+                <Input
+                  id="convention-event-end"
+                  name="conventionEventEnd"
+                  type="datetime-local"
+                  value={conventionEventEnd}
+                  onChange={(e) => setConventionEventEnd(e.target.value)}
+                />
+                 <p className="text-xs text-muted-foreground">Heure de fin de l'événement dans les agendas.</p>
               </div>
             </div>
           </div>

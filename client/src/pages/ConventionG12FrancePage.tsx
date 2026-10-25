@@ -1,11 +1,16 @@
 import { useState, useEffect } from "react";
 import PageContentDisplay from "@/components/PageContentDisplay";
 import { Reveal } from "@/components/Reveal";
+import ConventionCountdown from "@/components/ConventionCountdown";
+import ShareButtons from "@/components/ShareButtons";
+import { downloadConventionIcs } from "@/lib/conventionCalendar";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
-import { Play, Share2, ExternalLink, Check, Calendar, MapPin, Download, TrainFront } from "lucide-react";
+import { Play, Share2, ExternalLink, Check, Calendar, CalendarPlus, MapPin, Download, TrainFront } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { useSeo } from "@/lib/seo";
+import { eventJsonLd } from "@/lib/structuredData";
 
 function renderWithLineBreaks(text: string) {
   const lines = text.split("\n");
@@ -49,6 +54,30 @@ export default function ConventionG12FrancePage() {
   const venueName = (settingsQuery.data?.["convention.venueName"] as string) || "Centre de Conférences";
   const venueQuery = (settingsQuery.data?.["convention.venueQuery"] as string) || "Paris, France";
   const venueAddress = (settingsQuery.data?.["convention.venueAddress"] as string) || "";
+
+  // Dates de l'événement (réglages admin, format datetime-local) — utilisées
+  // par le compte à rebours et le fichier « Ajouter au calendrier » (.ics)
+  const eventStart = (settingsQuery.data?.["convention.eventStart"] as string) || "2026-10-30T09:00:00";
+  const eventEnd = (settingsQuery.data?.["convention.eventEnd"] as string) || "2026-11-01T19:00:00";
+
+  /* ---------- SEO : JSON-LD Event ---------- */
+  useSeo({
+    title: "Convention G12 France",
+    description:
+      "Programme, inscriptions et lives — tout sur la Convention G12 France à Paris.",
+    url: "/culte-en-ligne/convention",
+    image: conventionLogoUrl,
+    jsonLd: eventJsonLd({
+      name: "Convention G12 France",
+      description:
+        "Convention G12 France — cultes et sessions à Paris, avec la communauté G12.",
+      startDate: new Date(eventStart).toISOString(),
+      location: [venueName, venueAddress].filter(Boolean).join(", ") || venueQuery,
+      image: conventionLogoUrl,
+      url: "/culte-en-ligne/convention",
+    }),
+  });
+
 
   // Réglages avancés des arrière-plans
   const readNumSetting = (key: string, fallback: number) => {
@@ -167,6 +196,18 @@ export default function ConventionG12FrancePage() {
   const [copied, setCopied] = useState(false);
   const [iframeErrored, setIframeErrored] = useState(false);
 
+  // Génère et télécharge le fichier .ics (Google Calendar / Outlook / Apple)
+  const handleAddToCalendar = () => {
+    downloadConventionIcs({
+      title: frEventName || "Convention G12 France",
+      description: `${frSubtitle || ""}${frBody ? " — " + frBody : ""}`.trim(),
+      location: [venueName, venueAddress].filter(Boolean).join(", ") || venueQuery,
+      url: window.location.href,
+      start: new Date(eventStart),
+      end: new Date(eventEnd),
+    });
+  };
+
   const handleShare = async () => {
     const url = window.location.href;
     if (navigator.share) {
@@ -259,6 +300,21 @@ export default function ConventionG12FrancePage() {
               <div className="flex items-center gap-2 text-sm text-muted-foreground bg-white dark:bg-card px-4 py-2 rounded-full shadow-sm border">
                 <MapPin className="w-4 h-4 convention-primary-text text-primary" />
                 {locationInfo}
+              </div>
+            </div>
+
+            {/* Compte à rebours + Ajouter au calendrier + Partages */}
+            <div className="mt-8 space-y-5">
+              <ConventionCountdown startISO={eventStart} endISO={eventEnd} />
+              <div className="flex flex-wrap items-center justify-center gap-3">
+                <Button onClick={handleAddToCalendar} variant="outline" className="gap-2 rounded-full">
+                  <CalendarPlus className="w-4 h-4" />
+                  Ajouter au calendrier
+                </Button>
+                <ShareButtons
+                  message="Participez à la Convention G12 France !"
+                  className="gap-2"
+                />
               </div>
             </div>
           </div>

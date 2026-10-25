@@ -3,7 +3,226 @@
 > Ce fichier est mis à jour quand l'utilisateur dit « à plus tard ». Il permet de reprendre
 > le travail là où on s'est arrêté.
 
-## Dernière session (terminée)
+## Dernière session (en cours, non commitée)
+
+### PWA mode offline (cache des derniers contenus consultés)
+1. **`client/public/sw.js`** → version **v10** : cache runtime des réponses tRPC
+   **publiques** (articles, gallery, announcements, verses, pageContent,
+   siteSettings) en network-first : en ligne = fraîcheur, hors ligne = dernier
+   contenu connu (header `x-g12-offline: 1`); mutations + auth + uploads privés
+   jamais mis en cache. Cache-first parking SYNCHRONIQUE pour les médias
+   (`/uploads/`) : l'extérieur de la réponse est dans le cache avant rendu →
+   couvertures/vignettes lisibles hors ligne. LRU octets + entrées
+   (API ~2 Mo/60 entrées, médias ~4 Mo/300 entrées).
+2. **`client/src/main.tsx`** : `gcTime` TanStack Query à 30 jours (au lieu de
+   5 min, sinon le SW cache des données que React Query jette), listener
+   `window online` → `invalidateQueries()` au retour du réseau (revalidations
+   silencieuses, l'écran garde les dernières données valides).
+3. **`client/src/components/OfflineBanner.tsx`** (nouveau) : bandeau
+   « Mode hors connexion — vous consultez le dernier contenu enregistré »,
+   AnimatePresence slide-in top, clés i18n `offline.banner` ajoutées dans
+   **fr / en / es**. Monté dans `App.tsx > AppWithTheme` (au-dessus de
+   AudioPlayerProvider).
+4. Vérifié : `pnpm run check` ✓, `pnpm run build` ✓, `node --check sw.js` ✓,
+   JSON locales valides ✓. **Pas de commit** (attente validation).
+5. **Lightbox sur les images du corps des articles** (`ArticleDetail.tsx`) :
+   collecte des `<img>` du prose rendu par Streamdown (useEffect sur
+   `contentHtml`), clic délégué → Lightbox plein écran avec navigation
+   ← / → entre toutes les images de l'article, cursor-zoom-in au survol.
+   Les images-liens (dans un `<a>`) gardent leur comportement de lien.
+   Vérifié : check ✓ + build ✓.
+6. **Lightbox étendue aux autres pages** :
+   - `PublicationDuJour.tsx` : les images « Publications du Jour » ouvrent
+     la lightbox (fini le `openImageInNewTab`) ; l'image du Verset du Jour
+     ouvre aussi la lightbox avec le texte/référence du verset en bannière.
+   - `PageContentDisplay.tsx` : les images des contenus éditéurs ouvrent la
+     lightbox (clé z-index stopPropagation), la légende reste extensible
+     via le reste de la carte ; YouTube/vidéo MP4 inchangés (contrôles natifs).
+7. **Vignettes AVIF/WebP + srcset responsive** :
+   - `server/imageResizer.ts` (nouveau) : route `/api/image?src=&w=&f=`,
+     transformation sharp à la volée (rotate EXIF, resize sans agrandir,
+     AVIF 60 / WebP 78 / JPEG 80), Cache-Control immutable 1 an + s-maxage.
+     Allowlist : `/uploads/…` (lecture borne au dossier, pas de traversal)
+     + Vercel Blob / S3 ; l'échec renvoie une redirection vers l'original.
+     Enregistrée dans `server/_core/index.ts` et `api/index.ts` (Vercel).
+   - `client/src/lib/imageOptimize.ts` (nouveau) : normalisation source
+     (même origine → chemin, blob → URL full), exclusions data:/SVG/GIF/AVIF,
+     buildSrcSet 320/480/768/1024.
+   - `client/src/components/OptimizedImage.tsx` (nouveau) : `<picture>`
+     AVIF+WebP, `_source` et fallback original ; sources non transformables
+     → `<img>` simple. Intégré aux vignettes de GalleriesPage (masonry +
+     carrousel) et PageContentDisplay (prop `sizeHint`, sizes hint par mode).
+   - `sw.js` : `/api/image` passe en cache-first médias (offline OK).
+   - **Mesuré en local** : JPG original 161 579 o → **AVIF 320px : 9 028 o
+     (−94 %)**, WebP 480px : 27 748 o. Traversal et host externe → 404.
+   - Vérifié : check ✓, build ✓, `node --check sw.js` ✓, test réel endpoint ✓.
+8. **Événements : countdown + .ics sur chaque événement à venir (/evenements)** :
+   - `ConventionCountdown` généralisé : props `label`, `liveLabel`, variante
+     `compact` (chips inline « 12j 04h 30m 00s », pour les cartes). Valeurs
+     par défaut inchangées pour la page Convention.
+   - `conventionCalendar.ts` : alias générique `downloadIcs` + UID dérivé du titre.
+   - `EventsPage.tsx` : sous chaque carte d'événement à venir (eventDate >
+     maintenant) : countdown compact (fenêtre « en cours » de 4 h) + bouton
+     « Ajouter au calendrier » téléchargeant `evenement-<titre>.ics`.
+9. **JSON-LD Event sur la page Convention** : `useSeo` ajouté (title/description/
+   url/image de la Convention) + `eventJsonLd` (startDate/endDate réglages
+   admin, location venueName+venueAddress, organizer Organization partagée).
+   Vérifié : check ✓ + build ✓.
+10. **Placeholder couleur dominante sur les vignettes optimisées** :
+   - `client/src/lib/imagePlaceholder.ts` (nouveau) : fetch de la variante
+     32 px du proxy `/api/image` (same-origin → canvas lisible, pas de CORS),
+     couleur moyenne pondérée sur canvas 8×8, léger assombrissement ×0.92,
+     cache module Map par URL (zéro recalcul relativement à la session).
+   - `OptimizedImage.tsx` : prop `placeholder = true`, couleur déjà calculée
+     applique en style synchrone (pas de flash), extraction async sinon.
+     Sources non transformables → comportement inchangé.
+   - Coût : ~1 Ko par image (cache immuable) ; vignettes réutilisables
+     partout (galerie + pages de contenu) automatiquement.
+   - Vérifié : check ✓ + build ✓.
+11. **ChatBot Admin à actions (rédaction) + réorganisation du Dashboard** :
+    - **`server/routers.ts`** : nouvelle procédure **`ai.compose`** (editeurProcedure) —
+      rédige un brouillon structuré via LLM (multi-provider avec fallback, quota +
+      logging aria "ai.compose"). Entrée : kind article/announcement/flash-event,
+      brief (+ eventDate/location). Sortie : JSON validé par Zod (version sinon
+      erreur claire) — **aucune écriture DB, aucun publish automatique**.
+    - **`client/src/components/AIComposer.tsx`** (nouveau, chargé lazy) : sous-onglet
+      **Composer** en tête de l'onglet IA. Choix du type (Article / Annonce /
+      Événement), demande libre + date/lieu optionnels, aperçu **modifiable** du
+      brouillon. Article → "Enregistrer en brouillon" (articles.create
+      published:false) puis ouverture de l'éditeur. Annonce/Flash →
+      "Préremplir le formulaire d'accueil" (sessionStorage). Brouillons seulement,
+      validé par l'utilisateur.
+    - **`client/src/components/HomeContentManager.tsx`** : `AnnouncementDialog`
+      accepte `initialValues` (préremplissage brouillon IA) ; les sections
+      Annonces et Flash-events lisent la clé sessionStorage
+      `g12-composer-prefill` au montage, ouvrent le dialogue prérempli et
+      consomment la clé (une seule fois, par type correspondant).
+    - **`client/src/pages/Admin.tsx`** :
+      - Onglets pilotés par l'URL : `value/onValueChange contrôlés`, lien
+        shareable `/admin?tab=xxx` (favoris + handoff depuis le Composer), liste
+        blanche par rôle (bibliothécaire ne peut pas atteindre users/ai via URL).
+      - Sidebar desktop réorganisée en groupes lisible : **Contenu** (articles,
+        accueil, pages, publications, story-cards), **IA & Communication** (IA,
+        Communications, Inscriptions), **Administration** (CMS, Utilisateurs).
+        Mobile inchangé (scroll horizontal).
+      - Rôles calculés avant les retours anticipés (règle des hooks) ; garde
+        d'accès « accès restreint » conservé intact.
+    - Vérifié : `pnpm run check` ✓ (0 erreur), `pnpm run build` ✓ (~15 s).
+12. **Fade-in des vignettes optimisées** : `OptimizedImage` — opacité 0→1
+    (transition CSS 300 ms ease-out) déclenchée par `<img onLoad>`,
+    l'état `complete` du DOM gère les images déjà en cache et le reset sur
+    changement de source ; les styles parents restent prioritaires (spread
+    `...style` après). Prop `fadeIn = true` par défaut, désactivable.
+    Vérifié : check ✓ + build ✓.
+13. **Test Vitest de ai.compose (matrice Pairwise)** :
+    - `server/aiCompose.test.ts` (nouveau, 8 tests) : LLM mocké
+      (`vi.mock("./_core/llm.js")` — invokeLLM/invokeLLMWithFallback/
+      isProviderConfigured), aucun réseau, aucune écriture DB.
+    - Paires couvertes : Rôle (admin | éditeur | bibliothèque | user) ×
+      Type (article | annonce | flash-event) × Sortie IA (JSON valide avec
+      fences, JSON minimal, JSON complet, JSON hors format, prose sans JSON).
+    - Garde vérifiée : bibliothèque/user → refus AVANT l'appel LLM ; JSON
+      hors format / non-JSON → erreur explicite, zéro création ; succès →
+      `articles.total` et `announcements` inchangés (brouillons uniquement).
+    - Résultat : 8/8 verts (`pnpm vitest run server/aiCompose.test.ts`).
+14. **Correction des 2 échecs préexistants de `apiProviders.test.ts`** :
+    - Cause (via `git log -S aimlapi`, commits 348cb3b puis 9a4a1de) : le
+      commit initial des providers dynamiques avait un seed SANS AIMLAPI,
+      mais 9a4a1de a ajouté `aimlapi` aux `DEFAULT_PROVIDERS`
+      (`enabled: true`) sans mettre à jour le test ni le commentaire — le
+      test échouait, le code avait raison.
+    - Cause réelle du problème de fond : AIMLAPI est un provider
+      **d'images/vidéo** (`/v1/images/generations`, modèle `flux/schnell`) ;
+      activé par défaut, il polluait le fallback du chat
+      (`invokeLLMWithFallback` n'aurait pu que échouer dessus).
+    - Correctif : `aimlapi` **`enabled: false`** dans `DEFAULT_PROVIDERS`
+      (liste conservée pour le connecteur de clés ; l'admin l'active), +
+      mises à jour du commentaire de tête du module.
+    - Test recalibré sur l'objectif de sécurité initial : « AIMLAPI présent
+      mais désactivé » / « exclu du fallback du chat », plus « absent de la
+      liste ». DB déjà seedée synchronisée par le `beforeAll` (upsert des
+      défauts).
+    - Résultat : `pnpm run test` → **115/115 verts (10 fichiers)**,
+      `pnpm run check` ✓ (0 erreur), `pnpm run build` ✓ (~15 s).
+15. **Blur-up des vignettes optimisées** (remplace le simple aplât de
+    couleur dominante) :
+    - `server/imageResizer.ts` : param `&blur=sigma` (0.3–20, rejet hors
+      bornes → 400) sur `/api/image`, `sharp.blur(sigma)` appliqué après le
+      resize ; les variantes normales sont inchangées.
+    - `client/src/lib/imagePlaceholder.ts` réécrit : un SEUL fetch de la
+      variante 320px WebP floutée («8", ≈2-10 Ko, cache immuable) fournit
+      à la fois l'URL du fond ({ color, blurUrl } en cache module) et la
+      couleur moyenne (canvas 8x8, pixels alpha pondérés), au lieu de deux
+      téléchargements séparés (couleur 32px + image finale).
+    - `client/src/components/OptimizedImage.tsx` : le fond du `<img>` porte
+      désormais `background-image` = variante floutée (cover/center) par-
+      dessus la `background-color` de secours ; la vignette fond 0→1
+      (300 ms) au-dessus d'une version lisible floutée d'elle-même.
+      Styles parents toujours prioritaires (spread `...style` après).
+    - Vérifié en exécution : dev server éphémère → `GET
+      /api/image?...&w=320&f=webp&blur=8` = 200 image/webp 2 212 o (vs
+      12 382 o sans flou), `blur=99` = 400 ; contrôle visuel du WebP flouté
+      conforme ; serveur de test stoppé, aucun port résiduel.
+    - `pnpm run check` ✓ + `pnpm run build` ✓ + `pnpm run test` 115/115.
+16. **Test Vitest du connecteur de clés (Pairwise)** + corrections révélées :
+    - **Sécurisation** : `ai.providers.list/add/remove` passées d'
+      `adminProcedure` (admin+éditeur+biblio) à `adminOnlyProcedure` — l'UI
+      (ApiKeyConnector) est déjà réservée à `isAdmin` (Admin.tsx 790),
+      l'API devait suivre ; un éditeur ne doit pas retoucher le fallback IA.
+    - **Bug réel trouvé et corrigé** (`_core/apiProviders.ts`) : le seed
+      réinsérait tout provider par défaut « manquant » à chaque lecture →
+      la suppression (blacklist) d'un provider par défaut (ex. aimlapi)
+      était **silencieusement annulée**. `seedIfEmpty` ne seed plus QUE si
+      la table est vide (premier démarrage) ; une ligne supprimée reste
+      supprimée, conformément au commentaire du module.
+    - `server/providersConnector.test.ts` (nouveau, 9 tests) : matrice
+      Paire Rôle (admin | editeur | bibliotheque | user | anonyme) ×
+      Action (activation | désactivation | suppression+restauration |
+      entrée invalide | normalisation identifiant) ; chaque refus vérifie
+      l'absence d'effet de bord sur l'état AIMLAPI.
+    - Contrat documenté au passage : basculer enabled via le connecteur
+      passe par la charge complète (label/model/baseUrl requis par le
+      schéma, comme l'UI).
+    - Résultat : `pnpm run test` → **124/124 verts (11 fichiers)**,
+      `pnpm run check` ✓, `pnpm run build` ✓.
+    - Reste à faire éventuellement (découvert, hors périmètre) :
+      `ai.apiKeys.set/remove` sont toujours sur `adminProcedure` (éditeur
+      peut poser une clé API) — même pattern, resserrement à valider
+      séparément.
+17. **Défauts providers resserrés : seuls Groq et Google activés** :
+    - `DEFAULT_PROVIDERS` : MiniMax, Ollama, Kling, Replicate passent
+      `enabled: false` (AIMLAPI l'était déjà) ; le fallback du chat ne
+      s'appuie plus que sur Groq + Google tant que l'admin n'active pas
+      les autres via le connecteur.
+    - Commentaire de tête du module mis à jour.
+    - `apiProviders.test.ts` recalibré : tous les providers présents dans
+      la liste, exactement 2 activés (Groq, Google), fallback = [groq,
+      google], minimax/aimlapi exclus.
+    - Vérifié : `pnpm run test` 124/124 (11 fichiers), check ✓, build ✓.
+    - NB : une base existante déjà seedée garde son état (le seed ne
+      réécrit pas les lignes présentes) ; harmonisation via toggles dans
+      l'admin si souhaité.
+18. **Toggle enable/disable à chaud du connecteur (API + UI)** :
+    - API nouvelle procédure `ai.providers.toggle` (adminOnlyProcedure) :
+      charge minimale `{ provider, enabled }`, conserve label/model/
+      baseUrl, idempotent (re-toggle au même état = no-op), NOT_FOUND sur
+      provider inconnu, reset du cache providers.
+    - `listApiKeyStatus` expose désormais `enabled` par provider
+      (champ ajouté à `ApiKeyStatus`) — l'UI connaît l'état de chaque ligne.
+    - UI `ApiKeyConnector.tsx` : interrupteur Switch par ligne
+      (« activé »/« désactivé » coloré), mutation `toggle` avec toasts +
+      invalidations (apiKeys.list, stats), désactivé pendant l'envoi.
+    - Tests : +3 dans providersConnector.test.ts (toggle conserve la
+      charge, idempotence, NOT_FOUND sans création, éditeur refusé) →
+      `pnpm run test` 127/127 (11 fichiers), check ✓, build ✓.
+
+### Limites connues mode offline
+- Recherche / pagination : seule la page déjà consultée est servie hors ligne.
+- Contenus au-dessus de la ligne de flottaison déjà vus (LCP) restent priorisés.
+- Mutations (commentaires, likes) jamais mises en file offline (pas de Background
+  Sync API) → voué à rester simple, les visiteurs consultent, peu agissent hors ligne.
+
+## Session précédente (committée)
 
 ### Contexte
 Analyse du projet + corrections + tests de l'API Notifications avec la technique de test **Pairwise**
