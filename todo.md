@@ -224,6 +224,27 @@
 
 ## Session précédente (committée)
 
+### Commit & push de l'ensemble des sessions ci-dessus ✅
+- Commit **1ad5692** `feat(site+ia): connecteur de cles avec toggle admin, providers Groq/Google par defaut, visuels blur-up et PWA offline` → push `main` (GitHub Myth972/g12-paris), Vercel redéploie automatiquement.
+- État au commit : 127/127 tests verts, check ✓, build ✓. 36 fichiers (+3259 / −217), 12 fichiers créés.
+- Reste non committé : cette note seulement.
+
+## Session courante (après commit 1ad5692) — en attente de validation
+
+18-bis. **Connecteur de clés réservé à l'admin (les clés elles-mêmes aussi)** :
+    - `ai.apiKeys.list/set/remove` passées d'`adminProcedure`
+      (admin+éditeur+biblio) à `adminOnlyProcedure` — l'UI ne montre déjà
+      le connecteur qu'à `isAdmin` (Admin.tsx) et l'API suit désormais :
+      un éditeur/bibliothécaire ne peut plus poser, retirer ni même
+      consulter la liste des clés (valeurs masquées).
+    - Tests : +4 dans providersConnector.test.ts (Admin set+list masque
+      la valeur brute, Éditeur set refusé sans création, Bibliothécaire
+      list refusé, User remove refusé avec clé intacte) — le statut de clé
+      n'est listé que pour les providers connus (ligne de test créée et
+      nettoyée clé+ligne).
+    - Résultat : 16/16 dans le fichier, `pnpm run test` → **131/131 verts
+      (11 fichiers)**, check ✓, build ✓.
+
 ### Contexte
 Analyse du projet + corrections + tests de l'API Notifications avec la technique de test **Pairwise**
 (paires : Rôle Éditeur × Lecture de notifications existantes ; Rôle Simple × Marquer Tout Comme Lu

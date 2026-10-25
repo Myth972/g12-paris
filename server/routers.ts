@@ -1780,13 +1780,16 @@ RÈGLES :
     }),
 
     // ─── Connecteur de clés API ───────────────────────────────────
+    // adminOnlyProcedure : le Connecteur de clés API est réservé à l'admin
+    // (dans l'UI comme dans l'API) — poser/retirer une clé ou lister les
+    // statistiques de clés n'est pas du ressort d'un éditeur.
     apiKeys: router({
-      list: adminProcedure.query(async () => {
+      list: adminOnlyProcedure.query(async () => {
         const { listApiKeyStatus } = await import("./_core/apiKeys.js");
         return listApiKeyStatus();
       }),
 
-      set: adminProcedure
+      set: adminOnlyProcedure
         .input(
           zod.object({
             provider: z.string().min(1),
@@ -1802,7 +1805,7 @@ RÈGLES :
           return { ok: true };
         }),
 
-      remove: adminProcedure
+      remove: adminOnlyProcedure
         .input(
           zod.object({
             provider: z.string().min(1),

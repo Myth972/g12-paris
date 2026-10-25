@@ -294,3 +294,86 @@ describe("connecteur de clés — ai.providers.toggle", () => {
     expect((await aimlapiState()).enabled).toBe(false);
   });
 });
+
+describe("connecteur de clés — ai.apiKeys (les clés elles-mêmes)", () => {
+  // Pair : Rôle (admin | editeur | bibliotheque | user) × Action (set |
+  // list | remove). Le connecteur de clés est réservé à l'admin : poser,
+  // retirer ou même LISTER des clés (valeurs masquées) est interdit aux
+  // autres rôles.
+  // Clé de test : provider fictif, jamais un vrai (groq/google…). Le
+  // statut de la clé reste masqué dans list (jamais la valeur brute).
+  const TMP = "tmp-connecteur-cle";
+  const RAW = "k-test-0123456789abcdef";
+
+  /** Le statut n'est listé que pour les providers connus : créer la ligne. */
+  async function seedTmpProvider() {
+    const { upsertProvider } = await import("./_core/apiProviders.js");
+    await upsertProvider({ provider: TMP, label: TMP, model: "test-cle" });
+  }
+
+  afterAll(async () => {
+    const { removeApiKey, resetApiKeyCache } = await import("./_core/apiKeys.js");
+    await removeApiKey(TMP);
+    resetApiKeyCache();
+    const { removeProvider } = await import("./_core/apiProviders.js");
+    await removeProvider(TMP);
+  });
+
+  it("Admin × set + list — clé posée, visible seulement masquée", async () => {
+    await seedTmpProvider();
+    await callerFor("admin", 301).ai.apiKeys.set({
+      provider: TMP,
+      value: RAW,
+    });
+
+    const statuses = await callerFor("admin", 301).ai.apiKeys.list();
+    const row = statuses.find(s => s.provider === TMP);
+    expect(row?.configured).toBe(true);
+    expect(row?.source).toBe("db");
+    // La réponse liste des valeurs masquées, jamais la clé en clair.
+    expect(JSON.stringify(statuses)).not.toContain(RAW);
+    expect(row?.masked).not.toBe(RAW);
+    expect(row?.masked.length).toBeGreaterThan(0);
+  });
+
+  it("Éditeur × set — refus FORBIDDEN, clé jamais créée", async () => {
+    await seedTmpProvider();
+    // État propre : la clé posée par le scénario précédent est retirée,
+    // pour prouver que c'est bien le refus qui empêche la création.
+    const { removeApiKey, resetApiKeyCache } = await import("./_core/apiKeys.js");
+    await removeApiKey(TMP);
+    resetApiKeyCache();
+
+    await expect(
+      callerFor("editeur", 302).ai.apiKeys.set({ provider: TMP, value: RAW })
+    ).rejects.toThrow(/FORBIDDEN|Accès réservé/i);
+    // Le provider figure dans la liste (ligne créée pour le test) mais
+    // AUCUNE clé n'a été posée par l'éditeur refusé.
+    const row = (await callerFor("admin", 302).ai.apiKeys.list())
+      .find(s => s.provider === TMP);
+    expect(row?.configured ?? false).toBe(false);
+    expect(row?.source ?? "none").not.toBe("db");
+  });
+
+  it("Bibliothécaire × list — refus FORBIDDEN", async () => {
+    await seedTmpProvider();
+    await callerFor("admin", 303).ai.apiKeys.set({ provider: TMP, value: RAW });
+    await expect(
+      callerFor("bibliotheque", 303).ai.apiKeys.list()
+    ).rejects.toThrow(/FORBIDDEN|Accès réservé/i);
+  });
+
+  it("User simple × remove — refus FORBIDDEN, clé intacte", async () => {
+    await seedTmpProvider();
+    await callerFor("admin", 304).ai.apiKeys.set({ provider: TMP, value: RAW });
+    await expect(
+      callerFor("user", 304).ai.apiKeys.remove({ provider: TMP })
+    ).rejects.toThrow(/FORBIDDEN|Accès réservé/i);
+    // La clé est toujours là (l'admin peut la voir).
+    const row = (await callerFor("admin", 304).ai.apiKeys.list())
+      .find(s => s.provider === TMP);
+    expect(row?.configured).toBe(true);
+  });
+});
+
+
