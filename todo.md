@@ -3,6 +3,58 @@
 > Ce fichier est mis à jour quand l'utilisateur dit « à plus tard ». Il permet de reprendre
 > le travail là où on s'est arrêté.
 
+## Session : audit du site déployé post-push (non commité)
+
+### Contexte
+Vérification du site en production https://g12-paris.vercel.app après les poussées
+(commit+push) : pages clés, inscription publique convention, matrice admin/éditeur/bibliothécaire.
+Tests faits par requêtes HTTP réelles avec jeton CSRF + sessions, **sans polluer les données**
+(fiches d'audit créées puis supprimées).
+
+### Vérifié en prod ✅
+1. **Pages clés** : /, /articles, /evenements, /convention, /publication-du-jour, /galerie,
+   /bibliotheque, /contact… → 200 (coquille SPA) ; /sw.js ✓, /manifest.json ✓, /offline.html ✓,
+   /robots.txt ✓, /sitemap.xml ✓.
+2. **API publique** : articles.list ✓, verses.latest ✓, gallery.featured ✓,
+   conventionRegistrations.publicCount ✓, siteSettings.getAll ✓, auth.me (anonyme = null) ✓.
+3. **Inscription publique convention** : `create` anonyme OK (CSRF requis), `publicCount`
+   incrémenté, e-mail de confirmation déclenché, fiche d'audit **supprimée par la suite**
+   (count revenu à 1) ; CSRF : POST sans header → 403, avec header → 401 (mauvais mot de
+   passe = barrière CSRF transparente).
+4. **Matrice des rôles (comptes d'audit créés puis supprimés)** — editeur et bibliotheque :
+   `users.list`, `ai.apiKeys.*`, `ai.providers.*`, `conventionRegistrations.{list,listAll,stats}`,
+   `agents.list` → **403 FORBIDDEN** ; `suggestions.list` (staff) → 200 ; anonyme → 403.
+   Admin : toutes les routes adminOnly → 200.
+5. **Médias récents** : Vercel Blob → 200 (images + vidéo) ; la galerie fonctionne.
+
+### Écarts constatés ⚠️
+1. **Fuite `conventionRegistrations.checkEmail` (public)** : renvoie la fiche complète
+   (nom, e-mail, **ticketCode**, isActive, expiresAt) pour n'importe quel e-mail soumis —
+   prouvé en prod. Rendre seulement `{ registered: boolean }` (le ticketCode ne doit pas
+   sortir côté public).
+2. **Build Vercel en mode développement** : le bundle servi `assets/index-DBFyjMyo.js`
+   contient `jsxDEV`, `data-loc` et `fileName:"/vercel/path0/…"` (plugin jsx-loc + React dev,
+   chunks ~2,5× plus lourds que le build local actuel). Cause : `NODE_ENV=development`
+   dans les réglages du projet Vercel (+ `.env` local). Le correctif local (vite.config :
+   jsxLocPlugin seulement en mode production) existe **mais n'est pas commité/poussé**
+   (attente validation). Après validation : commit+push du fix + **supprimer la variable
+   NODE_ENV dans Vercel → Settings → Environment Variables**, puis redéployer.
+3. **Logo du site 404** : `siteSettings.site_logo = /uploads/page-content/...png` → 404 en
+   prod (le répertoire local `uploads/` n'existe pas sur Vercel). Tout média référencé par
+   une ancienne URL `/uploads/...` est cassé ; les nouveaux médias vont sur Vercel Blob.
+   À corriger : réuploader le logo (Blob) via l'admin ou migrer les anciens fichiers.
+4. **Mots de passe en clair en base** : `createUser` stocke `password` tel quel et
+   `findUserByUsernameAndPassword` compare en clair (db.ts). Recommandation : hash
+   (bcrypt/scrypt) + migration des comptes existants.
+5. **Rôle bibliothécaire sans périmètre propre** : `bibliothequeProcedure` est déclarée
+   mais jamais utilisée ; un bibliothécaire a tout le périmètre staff (adminProcedure).
+   À arbitérer si tu veux vraiment restreindre ce rôle.
+
+### Propre après l'audit
+- Comptes d'audit supprimés (users.delete) : `test-editeur-audit` (22940), `test-biblio-audit` (22942).
+- Fiches convention d'audit supprimées (conventionRegistrations.delete) : Audit Test (id 6), Audit Test2 (id 7).
+- `publicCount` final = 1 (état initial).
+
 ## Dernière session (en cours, non commitée)
 
 ### PWA mode offline (cache des derniers contenus consultés)

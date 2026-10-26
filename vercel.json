@@ -1,5 +1,5 @@
 {
-  "buildCommand": "vite build",
+  "buildCommand": "cross-env NODE_ENV=production vite build",
   "installCommand": "pnpm install",
   "outputDirectory": "dist/public",
   "crons": [

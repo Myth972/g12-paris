@@ -154,15 +154,40 @@ const isProduction = process.env.NODE_ENV === "production";
 const enableManusDebugCollector = process.env.MANUS_DEBUG_COLLECTOR === "true";
 const enableBundleAnalyzer = process.env.ANALYZE === "true";
 
-export default defineConfig({
-  plugins: [
-    react(),
-    tailwindcss(),
-    jsxLocPlugin(),
-    ...(enableManusDebugCollector ? [vitePluginManusDebugCollector()] : []),
-    ...(enableBundleAnalyzer ? [visualizer({ filename: "dist/stats.html", open: true, gzipSize: true, brotliSize: true })] : []),
-  ],
-    resolve: {
+// « vite build » ne doit JAMAIS produire un bundle de développement : une
+// variable NODE_ENV=development traînant là (var d'environnement projet ou
+// .env) force Vite en mode dev → runtime React de DEV (jsxDEV), code mort dev
+// inclus et app plus lente pour les visiteurs. Un `vite build` force donc
+// NODE_ENV=production dès le chargement du config, sans exception.
+if (process.argv.includes("build")) {
+  process.env.NODE_ENV = "production";
+}
+
+// Le plugin jsx-loc n'a de sens qu'en développement : il réécrit les appels
+// JSX vers le runtime React de DEV (jsxDEV + attributs data-loc), pour tracer
+// l'origine des éléments à l'écran. S'il s'appliquait aussi au build de
+// production, le site livré tournerait avec le React de dev. On lui interdit
+// donc le mode "build".
+export default defineConfig(({ mode }) => {
+  return {
+    plugins: [
+      react(),
+      tailwindcss(),
+      ...(mode === "production" ? [] : [jsxLocPlugin()]),
+      ...(enableManusDebugCollector ? [vitePluginManusDebugCollector()] : []),
+      ...(enableBundleAnalyzer ? [visualizer({ filename: "dist/stats.html", open: true, gzipSize: true, brotliSize: true })] : []),
+    ],
+    // Garantit que le runtime React branché en production est celui de prod,
+    // même si NODE_ENV traîne à "development" (var d'environnement projet ou
+    // .env) : sans ce define, react/jsx-runtime prend la branche de DEV.
+    ...(mode === "production"
+      ? {
+          define: {
+            "process.env.NODE_ENV": '"production"' as const,
+          },
+        }
+      : {}),
+      resolve: {
     alias: [
       { find: "@", replacement: path.resolve(import.meta.dirname, "client", "src") },
       { find: "@shared", replacement: path.resolve(import.meta.dirname, "shared") },
@@ -253,4 +278,5 @@ export default defineConfig({
       deny: ["**/.*"],
     },
   },
+  };
 });
