@@ -4006,17 +4006,20 @@ return { url };
   }),
 
   agents: router({
-    list: adminProcedure.query(async () => {
+    // adminOnlyProcedure : les agents automatisés (run de scripts,
+    // logs) déclenchent des effets serveur — l'UI AdminAgents refuse déjà
+    // les non-admin, l'API alignée dessus.
+    list: adminOnlyProcedure.query(async () => {
       const { listAgents } = await import("./_core/agents.js");
       return listAgents();
     }),
-    run: adminProcedure
+    run: adminOnlyProcedure
       .input(z.object({ id: z.string().min(1) }))
       .mutation(async ({ input }) => {
         const { runAgent } = await import("./_core/agents.js");
         return runAgent(input.id);
       }),
-    logs: adminProcedure
+    logs: adminOnlyProcedure
       .input(z.object({ limit: z.number().optional().default(50) }))
       .query(async ({ input }) => {
         const { getAgentLogs } = await import("./_core/agents.js");

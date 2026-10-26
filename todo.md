@@ -300,6 +300,18 @@ newsletter, agents) + garde routeur admin-only sur /admin/agents** :
       AdminAgents reste en backstop. Route /admin/agents enveloppée.
     - check ✓, build ✓. Non commité (attente validation).
 
+18-sexies. **Agents réservés à l'admin au niveau API (+ 4 paires de test)** :
+    - `agents.list/run/logs` passées d'`adminProcedure` à
+      `adminOnlyProcedure` (routers.ts) pour coller à la garde UI
+      AdminAgents : déclencher des runs de scripts serveur n'est pas le
+      métier de la rédaction.
+    - Tests +4 dans permissionsMatrix.test.ts (agent de test enregistré
+      via registerAgent, sans effet de bord) : admin list OK ; admin run +
+      logs avec trace de succès ; éditeur run refusé sans exécution ni
+      log ; biblio logs + user list refusés.
+    - Résultat : 23/23 dans le fichier, `pnpm run test` → **154/154 verts
+      (12 fichiers)**, check ✓, build ✓. Non commité (attente validation).
+
 ### Contexte
 Analyse du projet + corrections + tests de l'API Notifications avec la technique de test **Pairwise**
 (paires : Rôle Éditeur × Lecture de notifications existantes ; Rôle Simple × Marquer Tout Comme Lu

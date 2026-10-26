@@ -309,6 +309,61 @@ describe("conventionRegistrations — gestion réservée à l'admin, inscription
   });
 });
 
+describe("agents — automatisation réservée à l'admin (UI déjàverrouillée)", () => {
+  // agents.list/run/logs passent d'adminProcedure à adminOnlyProcedure :
+  // déclencher des runs serveur n'est pas le métier de la rédaction.
+  // L'UI AdminAgents refuse déjà les non-admin.
+  const AGENT_ID = "tmp-perm-agent";
+
+  beforeAll(async () => {
+    // Le registre n'est initialisé qu'en prod (api/index.ts) : on enregistre
+    // ici un agent de test SANS effet de bord (simple sleep local).
+    const { registerAgent } = await import("./_core/agents.js");
+    registerAgent(
+      AGENT_ID,
+      "Agent de test",
+      "Registre du test permissionsMatrix",
+      "activity",
+      async () => "Résultat du test",
+    );
+  });
+
+  it("Pair: Admin × list — autorisé, tableau d'agents", async () => {
+    const list = await callerFor("admin", ADMIN).agents.list();
+    expect(Array.isArray(list)).toBe(true);
+  });
+
+  it("Pair: Admin × run + logs — run réussi et journal lisible", async () => {
+    const log = await callerFor("admin", ADMIN).agents.run({ id: AGENT_ID });
+    expect(log).toMatchObject({ agentId: AGENT_ID, success: true });
+
+    // Le journal des agents reste lisible par l'admin…
+    const logs = await callerFor("admin", ADMIN).agents.logs({ limit: 50 });
+    expect(logs.some(l => l.agentId === AGENT_ID && l.success)).toBe(true);
+  });
+
+  it("Pair: Éditeur × run — refus FORBIDDEN, agent jamais exécuté", async () => {
+    await expect(
+      callerFor("editeur", EDITEUR).agents.run({ id: AGENT_ID })
+    ).rejects.toThrow(/FORBIDDEN|Accès réservé/i);
+
+    // Aucune trace d'exécution par l'éditeur dans le journal.
+    const logs = await callerFor("admin", ADMIN).agents.logs({ limit: 200 });
+    expect(
+      logs.filter(l => l.agentId === AGENT_ID).every(l => l.success)
+    ).toBe(true);
+  });
+
+  it("Pair: Bibliothécaire × logs + User × list — refus", async () => {
+    await expect(
+      callerFor("bibliotheque", BIBLIO).agents.logs({ limit: 10 })
+    ).rejects.toThrow(/FORBIDDEN|Accès réservé/i);
+    await expect(callerFor("user", USER).agents.list()).rejects.toThrow(
+      /FORBIDDEN|Accès réservé/i
+    );
+  });
+});
+
 describe("ai.chat — espace admin élargi (staff éditeur inclus), pas aux visiteurs", () => {
   // ai.chat est adminProcedure (admin + éditeur + bibliothécaire) : le
   // chatbot de rédaction est accessible au staff — au contraire du
