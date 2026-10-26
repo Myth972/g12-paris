@@ -3,6 +3,21 @@
 > Ce fichier est mis à jour quand l'utilisateur dit « à plus tard ». Il permet de reprendre
 > le travail là où on s'est arrêté.
 
+## Session : régression dev à corriger (non commitée) — `vite.config.ts` + `server/_core/vite.ts`
+
+Le commit `cc802cc` (fix build) a introduit un bug : `vite.config.ts` passait en
+`defineConfig(({ mode }) => ...)`, or `server/_core/vite.ts` fait `...viteConfig`
+(spread d'un objet). Spreader une fonction ne copie rien → serveur dev démarré sans
+plugins ni aliases (« Failed to load url /src/main.tsx », JSON indigérable).
+Correctifs appliqués :
+1. `vite.config.ts` : retour à une config **objet** statique — le mode prod se pilote
+   via `NODE_ENV` (déjà forcé par cross-env dans `build`/`buildCommand` + garde-fou
+   `process.argv.includes("build")`) ; gating `buildMode = isProduction ? ...
+2. `server/_core/vite.ts` : blindage — si la config est une fonction, elle est invoquée
+   ({command:'serve', mode}) avant le spread (les deux formes sont supportées).
+Vérifié : check ✓, install ✓, build prod ✓ (jsxDEV=0), serveur dev → `/src/main.tsx`
+200 text/javascript avec jsxDevRuntime, `/manifest.json` 200, 0 « Pre-transform error ».
+
 ## Session : audit du site déployé post-push (non commité)
 
 ### Contexte
@@ -39,10 +54,18 @@ Tests faits par requêtes HTTP réelles avec jeton CSRF + sessions, **sans pollu
    jsxLocPlugin seulement en mode production) existe **mais n'est pas commité/poussé**
    (attente validation). Après validation : commit+push du fix + **supprimer la variable
    NODE_ENV dans Vercel → Settings → Environment Variables**, puis redéployer.
-3. **Logo du site 404** : `siteSettings.site_logo = /uploads/page-content/...png` → 404 en
-   prod (le répertoire local `uploads/` n'existe pas sur Vercel). Tout média référencé par
-   une ancienne URL `/uploads/...` est cassé ; les nouveaux médias vont sur Vercel Blob.
-   À corriger : réuploader le logo (Blob) via l'admin ou migrer les anciens fichiers.
+3. **Clé `site_logo` orpheline (corrigée en faux positif après relecture)** : la valeur
+   `settings.site_logo = /uploads/…png` renvoie 404 sur Vercel, MAIS **aucune composante
+   client ne lit cette clé** — le logo affiché vient de `SiteHeader.tsx` qui utilise
+   `/logo.webp` (statique, 200 OK en prod). Impact visiteur : **aucun**. Action possible :
+   vider cette clé / brancher le header dessus un jour (fichier source
+   perdu de toute façon — absent du backup `backups/backup-20260530-225133.zip`).
+   **→ Fait** : clé vidée en prod via `siteSettings.set {"site_logo": ""}`
+   (ancienne valeur `/uploads/page-content/1774656378298-Ja-j8vIyQc59ecBRch_lW.png`,
+   fichier introuvable local + backup). Pourquoi : la clé est orpheline (aucune
+   lecture client), une valeur 404 morte n'a que des inconvénients ; pour
+   remettre un logo un jour, passer par `siteSettings.uploadLogo` (admin), qui
+   stocke sur Vercel Blob et met à jour la clé `logoUrl`.
 4. **Mots de passe en clair en base** : `createUser` stocke `password` tel quel et
    `findUserByUsernameAndPassword` compare en clair (db.ts). Recommandation : hash
    (bcrypt/scrypt) + migration des comptes existants.

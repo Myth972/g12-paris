@@ -3,7 +3,7 @@ import fs from "fs";
 import { type Server } from "http";
 import { nanoid } from "nanoid";
 import path from "path";
-import { createServer as createViteServer } from "vite";
+import { createServer as createViteServer, type UserConfigExport } from "vite";
 import viteConfig from "../../vite.config";
 
 export async function setupVite(app: Express, server: Server) {
@@ -13,8 +13,26 @@ export async function setupVite(app: Express, server: Server) {
     allowedHosts: true as const,
   };
 
+  // vite.config peut être un objet statique OU une fonction
+  // (defineConfig(({ mode }) => ...)) : le spread « ...viteConfig » sur une
+  // fonction ne copierait AUCUNE propriété (plugins, alias, root perdus →
+  // « Failed to load url /src/main.tsx » au démarrage du dev). On résout donc
+  // les deux formes avant de composer la config inline du serveur.
+  const baseConfig: UserConfigExport =
+    typeof viteConfig === "function"
+      ? await (
+          viteConfig as unknown as (o: {
+            command: string;
+            mode: string;
+          }) => Promise<UserConfigExport> | UserConfigExport
+        )({
+            command: "serve",
+            mode: process.env.NODE_ENV || "development",
+          })
+      : viteConfig;
+
   const vite = await createViteServer({
-    ...viteConfig,
+    ...baseConfig,
     configFile: false,
     server: serverOptions,
     appType: "custom",

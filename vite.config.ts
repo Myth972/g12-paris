@@ -163,31 +163,36 @@ if (process.argv.includes("build")) {
   process.env.NODE_ENV = "production";
 }
 
+// « mode » dérivé de NODE_ENV : l'objet de config reste statique
+// (exchange pour le spread ...viteConfig de server/_core/vite.ts, qui ne
+// peut pas étendre une fonction) et le mode prod est piloté par les
+// scripts (cross-env NODE_ENV=production) + le garde-fou barrage ci-dessus.
+const buildMode = isProduction ? "production" : "development";
+
 // Le plugin jsx-loc n'a de sens qu'en développement : il réécrit les appels
 // JSX vers le runtime React de DEV (jsxDEV + attributs data-loc), pour tracer
 // l'origine des éléments à l'écran. S'il s'appliquait aussi au build de
 // production, le site livré tournerait avec le React de dev. On lui interdit
 // donc le mode "build".
-export default defineConfig(({ mode }) => {
-  return {
+export default defineConfig({
     plugins: [
       react(),
       tailwindcss(),
-      ...(mode === "production" ? [] : [jsxLocPlugin()]),
-      ...(enableManusDebugCollector ? [vitePluginManusDebugCollector()] : []),
-      ...(enableBundleAnalyzer ? [visualizer({ filename: "dist/stats.html", open: true, gzipSize: true, brotliSize: true })] : []),
-    ],
-    // Garantit que le runtime React branché en production est celui de prod,
-    // même si NODE_ENV traîne à "development" (var d'environnement projet ou
-    // .env) : sans ce define, react/jsx-runtime prend la branche de DEV.
-    ...(mode === "production"
-      ? {
-          define: {
-            "process.env.NODE_ENV": '"production"' as const,
-          },
-        }
-      : {}),
-      resolve: {
+    ...(buildMode === "production" ? [] : [jsxLocPlugin()]),
+    ...(enableManusDebugCollector ? [vitePluginManusDebugCollector()] : []),
+    ...(enableBundleAnalyzer ? [visualizer({ filename: "dist/stats.html", open: true, gzipSize: true, brotliSize: true })] : []),
+  ],
+  // Garantit que le runtime React branché en production est celui de prod,
+  // même si NODE_ENV traîne à "development" (var d'environnement projet ou
+  // .env) : sans ce define, react/jsx-runtime prend la branche de DEV.
+  ...(buildMode === "production"
+    ? {
+        define: {
+          "process.env.NODE_ENV": '"production"' as const,
+        },
+      }
+    : {}),
+  resolve: {
     alias: [
       { find: "@", replacement: path.resolve(import.meta.dirname, "client", "src") },
       { find: "@shared", replacement: path.resolve(import.meta.dirname, "shared") },
@@ -278,5 +283,4 @@ export default defineConfig(({ mode }) => {
       deny: ["**/.*"],
     },
   },
-  };
 });
