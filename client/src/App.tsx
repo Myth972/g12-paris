@@ -1,8 +1,9 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { trpc } from "@/lib/trpc";
-import { Route, Switch } from "wouter";
-import { lazy, Suspense, useEffect, useState, type ComponentType } from "react";
+import { Route, Switch, useLocation } from "wouter";
+import { lazy, Suspense, useEffect, useState, type ComponentType, type ReactElement } from "react";
+import { useAuth } from "@/_core/hooks/useAuth";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import SiteHeader from "./components/SiteHeader";
@@ -53,6 +54,30 @@ const ArticleDesignDemo = lazy(() => import("./pages/ArticleDesignDemo"));
 const EventsPage = lazy(() => import("./pages/EventsPage"));
 const EventsYouthPage = lazy(() => import("./pages/EventsYouthPage"));
 const EventsArchivesPage = lazy(() => import("./pages/EventsArchivesPage"));
+
+/**
+ * Garde de route : redirige vers /admin tout rôle qui n'est pas admin.
+ * Pendant le chargement de la session (auth.me), rien n'est rendu de la
+ * page protégée — jamais un flash de contenu, jamais un rendu vide :
+ * après la résolution, non-admin = redirect, admin = page.
+ */
+function AdminOnlyRoute({ children }: { children: ReactElement }) {
+  const { user, loading } = useAuth();
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    if (loading) return;
+    if (user?.role !== "admin") setLocation("/admin");
+  }, [loading, user, setLocation]);
+
+  if (loading) {
+    return <PageLoader />;
+  }
+  if (user?.role !== "admin") {
+    return null;
+  }
+  return children;
+}
 
 function PageLoader() {
   return (
@@ -202,7 +227,11 @@ function Router() {
         <Route path="/admin/bibliotheque/edition/:id" component={AdminBibliothequeEditor} />
         <Route path="/admin/design" component={AdminDesign} />
         <Route path="/admin/visuals" component={AdminVisuals} />
-        <Route path="/admin/agents" component={AdminAgents} />
+        <Route path="/admin/agents">
+          <AdminOnlyRoute>
+            <AdminAgents />
+          </AdminOnlyRoute>
+        </Route>
         <Route path="/admin/ai-writer" component={AIArticleWriter} />
 
         {/* Fallback */}

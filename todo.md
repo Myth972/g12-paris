@@ -245,6 +245,61 @@
     - Résultat : 16/16 dans le fichier, `pnpm run test` → **131/131 verts
       (11 fichiers)**, check ✓, build ✓.
 
+18-ter. **Matrice de permissions Pairwise étendue (users, cms, ai) + correction d'une escalade** :
+    - Révélation corrigée (`server/routers.ts`) : `users.list/get/create/
+      updateRole/delete` montaient sur `adminProcedure`(= admin+éditeur+biblio)
+      — un éditeur pouvait créer un compte admin ou se promouvoir lui-même
+      via un appel tRPC direct. Passées en `adminOnlyProcedure`, alignées sur
+      l'UI (onglet Utilisateurs rendu seulement si `showFullAdmin`).
+    - Vérifiées sans changement : `pageContent.*` (create/update éditeur = OK,
+      métier de rédaction ; biblio refusée à create, editeurProcedure) et
+      `ai.chat` (adminProcedure délibéré : le chatbot admin est staff+admin).
+      `ai.scanArea` demandée par l'utilisateur n'existe pas dans le code.
+    - Test nouveau `server/permissionsMatrix.test.ts` : **14 paires** —
+      users (admin list ; admin create+delete ; éditeur updateRole→admin
+      refusé avec rôle inchangé en DB ; biblio create refusée sans compte
+      créé ; user list refusée ; anonyme get refusé), cms (éditeur create
+      autorisé avec son authorId ; biblio create refusée ; user update
+      refusé ; anonyme adminList refusé), ai.chat (admin et éditeur
+      autorisés ; user et anonyme refusés) — avec mock LLM et cleanup
+      complet (users `tmp-perm-cible`, pageContent `tmp-perm-test`).
+      Contrat documenté au passage : le middleware de rôles renvoie
+      FORBIDDEN (« Accès réservé aux rôles ») même sans session.
+    - Résultat : 14/14 dans le fichier, `pnpm run test` → **145/145 verts
+      (12 fichiers)**, check ✓, build ✓. Non commité (attente validation).
+
+18-quater. **Inscriptions de convention réservées à l'admin (les listes d'e-mails aussi)** :
+    - `conventionRegistrations.list/listAll/count/stats/delete/toggleActive/
+      bulkDelete` passées d'`adminProcedure` à `adminOnlyProcedure` — un
+      éditeur/bibliothécaire pouvait consulter puis supprimer les inscriptions
+      (e-mails et dates personnels des participants). L'UI ne rend l'onglet
+      Inscriptions que si `showFullAdmin` (menu caché + `allowedTabs` +
+      contenu non rendu sur `/admin?tab=` forcé) ; l'API suit désormais.
+    - Porte publique inchangée : `create/checkEmail/verifyCode/publicCount`
+      restent `publicProcedure`.
+    - Tests : +5 paires dans permissionsMatrix.test.ts (anonyme stats refusé,
+      biblio list refusée, admin create public + toggleActive + delete cycle,
+      éditeur listAll refusé, user delete refusé avec ligne intacte vérifiée
+      en DB puis nettoyage admin) — cleanup `tmp-perm-conv@example.com`.
+      Petite coquille de restructuration du fichier réparée (réouverture
+      du bloc describe `ai.chat`).
+    - Résultat : 19/19 dans le fichier, `pnpm run test` → **150/150 verts
+      (12 fichiers)**, check ✓, build ✓. Non commité (attente validation).
+
+18-quinquies. **Audit des routes admin restantes (bibliothèque, verses,
+newsletter, agents) + garde routeur admin-only sur /admin/agents** :
+    - Audit sans modification : aucune fuite de données personnelles.
+      Newsletter (listSubscribers/digest) = workflow métier du bibliothécaire
+      (AdminBibliotheque.tsx liste/enleve des abonnés) — assumé, pas une
+      fuite. Verses/bibliotheque = contenu éditorial. agents.* API accepte
+      le staff (non-PII, opérationnel). ai.stats/quota agrégés + son quota.
+    - Garde routeur (`client/src/App.tsx`) : composant `AdminOnlyRoute`
+      (useAuth + wouter useLocation) qui attend la résolution de la session
+      (PageLoader), puis redirige tout non-admin vers /admin — plus de
+      rendu « Accès réservé » figé sur /admin/agents, la garde du composant
+      AdminAgents reste en backstop. Route /admin/agents enveloppée.
+    - check ✓, build ✓. Non commité (attente validation).
+
 ### Contexte
 Analyse du projet + corrections + tests de l'API Notifications avec la technique de test **Pairwise**
 (paires : Rôle Éditeur × Lecture de notifications existantes ; Rôle Simple × Marquer Tout Comme Lu

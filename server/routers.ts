@@ -3651,12 +3651,16 @@ return { url };
 
   // ─── User Management ───────────────────────────────────────────
   users: router({
-    list: adminProcedure.query(async () => {
+    // adminOnlyProcedure : la gestion des comptes (liste, création, rôle,
+    // suppression) est réservée à l'administrateur. L'UI ne rend l'onglet
+    // Utilisateurs que si showFullAdmin ; un éditeur sur adminProcedure
+    // pourrait sinon créer un compte admin ou changer son propre rôle.
+    list: adminOnlyProcedure.query(async () => {
       
       return listAllUsers();
     }),
 
-    get: adminProcedure
+    get: adminOnlyProcedure
       .input(z.object({ id: z.number() }))
       .query(async ({ input }) => {
         
@@ -3667,7 +3671,7 @@ return { url };
         return user;
       }),
 
-    create: adminProcedure
+    create: adminOnlyProcedure
       .input(
         z.object({
           openId: z.string(),
@@ -3689,7 +3693,7 @@ return { url };
         });
       }),
 
-    updateRole: adminProcedure
+    updateRole: adminOnlyProcedure
       .input(
         z.object({
           userId: z.number(),
@@ -3702,7 +3706,7 @@ return { url };
         return { success: true };
       }),
 
-    delete: adminProcedure
+    delete: adminOnlyProcedure
       .input(z.object({ userId: z.number() }))
       .mutation(async ({ input }) => {
         
@@ -3904,6 +3908,10 @@ return { url };
   }),
 
   conventionRegistrations: router({
+    // Lecture/écriture des inscriptions (e-mails, statut actif, stats) :
+    // adminOnlyProcedure — l'UI ne rend l'onglet Inscriptions que si
+    // showFullAdmin. L'inscription publique (create/checkEmail/verifyCode/
+    // publicCount) reste publicProcedure.
     create: publicProcedure
       .input(zod.object({
         firstName: z.string().min(1).max(100),
@@ -3950,21 +3958,21 @@ return { url };
       return countConventionRegistrations();
     }),
 
-    list: adminProcedure.query(async () => {
+    list: adminOnlyProcedure.query(async () => {
       return listConventionRegistrations();
     }),
 
-    listAll: adminProcedure.query(async () => {
+    listAll: adminOnlyProcedure.query(async () => {
       const db = getDb();
       if (!db) return [];
       return db.select().from(conventionRegistrations).orderBy(desc(conventionRegistrations.createdAt));
     }),
 
-    count: adminProcedure.query(async () => {
+    count: adminOnlyProcedure.query(async () => {
       return countConventionRegistrations();
     }),
 
-    stats: adminProcedure.query(async () => {
+    stats: adminOnlyProcedure.query(async () => {
       const db = getDb();
       if (!db) return [];
       const rows = await db
@@ -3978,19 +3986,19 @@ return { url };
       return rows;
     }),
 
-    toggleActive: adminProcedure
+    toggleActive: adminOnlyProcedure
       .input(zod.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         return toggleConventionRegistrationActive(input.id);
       }),
 
-    delete: adminProcedure
+    delete: adminOnlyProcedure
       .input(zod.object({ id: z.number() }))
       .mutation(async ({ input }) => {
         return deleteConventionRegistration(input.id);
       }),
 
-    bulkDelete: adminProcedure
+    bulkDelete: adminOnlyProcedure
       .input(zod.object({ ids: z.array(z.number()).min(1).max(100) }))
       .mutation(async ({ input }) => {
         return bulkDeleteConventionRegistrations(input.ids);
