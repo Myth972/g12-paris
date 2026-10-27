@@ -18,9 +18,6 @@ export default defineConfig(
         "@assets": path.resolve(import.meta.dirname, "attached_assets"),
       },
     },
-    define: {
-      __vite_ssr_exportName__: "(name, value) => value",
-    },
   },
   {
     // Override so vitest doesn't merge with vite.config.ts

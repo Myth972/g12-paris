@@ -3,6 +3,19 @@
 > Ce fichier est mis à jour quand l'utilisateur dit « à plus tard ». Il permet de reprendre
 > le travail là où on s'est arrêté.
 
+## Session : lot 2 remédiation vulnérabilités — tooling dev (non commité)
+
+Baseline : **137 vuln** (15 low / 75 moderate / 42 high / 5 critical).
+- `vite` ^7.1.7 → **^7.3.7** (7.3.7 ; 20 advisories dont high corrigeées)
+- `vitest` ^2.1.4 → **^3.2.6** (3.2.7 ; **2 critical** lecture/RCE via serveur UI vitest, dev only)
+- `pnpm` devDep ^10.15.1 → **^10.34.5** (10.34.9 ; 26 advisories dont high)
+- `overrides` ajoutés : `rollup` ^4.59.0 (4.65.1, high), `tar` ^7.5.2 (7.5.22, moderate), `zod` ^4.6.7 (unifie la copie 4.1.11 de @vercel/oidc)
+- **Suppression d'un hack mort** : `vitest.config.ts` contient `define: __vite_ssr_exportName__ = "(name, value) => value"` (fonction) — esbuild 0.28 (via vite 7.3) le rejette en erreur de transform ; retiré, tests verts sans.
+- **Résidus intentionnels** : `tinypool` 1.1.1 (2 critical RCE dev-only) — vitest 3.2.7 exige ^1.1.1, la version corrigée ≥2.1.2 est réservée à vitest 4 ; migration vitest 4 = follow-up breaking. `@vitest/mocker` moderate idem (fix en 4.1.11).
+Vérifié : audit **77 vuln** (13 low / 45 moderate / 16 high / 3 critical) = **−60** ;
+tests 154/154 ✓ sur vitest 3.2.7 ; `pnpm run check` ✓ ; `pnpm run build` ✓ (13,9 s) ;
+serveur dev vite 7.3.7 testé → `/src/main.tsx` 200 JS ✓, `/manifest.json` 200 ✓, 0 Pre-transform error.
+
 ## Session : lot 1 remédiation vulnérabilités (non commité)
 
 Baseline : **168 vulnérabilités** (17 low, 84 moderate, 61 high, 6 critical).
