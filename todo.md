@@ -3,6 +3,17 @@
 > Ce fichier est mis à jour quand l'utilisateur dit « à plus tard ». Il permet de reprendre
 > le travail là où on s'est arrêté.
 
+## Session : migration vitest 4 (non commité)
+
+Objectif : éliminer les 2 critical tinypool (RCE dev-only) + @vitest/mocker moderate.
+`vitest` ^3.2.6 → **^4.1.12** — migration **sans modification** de config :
+`vitest.config.ts` (environment/include/globals/setupFiles/globalSetup) et
+`vitest.setup.ts` / `tests/setup/db.teardown.ts` passent tels quels. Plus aucun
+tinypool dans l'arbre (vitest 4 n'en dépend plus) ; @vitest/mocker 4.1.12 corrigé.
+Vérifié : audit **77 → 72 vuln** (1 critical restant = dompurify SAFE_FOR_TEMPLATES,
+lots 3 potentiel) ; mockee 0, tinypool 0, vitestRCE 0 ; tests **154/154 ✓** ;
+`pnpm run check` ✓ ; `pnpm run build` ✓.
+
 ## Session : lot 2 remédiation vulnérabilités — tooling dev (non commité)
 
 Baseline : **137 vuln** (15 low / 75 moderate / 42 high / 5 critical).
