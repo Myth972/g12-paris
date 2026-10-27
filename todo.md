@@ -3,6 +3,25 @@
 > Ce fichier est mis à jour quand l'utilisateur dit « à plus tard ». Il permet de reprendre
 > le travail là où on s'est arrêté.
 
+## Session : lot 3 remédiation vulnérabilités — libs client (non commité)
+
+Baseline : **72 vuln** (13 low / 42 moderate / 16 high / 1 critical dompurify) ; objectif = tuer le critical.
+Montées in-range des directs : `@tiptap/*` 3.27.3 → **3.32.0** (résout aussi
+prosemirror-view 1.42.1 → **1.42.8**, high), jspdf/streamdown (déjà latest in-range).
+`overrides` ajoutés : `dompurify` **^3.4.17** (critical SAFE_FOR_TEMPLATES corrigé,
+unifiait 3.3.0 via mermaid + 3.4.15 via jspdf), `lodash`/`lodash-es` **^4.18.1**
+(2 high + 3 moderate ; recharts 2.15.4 reste sur lodash 4.17.x), `mermaid`
+**^11.16.1** (11.17.2 ; 9 advisories, sans passer par streamdown 2.x = major),
+`katex` **^0.18.11** (low ; 0.18.2+ requis).
+Vérifié : audit **27 vuln** (2 low / 15 moderate / 10 high) = **−45**, **critical 0**[en
+!
+; tests 154/154 ✓ ; `pnpm run check` ✓ ; `pnpm run build` ✓.
+Restants (lot 4 potentiel) : undici (11x, transitif @vercel/sdk et ms_vite
+bouts), browserslist high, postcss, uuid, source-map-js high, mysql2 direct
+(déjà moderate, in-range vers ≥3.23.1 possible), picomatch, mdast, babel,
+baseline-browser-mapping._attention au rendu mermaid/katex client à surveiller
+en session de test manuel (overrides mineurs/major katex).
+
 ## Session : migration vitest 4 (non commité)
 
 Objectif : éliminer les 2 critical tinypool (RCE dev-only) + @vitest/mocker moderate.
