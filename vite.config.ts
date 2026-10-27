@@ -264,8 +264,10 @@ export default defineConfig({
     },
     chunkSizeWarningLimit: 500,
   },
+  // es-toolkit est une dépendance de mermaid 11.17 : il doit être pré-bündlé
+  // avec elle (sinon le bundle .vite/deps garde un import nu non résolvable).
   optimizeDeps: {
-    exclude: ['es-toolkit'],
+    include: ['es-toolkit'],
   },
   server: {
     host: true,
