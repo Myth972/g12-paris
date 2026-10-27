@@ -15,8 +15,14 @@ export function isValidCronRequest(
 ): boolean {
   const secret = process.env.CRON_SECRET;
 
+  // VERCEL_ENV est posé par la plateforme (valeur fiable) même quand
+  // NODE_ENV est mal réglé (ex. "development" dans les variables du projet) :
+  // sans ce garde-fou, une prod mal configurée laissait la route ouverte.
+  const isProductionOrVercelProd =
+    isProduction || process.env.VERCEL_ENV === "production";
+
   if (!secret) {
-    if (isProduction) {
+    if (isProductionOrVercelProd) {
       console.warn(
         "[Cron] CRON_SECRET absent : appel cron rejeté en production. " +
           "Définissez CRON_SECRET dans les variables Vercel."

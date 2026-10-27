@@ -112,7 +112,12 @@ export function createRateLimiter(config: {
   return rateLimit(options);
 }
 
-const isProduction = process.env.NODE_ENV === "production";
+// VERCEL_ENV (posé par la plateforme) est l'autorité fiable quand NODE_ENV
+// est mal réglé : sans ce garde-fou, une prod avec NODE_ENV=development
+// tournerait avec les limites de dev (plus permissives).
+const isProduction =
+  process.env.NODE_ENV === "production" ||
+  process.env.VERCEL_ENV === "production";
 
 export const apiRateLimiter = createRateLimiter({
   windowMs,

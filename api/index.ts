@@ -78,7 +78,11 @@ const csrfProtect: express.RequestHandler = (req, res, next) => {
   return next();
 };
 
-const isProduction = process.env.NODE_ENV === "production";
+// NODE_ENV peut être mal réglé ("development" dans les variables projet) :
+// VERCEL_ENV, posé par la plateforme, est l'autorité fiable en prod.
+const isProduction =
+  process.env.NODE_ENV === "production" ||
+  process.env.VERCEL_ENV === "production";
 
 console.log("[Vercel API] Starting initialization...");
 

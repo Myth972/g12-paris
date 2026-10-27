@@ -3,6 +3,17 @@
 > Ce fichier est mis à jour quand l'utilisateur dit « à plus tard ». Il permet de reprendre
 > le travail là où on s'est arrêté.
 
+## Session : lot 1 remédiation vulnérabilités (non commité)
+
+Baseline : **168 vulnérabilités** (17 low, 84 moderate, 61 high, 6 critical).
+Mises à jour directs (`pnpm update`) :
+- `express` 4.21.2 → **4.22.3** (corrige ses transitives `qs` 6.16.2 ✓, `body-parser` 1.20.9 ✓)
+- `axios` 1.18.1 → **1.21.0** ; `sharp` 0.35.3 → **0.35.5** ; `zod` 4.4.3 → **4.6.7** ; `nanoid` 5.1.5 → **5.1.16**
+`overrides` pnpm ajoutés pour les transitives qui restent épinglées : `proxy-addr` ^2.0.8 (critical), `follow-redirects` ^1.16.1.
+Vérifié : audit **137 vuln** (15 low / 75 moderate / 42 high / 5 critical) = **−31** ;
+tests Vitest **154/154 ✓** (12 fichiers) ; `pnpm run check` ✓ ; `pnpm run build` ✓ (14 s).
+Restants (lot 2 prévu) : tooling dev — vite, esbuild, tar, vitest/pnpm, dompurify, postcss, undici, mermaid…
+
 ## Session : régression dev à corriger (non commitée) — `vite.config.ts` + `server/_core/vite.ts`
 
 Le commit `cc802cc` (fix build) a introduit un bug : `vite.config.ts` passait en
