@@ -24,6 +24,14 @@ import { toast } from "sonner";
 
 const dayNames = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
 
+/**
+ * Les liens configurés par l'admin (bento.flagship.link, bento.event.link,
+ * bento.radar.link, ctaHref des contenus/annonces) peuvent être des URL
+ * externes (ex. HelloAsso). Wouter les traiterait comme des routes internes
+ * et casserait le clic (surtout sur mobile) : on rend alors un <a> réel.
+ */
+const isExternalUrl = (href: string) => /^https?:\/\//i.test(href);
+
 interface BentoGridProps {
   className?: string;
 }
@@ -273,10 +281,17 @@ export default function BentoGrid({ className = "" }: BentoGridProps) {
                 size="sm"
                 className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-4 h-9 shadow-lg shadow-primary/20 gap-2"
               >
-                <Link href={flagship.link}>
-                  <Play className="w-3.5 h-3.5 fill-current" />
-                  {flagship.ctaLabel}
-                </Link>
+                {isExternalUrl(flagship.link) ? (
+                  <a href={flagship.link} target="_blank" rel="noopener noreferrer">
+                    <Play className="w-3.5 h-3.5 fill-current" />
+                    {flagship.ctaLabel}
+                  </a>
+                ) : (
+                  <Link href={flagship.link}>
+                    <Play className="w-3.5 h-3.5 fill-current" />
+                    {flagship.ctaLabel}
+                  </Link>
+                )}
               </Button>
               <Button
                 asChild
@@ -391,9 +406,15 @@ export default function BentoGrid({ className = "" }: BentoGridProps) {
             size="sm"
             className="w-full mt-3 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold h-8"
           >
-            <Link href={radarSettings.link}>
-              {timeLeft.isLive ? "Rejoindre le Direct ▶" : (radarSettings.label || "Accéder à l'espace Culte")}
-            </Link>
+            {isExternalUrl(radarSettings.link) ? (
+              <a href={radarSettings.link} target="_blank" rel="noopener noreferrer">
+                {timeLeft.isLive ? "Rejoindre le Direct ▶" : (radarSettings.label || "Accéder à l'espace Culte")}
+              </a>
+            ) : (
+              <Link href={radarSettings.link}>
+                {timeLeft.isLive ? "Rejoindre le Direct ▶" : (radarSettings.label || "Accéder à l'espace Culte")}
+              </Link>
+            )}
           </Button>
         </motion.div>
 
@@ -420,13 +441,25 @@ export default function BentoGrid({ className = "" }: BentoGridProps) {
                 {event.date}
               </p>
             </div>
-            <Link
-              href={event.link}
-              className="text-xs font-medium text-primary hover:underline flex items-center gap-1 mt-2"
-            >
-              En savoir plus
-              <ChevronRight className="w-3 h-3" />
-            </Link>
+            {isExternalUrl(event.link) ? (
+              <a
+                href={event.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-medium text-primary hover:underline flex items-center gap-1 mt-2 touch-manipulation"
+              >
+                En savoir plus
+                <ChevronRight className="w-3 h-3" />
+              </a>
+            ) : (
+              <Link
+                href={event.link}
+                className="text-xs font-medium text-primary hover:underline flex items-center gap-1 mt-2 touch-manipulation"
+              >
+                En savoir plus
+                <ChevronRight className="w-3 h-3" />
+              </Link>
+            )}
           </div>
         </motion.div>
 
