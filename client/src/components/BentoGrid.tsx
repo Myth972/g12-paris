@@ -17,12 +17,28 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import OptimizedImage from "@/components/OptimizedImage";
+import {
+  buildOptimizedUrl,
+  buildSrcSet,
+  normalizeImageSource,
+} from "@/lib/imageOptimize";
+import { cn } from "@/lib/utils";
 import { trpc } from "@/lib/trpc";
 import { useAudioPlayer, DEFAULT_TRACKS } from "@/contexts/AudioPlayerContext";
 import { useVisualEnabled } from "@/hooks/useVisualSetting";
 import { toast } from "sonner";
 
-const dayNames = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+const dayNames = [
+  "Dimanche",
+  "Lundi",
+  "Mardi",
+  "Mercredi",
+  "Jeudi",
+  "Vendredi",
+  "Samedi",
+];
 
 /**
  * Les liens configurés par l'admin (bento.flagship.link, bento.event.link,
@@ -31,6 +47,16 @@ const dayNames = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi",
  * et casserait le clic (surtout sur mobile) : on rend alors un <a> réel.
  */
 const isExternalUrl = (href: string) => /^https?:\/\//i.test(href);
+
+/** Largeurs de srcset pour l'image du hero (le serveur borne à 1600 px). */
+const HERO_IMAGE_WIDTHS = [640, 960, 1280, 1600] as const;
+
+/**
+ * Taille affichée de l'image à la une : pleine largeur sur mobile,
+ * 2 colonnes du bento (sur 3 puis 4) sur md/lg.
+ */
+const HERO_IMAGE_SIZES =
+  "(max-width: 767px) 100vw, (max-width: 1023px) 66vw, 50vw";
 
 interface BentoGridProps {
   className?: string;
@@ -41,20 +67,40 @@ export default function BentoGrid({ className = "" }: BentoGridProps) {
   const { playTrack } = useAudioPlayer();
   const [copied, setCopied] = useState(false);
 
-  // Données dynamiques depuis tRPC
-  const { data: homeContent } = trpc.pageContent.featuredHome.useQuery();
-  const { data: latestVerse } = trpc.verses.latest.useQuery();
-  const { data: announcementsData } = trpc.announcements.list.useQuery({ type: "announcement" });
-  const { data: flashEventsData } = trpc.announcements.list.useQuery({ type: "flash-event" });
+  // Données dynamiques depuis tRPC (objets requêtes pour détecter le premier chargement)
+  const homeContentQuery = trpc.pageContent.featuredHome.useQuery();
+  const homeContent = homeContentQuery.data;
+  const latestVerseQuery = trpc.verses.latest.useQuery();
+  const latestVerse = latestVerseQuery.data;
+  const announcementsQuery = trpc.announcements.list.useQuery({
+    type: "announcement",
+  });
+  const announcementsData = announcementsQuery.data;
+  const flashEventsQuery = trpc.announcements.list.useQuery({
+    type: "flash-event",
+  });
+  const flashEventsData = flashEventsQuery.data;
   const settingsQuery = trpc.siteSettings.getAll.useQuery();
+
+  // Skeletons : tant que les premières données n'ont pas atterri, layout stable (pas de saut visuel)
+  const tilePending = {
+    flagship: homeContentQuery.isPending || settingsQuery.isPending,
+    verse: latestVerseQuery.isPending,
+    event: announcementsQuery.isPending || flashEventsQuery.isPending,
+  };
 
   // Flagship (Élément à la une : paramètres personnalisés admin ou premier slide)
   const flagship = useMemo(() => {
-    const customTitle = settingsQuery.data?.["bento.flagship.title"] as string | undefined;
-    const customDesc = settingsQuery.data?.["bento.flagship.description"] as string | undefined;
-    const customImage = settingsQuery.data?.["bento.flagship.imageUrl"] as string | undefined;
-    const customLink = settingsQuery.data?.["bento.flagship.link"] as string | undefined;
-    const customCta = settingsQuery.data?.["bento.flagship.ctaLabel"] as string | undefined;
+    const customTitle = settingsQuery.data?.["bento.flagship.title"] as
+      string | undefined;
+    const customDesc = settingsQuery.data?.["bento.flagship.description"] as
+      string | undefined;
+    const customImage = settingsQuery.data?.["bento.flagship.imageUrl"] as
+      string | undefined;
+    const customLink = settingsQuery.data?.["bento.flagship.link"] as
+      string | undefined;
+    const customCta = settingsQuery.data?.["bento.flagship.ctaLabel"] as
+      string | undefined;
 
     const featured = (homeContent ?? []).find((item: any) => item.mediaUrl);
     return {
@@ -63,7 +109,10 @@ export default function BentoGrid({ className = "" }: BentoGridProps) {
         customDesc ||
         featured?.description ||
         "Vivez des temps de louange passionnés, d'édification spirituelle et de communion fraternelle.",
-      imageUrl: customImage || featured?.mediaUrl || "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?w=1200&q=80",
+      imageUrl:
+        customImage ||
+        featured?.mediaUrl ||
+        "https://images.unsplash.com/photo-1438232992991-995b7058bbb3?w=1200&q=80",
       link: customLink || featured?.ctaHref || "/culte-en-ligne",
       ctaLabel: customCta || featured?.ctaLabel || "Participer au culte",
     };
@@ -71,16 +120,21 @@ export default function BentoGrid({ className = "" }: BentoGridProps) {
 
   // Tuile 2 : Verset du jour & audio avec fallback inspirant ou personnalisation admin
   const verse = useMemo(() => {
-    const customVerseRef = settingsQuery.data?.["bento.verse.reference"] as string | undefined;
-    const customVerseText = settingsQuery.data?.["bento.verse.text"] as string | undefined;
-    const customAudioTitle = settingsQuery.data?.["bento.verse.audioTitle"] as string | undefined;
-    const customAudioUrl = settingsQuery.data?.["bento.verse.audioUrl"] as string | undefined;
+    const customVerseRef = settingsQuery.data?.["bento.verse.reference"] as
+      string | undefined;
+    const customVerseText = settingsQuery.data?.["bento.verse.text"] as
+      string | undefined;
+    const customAudioTitle = settingsQuery.data?.["bento.verse.audioTitle"] as
+      string | undefined;
+    const customAudioUrl = settingsQuery.data?.["bento.verse.audioUrl"] as
+      string | undefined;
 
     if (customVerseText) {
       return {
         reference: customVerseRef || "Verset du Jour",
         text: customVerseText,
-        audioTitle: customAudioTitle || `Verset : ${customVerseRef || "Méditation"}`,
+        audioTitle:
+          customAudioTitle || `Verset : ${customVerseRef || "Méditation"}`,
         audioUrl: customAudioUrl || DEFAULT_TRACKS[0].audioUrl,
       };
     }
@@ -88,32 +142,42 @@ export default function BentoGrid({ className = "" }: BentoGridProps) {
       return {
         reference: customVerseRef || latestVerse.reference,
         text: latestVerse.text,
-        audioTitle: customAudioTitle || `Verset : ${customVerseRef || latestVerse.reference}`,
+        audioTitle:
+          customAudioTitle ||
+          `Verset : ${customVerseRef || latestVerse.reference}`,
         audioUrl: customAudioUrl || DEFAULT_TRACKS[0].audioUrl,
       };
     }
     return {
       reference: customVerseRef || "Jean 14:27",
       text: "Je vous laisse la paix, je vous donne ma paix. Je ne vous donne pas comme le monde donne. Que votre cœur ne se trouble point, et ne s'alarme point.",
-      audioTitle: customAudioTitle || "Méditation Quotidienne : La Paix du Cœur",
+      audioTitle:
+        customAudioTitle || "Méditation Quotidienne : La Paix du Cœur",
       audioUrl: customAudioUrl || DEFAULT_TRACKS[0].audioUrl,
     };
   }, [latestVerse, settingsQuery.data]);
 
   // Tuile 4 : Événement flash ou convention avec personnalisation admin
   const event = useMemo(() => {
-    const customBadge = settingsQuery.data?.["bento.event.badge"] as string | undefined;
-    const customTitle = settingsQuery.data?.["bento.event.title"] as string | undefined;
-    const customDate = settingsQuery.data?.["bento.event.date"] as string | undefined;
-    const customImage = settingsQuery.data?.["bento.event.imageUrl"] as string | undefined;
-    const customLink = settingsQuery.data?.["bento.event.link"] as string | undefined;
+    const customBadge = settingsQuery.data?.["bento.event.badge"] as
+      string | undefined;
+    const customTitle = settingsQuery.data?.["bento.event.title"] as
+      string | undefined;
+    const customDate = settingsQuery.data?.["bento.event.date"] as
+      string | undefined;
+    const customImage = settingsQuery.data?.["bento.event.imageUrl"] as
+      string | undefined;
+    const customLink = settingsQuery.data?.["bento.event.link"] as
+      string | undefined;
 
     if (customTitle) {
       return {
         title: customTitle,
         badge: customBadge || "Événement",
         date: customDate || "Prochainement",
-        imageUrl: customImage || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&q=80",
+        imageUrl:
+          customImage ||
+          "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&q=80",
         link: customLink || "/convention-g12-france",
       };
     }
@@ -124,7 +188,10 @@ export default function BentoGrid({ className = "" }: BentoGridProps) {
         title: flash.title,
         badge: customBadge || flash.badge || "Événement",
         date: customDate || flash.eventDate || "Prochainement",
-        imageUrl: customImage || flash.mediaUrl || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&q=80",
+        imageUrl:
+          customImage ||
+          flash.mediaUrl ||
+          "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&q=80",
         link: customLink || flash.ctaHref || "/convention-g12-france",
       };
     }
@@ -132,10 +199,16 @@ export default function BentoGrid({ className = "" }: BentoGridProps) {
       title: "Convention G12 France 2026",
       badge: customBadge || "Inscriptions ouvertes",
       date: customDate || "Octobre 2026",
-      imageUrl: customImage || "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&q=80",
+      imageUrl:
+        customImage ||
+        "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&q=80",
       link: customLink || "/convention-g12-france",
     };
   }, [flashEventsData, announcementsData, settingsQuery.data]);
+
+  // Badge « Inscriptions ouvertes » (lien HelloAsso ou badge d'inscription personnalisé) : mise en vis augmentée
+  const isRegistrationOpen =
+    isExternalUrl(event.link) || /inscri/i.test(event.badge);
 
   // Tuile 3 : Calcul du compte à rebours ou forçage en direct
   const [timeLeft, setTimeLeft] = useState<{
@@ -148,11 +221,17 @@ export default function BentoGrid({ className = "" }: BentoGridProps) {
 
   const radarSettings = useMemo(() => {
     return {
-      forceLive: (settingsQuery.data?.["bento.radar.forceLive"] as string | undefined) || "auto",
+      forceLive:
+        (settingsQuery.data?.["bento.radar.forceLive"] as string | undefined) ||
+        "auto",
       day: Number(settingsQuery.data?.["bento.radar.day"] ?? 0),
       hour: Number(settingsQuery.data?.["bento.radar.hour"] ?? 10),
-      label: (settingsQuery.data?.["bento.radar.label"] as string | undefined) || "Prochain Direct",
-      link: (settingsQuery.data?.["bento.radar.link"] as string | undefined) || "/culte-en-ligne",
+      label:
+        (settingsQuery.data?.["bento.radar.label"] as string | undefined) ||
+        "Prochain Direct",
+      link:
+        (settingsQuery.data?.["bento.radar.link"] as string | undefined) ||
+        "/culte-en-ligne",
     };
   }, [settingsQuery.data]);
 
@@ -175,7 +254,10 @@ export default function BentoGrid({ className = "" }: BentoGridProps) {
       }
 
       let target = new Date(now);
-      if (currentDay === radarSettings.day && currentHour < radarSettings.hour) {
+      if (
+        currentDay === radarSettings.day &&
+        currentHour < radarSettings.hour
+      ) {
         target.setHours(radarSettings.hour, 0, 0, 0);
       } else {
         const daysUntil = (radarSettings.day - currentDay + 7) % 7 || 7;
@@ -211,15 +293,53 @@ export default function BentoGrid({ className = "" }: BentoGridProps) {
       title: verse.audioTitle,
       subtitle: `Méditation & Lecture (${verse.reference})`,
       audioUrl: verse.audioUrl,
-      coverImageUrl: "https://images.unsplash.com/photo-1507692049790-de58290a4334?w=400&q=80",
+      coverImageUrl:
+        "https://images.unsplash.com/photo-1507692049790-de58290a4334?w=400&q=80",
       duration: 180,
     });
     toast.info("Lecture audio de la méditation démarrée");
   };
-
   const handleOpenAiQuestion = (question: string) => {
-    window.dispatchEvent(new CustomEvent("open-ai-search", { detail: question }));
+    window.dispatchEvent(
+      new CustomEvent("open-ai-search", { detail: question })
+    );
   };
+
+  /**
+   * Préchargement LCP de l'image à la une : le <link rel=preload> utilise
+   * imagesrcset/imagesizes identiques au <picture> → le navigateur retient
+   * exactement la même variante (aucun double téléchargement). Pour une
+   * source non transformable (Unsplash, SVG…), on précharge l'URL exacte.
+   * Nettoyé au démontage (SPA : on n'oublie pas le preload en changeant de page).
+   */
+  useEffect(() => {
+    if (tilePending.flagship) return;
+    const src = normalizeImageSource(flagship.imageUrl);
+    const link = document.createElement("link");
+    link.rel = "preload";
+    link.as = "image";
+    link.setAttribute("fetchpriority", "high");
+    if (src) {
+      link.setAttribute(
+        "imagesrcset",
+        buildSrcSet(src, HERO_IMAGE_WIDTHS, "avif")
+      );
+      link.setAttribute("imagesizes", HERO_IMAGE_SIZES);
+      // href ignoré par les navigateurs qui lisent imagesrcset ; sert de
+      // filet (et no-op sécurité) ailleurs.
+      link.href = buildOptimizedUrl(
+        src,
+        HERO_IMAGE_WIDTHS[HERO_IMAGE_WIDTHS.length - 1],
+        "avif"
+      );
+    } else {
+      link.href = flagship.imageUrl;
+    }
+    document.head.appendChild(link);
+    return () => {
+      link.remove();
+    };
+  }, [flagship.imageUrl, tilePending.flagship]);
 
   if (!isEnabled) {
     return null;
@@ -242,18 +362,24 @@ export default function BentoGrid({ className = "" }: BentoGridProps) {
 
       {/* Grille Bento Asymétrique */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 auto-rows-[minmax(180px,auto)]">
-        
         {/* TUILE 1 : LE FLAGSHIP (Grand format 2 cols × 2 rows sur Desktop) */}
         <motion.div
           whileHover={{ y: -3 }}
           transition={{ duration: 0.2 }}
           className="md:col-span-2 lg:col-span-2 lg:row-span-2 relative rounded-2xl sm:rounded-3xl overflow-hidden group shadow-md hover:shadow-xl border border-border/50 bg-card flex flex-col justify-end min-h-[300px] sm:min-h-[380px]"
         >
-          {/* Image de fond avec zoom doux */}
-          <div
-            className="absolute inset-0 bg-cover bg-center transition-transform duration-700 ease-out group-hover:scale-105"
-            style={{ backgroundImage: `url(${flagship.imageUrl})` }}
-          />
+          {/* Image de fond : <picture> AVIF/WebP responsive, chargée en priorité (candidat LCP) */}
+          <div className="absolute inset-0 transition-transform duration-700 ease-out group-hover:scale-105">
+            <OptimizedImage
+              src={flagship.imageUrl}
+              alt={flagship.title}
+              sizes={HERO_IMAGE_SIZES}
+              widths={HERO_IMAGE_WIDTHS}
+              loading="eager"
+              fetchPriority="high"
+              className="h-full w-full object-cover"
+            />
+          </div>
           {/* Dégradé immersif pour lisibilité maximale */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent" />
 
@@ -269,12 +395,22 @@ export default function BentoGrid({ className = "" }: BentoGridProps) {
 
           {/* Contenu bas */}
           <div className="relative z-10 p-5 sm:p-7 text-white">
-            <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold font-serif leading-tight mb-2 group-hover:text-primary-foreground/90 transition-colors">
-              {flagship.title}
-            </h3>
-            <p className="text-xs sm:text-sm text-white/80 line-clamp-2 max-w-xl mb-4 leading-relaxed">
-              {flagship.description}
-            </p>
+            {tilePending.flagship ? (
+              <>
+                <Skeleton className="h-7 w-3/4 bg-white/20 sm:h-8" />
+                <Skeleton className="h-3 w-full max-w-xl bg-white/15 mt-4" />
+                <Skeleton className="h-3 w-2/3 max-w-md bg-white/10 mt-2" />
+              </>
+            ) : (
+              <>
+                <h3 className="text-xl sm:text-2xl lg:text-3xl font-bold font-serif leading-tight mb-2 group-hover:text-primary-foreground/90 transition-colors">
+                  {flagship.title}
+                </h3>
+                <p className="text-xs sm:text-sm text-white/80 line-clamp-2 max-w-xl mb-4 leading-relaxed">
+                  {flagship.description}
+                </p>
+              </>
+            )}
             <div className="flex items-center gap-3">
               <Button
                 asChild
@@ -282,7 +418,11 @@ export default function BentoGrid({ className = "" }: BentoGridProps) {
                 className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold px-4 h-9 shadow-lg shadow-primary/20 gap-2"
               >
                 {isExternalUrl(flagship.link) ? (
-                  <a href={flagship.link} target="_blank" rel="noopener noreferrer">
+                  <a
+                    href={flagship.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <Play className="w-3.5 h-3.5 fill-current" />
                     {flagship.ctaLabel}
                   </a>
@@ -320,13 +460,28 @@ export default function BentoGrid({ className = "" }: BentoGridProps) {
                 <BookOpen className="w-4 h-4" />
                 Verset du Jour
               </div>
-              <Badge variant="outline" className="text-[10px] border-primary/20 text-primary">
-                {verse.reference}
-              </Badge>
+              {tilePending.verse ? (
+                <Skeleton className="h-4 w-20 rounded-full" />
+              ) : (
+                <Badge
+                  variant="outline"
+                  className="text-[10px] border-primary/20 text-primary"
+                >
+                  {verse.reference}
+                </Badge>
+              )}
             </div>
-            <blockquote className="text-xs sm:text-sm italic text-foreground/90 leading-relaxed font-serif line-clamp-4">
-              « {verse.text} »
-            </blockquote>
+            {tilePending.verse ? (
+              <div className="space-y-2 py-1">
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-11/12" />
+                <Skeleton className="h-3 w-3/4" />
+              </div>
+            ) : (
+              <blockquote className="text-xs sm:text-sm italic text-foreground/90 leading-relaxed font-serif line-clamp-4">
+                « {verse.text} »
+              </blockquote>
+            )}
           </div>
 
           <div className="flex items-center justify-between pt-3 mt-3 border-t border-border/40">
@@ -336,7 +491,11 @@ export default function BentoGrid({ className = "" }: BentoGridProps) {
               className="text-xs text-muted-foreground hover:text-foreground h-7 px-2 gap-1.5"
               onClick={handleCopyVerse}
             >
-              {copied ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+              {copied ? (
+                <Check className="w-3.5 h-3.5 text-emerald-500" />
+              ) : (
+                <Copy className="w-3.5 h-3.5" />
+              )}
               {copied ? "Copié" : "Copier"}
             </Button>
 
@@ -361,7 +520,9 @@ export default function BentoGrid({ className = "" }: BentoGridProps) {
           <div>
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <Radio className={`w-3.5 h-3.5 ${timeLeft.isLive ? "text-red-500 animate-pulse" : "text-primary"}`} />
+                <Radio
+                  className={`w-3.5 h-3.5 ${timeLeft.isLive ? "text-red-500 animate-pulse" : "text-primary"}`}
+                />
                 {timeLeft.isLive ? "En direct maintenant" : "Prochain Direct"}
               </span>
               {timeLeft.isLive && (
@@ -375,29 +536,59 @@ export default function BentoGrid({ className = "" }: BentoGridProps) {
             <div className="my-2">
               {timeLeft.isLive ? (
                 <div className="text-center py-2">
-                  <p className="text-base font-bold text-red-600 dark:text-red-400">Le culte a commencé !</p>
-                  <p className="text-xs text-muted-foreground mt-1">Rejoignez la louange en temps réel</p>
+                  <p className="text-base font-bold text-red-600 dark:text-red-400">
+                    Le culte a commencé !
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Rejoignez la louange en temps réel
+                  </p>
                 </div>
               ) : (
                 <div className="grid grid-cols-4 gap-1 text-center">
                   <div className="bg-background/80 rounded-lg p-1.5 border border-border/40">
-                    <span className="text-base sm:text-lg font-bold font-mono text-foreground block">{timeLeft.days}</span>
-                    <span className="text-[9px] uppercase text-muted-foreground">Jours</span>
+                    <span className="text-base sm:text-lg font-bold font-mono text-foreground block">
+                      {timeLeft.days}
+                    </span>
+                    <span className="text-[9px] uppercase text-muted-foreground">
+                      Jours
+                    </span>
                   </div>
                   <div className="bg-background/80 rounded-lg p-1.5 border border-border/40">
-                    <span className="text-base sm:text-lg font-bold font-mono text-foreground block">{timeLeft.hours}</span>
-                    <span className="text-[9px] uppercase text-muted-foreground">Heures</span>
+                    <span className="text-base sm:text-lg font-bold font-mono text-foreground block">
+                      {timeLeft.hours}
+                    </span>
+                    <span className="text-[9px] uppercase text-muted-foreground">
+                      Heures
+                    </span>
                   </div>
                   <div className="bg-background/80 rounded-lg p-1.5 border border-border/40">
-                    <span className="text-base sm:text-lg font-bold font-mono text-foreground block">{timeLeft.minutes}</span>
-                    <span className="text-[9px] uppercase text-muted-foreground">Min</span>
+                    <span className="text-base sm:text-lg font-bold font-mono text-foreground block">
+                      {timeLeft.minutes}
+                    </span>
+                    <span className="text-[9px] uppercase text-muted-foreground">
+                      Min
+                    </span>
                   </div>
                   <div className="bg-background/80 rounded-lg p-1.5 border border-border/40">
-                    <span className="text-base sm:text-lg font-bold font-mono text-primary block">{timeLeft.seconds}</span>
-                    <span className="text-[9px] uppercase text-muted-foreground">Sec</span>
+                    <span className="text-base sm:text-lg font-bold font-mono text-primary block">
+                      {timeLeft.seconds}
+                    </span>
+                    <span className="text-[9px] uppercase text-muted-foreground">
+                      Sec
+                    </span>
                   </div>
                 </div>
               )}
+              {/* Annonce accessible : le texte ne change qu'une fois par minute, donc aria-live/polite n'annonce pas chaque seconde */}
+              {!timeLeft.isLive &&
+                timeLeft.days + timeLeft.hours + timeLeft.minutes > 0 && (
+                  <p aria-live="polite" className="sr-only">
+                    Prochain direct dans {timeLeft.days} jour
+                    {timeLeft.days > 1 ? "s" : ""}, {timeLeft.hours} heure
+                    {timeLeft.hours > 1 ? "s" : ""} et {timeLeft.minutes} minute
+                    {timeLeft.minutes > 1 ? "s" : ""}
+                  </p>
+                )}
             </div>
           </div>
 
@@ -407,12 +598,20 @@ export default function BentoGrid({ className = "" }: BentoGridProps) {
             className="w-full mt-3 rounded-xl bg-primary hover:bg-primary/90 text-primary-foreground text-xs font-semibold h-8"
           >
             {isExternalUrl(radarSettings.link) ? (
-              <a href={radarSettings.link} target="_blank" rel="noopener noreferrer">
-                {timeLeft.isLive ? "Rejoindre le Direct ▶" : (radarSettings.label || "Accéder à l'espace Culte")}
+              <a
+                href={radarSettings.link}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {timeLeft.isLive
+                  ? "Rejoindre le Direct ▶"
+                  : radarSettings.label || "Accéder à l'espace Culte"}
               </a>
             ) : (
               <Link href={radarSettings.link}>
-                {timeLeft.isLive ? "Rejoindre le Direct ▶" : (radarSettings.label || "Accéder à l'espace Culte")}
+                {timeLeft.isLive
+                  ? "Rejoindre le Direct ▶"
+                  : radarSettings.label || "Accéder à l'espace Culte"}
               </Link>
             )}
           </Button>
@@ -424,23 +623,51 @@ export default function BentoGrid({ className = "" }: BentoGridProps) {
           transition={{ duration: 0.2 }}
           className="lg:col-span-1 rounded-2xl sm:rounded-3xl p-4 sm:p-5 border border-border/50 bg-card/80 backdrop-blur-md shadow-sm hover:shadow-lg flex items-center gap-3 relative overflow-hidden group"
         >
-          <div
-            className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-cover bg-center shrink-0 border border-border/40 group-hover:scale-105 transition-transform"
-            style={{ backgroundImage: `url(${event.imageUrl})` }}
-          />
+          {tilePending.event ? (
+            <Skeleton className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl shrink-0" />
+          ) : (
+            <div
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-cover bg-center shrink-0 border border-border/40 group-hover:scale-105 transition-transform"
+              style={{ backgroundImage: `url(${event.imageUrl})` }}
+            />
+          )}
           <div className="min-w-0 flex-1 flex flex-col justify-between">
-            <div>
-              <span className="text-[10px] font-semibold text-primary uppercase tracking-wider block truncate">
-                {event.badge}
-              </span>
-              <h4 className="text-xs sm:text-sm font-bold text-foreground truncate mt-0.5">
-                {event.title}
-              </h4>
-              <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
-                <Calendar className="w-3 h-3 text-primary/70" />
-                {event.date}
-              </p>
-            </div>
+            {tilePending.event ? (
+              <div className="space-y-2">
+                <Skeleton className="h-2.5 w-28 rounded-full" />
+                <Skeleton className="h-3.5 w-full max-w-[170px]" />
+                <Skeleton className="h-3 w-32" />
+              </div>
+            ) : (
+              <div>
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1.5 max-w-full rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider",
+                    isRegistrationOpen
+                      ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30"
+                      : "text-primary"
+                  )}
+                >
+                  {isRegistrationOpen && (
+                    <span
+                      className="relative flex h-1.5 w-1.5 shrink-0"
+                      aria-hidden="true"
+                    >
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500" />
+                    </span>
+                  )}
+                  <span className="truncate">{event.badge}</span>
+                </span>
+                <h4 className="text-xs sm:text-sm font-bold text-foreground truncate mt-0.5">
+                  {event.title}
+                </h4>
+                <p className="text-[11px] text-muted-foreground flex items-center gap-1 mt-0.5">
+                  <Calendar className="w-3 h-3 text-primary/70" />
+                  {event.date}
+                </p>
+              </div>
+            )}
             {isExternalUrl(event.link) ? (
               <a
                 href={event.link}
@@ -476,12 +703,16 @@ export default function BentoGrid({ className = "" }: BentoGridProps) {
             <div>
               <h4 className="text-xs sm:text-sm font-semibold text-foreground flex items-center gap-2">
                 Assistant Spirituel & Recherche Intelligente
-                <Badge variant="secondary" className="text-[9px] px-1.5 py-0 bg-primary/10 text-primary">
+                <Badge
+                  variant="secondary"
+                  className="text-[9px] px-1.5 py-0 bg-primary/10 text-primary"
+                >
                   IA
                 </Badge>
               </h4>
               <p className="text-[11px] sm:text-xs text-muted-foreground mt-0.5">
-                Posez une question sur la foi, un thème biblique ou les activités de l'église
+                Posez une question sur la foi, un thème biblique ou les
+                activités de l'église
               </p>
             </div>
           </div>
@@ -489,13 +720,19 @@ export default function BentoGrid({ className = "" }: BentoGridProps) {
           {/* Suggestions cliquables */}
           <div className="flex flex-wrap items-center gap-1.5 self-start sm:self-auto">
             <button
-              onClick={() => handleOpenAiQuestion("Comment grandir dans la foi chrétienne ?")}
+              onClick={() =>
+                handleOpenAiQuestion("Comment grandir dans la foi chrétienne ?")
+              }
               className="text-[11px] bg-muted/60 hover:bg-primary/10 hover:text-primary transition-colors text-foreground px-2.5 py-1 rounded-full border border-border/40"
             >
               Grandir dans la foi
             </button>
             <button
-              onClick={() => handleOpenAiQuestion("Quels sont les horaires des réunions de prière ?")}
+              onClick={() =>
+                handleOpenAiQuestion(
+                  "Quels sont les horaires des réunions de prière ?"
+                )
+              }
               className="text-[11px] bg-muted/60 hover:bg-primary/10 hover:text-primary transition-colors text-foreground px-2.5 py-1 rounded-full border border-border/40"
             >
               Horaires des cultes
@@ -510,7 +747,6 @@ export default function BentoGrid({ className = "" }: BentoGridProps) {
             </Button>
           </div>
         </motion.div>
-
       </div>
     </section>
   );
