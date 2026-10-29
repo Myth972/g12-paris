@@ -8,8 +8,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getLoginUrl } from "@/const";
-import { Menu, X, User, LogOut, Shield, Newspaper, Facebook, Instagram, Youtube, Sun, Moon, FlaskConical } from "lucide-react";
-import { useState } from "react";
+import {
+  Menu,
+  X,
+  User,
+  LogOut,
+  Shield,
+  Newspaper,
+  Facebook,
+  Instagram,
+  Youtube,
+  Sun,
+  Moon,
+  FlaskConical,
+} from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import NotificationBell from "./NotificationBell";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -17,42 +30,64 @@ import { trpc } from "@/lib/trpc";
 import { useTranslation } from "react-i18next";
 import LanguageSwitcher from "./LanguageSwitcher";
 
-type NavLink = { href?: string; labelKey: string; defaultLabel: string; icon?: boolean; subItems?: { href: string; labelKey: string; defaultLabel: string }[] };
+type NavLink = {
+  href?: string;
+  labelKey: string;
+  defaultLabel: string;
+  icon?: boolean;
+  subItems?: { href: string; labelKey: string; defaultLabel: string }[];
+};
 
 const NAV_LINKS: NavLink[] = [
   { href: "/", labelKey: "nav.home", defaultLabel: "Accueil" },
-  { href: "/publication-du-jour", labelKey: "nav.dailyPost", defaultLabel: "Publication du jour" },
+  {
+    href: "/publication-du-jour",
+    labelKey: "nav.dailyPost",
+    defaultLabel: "Publication du jour",
+  },
   { href: "/galeries", labelKey: "nav.galleries", defaultLabel: "Galeries" },
   { href: "/evenements", labelKey: "nav.events", defaultLabel: "Événements" },
-  { 
-    labelKey: "nav.onlineService", 
+  {
+    labelKey: "nav.onlineService",
     defaultLabel: "Culte en ligne",
     subItems: [
-      { href: "/culte-en-ligne", labelKey: "nav.onlineServiceDirect", defaultLabel: "Culte du dimanche" },
-      { href: "/culte-en-ligne/convention", labelKey: "nav.convention", defaultLabel: "Convention G12" }
-    ]
+      {
+        href: "/culte-en-ligne",
+        labelKey: "nav.onlineServiceDirect",
+        defaultLabel: "Culte du dimanche",
+      },
+      {
+        href: "/culte-en-ligne/convention",
+        labelKey: "nav.convention",
+        defaultLabel: "Convention G12",
+      },
+    ],
   },
-  { href: "/bibliotheque", labelKey: "nav.library", defaultLabel: "Bibliothèque" },
+  {
+    href: "/bibliotheque",
+    labelKey: "nav.library",
+    defaultLabel: "Bibliothèque",
+  },
 ];
 
 const SOCIAL_LINKS = [
-  { 
-    href: "https://www.facebook.com/G12France/", 
-    icon: <Facebook className="w-5 h-5" />, 
+  {
+    href: "https://www.facebook.com/G12France/",
+    icon: <Facebook className="w-5 h-5" />,
     label: "Facebook",
-    hoverColor: "hover:text-[#1877F2]"
+    hoverColor: "hover:text-[#1877F2]",
   },
-  { 
-    href: "https://www.instagram.com/cci.paris/", 
-    icon: <Instagram className="w-5 h-5" />, 
+  {
+    href: "https://www.instagram.com/cci.paris/",
+    icon: <Instagram className="w-5 h-5" />,
     label: "Instagram",
-    hoverColor: "hover:text-[#E4405F]"
+    hoverColor: "hover:text-[#E4405F]",
   },
-  { 
-    href: "https://www.youtube.com/@media.mpecciparis", 
-    icon: <Youtube className="w-5 h-5" />, 
+  {
+    href: "https://www.youtube.com/@media.mpecciparis",
+    icon: <Youtube className="w-5 h-5" />,
     label: "YouTube",
-    hoverColor: "hover:text-[#FF0000]"
+    hoverColor: "hover:text-[#FF0000]",
   },
 ];
 
@@ -62,6 +97,16 @@ export default function SiteHeader() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [location] = useLocation();
 
+  // Échap ferme le menu mobile (accessibilité clavier, à la manière des dialogs)
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [mobileOpen]);
+
   const isAdmin = user?.role === "admin";
   const isEditeur = user?.role === "editeur";
   const isBibliotheque = user?.role === "bibliotheque";
@@ -69,7 +114,8 @@ export default function SiteHeader() {
 
   const { theme, toggleTheme, switchable } = useTheme();
   const { data: settings } = trpc.siteSettings.getAll.useQuery();
-  const enableThemeToggle = switchable || settings?.["design.enableThemeToggle"] === "true";
+  const enableThemeToggle =
+    switchable || settings?.["design.enableThemeToggle"] === "true";
 
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-md border-b border-border/60">
@@ -101,8 +147,9 @@ export default function SiteHeader() {
           <nav className="hidden lg:flex items-center gap-1">
             {NAV_LINKS.map(link => {
               if (link.subItems) {
-                const isActive = link.subItems.some(sub => 
-                  location === sub.href || location.startsWith(sub.href + "/")
+                const isActive = link.subItems.some(
+                  sub =>
+                    location === sub.href || location.startsWith(sub.href + "/")
                 );
                 return (
                   <DropdownMenu key={link.labelKey}>
@@ -120,7 +167,10 @@ export default function SiteHeader() {
                     <DropdownMenuContent align="start" className="w-48">
                       {link.subItems.map(sub => (
                         <DropdownMenuItem key={sub.href} asChild>
-                          <Link href={sub.href} className="w-full cursor-pointer">
+                          <Link
+                            href={sub.href}
+                            className="w-full cursor-pointer"
+                          >
                             {t(sub.labelKey, sub.defaultLabel)}
                           </Link>
                         </DropdownMenuItem>
@@ -132,7 +182,9 @@ export default function SiteHeader() {
 
               const isActive =
                 location === link.href ||
-                (link.href && link.href !== "/" && location.startsWith(link.href));
+                (link.href &&
+                  link.href !== "/" &&
+                  location.startsWith(link.href));
               return (
                 <Link
                   key={link.href}
@@ -173,10 +225,14 @@ export default function SiteHeader() {
               <button
                 onClick={toggleTheme}
                 className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-accent transition-all duration-300 hover:scale-110"
-                title={theme === 'light' ? 'Passer en mode sombre' : 'Passer en mode clair'}
+                title={
+                  theme === "light"
+                    ? "Passer en mode sombre"
+                    : "Passer en mode clair"
+                }
                 aria-label="Basculer le thème"
               >
-                {theme === 'light' ? (
+                {theme === "light" ? (
                   <Moon className="w-5 h-5" />
                 ) : (
                   <Sun className="w-5 h-5 text-amber-400" />
@@ -191,7 +247,11 @@ export default function SiteHeader() {
               {isAuthenticated ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm" className="gap-2 px-2 sm:px-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="gap-2 px-2 sm:px-3"
+                    >
                       <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full bg-primary/10 flex items-center justify-center">
                         <User className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
                       </div>
@@ -230,7 +290,7 @@ export default function SiteHeader() {
                   onClick={() => (window.location.href = getLoginUrl())}
                   className="font-medium px-3 sm:px-4 ml-1 sm:ml-0"
                 >
-                  {t('nav.login', 'Connexion')}
+                  {t("nav.login", "Connexion")}
                 </Button>
               )}
 
@@ -264,7 +324,9 @@ export default function SiteHeader() {
                         {t(link.labelKey, link.defaultLabel)}
                       </div>
                       {link.subItems.map(sub => {
-                        const isSubActive = location === sub.href || location.startsWith(sub.href + "/");
+                        const isSubActive =
+                          location === sub.href ||
+                          location.startsWith(sub.href + "/");
                         return (
                           <Link
                             key={sub.href}
@@ -286,7 +348,9 @@ export default function SiteHeader() {
 
                 const isActive =
                   location === link.href ||
-                  (link.href && link.href !== "/" && location.startsWith(link.href));
+                  (link.href &&
+                    link.href !== "/" &&
+                    location.startsWith(link.href));
                 return (
                   <Link
                     key={link.href}
@@ -317,7 +381,9 @@ export default function SiteHeader() {
 
             {/* Social Icons Mobile */}
             <div className="px-4 pt-6 border-t border-border/40">
-              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-4">Suivez-nous</p>
+              <p className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-4">
+                Suivez-nous
+              </p>
               <div className="flex items-center gap-6">
                 {SOCIAL_LINKS.map(social => (
                   <a
@@ -340,10 +406,14 @@ export default function SiteHeader() {
                   onClick={toggleTheme}
                   className="flex items-center gap-3 w-full px-4 py-3 text-base font-medium rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors touch-manipulation"
                 >
-                  {theme === 'light' ? (
-                    <><Moon className="w-5 h-5" /> Mode Sombre</>
+                  {theme === "light" ? (
+                    <>
+                      <Moon className="w-5 h-5" /> Mode Sombre
+                    </>
                   ) : (
-                    <><Sun className="w-5 h-5 text-amber-400" /> Mode Clair</>
+                    <>
+                      <Sun className="w-5 h-5 text-amber-400" /> Mode Clair
+                    </>
                   )}
                 </button>
               </div>
