@@ -123,3 +123,14 @@ components/ai-chat-widget/
 # Toggle de test local (mode Auto/Ordi/Tél) — jamais déployé
 client/src/components/DevDeviceToggle.tsx
 client/src/hooks/useDevDeviceMode.tsx
+
+# Artefacts de test Playwright (regeneres a chaque execution)
+test-results/
+playwright-report/
+
+# Sauvegardes et captures locales
+backups/
+screenshots/
+
+# Script de mesure de performance local
+scripts/lcp-measure.mjs
