@@ -1,32 +1,33 @@
-import { test, chromium, firefox, webkit } from '@playwright/test';
+import { chromium } from "@playwright/test";
 
-// Global setup for Playwright tests
+/**
+ * Vérifie que le serveur de développement répond avant la suite.
+ *
+ * `waitUntil: "networkidle"` ne se produit jamais ici : le site sonde le
+ * serveur en continu (notifications, compte à rebours), l'attente échouait
+ * donc systématiquement après 60 s en affichant un faux « serveur absent ».
+ * On attend l'événement de montage React (`header` rendu) à la place.
+ */
 export default async () => {
-  console.log('Setting up Playwright test environment...');
-  
-  // Ensure the development server is ready
-  console.log('Waiting for development server to start...');
-  
-  // Try to access the development server to ensure it's ready
+  console.log("Préparation de l'environnement Playwright…");
+
   try {
     const browser = await chromium.launch();
     const page = await browser.newPage();
-    
-    // Wait for the server to be responsive
-    await page.goto('http://localhost:5173', { 
-      waitUntil: 'networkidle',
-      timeout: 60000 
+
+    await page.goto("http://localhost:5173", {
+      waitUntil: "domcontentloaded",
+      timeout: 60000,
     });
-    
+    await page.waitForSelector("header", { timeout: 30000 });
+
     await browser.close();
-    console.log('Development server is ready!');
+    console.log("Serveur de développement prêt.");
   } catch (error) {
-    console.warn('Could not connect to development server:', error);
-    console.log('Tests will still run, but some features may not be available');
+    console.warn("Serveur de développement non joignable :", error);
   }
-  
-  // Set up global environment variables if needed
-  process.env.PLAYWRIGHT_TEST_BASE_URL = 'http://localhost:5173';
-  
-  console.log('Playwright test environment setup complete!');
+
+  process.env.PLAYWRIGHT_TEST_BASE_URL = "http://localhost:5173";
+
+  console.log("Environnement Playwright prêt.");
 };

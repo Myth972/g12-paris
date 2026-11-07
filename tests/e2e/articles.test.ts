@@ -1,51 +1,61 @@
-import { test, expect } from '../setup/fixtures';
+import { test, expect } from "../setup/fixtures";
+import { loginAsAdmin } from "../setup/auth";
 
-test.describe('Gestion des articles', () => {
-  test('devrait afficher les articles sur la page d\'accueil', async ({ page }) => {
-    await page.goto('/');
+test.describe("Gestion des articles", () => {
+  test("devrait afficher les articles sur la page d'accueil", async ({
+    page,
+  }) => {
+    await page.goto("/");
 
-    await page.waitForLoadState('networkidle');
-
-    const articles = page.locator('article').first();
-    await expect(articles).toBeVisible();
+    await expect(page.locator("main").first()).toBeVisible();
+    await expect(page.locator("article").first()).toBeVisible({
+      timeout: 20000,
+    });
   });
 
-  test('devrait naviguer vers le détail d\'un article', async ({ page }) => {
-    await page.goto('/');
+  test("devrait naviguer vers le détail d'un article", async ({ page }) => {
+    await page.goto("/");
 
-    await page.waitForLoadState('networkidle');
-
-    const firstArticle = page.locator('article a').first();
+    // ArticleCard rend le lien comme parent de <article>.
+    const firstArticle = page.locator('a[href^="/article/"]').first();
+    await expect(firstArticle).toBeVisible({ timeout: 20000 });
     await firstArticle.click();
 
     await expect(page).toHaveURL(/\/article\/.+/);
-    await expect(page.locator('.prose-article, article')).toBeVisible();
+    // La page de détail est chargée à la demande et attend l'article via l'API.
+    await expect(page.locator(".prose-article")).toBeVisible({
+      timeout: 25000,
+    });
   });
 
-  test('devrait afficher les catégories d\'articles', async ({ page }) => {
-    await page.goto('/');
+  test("devrait afficher les catégories d'articles", async ({ page }) => {
+    await page.goto("/");
 
-    await page.waitForLoadState('networkidle');
-
-    const badges = page.locator('article a').first().locator('span:has-text("actualite"), span:has-text("publication"), span:has-text("culte"), span:has-text("bibliotheque")');
-    const firstBadge = badges.first();
-    if (await firstBadge.isVisible()) {
-      await expect(firstBadge).toBeVisible();
-    }
+    const badge = page
+      .locator('a[href^="/article/"]')
+      .first()
+      .locator("span")
+      .first();
+    await expect(badge).toBeVisible({ timeout: 20000 });
+    expect((await badge.innerText()).trim().length).toBeGreaterThan(0);
   });
 
-  test.describe('Création d\'article (admin)', () => {
-    test('devrait accéder à l\'éditeur d\'article', async ({ page }) => {
-      await page.goto('/login');
-      await page.fill('#password', 'admin123');
-      await page.click('button[type="submit"]');
-      await page.waitForURL('/admin');
+  test.describe("Création d'article (admin)", () => {
+    test("devrait accéder à l'éditeur d'article", async ({ page }) => {
+      await loginAsAdmin(page);
 
-      await page.goto('/admin/article/new');
-      await page.waitForLoadState('networkidle');
+      await page.goto("/admin/article/new");
+      await expect(page).toHaveURL(/\/admin\/article\/new/);
 
-      const hasEditor = await page.locator('input[id="title"], textarea, [contenteditable]').count();
-      expect(hasEditor).toBeGreaterThan(0);
+      // L'éditeur est lazy-loadé derrière un spinner : on attend le premier
+      // champ de saisie (titre ou contenu riche) au lieu de compter à froid.
+      await expect(
+        page
+          .locator(
+            'input#title, input[id="title"], textarea, [contenteditable="true"]'
+          )
+          .first()
+      ).toBeVisible({ timeout: 30000 });
     });
   });
 });

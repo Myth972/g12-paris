@@ -1,45 +1,27 @@
-import { test, expect } from '../setup/fixtures';
+import { test, expect } from "../setup/fixtures";
 
-test.describe('Gestion des médias', () => {
-  test('devrait afficher la page galeries', async ({ page }) => {
-    await page.goto('/galeries');
+/**
+ * Ces tests ne vérifiaient que l'URL : une page blanche les passait.
+ * On attend désormais le rendu réel (`main`) et plus `networkidle`,
+ * que le polling du site empêche d'atteindre.
+ */
+const PAGES = [
+  { path: "/galeries", label: "galeries" },
+  { path: "/bibliotheque", label: "bibliothèque" },
+  { path: "/bibliotheque/catalogue", label: "catalogue" },
+  { path: "/bibliotheque/themes", label: "thèmes bibliques" },
+  { path: "/bibliotheque/offres", label: "offres et packs" },
+  { path: "/bibliotheque/etude", label: "études" },
+];
 
-    await page.waitForLoadState('networkidle');
-    await expect(page).toHaveURL(/\/galeries/);
-  });
+test.describe("Pages médias et bibliothèque", () => {
+  for (const item of PAGES) {
+    test(`affiche la page ${item.label}`, async ({ page }) => {
+      await page.goto(item.path);
 
-  test('devrait afficher la page bibliothèque', async ({ page }) => {
-    await page.goto('/bibliotheque');
-
-    await page.waitForLoadState('networkidle');
-    await expect(page).toHaveURL(/\/bibliotheque/);
-  });
-
-  test('devrait naviguer vers le catalogue bibliothèque', async ({ page }) => {
-    await page.goto('/bibliotheque/catalogue');
-
-    await page.waitForLoadState('networkidle');
-    await expect(page).toHaveURL(/\/bibliotheque\/catalogue/);
-  });
-
-  test('devrait naviguer vers les thèmes bibliques', async ({ page }) => {
-    await page.goto('/bibliotheque/themes');
-
-    await page.waitForLoadState('networkidle');
-    await expect(page).toHaveURL(/\/bibliotheque\/themes/);
-  });
-
-  test('devrait naviguer vers les offres et packs', async ({ page }) => {
-    await page.goto('/bibliotheque/offres');
-
-    await page.waitForLoadState('networkidle');
-    await expect(page).toHaveURL(/\/bibliotheque\/offres/);
-  });
-
-  test('devrait naviguer vers les études', async ({ page }) => {
-    await page.goto('/bibliotheque/etude');
-
-    await page.waitForLoadState('networkidle');
-    await expect(page).toHaveURL(/\/bibliotheque\/etude/);
-  });
+      await expect(page).toHaveURL(new RegExp(item.path));
+      await expect(page.locator("main").first()).toBeVisible();
+      await expect(page.locator("header")).toBeVisible();
+    });
+  }
 });
