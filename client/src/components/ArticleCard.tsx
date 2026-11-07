@@ -2,6 +2,7 @@ import { Calendar, Play, Clock, ArrowRight } from "lucide-react";
 import { Link } from "wouter";
 import { memo } from "react";
 import TiltCard from "@/components/TiltCard";
+import OptimizedImage from "@/components/OptimizedImage";
 
 interface ArticleCardProps {
   article: {
@@ -67,15 +68,22 @@ const ArticleCard = memo(function ArticleCard({
           className={`relative overflow-hidden bg-muted ${featured ? "aspect-[21/9] md:aspect-[21/9]" : "aspect-[16/10]"}`}
         >
           {article.coverImageUrl ? (
-            <img
-              src={article.coverImageUrl}
-              alt={article.title}
-              className="w-full h-full object-cover group-hover:scale-105 group-active:scale-105 transition-transform duration-500 select-none"
-              onContextMenu={(e) => e.preventDefault()}
-              draggable={false}
-              loading="lazy"
-              decoding="async"
-            />
+            <div className="w-full h-full group-hover:scale-105 group-active:scale-105 transition-transform duration-500">
+              <OptimizedImage
+                src={article.coverImageUrl}
+                alt={article.title}
+                sizes={
+                  featured
+                    ? "(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 66vw"
+                    : "(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                }
+                className="w-full h-full object-cover select-none"
+                onContextMenu={(e) => e.preventDefault()}
+                draggable={false}
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-muted to-secondary">
               <span className="text-4xl font-serif text-muted-foreground/30">

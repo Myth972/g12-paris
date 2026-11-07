@@ -2,6 +2,7 @@ import { useRef, useEffect, memo } from "react";
 import { Calendar, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import OptimizedImage from "@/components/OptimizedImage";
 
 export interface Announcement {
   imageUrl: string;
@@ -77,12 +78,19 @@ const AnnouncementCard = memo(function AnnouncementCard({
     return (
       <div className={`relative group rounded-lg overflow-hidden bg-card border border-border/50 shadow-sm hover:shadow-lg transition-all duration-300 ${className}`}>
         <div className="aspect-[4/3] relative bg-muted flex items-center justify-center overflow-hidden">
-          <img
-            src={imageUrl}
-            alt={title}
-            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
-            loading="lazy"
-          />
+          <div className="absolute inset-0 transition-transform duration-500 group-hover:scale-105">
+            <OptimizedImage
+              src={imageUrl}
+              alt={title}
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className="w-full h-full object-contain"
+              // Posters d'/evenements dans le premier viewport : chargement
+              // eager prioritaire (l'image est le candidat LCP de la tuile).
+              loading="eager"
+              fetchPriority="high"
+              fadeIn={false}
+            />
+          </div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent pointer-events-none" />
           {badge && (
             <div className="absolute top-2 left-2">
@@ -117,9 +125,11 @@ const AnnouncementCard = memo(function AnnouncementCard({
     <div className={`relative flex flex-col sm:flex-row gap-2 p-2 sm:p-3 rounded-lg bg-card border border-border/50 shadow-sm hover:shadow-md hover:border-border/80 transition-all duration-300 group ${className}`}>
       {/* Image */}
       <div className="relative w-full sm:w-24 md:w-32 lg:w-36 h-28 sm:h-20 md:h-24 lg:h-28 rounded-md overflow-hidden flex-shrink-0 bg-muted flex items-center justify-center">
-        <img
+        <OptimizedImage
           src={imageUrl}
           alt={title}
+          sizes="(max-width: 640px) 100vw, 9rem"
+          widths={[320, 480]}
           className="w-full h-full object-contain"
           loading="lazy"
         />

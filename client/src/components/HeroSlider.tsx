@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, memo } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import OptimizedImage from "@/components/OptimizedImage";
 
 export interface Slide {
   imageUrl: string;
@@ -114,13 +115,19 @@ const HeroSlider = memo(function HeroSlider({
                key={i}
                className="relative w-full flex-shrink-0 aspect-[16/9] max-sm:aspect-[4/3] min-h-[280px] max-sm:min-h-[340px] bg-muted flex items-center justify-center overflow-hidden group"
              >
-            {/* Background image */}
-            <img
-              src={slide.imageUrl}
-              alt={slide.title}
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-              loading={i === 0 ? "eager" : "lazy"}
-            />
+            {/* Background image, recodée AVIF/WebP responsive via /api/image */}
+            <div className="absolute inset-0 transition-transform duration-700 group-hover:scale-105">
+              <OptimizedImage
+                src={slide.imageUrl}
+                alt={slide.title}
+                sizes="100vw"
+                widths={[480, 768, 1024, 1280]}
+                className="w-full h-full object-cover"
+                loading={i === 0 ? "eager" : "lazy"}
+                fetchPriority={i === 0 ? "high" : undefined}
+                placeholder={i === 0}
+              />
+            </div>
             {/* Gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent pointer-events-none" />
              {/* Content */}
