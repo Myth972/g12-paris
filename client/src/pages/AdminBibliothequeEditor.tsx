@@ -412,11 +412,11 @@ export default function AdminBibliothequeEditor() {
         <div className="grid lg:grid-cols-3 gap-4 sm:gap-8">
 
           {/* Main Content Area */}
-          <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+          <div className="min-w-0 space-y-4 lg:col-span-2 sm:space-y-6">
 
             {/* AI Provider */}
-            <div className="bg-card rounded-xl border p-3 sm:p-4 shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div>
+            <div className="bg-card rounded-xl border p-3 sm:p-4 shadow-sm flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
                 <p className="text-sm font-semibold flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-primary" />
                   <span className="hidden sm:inline">{t('admin.bibliothequeEditor.aiAssistant')}</span>
@@ -471,20 +471,20 @@ export default function AdminBibliothequeEditor() {
               </div>
 
               <div className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <label htmlFor="rich-content" className="text-sm font-medium">{t('admin.bibliothequeEditor.longDescription')}</label>
-                  <div className="flex gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <label htmlFor="rich-content" className="min-w-0 text-sm font-medium">{t('admin.bibliothequeEditor.longDescription')}</label>
+                  <div className="flex flex-wrap gap-2">
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="h-6 text-[10px] gap-1 text-primary hover:bg-primary/10"
+                      className="h-auto min-h-6 whitespace-normal text-left text-[10px] gap-1 text-primary hover:bg-primary/10"
                       disabled={generateDescriptionMutation.isPending || !title}
                       onClick={() => generateDescriptionMutation.mutate({ title, contentType: "description détaillée" })}
                     >
                       {generateDescriptionMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
                       {t('admin.bibliothequeEditor.generateWith', { provider: activeProvider.label })}
                     </Button>
-                    <Button variant="ghost" size="sm" className="h-6 text-xs">{t('admin.bibliothequeEditor.fullScreenMode')}</Button>
+                    <Button variant="ghost" size="sm" className="h-auto min-h-6 whitespace-normal text-xs">{t('admin.bibliothequeEditor.fullScreenMode')}</Button>
                   </div>
                 </div>
                 <div className="border rounded-md min-h-[300px] flex flex-col bg-background overflow-hidden">
@@ -647,7 +647,7 @@ export default function AdminBibliothequeEditor() {
           </div>
 
           {/* Sidebar Area */}
-          <div className="space-y-6">
+          <div className="min-w-0 space-y-6">
             
             {/* Classification */}
             <div className="bg-card border rounded-xl p-6 shadow-sm space-y-4">

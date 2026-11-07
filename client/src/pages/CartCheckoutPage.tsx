@@ -55,7 +55,7 @@ export default function CartCheckoutPage() {
                     <div className="w-20 h-24 bg-muted rounded-lg overflow-hidden shrink-0">
                       <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
                     </div>
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <h3 className="font-bold text-base line-clamp-2">{item.title}</h3>
                       <p className="text-sm text-muted-foreground">{item.type}</p>
                       <button className="text-sm text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 mt-2 font-medium">Supprimer</button>

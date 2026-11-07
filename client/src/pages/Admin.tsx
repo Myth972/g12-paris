@@ -1264,7 +1264,7 @@ export default function Admin() {
               <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary group-hover:scale-110 transition-transform flex-shrink-0">
                 <Plus className="w-5 h-5" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <h3 className="font-semibold text-sm">{t('admin.quickAccess.newArticle')}</h3>
                 <p className="text-xs text-muted-foreground">{t('admin.quickAccess.newArticleDesc')}</p>
               </div>
@@ -1275,7 +1275,7 @@ export default function Admin() {
               <div className="w-10 h-10 bg-amber-500/10 rounded-lg flex items-center justify-center text-amber-600 group-hover:scale-110 transition-transform flex-shrink-0 dark:text-amber-400">
                 <Library className="w-5 h-5" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <h3 className="font-semibold text-sm">{t('admin.quickAccess.library')}</h3>
                 <p className="text-xs text-muted-foreground">{t('admin.quickAccess.libraryDesc')}</p>
               </div>
@@ -1287,7 +1287,7 @@ export default function Admin() {
               <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center text-purple-600 group-hover:scale-110 transition-transform flex-shrink-0 dark:text-purple-400">
                 <Palette className="w-5 h-5" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <h3 className="font-semibold text-sm">{t('admin.quickAccess.design')}</h3>
                 <p className="text-xs text-muted-foreground">{t('admin.quickAccess.designDesc')}</p>
               </div>
@@ -1300,7 +1300,7 @@ export default function Admin() {
               <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform flex-shrink-0 dark:text-emerald-400">
                 <Bot className="w-5 h-5" />
               </div>
-              <div>
+              <div className="min-w-0">
                 <h3 className="font-semibold text-sm">{t('admin.quickAccess.agents')}</h3>
                 <p className="text-xs text-muted-foreground">{t('admin.quickAccess.agentsDesc')}</p>
               </div>

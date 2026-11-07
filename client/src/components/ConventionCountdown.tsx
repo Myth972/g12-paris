@@ -123,7 +123,7 @@ export default function ConventionCountdown({
         {cells.map((cell) => (
           <div
             key={cell.label}
-            className="flex flex-col items-center min-w-[68px] sm:min-w-[80px] px-2 py-3 rounded-2xl bg-white dark:bg-card border border-border/60 shadow-sm"
+            className="flex flex-col items-center min-w-[60px] sm:min-w-[80px] px-2 py-3 rounded-2xl bg-white dark:bg-card border border-border/60 shadow-sm"
           >
             <motion.span
               key={cell.value}

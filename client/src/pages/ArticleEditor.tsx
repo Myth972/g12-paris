@@ -29,7 +29,17 @@ import {
   SpellCheck,
   List,
 } from "lucide-react";
-import { useState, useEffect, useRef, useCallback, JSXElementConstructor, Key, ReactElement, ReactNode, ReactPortal } from "react";
+import {
+  useState,
+  useEffect,
+  useRef,
+  useCallback,
+  JSXElementConstructor,
+  Key,
+  ReactElement,
+  ReactNode,
+  ReactPortal,
+} from "react";
 import { useLocation, useParams } from "wouter";
 import { toast } from "sonner";
 import { AIProviderSelect } from "@/components/AIProviderSelect";
@@ -94,7 +104,7 @@ export default function ArticleEditor() {
       setTitle(existingArticle.title);
       setExcerpt(existingArticle.excerpt ?? "");
       setContent(existingArticle.content);
-      
+
       if (existingArticle.category.startsWith("bibliothèque")) {
         const parts = existingArticle.category.split(":");
         setCategory("bibliothèque");
@@ -123,47 +133,51 @@ export default function ArticleEditor() {
         text: generated.text,
         summary: generated.summary,
       });
-      toast.success(t('admin.articleEditor.toastVerseSuggested'));
+      toast.success(t("admin.articleEditor.toastVerseSuggested"));
     },
-    onError: err => toast.error(err.message || t('admin.articleEditor.toastVerseError')),
+    onError: err =>
+      toast.error(err.message || t("admin.articleEditor.toastVerseError")),
   });
 
   const createVerseMutation = trpc.verses.create.useMutation({
     onSuccess: newVerse => {
       utils.verses.adminList.invalidate();
       setVerseId(newVerse.id.toString());
-      toast.success(t('admin.articleEditor.toastVerseSaved'));
+      toast.success(t("admin.articleEditor.toastVerseSaved"));
     },
     onError: err =>
-      toast.error(err.message || t('admin.articleEditor.toastVerseSaveError')),
+      toast.error(err.message || t("admin.articleEditor.toastVerseSaveError")),
   });
 
   const createMutation = trpc.articles.create.useMutation({
     onSuccess: () => {
       utils.articles.adminList.invalidate();
       utils.articles.list.invalidate();
-      toast.success(t('admin.articleEditor.toastCreated'));
+      toast.success(t("admin.articleEditor.toastCreated"));
       setLocation("/admin");
     },
-    onError: err => toast.error(err.message || t('admin.articleEditor.toastCreateError')),
+    onError: err =>
+      toast.error(err.message || t("admin.articleEditor.toastCreateError")),
   });
 
   const updateMutation = trpc.articles.update.useMutation({
     onSuccess: () => {
       utils.articles.adminList.invalidate();
       utils.articles.list.invalidate();
-      toast.success(t('admin.articleEditor.toastUpdated'));
+      toast.success(t("admin.articleEditor.toastUpdated"));
       setLocation("/admin");
     },
-    onError: err => toast.error(err.message || t('admin.articleEditor.toastUpdateError')),
+    onError: err =>
+      toast.error(err.message || t("admin.articleEditor.toastUpdateError")),
   });
 
   const generateExcerptMutation = trpc.ai.generateDescription.useMutation({
     onSuccess: generated => {
       setExcerpt(generated);
-      toast.success(t('admin.articleEditor.toastExcerptGenerated'));
+      toast.success(t("admin.articleEditor.toastExcerptGenerated"));
     },
-    onError: err => toast.error(err.message || t('admin.articleEditor.toastGenError')),
+    onError: err =>
+      toast.error(err.message || t("admin.articleEditor.toastGenError")),
   });
 
   const improveTextMutation = trpc.ai.improveText.useMutation({
@@ -180,46 +194,57 @@ export default function ArticleEditor() {
   const handleImproveExcerpt = (tone: "biblical" | "normal") => {
     improveTextMutation.mutate(
       { text: excerpt, tone, field: "excerpt" },
-      { onSuccess: (improved) => setExcerpt(improved) },
+      { onSuccess: improved => setExcerpt(improved) }
     );
   };
 
   const handleImproveContent = (tone: "biblical" | "normal") => {
-    if (!content.trim()) { toast.error("Le contenu est vide"); return; }
+    if (!content.trim()) {
+      toast.error("Le contenu est vide");
+      return;
+    }
     improveTextMutation.mutate(
       { text: content, tone, field: "content" },
       {
-        onSuccess: (improved) => {
+        onSuccess: improved => {
           // L'IA peut retourner du HTML brut ou du texte entre blocs de code
-          let html = improved.replace(/^```html\s*/i, "").replace(/\s*```$/i, "").trim();
+          let html = improved
+            .replace(/^```html\s*/i, "")
+            .replace(/\s*```$/i, "")
+            .trim();
           // Si pas de balises HTML, wrapper dans des paragraphes
           if (!/<[a-z][\s\S]*>/i.test(html)) {
             html = `<p>${html.replace(/\n\n/g, "</p><p>").replace(/\n/g, "<br/>")}</p>`;
           }
           setContent(html);
         },
-      },
+      }
     );
   };
 
   const handleSpellCheckExcerpt = () => {
     spellCheckMutation.mutate(
       { text: excerpt },
-      { onSuccess: (corrected) => setExcerpt(corrected) },
+      { onSuccess: corrected => setExcerpt(corrected) }
     );
   };
 
   const handleSpellCheckContent = () => {
     const plainText = content.replace(/<[^>]*>/g, "").trim();
-    if (!plainText) { toast.error("Le contenu est vide"); return; }
+    if (!plainText) {
+      toast.error("Le contenu est vide");
+      return;
+    }
     spellCheckMutation.mutate(
       { text: plainText },
       {
-        onSuccess: (corrected) => {
-          setContent(`<p>${corrected.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br/>')}</p>`);
+        onSuccess: corrected => {
+          setContent(
+            `<p>${corrected.replace(/\n\n/g, "</p><p>").replace(/\n/g, "<br/>")}</p>`
+          );
           toast.success("Orthographe corrigée");
         },
-      },
+      }
     );
   };
 
@@ -237,9 +262,9 @@ export default function ArticleEditor() {
         });
         setCoverImageUrl(result.url);
         setCoverImageKey(result.key);
-        toast.success(t('admin.articleEditor.toastImageUploaded'));
+        toast.success(t("admin.articleEditor.toastImageUploaded"));
       } catch {
-        toast.error(t('admin.articleEditor.toastImageError'));
+        toast.error(t("admin.articleEditor.toastImageError"));
       } finally {
         setUploading(false);
       }
@@ -249,11 +274,11 @@ export default function ArticleEditor() {
 
   const handleSave = async () => {
     if (!title.trim()) {
-      toast.error(t('admin.articleEditor.toastTitleRequired'));
+      toast.error(t("admin.articleEditor.toastTitleRequired"));
       return;
     }
     if (!content.trim()) {
-      toast.error(t('admin.articleEditor.toastContentRequired'));
+      toast.error(t("admin.articleEditor.toastContentRequired"));
       return;
     }
 
@@ -263,7 +288,10 @@ export default function ArticleEditor() {
         title: title.trim(),
         excerpt: excerpt.trim() || undefined,
         content: content.trim(),
-        category: category === "bibliothèque" ? `bibliothèque:${libType}:${libTheme}` : category,
+        category:
+          category === "bibliothèque"
+            ? `bibliothèque:${libType}:${libTheme}`
+            : category,
         youtubeUrl: youtubeUrl.trim() || undefined,
         coverImageUrl: coverImageUrl || undefined,
         coverImageKey: coverImageKey || undefined,
@@ -298,9 +326,11 @@ export default function ArticleEditor() {
     return (
       <div className="container py-20 text-center">
         <Shield className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-        <h2 className="text-xl font-serif font-bold mb-2">{t('admin.articleEditor.restrictedAccess')}</h2>
+        <h2 className="text-xl font-serif font-bold mb-2">
+          {t("admin.articleEditor.restrictedAccess")}
+        </h2>
         <p className="text-muted-foreground">
-          {t('admin.articleEditor.restrictedAccessDesc')}
+          {t("admin.articleEditor.restrictedAccessDesc")}
         </p>
       </div>
     );
@@ -323,7 +353,9 @@ export default function ArticleEditor() {
                 <ArrowLeft className="w-5 h-5" />
               </Button>
               <h1 className="text-base sm:text-lg font-serif font-bold text-foreground">
-                {isNew ? t('admin.articleEditor.newArticle') : t('admin.articleEditor.edit')}
+                {isNew
+                  ? t("admin.articleEditor.newArticle")
+                  : t("admin.articleEditor.edit")}
               </h1>
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
@@ -333,17 +365,28 @@ export default function ArticleEditor() {
                   onCheckedChange={setPublished}
                   id="published"
                 />
-                <Label htmlFor="published" className="text-xs sm:text-sm font-medium hidden sm:block">
-                  {published ? t('admin.articleEditor.published') : t('admin.articleEditor.draft')}
+                <Label
+                  htmlFor="published"
+                  className="text-xs sm:text-sm font-medium hidden sm:block"
+                >
+                  {published
+                    ? t("admin.articleEditor.published")
+                    : t("admin.articleEditor.draft")}
                 </Label>
               </div>
-              <Button onClick={handleSave} disabled={saving} className="mobile-button touch-manipulation text-sm px-3 sm:px-4">
+              <Button
+                onClick={handleSave}
+                disabled={saving}
+                className="mobile-button touch-manipulation text-sm px-3 sm:px-4"
+              >
                 {saving ? (
                   <Loader2 className="w-4 h-4 mr-1 animate-spin" />
                 ) : (
                   <Save className="w-4 h-4 mr-1" />
                 )}
-                <span className="hidden sm:inline">{t('admin.articleEditor.save')}</span>
+                <span className="hidden sm:inline">
+                  {t("admin.articleEditor.save")}
+                </span>
               </Button>
             </div>
           </div>
@@ -353,18 +396,17 @@ export default function ArticleEditor() {
       {/* Form */}
       <div className="container max-w-6xl mx-auto py-4 sm:py-8">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_340px] gap-6 items-start">
-
           {/* === LEFT COLUMN: Main Editor === */}
           <div className="space-y-4 sm:space-y-6">
             {/* Title */}
             <div className="bg-card rounded-xl border border-border p-4 sm:p-6 shadow-sm">
               <Label className="text-sm font-semibold text-foreground mb-2 block">
-                {t('admin.articleEditor.articleTitle')}
+                {t("admin.articleEditor.articleTitle")}
               </Label>
               <Input
                 value={title}
                 onChange={e => setTitle(e.target.value)}
-                placeholder={t('admin.articleEditor.titlePlaceholder')}
+                placeholder={t("admin.articleEditor.titlePlaceholder")}
                 className="text-base sm:text-lg font-serif mobile-input"
               />
             </div>
@@ -373,7 +415,7 @@ export default function ArticleEditor() {
             <div className="bg-card rounded-xl border border-border p-4 sm:p-6 shadow-sm">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
                 <Label className="text-sm font-semibold text-foreground">
-                  {t('admin.articleEditor.excerpt')}
+                  {t("admin.articleEditor.excerpt")}
                 </Label>
                 <div className="flex items-center gap-1.5">
                   <Button
@@ -382,7 +424,10 @@ export default function ArticleEditor() {
                     className="h-8 text-xs gap-1 text-primary hover:text-primary hover:bg-primary/10"
                     disabled={generateExcerptMutation.isPending || !title}
                     onClick={() =>
-                      generateExcerptMutation.mutate({ title, contentType: "article" })
+                      generateExcerptMutation.mutate({
+                        title,
+                        contentType: "article",
+                      })
                     }
                   >
                     {generateExcerptMutation.isPending ? (
@@ -435,7 +480,7 @@ export default function ArticleEditor() {
               <Textarea
                 value={excerpt}
                 onChange={e => setExcerpt(e.target.value)}
-                placeholder={t('admin.articleEditor.excerptPlaceholder')}
+                placeholder={t("admin.articleEditor.excerptPlaceholder")}
                 rows={2}
                 className="resize-none mobile-input text-sm break-words"
                 spellCheck
@@ -447,10 +492,10 @@ export default function ArticleEditor() {
               <div className="px-4 sm:px-6 pt-4 sm:pt-5 pb-2 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
                 <div>
                   <Label className="text-sm font-semibold text-foreground">
-                    {t('admin.articleEditor.content')}
+                    {t("admin.articleEditor.content")}
                   </Label>
                   <p className="text-xs text-muted-foreground mt-0.5 hidden sm:block">
-                    {t('admin.articleEditor.contentHelp')}
+                    {t("admin.articleEditor.contentHelp")}
                   </p>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0">
@@ -497,7 +542,7 @@ export default function ArticleEditor() {
               <RichTextEditor
                 content={content}
                 onChange={setContent}
-                placeholder={t('admin.articleEditor.contentPlaceholder')}
+                placeholder={t("admin.articleEditor.contentPlaceholder")}
                 minHeight="400px sm:500px"
                 spellcheck={true}
               />
@@ -519,8 +564,9 @@ export default function ArticleEditor() {
                     ))}
                   </ul>
                   <p className="text-[11px] text-muted-foreground/60 mt-2">
-                    Utilisez « Titre 2 » / « Titre 3 » dans la barre d'outils pour
-                    structurer l'article et générer le sommaire automatiquement.
+                    Utilisez « Titre 2 » / « Titre 3 » dans la barre d'outils
+                    pour structurer l'article et générer le sommaire
+                    automatiquement.
                   </p>
                 </div>
               )}
@@ -528,24 +574,28 @@ export default function ArticleEditor() {
           </div>
 
           {/* === RIGHT COLUMN: Sidebar Meta (sticky) === */}
-          <div className="space-y-4 lg:sticky lg:top-20">
+          {/* min-w-0 : en grille, un enfant garde min-width:auto et laisse son
+              contenu (sélecteurs, URL) élargir la colonne au-delà de 340px. */}
+          <div className="min-w-0 space-y-4 lg:sticky lg:top-20">
             {/* AI Provider */}
-            <div className="bg-card rounded-xl border border-border p-4 shadow-sm flex items-center justify-between">
-              <div>
-                <p className="text-sm font-semibold text-foreground">
-                  {t('admin.articleEditor.aiProvider')}
+            {/* Empilé : la colonne fait 340px sur desktop, une rangée
+                texte + sélecteur + bouton y débordait. */}
+            <div className="bg-card rounded-xl border border-border p-4 shadow-sm flex flex-col gap-3">
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-foreground break-words">
+                  {t("admin.articleEditor.aiProvider")}
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  {t('admin.articleEditor.aiProviderDesc')}
+                <p className="text-xs text-muted-foreground break-words">
+                  {t("admin.articleEditor.aiProviderDesc")}
                 </p>
               </div>
-              <AIProviderSelect size="sm" />
+              <AIProviderSelect size="sm" className="w-full" />
             </div>
 
             {/* Category */}
             <div className="bg-card rounded-xl border border-border p-4 shadow-sm space-y-3">
-              <Label className="text-sm font-semibold text-foreground block">
-                {t('admin.articleEditor.category')}
+              <Label className="text-sm font-semibold text-foreground block break-words">
+                {t("admin.articleEditor.category")}
               </Label>
               <Select value={category} onValueChange={setCategory}>
                 <SelectTrigger className="w-full mobile-select-trigger">
@@ -561,8 +611,8 @@ export default function ArticleEditor() {
               </Select>
 
               {category === "bibliothèque" && (
-                <div className="grid grid-cols-2 gap-3 pt-2 border-t">
-                  <div>
+                <div className="grid grid-cols-1 gap-3 border-t pt-2 sm:grid-cols-2">
+                  <div className="min-w-0">
                     <Label className="text-xs font-semibold text-muted-foreground mb-1 block uppercase tracking-wider">
                       Type
                     </Label>
@@ -572,12 +622,20 @@ export default function ArticleEditor() {
                       </SelectTrigger>
                       <SelectContent>
                         {libCategories?.map((c: any) => (
-                          <SelectItem key={c.id} value={String(c.name)} className="capitalize">{String(c.name)}</SelectItem>
+                          <SelectItem
+                            key={c.id}
+                            value={String(c.name)}
+                            className="capitalize"
+                          >
+                            {String(c.name)}
+                          </SelectItem>
                         )) || (
                           <>
                             <SelectItem value="livre">Livre</SelectItem>
                             <SelectItem value="Livres">Livres</SelectItem>
-                            <SelectItem value="Livres PDF">Livres PDF</SelectItem>
+                            <SelectItem value="Livres PDF">
+                              Livres PDF
+                            </SelectItem>
                             <SelectItem value="bible">Bible</SelectItem>
                             <SelectItem value="Bibles">Bibles</SelectItem>
                             <SelectItem value="offre">Offre / Pack</SelectItem>
@@ -586,7 +644,7 @@ export default function ArticleEditor() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <Label className="text-xs font-semibold text-muted-foreground mb-1 block uppercase tracking-wider">
                       Thème
                     </Label>
@@ -596,15 +654,25 @@ export default function ArticleEditor() {
                       </SelectTrigger>
                       <SelectContent>
                         {libThemes?.map((t: any) => (
-                          <SelectItem key={t.id} value={String(t.name)} className="capitalize">{String(t.name)}</SelectItem>
+                          <SelectItem
+                            key={t.id}
+                            value={String(t.name)}
+                            className="capitalize"
+                          >
+                            {String(t.name)}
+                          </SelectItem>
                         )) || (
                           <>
                             <SelectItem value="foi">Foi</SelectItem>
                             <SelectItem value="Foi">Foi</SelectItem>
-                            <SelectItem value="Leadership">Leadership</SelectItem>
+                            <SelectItem value="Leadership">
+                              Leadership
+                            </SelectItem>
                             <SelectItem value="Famille">Famille</SelectItem>
                             <SelectItem value="famille">Famille</SelectItem>
-                            <SelectItem value="Etude Biblique">Étude Biblique</SelectItem>
+                            <SelectItem value="Etude Biblique">
+                              Étude Biblique
+                            </SelectItem>
                             <SelectItem value="prière">Prière</SelectItem>
                           </>
                         )}
@@ -617,21 +685,23 @@ export default function ArticleEditor() {
 
             {/* Versets */}
             <div className="bg-card rounded-xl border border-border p-4 shadow-sm space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-semibold text-foreground">
-                  {t('admin.articleEditor.verse')}
+              <div className="flex items-center justify-between gap-2">
+                <Label className="min-w-0 flex-1 text-sm font-semibold text-foreground">
+                  {t("admin.articleEditor.verse")}
                 </Label>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 text-xs gap-1.5 text-primary hover:bg-primary/10 touch-manipulation"
+                  className="h-8 shrink-0 text-xs gap-1.5 text-primary hover:bg-primary/10 touch-manipulation"
                   disabled={
                     suggestVerseMutation.isPending ||
                     createVerseMutation.isPending ||
                     !title ||
                     !content
                   }
-                  onClick={() => suggestVerseMutation.mutate({ title, content })}
+                  onClick={() =>
+                    suggestVerseMutation.mutate({ title, content })
+                  }
                 >
                   {suggestVerseMutation.isPending ||
                   createVerseMutation.isPending ? (
@@ -659,14 +729,14 @@ export default function ArticleEditor() {
 
             {/* Cover image */}
             <div className="bg-card rounded-xl border border-border p-4 shadow-sm space-y-3">
-              <Label className="text-sm font-semibold text-foreground block">
-                {t('admin.articleEditor.coverImage')}
+              <Label className="text-sm font-semibold text-foreground block break-words">
+                {t("admin.articleEditor.coverImage")}
               </Label>
               {coverImageUrl ? (
-                <div className="relative rounded-lg overflow-hidden border border-border">
+                <div className="relative w-full min-w-0 overflow-hidden rounded-lg border border-border">
                   <img
                     src={coverImageUrl}
-                    alt={t('admin.articleEditor.coverAlt')}
+                    alt={t("admin.articleEditor.coverAlt")}
                     className="w-full max-h-40 object-cover"
                   />
                   <Button
@@ -694,11 +764,11 @@ export default function ArticleEditor() {
                   )}
                   <p className="text-xs text-muted-foreground">
                     {uploading
-                      ? t('admin.articleEditor.uploading')
-                      : t('admin.articleEditor.addImage')}
+                      ? t("admin.articleEditor.uploading")
+                      : t("admin.articleEditor.addImage")}
                   </p>
                   <p className="text-[11px] text-muted-foreground/70 mt-0.5">
-                    {t('admin.articleEditor.jpgPngWebP')}
+                    {t("admin.articleEditor.jpgPngWebP")}
                   </p>
                 </div>
               )}
@@ -712,7 +782,7 @@ export default function ArticleEditor() {
               {!coverImageUrl && (
                 <div>
                   <Label className="text-xs text-muted-foreground mb-1 block">
-                    {t('admin.articleEditor.orUrl')}
+                    {t("admin.articleEditor.orUrl")}
                   </Label>
                   <Input
                     placeholder="https://..."
@@ -725,8 +795,8 @@ export default function ArticleEditor() {
 
             {/* YouTube URL */}
             <div className="bg-card rounded-xl border border-border p-4 shadow-sm space-y-3">
-              <Label className="text-sm font-semibold text-foreground block">
-                {t('admin.articleEditor.youtubeVideo')}
+              <Label className="text-sm font-semibold text-foreground block break-words">
+                {t("admin.articleEditor.youtubeVideo")}
               </Label>
               <Input
                 value={youtubeUrl}
@@ -735,7 +805,7 @@ export default function ArticleEditor() {
                 className="mobile-input"
               />
               {youtubeUrl && (
-                <div>
+                <div className="min-w-0 overflow-hidden rounded-lg">
                   <YouTubeEmbed url={youtubeUrl} />
                 </div>
               )}
@@ -743,20 +813,30 @@ export default function ArticleEditor() {
 
             {/* Actions */}
             <div className="flex flex-col gap-2">
-              <Button onClick={handleSave} disabled={saving} size="lg" className="w-full mobile-button touch-manipulation">
+              <Button
+                onClick={handleSave}
+                disabled={saving}
+                size="lg"
+                className="w-full mobile-button touch-manipulation"
+              >
                 {saving ? (
                   <Loader2 className="w-4 h-4 mr-1 animate-spin" />
                 ) : (
                   <Save className="w-4 h-4 mr-1" />
                 )}
-                {isNew ? t('admin.articleEditor.create') : t('admin.articleEditor.save')}
+                {isNew
+                  ? t("admin.articleEditor.create")
+                  : t("admin.articleEditor.save")}
               </Button>
-              <Button variant="outline" onClick={() => setLocation("/admin")} className="w-full touch-manipulation">
-                {t('admin.articleEditor.cancel')}
+              <Button
+                variant="outline"
+                onClick={() => setLocation("/admin")}
+                className="w-full touch-manipulation"
+              >
+                {t("admin.articleEditor.cancel")}
               </Button>
             </div>
           </div>
-
         </div>
       </div>
     </div>

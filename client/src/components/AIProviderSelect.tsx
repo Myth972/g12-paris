@@ -22,30 +22,38 @@ export function AIProviderSelect({
   const { providers, provider, setProvider, testProvider, isTesting } =
     useAiProvider();
 
+  // Le trigger prend la largeur disponible et se replie au lieu d'imposer une
+  // largeur fixe : dans une sidebar étroite (340px) ou sur mobile, l'ancien
+  // min-w-[200px] + bouton « Tester l'IA » débordait de la carte.
   const triggerClass =
-    size === "sm" ? "h-8 text-xs min-w-[200px]" : "h-9 min-w-[220px]";
+    size === "sm" ? "h-8 w-full min-w-0 text-xs" : "h-9 w-full min-w-0 text-sm";
 
   return (
-    <div className={`flex items-center gap-2 ${className ?? ""}`}>
-      <Select
-        value={provider}
-        onValueChange={value => setProvider(value as any)}
-      >
-        <SelectTrigger className={triggerClass}>
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {providers.map(p => (
-            <SelectItem key={p.value} value={p.value}>
-              {p.label} — {p.model}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+    <div
+      className={`flex min-w-0 flex-wrap items-center gap-2 ${className ?? ""}`}
+    >
+      <div className="min-w-0 flex-1 basis-[180px]">
+        <Select
+          value={provider}
+          onValueChange={value => setProvider(value as any)}
+        >
+          <SelectTrigger className={triggerClass}>
+            <SelectValue className="truncate" />
+          </SelectTrigger>
+          <SelectContent>
+            {providers.map(p => (
+              <SelectItem key={p.value} value={p.value}>
+                {p.label} — {p.model}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
       {showTestButton && (
         <Button
           variant="outline"
           size={size === "sm" ? "sm" : "default"}
+          className="shrink-0"
           onClick={() => testProvider()}
           disabled={isTesting}
         >

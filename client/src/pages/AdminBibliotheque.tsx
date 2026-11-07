@@ -1174,8 +1174,8 @@ export default function AdminBibliotheque() {
               </Button>
             </div>
             
-            <div className="grid lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
+            <div className="grid gap-6 lg:grid-cols-3">
+              <div className="min-w-0 lg:col-span-2">
                 <div className="bg-card border rounded-xl p-6 shadow-sm space-y-4">
                   <div>
                     <label className="text-sm font-medium mb-1 block">{t('admin.bibliotheque.emailSubject')}</label>
@@ -1233,7 +1233,7 @@ export default function AdminBibliotheque() {
                 </div>
               </div>
               
-              <div className="space-y-6">
+              <div className="min-w-0 space-y-6">
                 <div className="bg-card border rounded-xl p-6 shadow-sm">
                   <h3 className="font-bold mb-4">{t('admin.bibliotheque.stats')}</h3>
                   <div className="space-y-4">

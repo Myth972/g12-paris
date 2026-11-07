@@ -69,7 +69,7 @@ function ArticleToc({ sections }: { sections: TocSection[] }) {
   return (
     <nav
       aria-label="Sommaire"
-      className="hidden lg:block sticky top-24 self-start"
+      className="hidden min-w-0 break-words lg:block sticky top-24 self-start"
     >
       <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-4">
         <List className="w-3.5 h-3.5" />
@@ -80,7 +80,7 @@ function ArticleToc({ sections }: { sections: TocSection[] }) {
           <li key={section.id}>
             <a
               href={`#${section.id}`}
-              className={`text-muted-foreground hover:text-primary transition-colors leading-snug ${
+              className={`block break-words text-muted-foreground hover:text-primary transition-colors leading-snug ${
                 section.level === 3 ? "ml-3 text-[13px]" : ""
               }`}
             >
@@ -384,7 +384,9 @@ export default function ArticleDetail() {
       <div className="container max-w-5xl mx-auto px-4">
         <div
           className={
-            hasToc ? "grid lg:grid-cols-[220px_1fr] gap-8 items-start" : ""
+            hasToc
+              ? "grid grid-cols-1 gap-8 items-start lg:grid-cols-[220px_minmax(0,1fr)]"
+              : ""
           }
         >
           {hasToc && <ArticleToc sections={sections} />}
@@ -392,7 +394,7 @@ export default function ArticleDetail() {
           <div
             ref={proseRef}
             onClick={handleContentClick}
-            className="prose-article break-words [&_img]:cursor-zoom-in [&_img]:transition-opacity [&_img:hover]:opacity-90"
+            className="prose-article min-w-0 break-words [&_img]:cursor-zoom-in [&_img]:transition-opacity [&_img:hover]:opacity-90"
           >
             <Streamdown>{contentHtml}</Streamdown>
           </div>

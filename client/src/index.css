@@ -239,7 +239,10 @@
       font-size: 0.85rem;
     }
 
-    input, textarea, select, button {
+    input,
+    textarea,
+    select,
+    button {
       font-size: 16px !important;
     }
 
@@ -344,7 +347,11 @@
       --touch-target-size: 44px;
     }
 
-    button, a, select, input[type="checkbox"], input[type="radio"] {
+    button,
+    a,
+    select,
+    input[type="checkbox"],
+    input[type="radio"] {
       min-height: var(--touch-target-size);
       min-width: var(--touch-target-size);
     }
@@ -389,6 +396,10 @@
     line-height: 1.85;
     font-size: clamp(1rem, 1.075rem + 0.2vw, 1.2rem);
     color: var(--foreground);
+    /* width:100% : sans largeur explicite, la taille max-content du contenu
+       (tableau large) participe à la résolution de l'élément dans la grille
+       et dépasse max-width ; la largeur reste alors bornée par la colonne. */
+    width: 100%;
     max-width: 42rem;
     margin-left: auto;
     margin-right: auto;
@@ -487,11 +498,22 @@
   .prose-article hr {
     border: none;
     height: 1px;
-    background: linear-gradient(to right, transparent, var(--border), transparent);
+    background: linear-gradient(
+      to right,
+      transparent,
+      var(--border),
+      transparent
+    );
     margin: 2.5em 0;
   }
+  /* display:block + overflow-x:auto : un tableau à cellules larges défile
+     dans son propre cadre au lieu d'élargir la piste 1fr de la grille
+     (un enfant de grille conserve min-width: auto). */
   .prose-article table {
+    display: block;
     width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
     border-collapse: collapse;
     margin: 1.5em 0;
     font-size: 0.95rem;
@@ -596,7 +618,11 @@
     position: absolute;
     inset: -2px;
     border-radius: inherit;
-    background: linear-gradient(135deg, oklch(0.8 0.12 80 / 0.15), oklch(0.7 0.1 250 / 0.08));
+    background: linear-gradient(
+      135deg,
+      oklch(0.8 0.12 80 / 0.15),
+      oklch(0.7 0.1 250 / 0.08)
+    );
     opacity: 0;
     transition: opacity 0.5s ease;
     pointer-events: none;

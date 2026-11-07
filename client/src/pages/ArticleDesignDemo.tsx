@@ -383,10 +383,10 @@ export default function ArticleDesignDemo() {
       {/* ---------- Propositions 3 & 4 : typographie premium + sommaire ---------- */}
       <section className="container max-w-5xl mx-auto mt-16 px-4">
         <ProposalLabel>Propositions 3 &amp; 4 · Typographie premium + Sommaire</ProposalLabel>
-        <div className="grid lg:grid-cols-[220px_1fr] gap-8 items-start">
+        <div className="grid grid-cols-1 gap-8 items-start lg:grid-cols-[220px_minmax(0,1fr)]">
           <DemoToc />
 
-          <div className="demo-prose break-words">
+          <div className="demo-prose min-w-0 break-words">
             <h2 id="demo-intro">Pourquoi prier ?</h2>
             <p>
               La prière est un dialogue, pas une formalité. Elle nous permet de
