@@ -89,15 +89,25 @@ import { Link, useLocation } from "wouter";
 import { toast } from "sonner";
 
 // Lazy-loaded components for admin tabs
-const PageContentManager = lazy(() => import("@/components/PageContentManager"));
+const PageContentManager = lazy(
+  () => import("@/components/PageContentManager")
+);
 const VersesManager = lazy(() => import("@/components/VersesManager"));
 const GalleryManager = lazy(() => import("@/components/GalleryManager"));
-const SuggestionsManager = lazy(() => import("@/components/SuggestionsManager"));
-const ConventionRegistrationsManager = lazy(() => import("@/components/ConventionRegistrationsManager"));
+const SuggestionsManager = lazy(
+  () => import("@/components/SuggestionsManager")
+);
+const ConventionRegistrationsManager = lazy(
+  () => import("@/components/ConventionRegistrationsManager")
+);
 const NewsletterAdmin = lazy(() => import("./NewsletterAdmin"));
 const KlingStudio = lazy(() => import("./KlingStudio"));
-const AIChatBox = lazy(() => import("@/components/AIChatBox").then(m => ({ default: m.AIChatBox })));
-const HomeContentManager = lazy(() => import("@/components/HomeContentManager"));
+const AIChatBox = lazy(() =>
+  import("@/components/AIChatBox").then(m => ({ default: m.AIChatBox }))
+);
+const HomeContentManager = lazy(
+  () => import("@/components/HomeContentManager")
+);
 const AIDashboard = lazy(() => import("@/components/AIDashboard"));
 const ApiKeyConnector = lazy(() => import("@/components/ApiKeyConnector"));
 const CMSManager = lazy(() => import("@/components/CMSManager"));
@@ -128,8 +138,16 @@ function formatDate(date: Date): string {
   });
 }
 
-const NOTIF_TYPE_CONFIG: Record<string, { icon: any; color: string; bg: string; labelKey: string }> = {
-  info: { icon: Info, color: "text-blue-500 dark:text-blue-400", bg: "bg-blue-50 dark:bg-blue-500/10", labelKey: "admin.notificationsTab.typeInfo" },
+const NOTIF_TYPE_CONFIG: Record<
+  string,
+  { icon: any; color: string; bg: string; labelKey: string }
+> = {
+  info: {
+    icon: Info,
+    color: "text-blue-500 dark:text-blue-400",
+    bg: "bg-blue-50 dark:bg-blue-500/10",
+    labelKey: "admin.notificationsTab.typeInfo",
+  },
   alerte: {
     icon: AlertTriangle,
     color: "text-amber-500 dark:text-amber-400",
@@ -157,7 +175,9 @@ function ArticlesTab() {
   const [, setLocation] = useLocation();
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [selectedArticles, setSelectedArticles] = useState<number[]>([]);
-  const [sortField, setSortField] = useState<"title" | "createdAt" | "category">("createdAt");
+  const [sortField, setSortField] = useState<
+    "title" | "createdAt" | "category"
+  >("createdAt");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const utils = trpc.useUtils();
 
@@ -165,18 +185,18 @@ function ArticlesTab() {
   const deleteMutation = trpc.articles.delete.useMutation({
     onSuccess: () => {
       utils.articles.adminList.invalidate();
-      toast.success(t('admin.articlesTab.toastDeleted'));
+      toast.success(t("admin.articlesTab.toastDeleted"));
       setDeleteId(null);
     },
-    onError: () => toast.error(t('admin.articlesTab.toastDeleteError')),
+    onError: () => toast.error(t("admin.articlesTab.toastDeleteError")),
   });
 
   const togglePublish = trpc.articles.update.useMutation({
     onSuccess: () => {
       utils.articles.adminList.invalidate();
-      toast.success(t('admin.articlesTab.toastStatusUpdated'));
+      toast.success(t("admin.articlesTab.toastStatusUpdated"));
     },
-    onError: () => toast.error(t('admin.articlesTab.toastStatusError')),
+    onError: () => toast.error(t("admin.articlesTab.toastStatusError")),
   });
 
   const articles = data?.items ?? [];
@@ -199,7 +219,7 @@ function ArticlesTab() {
 
   const handleSort = (field: typeof sortField) => {
     if (sortField === field) {
-      setSortDirection(d => d === "asc" ? "desc" : "asc");
+      setSortDirection(d => (d === "asc" ? "desc" : "asc"));
     } else {
       setSortField(field);
       setSortDirection("asc");
@@ -214,28 +234,32 @@ function ArticlesTab() {
     }
   };
   const toggleArticleSelect = (id: number) => {
-    setSelectedArticles(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]);
+    setSelectedArticles(prev =>
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
   };
 
   const bulkDeleteArticleMutation = trpc.articles.bulkDelete.useMutation({
     onSuccess: () => {
       utils.articles.adminList.invalidate();
-      toast.success(t('admin.articlesTab.bulkDeleted', { count: selectedArticles.length }));
+      toast.success(
+        t("admin.articlesTab.bulkDeleted", { count: selectedArticles.length })
+      );
       setSelectedArticles([]);
     },
-    onError: () => toast.error(t('admin.articlesTab.bulkDeleteError')),
+    onError: () => toast.error(t("admin.articlesTab.bulkDeleteError")),
   });
 
   return (
     <>
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm text-muted-foreground">
-          {t('admin.articlesTab.totalCount', { count: data?.total ?? 0 })}
+          {t("admin.articlesTab.totalCount", { count: data?.total ?? 0 })}
         </p>
         <Button size="sm" asChild>
           <Link href="/admin/article/new">
             <Plus className="w-4 h-4 mr-1" />
-            {t('admin.articlesTab.newArticle')}
+            {t("admin.articlesTab.newArticle")}
           </Link>
         </Button>
       </div>
@@ -243,16 +267,20 @@ function ArticlesTab() {
       {selectedArticles.length > 0 && (
         <div className="flex items-center justify-between bg-muted/50 rounded-lg px-4 py-2 mb-3">
           <span className="text-sm font-medium">
-            {t('admin.articlesTab.selectedCount', { count: selectedArticles.length })}
+            {t("admin.articlesTab.selectedCount", {
+              count: selectedArticles.length,
+            })}
           </span>
           <Button
             variant="destructive"
             size="sm"
-            onClick={() => bulkDeleteArticleMutation.mutate({ ids: selectedArticles })}
+            onClick={() =>
+              bulkDeleteArticleMutation.mutate({ ids: selectedArticles })
+            }
             disabled={bulkDeleteArticleMutation.isPending}
           >
             <Trash2 className="w-4 h-4 mr-1" />
-            {t('admin.notificationsTab.delete')} ({selectedArticles.length})
+            {t("admin.notificationsTab.delete")} ({selectedArticles.length})
           </Button>
         </div>
       )}
@@ -268,15 +296,15 @@ function ArticlesTab() {
           <div className="text-center py-16">
             <Newspaper className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
             <h3 className="font-serif font-semibold text-foreground mb-1">
-              {t('admin.articlesTab.noArticles')}
+              {t("admin.articlesTab.noArticles")}
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              {t('admin.articlesTab.noArticlesDesc')}
+              {t("admin.articlesTab.noArticlesDesc")}
             </p>
             <Button size="sm" asChild>
               <Link href="/admin/article/new">
                 <Plus className="w-4 h-4 mr-1" />
-                {t('admin.articlesTab.createFirst')}
+                {t("admin.articlesTab.createFirst")}
               </Link>
             </Button>
           </div>
@@ -286,30 +314,68 @@ function ArticlesTab() {
               <TableRow>
                 <TableHead className="w-10">
                   <Checkbox
-                    checked={selectedArticles.length > 0 && articles.length === selectedArticles.length}
+                    checked={
+                      selectedArticles.length > 0 &&
+                      articles.length === selectedArticles.length
+                    }
                     onCheckedChange={toggleArticleSelectAll}
                   />
                 </TableHead>
-                <TableHead className="w-[40%] cursor-pointer select-none hover:bg-muted/60 transition-colors" onClick={() => handleSort("title")}>
+                <TableHead
+                  className="w-[40%] cursor-pointer select-none hover:bg-muted/60 transition-colors"
+                  onClick={() => handleSort("title")}
+                >
                   <span className="inline-flex items-center gap-1.5">
-                    {t('admin.articlesTab.columnTitle')}
-                    {sortField === "title" ? (sortDirection === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />) : <ArrowUpDown className="w-3.5 h-3.5 opacity-30" />}
+                    {t("admin.articlesTab.columnTitle")}
+                    {sortField === "title" ? (
+                      sortDirection === "asc" ? (
+                        <ArrowUp className="w-3.5 h-3.5" />
+                      ) : (
+                        <ArrowDown className="w-3.5 h-3.5" />
+                      )
+                    ) : (
+                      <ArrowUpDown className="w-3.5 h-3.5 opacity-30" />
+                    )}
                   </span>
                 </TableHead>
-                <TableHead className="cursor-pointer select-none hover:bg-muted/60 transition-colors" onClick={() => handleSort("category")}>
+                <TableHead
+                  className="cursor-pointer select-none hover:bg-muted/60 transition-colors"
+                  onClick={() => handleSort("category")}
+                >
                   <span className="inline-flex items-center gap-1.5">
-                    {t('admin.articlesTab.columnCategory')}
-                    {sortField === "category" ? (sortDirection === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />) : <ArrowUpDown className="w-3.5 h-3.5 opacity-30" />}
+                    {t("admin.articlesTab.columnCategory")}
+                    {sortField === "category" ? (
+                      sortDirection === "asc" ? (
+                        <ArrowUp className="w-3.5 h-3.5" />
+                      ) : (
+                        <ArrowDown className="w-3.5 h-3.5" />
+                      )
+                    ) : (
+                      <ArrowUpDown className="w-3.5 h-3.5 opacity-30" />
+                    )}
                   </span>
                 </TableHead>
-                <TableHead>{t('admin.articlesTab.columnStatus')}</TableHead>
-                <TableHead className="cursor-pointer select-none hover:bg-muted/60 transition-colors" onClick={() => handleSort("createdAt")}>
+                <TableHead>{t("admin.articlesTab.columnStatus")}</TableHead>
+                <TableHead
+                  className="cursor-pointer select-none hover:bg-muted/60 transition-colors"
+                  onClick={() => handleSort("createdAt")}
+                >
                   <span className="inline-flex items-center gap-1.5">
-                    {t('admin.articlesTab.columnDate')}
-                    {sortField === "createdAt" ? (sortDirection === "asc" ? <ArrowUp className="w-3.5 h-3.5" /> : <ArrowDown className="w-3.5 h-3.5" />) : <ArrowUpDown className="w-3.5 h-3.5 opacity-30" />}
+                    {t("admin.articlesTab.columnDate")}
+                    {sortField === "createdAt" ? (
+                      sortDirection === "asc" ? (
+                        <ArrowUp className="w-3.5 h-3.5" />
+                      ) : (
+                        <ArrowDown className="w-3.5 h-3.5" />
+                      )
+                    ) : (
+                      <ArrowUpDown className="w-3.5 h-3.5 opacity-30" />
+                    )}
                   </span>
                 </TableHead>
-                <TableHead className="text-right">{t('admin.articlesTab.columnActions')}</TableHead>
+                <TableHead className="text-right">
+                  {t("admin.articlesTab.columnActions")}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -349,7 +415,9 @@ function ArticlesTab() {
                       variant={article.published ? "default" : "outline"}
                       className={`text-xs ${!article.published ? "bg-white text-blue-600 border-blue-300 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-800" : ""}`}
                     >
-                      {article.published ? t('admin.articlesTab.published') : t('admin.articlesTab.draft')}
+                      {article.published
+                        ? t("admin.articlesTab.published")
+                        : t("admin.articlesTab.draft")}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
@@ -361,8 +429,16 @@ function ArticlesTab() {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8"
-                        title={article.published ? t('admin.articlesTab.unpublish') : t('admin.articlesTab.publish')}
-                        aria-label={article.published ? t('admin.articlesTab.unpublish') : t('admin.articlesTab.publish')}
+                        title={
+                          article.published
+                            ? t("admin.articlesTab.unpublish")
+                            : t("admin.articlesTab.publish")
+                        }
+                        aria-label={
+                          article.published
+                            ? t("admin.articlesTab.unpublish")
+                            : t("admin.articlesTab.publish")
+                        }
                         onClick={() =>
                           togglePublish.mutate({
                             id: article.id,
@@ -381,7 +457,7 @@ function ArticlesTab() {
                         size="icon"
                         className="h-8 w-8"
                         asChild
-                        aria-label={t('admin.articlesTab.editArticle')}
+                        aria-label={t("admin.articlesTab.editArticle")}
                       >
                         <Link href={`/admin/article/${article.id}`}>
                           <Pencil className="w-4 h-4" />
@@ -392,7 +468,7 @@ function ArticlesTab() {
                         size="icon"
                         className="h-8 w-8 text-destructive hover:text-destructive"
                         onClick={() => setDeleteId(article.id)}
-                        aria-label={t('admin.articlesTab.deleteArticle')}
+                        aria-label={t("admin.articlesTab.deleteArticle")}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -412,18 +488,24 @@ function ArticlesTab() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('admin.dialogs.confirmDelete.title')}</AlertDialogTitle>
-          <AlertDialogDescription>{t('admin.dialogs.confirmDelete.desc')}</AlertDialogDescription>
+            <AlertDialogTitle>
+              {t("admin.dialogs.confirmDelete.title")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("admin.dialogs.confirmDelete.desc")}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t('admin.dialogs.confirmDelete.cancel')}</AlertDialogCancel>
+            <AlertDialogCancel>
+              {t("admin.dialogs.confirmDelete.cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() =>
                 deleteId && deleteMutation.mutate({ id: deleteId })
               }
             >
-              {t('admin.dialogs.confirmDelete.confirm')}
+              {t("admin.dialogs.confirmDelete.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -452,20 +534,20 @@ function NotificationsTab() {
   const createMutation = trpc.notifications.create.useMutation({
     onSuccess: () => {
       utils.notifications.adminList.invalidate();
-      toast.success(t('admin.notificationsTab.toastSent'));
+      toast.success(t("admin.notificationsTab.toastSent"));
       setShowCreateDialog(false);
       setNewNotif({ title: "", message: "", type: "info", linkUrl: "" });
     },
-    onError: () => toast.error(t('admin.notificationsTab.toastSendError')),
+    onError: () => toast.error(t("admin.notificationsTab.toastSendError")),
   });
 
   const deleteMutation = trpc.notifications.delete.useMutation({
     onSuccess: () => {
       utils.notifications.adminList.invalidate();
-      toast.success(t('admin.notificationsTab.toastDeleted'));
+      toast.success(t("admin.notificationsTab.toastDeleted"));
       setDeleteId(null);
     },
-    onError: () => toast.error(t('admin.notificationsTab.toastDeleteError')),
+    onError: () => toast.error(t("admin.notificationsTab.toastDeleteError")),
   });
 
   const notifs = data?.items ?? [];
@@ -486,15 +568,19 @@ function NotificationsTab() {
   const bulkDeleteMutation = trpc.notifications.bulkDelete.useMutation({
     onSuccess: () => {
       utils.notifications.adminList.invalidate();
-      toast.success(t('admin.notificationsTab.bulkDeleted', { count: selectedNotifs.length }));
+      toast.success(
+        t("admin.notificationsTab.bulkDeleted", {
+          count: selectedNotifs.length,
+        })
+      );
       setSelectedNotifs([]);
     },
-    onError: () => toast.error(t('admin.notificationsTab.bulkDeleteError')),
+    onError: () => toast.error(t("admin.notificationsTab.bulkDeleteError")),
   });
 
   const handleCreate = () => {
     if (!newNotif.title.trim() || !newNotif.message.trim()) {
-      toast.error(t('admin.notificationsTab.fillRequired'));
+      toast.error(t("admin.notificationsTab.fillRequired"));
       return;
     }
     createMutation.mutate({
@@ -509,26 +595,47 @@ function NotificationsTab() {
     <>
       <div className="flex items-center justify-between mb-4">
         <p className="text-sm text-muted-foreground">
-          {t('admin.notificationsTab.totalCount', { count: data?.total ?? 0 })}
+          {t("admin.notificationsTab.totalCount", { count: data?.total ?? 0 })}
         </p>
         <Button size="sm" onClick={() => setShowCreateDialog(true)}>
           <Send className="w-4 h-4 mr-1" />
-          {t('admin.notificationsTab.sendNotification')}
+          {t("admin.notificationsTab.sendNotification")}
         </Button>
       </div>
 
       {selectedNotifs.length > 0 && (
         <div className="flex items-center justify-between bg-primary/5 border border-primary/20 rounded-lg px-4 py-2 mb-3">
-          <span className="text-sm font-medium">{t('admin.notificationsTab.selectedCount', { count: selectedNotifs.length })}</span>
+          <span className="text-sm font-medium">
+            {t("admin.notificationsTab.selectedCount", {
+              count: selectedNotifs.length,
+            })}
+          </span>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setSelectedNotifs([])}>{t('admin.notificationsTab.cancel')}</Button>
-            <Button variant="destructive" size="sm" onClick={() => {
-              if (confirm(t('admin.notificationsTab.confirmDeleteNotif', { count: selectedNotifs.length }))) {
-                bulkDeleteMutation.mutate({ ids: selectedNotifs });
-              }
-            }} disabled={bulkDeleteMutation.isPending}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedNotifs([])}
+            >
+              {t("admin.notificationsTab.cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => {
+                if (
+                  confirm(
+                    t("admin.notificationsTab.confirmDeleteNotif", {
+                      count: selectedNotifs.length,
+                    })
+                  )
+                ) {
+                  bulkDeleteMutation.mutate({ ids: selectedNotifs });
+                }
+              }}
+              disabled={bulkDeleteMutation.isPending}
+            >
               <Trash2 className="w-4 h-4 mr-1" />
-              {t('admin.notificationsTab.delete')}
+              {t("admin.notificationsTab.delete")}
             </Button>
           </div>
         </div>
@@ -545,24 +652,29 @@ function NotificationsTab() {
           <div className="text-center py-16">
             <Bell className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
             <h3 className="font-serif font-semibold text-foreground mb-1">
-              {t('admin.notifications.noNotifications')}
+              {t("admin.notifications.noNotifications")}
             </h3>
             <p className="text-sm text-muted-foreground mb-4">
-              {t('admin.notificationsTab.noNotificationsDesc')}
+              {t("admin.notificationsTab.noNotificationsDesc")}
             </p>
             <Button size="sm" onClick={() => setShowCreateDialog(true)}>
               <Send className="w-4 h-4 mr-1" />
-              {t('admin.notificationsTab.sendFirst')}
+              {t("admin.notificationsTab.sendFirst")}
             </Button>
           </div>
         ) : (
           <div className="divide-y divide-border">
             <div className="flex items-center gap-3 px-4 py-2 border-b border-border bg-muted/30">
               <Checkbox
-                checked={selectedNotifs.length > 0 && notifs.length === selectedNotifs.length}
+                checked={
+                  selectedNotifs.length > 0 &&
+                  notifs.length === selectedNotifs.length
+                }
                 onCheckedChange={toggleNotifSelectAll}
               />
-              <span className="text-xs font-medium text-muted-foreground">{t('admin.notificationsTab.selectAll')}</span>
+              <span className="text-xs font-medium text-muted-foreground">
+                {t("admin.notificationsTab.selectAll")}
+              </span>
             </div>
             {notifs.map((notif: any) => {
               const config =
@@ -576,7 +688,11 @@ function NotificationsTab() {
                   key={notif.id}
                   className="flex items-start gap-4 p-4 hover:bg-accent/30 transition-colors"
                 >
-                  <Checkbox checked={selectedNotifs.includes(notif.id)} onCheckedChange={() => toggleNotifSelect(notif.id)} className="mt-3" />
+                  <Checkbox
+                    checked={selectedNotifs.includes(notif.id)}
+                    onCheckedChange={() => toggleNotifSelect(notif.id)}
+                    className="mt-3"
+                  />
                   <div
                     className={`flex-shrink-0 w-10 h-10 rounded-full ${config.bg} flex items-center justify-center`}
                   >
@@ -599,7 +715,8 @@ function NotificationsTab() {
                     </p>
                     <div className="flex items-center gap-3 mt-1.5">
                       <span className="text-xs text-muted-foreground/70">
-                        {formatDate(notif.createdAt)} {t('admin.notificationsTab.by')}{" "}
+                        {formatDate(notif.createdAt)}{" "}
+                        {t("admin.notificationsTab.by")}{" "}
                         {notif.authorName || "Admin"}
                       </span>
                       {notif.linkUrl && (
@@ -614,7 +731,7 @@ function NotificationsTab() {
                     size="icon"
                     className="h-8 w-8 text-destructive hover:text-destructive flex-shrink-0"
                     onClick={() => setDeleteId(notif.id)}
-                    aria-label={t('admin.notificationsTab.deleteNotification')}
+                    aria-label={t("admin.notificationsTab.deleteNotification")}
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -630,18 +747,20 @@ function NotificationsTab() {
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle className="font-serif">
-              {t('admin.notificationsTab.dialogTitle')}
+              {t("admin.notificationsTab.dialogTitle")}
             </DialogTitle>
             <DialogDescription>
-              {t('admin.notificationsTab.dialogDesc')}
+              {t("admin.notificationsTab.dialogDesc")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
-              <Label htmlFor="notif-title">{t('admin.notificationsTab.titleLabel')}</Label>
+              <Label htmlFor="notif-title">
+                {t("admin.notificationsTab.titleLabel")}
+              </Label>
               <Input
                 id="notif-title"
-                placeholder={t('admin.notificationsTab.titlePlaceholder')}
+                placeholder={t("admin.notificationsTab.titlePlaceholder")}
                 value={newNotif.title}
                 onChange={e =>
                   setNewNotif({ ...newNotif, title: e.target.value })
@@ -649,7 +768,9 @@ function NotificationsTab() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="notif-type">{t('admin.notificationsTab.typeLabel')}</Label>
+              <Label htmlFor="notif-type">
+                {t("admin.notificationsTab.typeLabel")}
+              </Label>
               <Select
                 value={newNotif.type}
                 onValueChange={v =>
@@ -660,18 +781,28 @@ function NotificationsTab() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="info">{t('admin.notificationsTab.typeInfo')}</SelectItem>
-                  <SelectItem value="alerte">{t('admin.notificationsTab.typeAlert')}</SelectItem>
-                  <SelectItem value="nouveauté">{t('admin.notificationsTab.typeNew')}</SelectItem>
-                  <SelectItem value="important">{t('admin.notificationsTab.typeImportant')}</SelectItem>
+                  <SelectItem value="info">
+                    {t("admin.notificationsTab.typeInfo")}
+                  </SelectItem>
+                  <SelectItem value="alerte">
+                    {t("admin.notificationsTab.typeAlert")}
+                  </SelectItem>
+                  <SelectItem value="nouveauté">
+                    {t("admin.notificationsTab.typeNew")}
+                  </SelectItem>
+                  <SelectItem value="important">
+                    {t("admin.notificationsTab.typeImportant")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="notif-message">{t('admin.notificationsTab.messageLabel')}</Label>
+              <Label htmlFor="notif-message">
+                {t("admin.notificationsTab.messageLabel")}
+              </Label>
               <Textarea
                 id="notif-message"
-                placeholder={t('admin.notificationsTab.messagePlaceholder')}
+                placeholder={t("admin.notificationsTab.messagePlaceholder")}
                 rows={3}
                 value={newNotif.message}
                 onChange={e =>
@@ -680,17 +811,19 @@ function NotificationsTab() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="notif-link">{t('admin.notificationsTab.linkLabel')}</Label>
+              <Label htmlFor="notif-link">
+                {t("admin.notificationsTab.linkLabel")}
+              </Label>
               <Input
                 id="notif-link"
-                placeholder={t('admin.notificationsTab.linkPlaceholder')}
+                placeholder={t("admin.notificationsTab.linkPlaceholder")}
                 value={newNotif.linkUrl}
                 onChange={e =>
                   setNewNotif({ ...newNotif, linkUrl: e.target.value })
                 }
               />
               <p className="text-xs text-muted-foreground">
-                {t('admin.notificationsTab.linkHelp')}
+                {t("admin.notificationsTab.linkHelp")}
               </p>
             </div>
           </div>
@@ -699,11 +832,13 @@ function NotificationsTab() {
               variant="outline"
               onClick={() => setShowCreateDialog(false)}
             >
-              {t('admin.dialogs.confirmDelete.cancel')}
+              {t("admin.dialogs.confirmDelete.cancel")}
             </Button>
             <Button onClick={handleCreate} disabled={createMutation.isPending}>
               <Send className="w-4 h-4 mr-1" />
-              {createMutation.isPending ? t('admin.notificationsTab.sending') : t('admin.notificationsTab.send')}
+              {createMutation.isPending
+                ? t("admin.notificationsTab.sending")
+                : t("admin.notificationsTab.send")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -716,20 +851,24 @@ function NotificationsTab() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('admin.notificationsTab.deleteTitle')}</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t("admin.notificationsTab.deleteTitle")}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              {t('admin.notificationsTab.deleteDesc')}
+              {t("admin.notificationsTab.deleteDesc")}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t('admin.dialogs.confirmDelete.cancel')}</AlertDialogCancel>
+            <AlertDialogCancel>
+              {t("admin.dialogs.confirmDelete.cancel")}
+            </AlertDialogCancel>
             <AlertDialogAction
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={() =>
                 deleteId && deleteMutation.mutate({ id: deleteId })
               }
             >
-              {t('admin.dialogs.confirmDelete.confirm')}
+              {t("admin.dialogs.confirmDelete.confirm")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -750,7 +889,7 @@ function AITabs() {
     <div className="space-y-4">
       <div className="flex items-center gap-2 mb-2">
         <Sparkles className="w-5 h-5 text-primary" />
-        <h3 className="text-lg font-serif font-bold">{t('admin.tabs.ai')}</h3>
+        <h3 className="text-lg font-serif font-bold">{t("admin.tabs.ai")}</h3>
       </div>
       <Tabs value={aiTab} onValueChange={setAiTab}>
         <TabsList className="w-full justify-start gap-1 h-auto flex-wrap">
@@ -760,7 +899,7 @@ function AITabs() {
           </TabsTrigger>
           <TabsTrigger value="assistant" className="gap-1.5">
             <Bot className="w-4 h-4" />
-            {t('admin.aiTab.assistantTitle')}
+            {t("admin.aiTab.assistantTitle")}
           </TabsTrigger>
           <TabsTrigger value="writer" className="gap-1.5">
             <FileText className="w-4 h-4" />
@@ -777,7 +916,14 @@ function AITabs() {
         </TabsList>
 
         <TabsContent value="composer">
-          <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
+          <Suspense
+            fallback={
+              <div className="p-12 text-center text-muted-foreground">
+                <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" />{" "}
+                {t("admin.loading")}
+              </div>
+            }
+          >
             <AIComposer />
           </Suspense>
         </TabsContent>
@@ -786,7 +932,14 @@ function AITabs() {
           <AIAssistantTab />
           {isAdmin && (
             <div className="mt-6">
-              <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
+              <Suspense
+                fallback={
+                  <div className="p-12 text-center text-muted-foreground">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" />{" "}
+                    {t("admin.loading")}
+                  </div>
+                }
+              >
                 <ApiKeyConnector />
               </Suspense>
             </div>
@@ -794,13 +947,27 @@ function AITabs() {
         </TabsContent>
 
         <TabsContent value="writer">
-          <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
+          <Suspense
+            fallback={
+              <div className="p-12 text-center text-muted-foreground">
+                <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" />{" "}
+                {t("admin.loading")}
+              </div>
+            }
+          >
             <AIArticleWriter />
           </Suspense>
         </TabsContent>
 
         <TabsContent value="media">
-          <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
+          <Suspense
+            fallback={
+              <div className="p-12 text-center text-muted-foreground">
+                <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" />{" "}
+                {t("admin.loading")}
+              </div>
+            }
+          >
             <KlingStudio />
           </Suspense>
         </TabsContent>
@@ -827,11 +994,13 @@ function AIAssistantTab() {
   } = useAiProvider();
 
   // Chatbot toggle
-  const chatbotQuery = trpc.siteSettings.get.useQuery({ key: "chatbot_enabled" });
+  const chatbotQuery = trpc.siteSettings.get.useQuery({
+    key: "chatbot_enabled",
+  });
   const chatbotMutation = trpc.siteSettings.set.useMutation({
     onSuccess: () => {
       chatbotQuery.refetch();
-      toast.success(t('admin.aiTab.chatbotUpdated'));
+      toast.success(t("admin.aiTab.chatbotUpdated"));
     },
   });
   const isChatbotEnabled = chatbotQuery.data === "true";
@@ -873,7 +1042,7 @@ function AIAssistantTab() {
       ]);
     },
     onError: error => {
-      toast.error(t('admin.aiTab.errorPrefix') + error.message);
+      toast.error(t("admin.aiTab.errorPrefix") + error.message);
     },
   });
 
@@ -928,9 +1097,11 @@ function AIAssistantTab() {
         <div className="flex items-center gap-3">
           <MessageCircle className="w-5 h-5 text-primary" />
           <div>
-            <h4 className="text-sm font-medium">{t('admin.aiTab.chatbotTitle')}</h4>
+            <h4 className="text-sm font-medium">
+              {t("admin.aiTab.chatbotTitle")}
+            </h4>
             <p className="text-xs text-muted-foreground">
-              {t('admin.aiTab.chatbotDesc')}
+              {t("admin.aiTab.chatbotDesc")}
             </p>
           </div>
         </div>
@@ -945,8 +1116,8 @@ function AIAssistantTab() {
         <div className="flex items-center gap-2">
           <Sparkles className="w-5 h-5 text-primary" />
           <div>
-              <h3 className="text-lg font-serif font-bold text-foreground">
-              {t('admin.aiTab.assistantTitle')} — {activeProvider.label}
+            <h3 className="text-lg font-serif font-bold text-foreground">
+              {t("admin.aiTab.assistantTitle")} — {activeProvider.label}
             </h3>
             <p className="text-xs text-muted-foreground">
               {activeProvider.model} • {activeProvider.description}
@@ -979,7 +1150,7 @@ function AIAssistantTab() {
             onClick={() => testProvider(provider)}
             disabled={isTesting}
           >
-            {isTesting ? t('admin.aiTab.testing') : t('admin.aiTab.testIA')}
+            {isTesting ? t("admin.aiTab.testing") : t("admin.aiTab.testIA")}
           </Button>
         </div>
       </div>
@@ -989,8 +1160,8 @@ function AIAssistantTab() {
         <div className="p-3 rounded-lg border bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800">
           <p className="text-xs text-amber-700 dark:text-amber-300">
             {showClearWarningAI
-              ? t('admin.aiTab.charLimitReached')
-              : t('admin.aiTab.charUsage', { count: totalCharsAI })}
+              ? t("admin.aiTab.charLimitReached")
+              : t("admin.aiTab.charUsage", { count: totalCharsAI })}
           </p>
           {showClearWarningAI ? (
             <div className="flex gap-2 mt-2">
@@ -998,13 +1169,13 @@ function AIAssistantTab() {
                 onClick={handleConfirmTrim}
                 className="text-xs px-3 py-1 bg-amber-600 text-white rounded hover:bg-amber-700 transition-colors"
               >
-                {t('admin.aiTab.trimConfirm')}
+                {t("admin.aiTab.trimConfirm")}
               </button>
               <button
                 onClick={() => setShowClearWarningAI(false)}
                 className="text-xs px-3 py-1 bg-muted text-muted-foreground rounded hover:bg-muted/80 transition-colors"
               >
-                {t('admin.notificationsTab.cancel')}
+                {t("admin.notificationsTab.cancel")}
               </button>
             </div>
           ) : (
@@ -1012,7 +1183,7 @@ function AIAssistantTab() {
               onClick={handleClearHistory}
               className="text-xs mt-1 text-amber-600 dark:text-amber-400 underline hover:no-underline"
             >
-              {t('admin.aiTab.clearHistory')}
+              {t("admin.aiTab.clearHistory")}
             </button>
           )}
         </div>
@@ -1025,19 +1196,19 @@ function AIAssistantTab() {
         onDeleteMessage={handleDeleteMessage}
         onClearHistory={handleClearHistory}
         height="650px"
-        placeholder={t('admin.aiTab.placeholder')}
-        emptyStateMessage={t('admin.aiTab.emptyState')}
+        placeholder={t("admin.aiTab.placeholder")}
+        emptyStateMessage={t("admin.aiTab.emptyState")}
         suggestedPrompts={[
-          t('admin.aiTab.prompts.easter'),
-          t('admin.aiTab.prompts.psalms'),
-          t('admin.aiTab.prompts.john'),
-          t('admin.aiTab.prompts.testaments'),
-          t('admin.aiTab.prompts.paul'),
-          t('admin.aiTab.prompts.love'),
-          t('admin.aiTab.prompts.revelation'),
-          t('admin.aiTab.prompts.prophets'),
-          t('admin.aiTab.prompts.moses'),
-          t('admin.aiTab.prompts.fruit'),
+          t("admin.aiTab.prompts.easter"),
+          t("admin.aiTab.prompts.psalms"),
+          t("admin.aiTab.prompts.john"),
+          t("admin.aiTab.prompts.testaments"),
+          t("admin.aiTab.prompts.paul"),
+          t("admin.aiTab.prompts.love"),
+          t("admin.aiTab.prompts.revelation"),
+          t("admin.aiTab.prompts.prophets"),
+          t("admin.aiTab.prompts.moses"),
+          t("admin.aiTab.prompts.fruit"),
         ]}
       />
     </div>
@@ -1058,7 +1229,8 @@ export default function Admin() {
   const { data: galleryListData } = trpc.gallery.list.useQuery();
   const { data: catData } = trpc.bibliotheque.listCategories.useQuery();
 
-  const pubCount = articlesData?.items?.filter((a: any) => a.published).length ?? 0;
+  const pubCount =
+    articlesData?.items?.filter((a: any) => a.published).length ?? 0;
   const nlCount = nlData?.items?.length ?? 0;
   const mediaCount = galleryListData?.items?.length ?? 0;
   const catCount = catData?.length ?? 0;
@@ -1122,16 +1294,18 @@ export default function Admin() {
     return (
       <div className="container py-20 text-center">
         <Shield className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-        <h2 className="text-xl font-serif font-bold mb-2">{t('admin.restrictedAccess')}</h2>
+        <h2 className="text-xl font-serif font-bold mb-2">
+          {t("admin.restrictedAccess")}
+        </h2>
         <p className="text-muted-foreground mb-6">
-          {t('admin.restrictedAccessDesc')}
+          {t("admin.restrictedAccessDesc")}
         </p>
         <Button variant="outline" onClick={() => setLocation("/")}>
           <ArrowLeft className="w-4 h-4 mr-2" />
-          {t('admin.backToHome')}
+          {t("admin.backToHome")}
         </Button>
       </div>
-);
+    );
   }
 
   return (
@@ -1144,10 +1318,16 @@ export default function Admin() {
               <div className="flex items-center gap-1.5 sm:gap-2 mb-1 flex-wrap">
                 <Shield className="w-5 h-5 text-primary" />
                 <span className="text-xs font-semibold uppercase tracking-wider text-primary font-sans">
-                  {t('admin.title')}
+                  {t("admin.title")}
                 </span>
                 <Badge variant="outline" className="text-xs">
-                  {isAdmin ? t('admin.roles.admin') : isEditeur ? t('admin.roles.editeur') : isBibliotheque ? t('admin.roles.bibliotheque') : t('admin.roles.user')}
+                  {isAdmin
+                    ? t("admin.roles.admin")
+                    : isEditeur
+                      ? t("admin.roles.editeur")
+                      : isBibliotheque
+                        ? t("admin.roles.bibliotheque")
+                        : t("admin.roles.user")}
                 </Badge>
                 {isAdmin && (
                   <Button
@@ -1163,7 +1343,9 @@ export default function Admin() {
                 <Button
                   variant="outline"
                   size="icon"
-                  onClick={() => i18n.changeLanguage(i18n.language === "en" ? "fr" : "en")}
+                  onClick={() =>
+                    i18n.changeLanguage(i18n.language === "en" ? "fr" : "en")
+                  }
                   className="h-8 w-8"
                   title="Changer la langue"
                 >
@@ -1171,35 +1353,59 @@ export default function Admin() {
                 </Button>
               </div>
               <h1 className="text-xl sm:text-2xl font-serif font-bold text-foreground">
-                {t('admin.dashboard')}
+                {t("admin.dashboard")}
               </h1>
               {user && (
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {t('admin.connectedAs')} <span className="font-medium">{user.name || user.openId}</span>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {t("admin.connectedAs")}{" "}
+                  <span className="font-medium">
+                    {user.name || user.openId}
+                  </span>
                 </p>
               )}
             </div>
             <div className="flex items-center gap-2">
               {hasAdminAccess && (
                 <>
-                  <Button variant="ghost" size="sm" asChild className="h-9 sm:h-9">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    asChild
+                    className="h-9 sm:h-9"
+                  >
                     <Link href="/admin/profile">
                       <User className="w-4 h-4 sm:mr-1" />
-                      <span className="hidden sm:inline">{t('admin.myProfile')}</span>
+                      <span className="hidden sm:inline">
+                        {t("admin.myProfile")}
+                      </span>
                     </Link>
                   </Button>
-                  <Button variant="outline" size="sm" asChild className="h-9 sm:h-9">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    asChild
+                    className="h-9 sm:h-9"
+                  >
                     <Link href="/admin/tutorial">
                       <HelpCircle className="w-4 h-4 sm:mr-1" />
-                      <span className="hidden sm:inline">{t('admin.guide')}</span>
+                      <span className="hidden sm:inline">
+                        {t("admin.guide")}
+                      </span>
                     </Link>
                   </Button>
                 </>
               )}
-              <Button variant="outline" size="sm" asChild className="h-9 sm:h-9">
+              <Button
+                variant="outline"
+                size="sm"
+                asChild
+                className="h-9 sm:h-9"
+              >
                 <Link href="/">
                   <ArrowLeft className="w-4 h-4 sm:mr-1" />
-                  <span className="hidden sm:inline">{t('admin.backToSite')}</span>
+                  <span className="hidden sm:inline">
+                    {t("admin.backToSite")}
+                  </span>
                 </Link>
               </Button>
             </div>
@@ -1217,7 +1423,9 @@ export default function Admin() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{pubCount}</p>
-                <p className="text-xs text-muted-foreground">{t('admin.stats.articles')}</p>
+                <p className="text-xs text-muted-foreground">
+                  {t("admin.stats.articles")}
+                </p>
               </div>
             </div>
           </div>
@@ -1228,7 +1436,9 @@ export default function Admin() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{nlCount}</p>
-                <p className="text-xs text-muted-foreground">{t('admin.stats.subscribers')}</p>
+                <p className="text-xs text-muted-foreground">
+                  {t("admin.stats.subscribers")}
+                </p>
               </div>
             </div>
           </div>
@@ -1239,7 +1449,9 @@ export default function Admin() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{mediaCount}</p>
-                <p className="text-xs text-muted-foreground">{t('admin.stats.gallery')}</p>
+                <p className="text-xs text-muted-foreground">
+                  {t("admin.stats.gallery")}
+                </p>
               </div>
             </div>
           </div>
@@ -1250,7 +1462,9 @@ export default function Admin() {
               </div>
               <div>
                 <p className="text-2xl font-bold">{catCount}</p>
-                <p className="text-xs text-muted-foreground">{t('admin.stats.library')}</p>
+                <p className="text-xs text-muted-foreground">
+                  {t("admin.stats.library")}
+                </p>
               </div>
             </div>
           </div>
@@ -1265,8 +1479,12 @@ export default function Admin() {
                 <Plus className="w-5 h-5" />
               </div>
               <div className="min-w-0">
-                <h3 className="font-semibold text-sm">{t('admin.quickAccess.newArticle')}</h3>
-                <p className="text-xs text-muted-foreground">{t('admin.quickAccess.newArticleDesc')}</p>
+                <h3 className="font-semibold text-sm">
+                  {t("admin.quickAccess.newArticle")}
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  {t("admin.quickAccess.newArticleDesc")}
+                </p>
               </div>
             </div>
           </Link>
@@ -1276,95 +1494,114 @@ export default function Admin() {
                 <Library className="w-5 h-5" />
               </div>
               <div className="min-w-0">
-                <h3 className="font-semibold text-sm">{t('admin.quickAccess.library')}</h3>
-                <p className="text-xs text-muted-foreground">{t('admin.quickAccess.libraryDesc')}</p>
+                <h3 className="font-semibold text-sm">
+                  {t("admin.quickAccess.library")}
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  {t("admin.quickAccess.libraryDesc")}
+                </p>
               </div>
             </div>
           </Link>
           {showFullAdmin && (
-          <Link href="/admin/design">
-            <div className="bg-card border border-border p-5 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50 flex items-center gap-4">
-              <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center text-purple-600 group-hover:scale-110 transition-transform flex-shrink-0 dark:text-purple-400">
-                <Palette className="w-5 h-5" />
+            <Link href="/admin/design">
+              <div className="bg-card border border-border p-5 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50 flex items-center gap-4">
+                <div className="w-10 h-10 bg-purple-500/10 rounded-lg flex items-center justify-center text-purple-600 group-hover:scale-110 transition-transform flex-shrink-0 dark:text-purple-400">
+                  <Palette className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-sm">
+                    {t("admin.quickAccess.design")}
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    {t("admin.quickAccess.designDesc")}
+                  </p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <h3 className="font-semibold text-sm">{t('admin.quickAccess.design')}</h3>
-                <p className="text-xs text-muted-foreground">{t('admin.quickAccess.designDesc')}</p>
-              </div>
-            </div>
-          </Link>
+            </Link>
           )}
           {showFullAdmin && (
-          <Link href="/admin/agents">
-            <div className="bg-card border border-border p-5 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50 flex items-center gap-4">
-              <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform flex-shrink-0 dark:text-emerald-400">
-                <Bot className="w-5 h-5" />
+            <Link href="/admin/agents">
+              <div className="bg-card border border-border p-5 rounded-xl shadow-sm hover:shadow-md transition-all cursor-pointer group hover:border-primary/50 flex items-center gap-4">
+                <div className="w-10 h-10 bg-emerald-500/10 rounded-lg flex items-center justify-center text-emerald-600 group-hover:scale-110 transition-transform flex-shrink-0 dark:text-emerald-400">
+                  <Bot className="w-5 h-5" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-sm">
+                    {t("admin.quickAccess.agents")}
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    {t("admin.quickAccess.agentsDesc")}
+                  </p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <h3 className="font-semibold text-sm">{t('admin.quickAccess.agents')}</h3>
-                <p className="text-xs text-muted-foreground">{t('admin.quickAccess.agentsDesc')}</p>
-              </div>
-            </div>
-          </Link>
+            </Link>
           )}
         </div>
       </div>
 
       {/* Tabs */}
       <div className="container lg:max-w-7xl py-6">
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full flex flex-col lg:flex-row gap-4 lg:gap-6">
+        <Tabs
+          value={activeTab}
+          onValueChange={handleTabChange}
+          className="w-full flex flex-col lg:flex-row gap-4 lg:gap-6"
+        >
           {/* Mobile: horizontal scrollable tabs */}
           <div className="relative lg:hidden">
             <TabsList className="mb-0 flex overflow-x-auto h-auto w-full justify-start gap-1 pb-2 shrink-0 snap-x snap-mandatory no-scrollbar">
               <TabsTrigger value="articles" className="gap-2">
                 <Newspaper className="w-4 h-4" />
-                {t('admin.tabs.articles')}
+                {t("admin.tabs.articles")}
               </TabsTrigger>
               <TabsTrigger value="accueil" className="gap-2">
                 <LayoutDashboard className="w-4 h-4" />
-                {t('admin.tabs.home')}
+                {t("admin.tabs.home")}
               </TabsTrigger>
               <TabsTrigger value="pages" className="gap-2">
                 <Newspaper className="w-4 h-4" />
-                {t('admin.tabs.pages')}
+                {t("admin.tabs.pages")}
               </TabsTrigger>
               <TabsTrigger value="publications" className="gap-2">
                 <BookOpen className="w-4 h-4" />
-                {t('admin.tabs.publications')}
+                {t("admin.tabs.publications")}
               </TabsTrigger>
-            {hasAdminAccess && (
-              <>
-            <TabsTrigger value="ai" className="gap-2">
-              <Sparkles className="w-4 h-4 text-primary" />
-              {t('admin.tabs.ai')}
-            </TabsTrigger>
-            <TabsTrigger value="communications" className="gap-2">
-              <Mail className="w-4 h-4" />
-              Communications
-            </TabsTrigger>
-              </>
-            )}
-            <TabsTrigger value="cms" className="gap-2">
-              <Layout className="w-4 h-4 text-emerald-500" />
-              CMS
-            </TabsTrigger>
-            <TabsTrigger value="story-cards" className="gap-2">
-              <ImageIcon className="w-4 h-4 text-pink-500" />
-              Story Cards
-            </TabsTrigger>
-            {showFullAdmin && (
-              <>
-            <TabsTrigger value="users" className="gap-2">
-              <Users className="w-4 h-4" />
-              {t('admin.tabs.users')}
-            </TabsTrigger>
-            <TabsTrigger value="convention-registrations" className="gap-2">
-              <ClipboardList className="w-4 h-4 text-blue-500" />
-              Inscriptions
-            </TabsTrigger>
-              </>
-            )}
-          </TabsList>
+              {hasAdminAccess && (
+                <>
+                  <TabsTrigger value="ai" className="gap-2">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                    {t("admin.tabs.ai")}
+                  </TabsTrigger>
+                  <TabsTrigger value="communications" className="gap-2">
+                    <Mail className="w-4 h-4" />
+                    Communications
+                  </TabsTrigger>
+                </>
+              )}
+              <TabsTrigger value="cms" className="gap-2">
+                <Layout className="w-4 h-4 text-emerald-500" />
+                CMS
+              </TabsTrigger>
+              <TabsTrigger value="story-cards" className="gap-2">
+                <ImageIcon className="w-4 h-4 text-pink-500" />
+                Story Cards
+              </TabsTrigger>
+              {showFullAdmin && (
+                <>
+                  <TabsTrigger value="users" className="gap-2">
+                    <Users className="w-4 h-4" />
+                    {t("admin.tabs.users")}
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="convention-registrations"
+                    className="gap-2"
+                  >
+                    <ClipboardList className="w-4 h-4 text-blue-500" />
+                    Inscriptions
+                  </TabsTrigger>
+                </>
+              )}
+            </TabsList>
             {/* Right fade gradient indicator for mobile scroll */}
             <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-secondary/30 to-transparent pointer-events-none" />
           </div>
@@ -1374,47 +1611,68 @@ export default function Admin() {
             <p className="px-2 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70 select-none">
               Contenu
             </p>
-            <TabsTrigger value="articles" className="justify-start gap-2.5 w-full">
+            <TabsTrigger
+              value="articles"
+              className="justify-start gap-2.5 w-full"
+            >
               <Newspaper className="w-4 h-4" />
-              {t('admin.tabs.articles')}
+              {t("admin.tabs.articles")}
             </TabsTrigger>
-            <TabsTrigger value="accueil" className="justify-start gap-2.5 w-full">
+            <TabsTrigger
+              value="accueil"
+              className="justify-start gap-2.5 w-full"
+            >
               <LayoutDashboard className="w-4 h-4" />
-              {t('admin.tabs.home')}
+              {t("admin.tabs.home")}
             </TabsTrigger>
             <TabsTrigger value="pages" className="justify-start gap-2.5 w-full">
               <Newspaper className="w-4 h-4" />
-              {t('admin.tabs.pages')}
+              {t("admin.tabs.pages")}
             </TabsTrigger>
-            <TabsTrigger value="publications" className="justify-start gap-2.5 w-full">
+            <TabsTrigger
+              value="publications"
+              className="justify-start gap-2.5 w-full"
+            >
               <BookOpen className="w-4 h-4" />
-              {t('admin.tabs.publications')}
+              {t("admin.tabs.publications")}
             </TabsTrigger>
-            <TabsTrigger value="story-cards" className="justify-start gap-2.5 w-full">
+            <TabsTrigger
+              value="story-cards"
+              className="justify-start gap-2.5 w-full"
+            >
               <ImageIcon className="w-4 h-4 text-pink-500" />
               Story Cards
             </TabsTrigger>
             {hasAdminAccess && (
               <>
-            <p className="px-2 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70 select-none">
-              IA & Communication
-            </p>
-            <TabsTrigger value="ai" className="justify-start gap-2.5 w-full">
-              <Sparkles className="w-4 h-4 text-primary" />
-              {t('admin.tabs.ai')}
-            </TabsTrigger>
-            <TabsTrigger value="communications" className="justify-start gap-2.5 w-full">
-              <Mail className="w-4 h-4" />
-              Communications
-            </TabsTrigger>
+                <p className="px-2 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70 select-none">
+                  IA & Communication
+                </p>
+                <TabsTrigger
+                  value="ai"
+                  className="justify-start gap-2.5 w-full"
+                >
+                  <Sparkles className="w-4 h-4 text-primary" />
+                  {t("admin.tabs.ai")}
+                </TabsTrigger>
+                <TabsTrigger
+                  value="communications"
+                  className="justify-start gap-2.5 w-full"
+                >
+                  <Mail className="w-4 h-4" />
+                  Communications
+                </TabsTrigger>
               </>
             )}
             {showFullAdmin && (
               <>
-            <TabsTrigger value="convention-registrations" className="justify-start gap-2.5 w-full">
-              <ClipboardList className="w-4 h-4 text-blue-500" />
-              Inscriptions
-            </TabsTrigger>
+                <TabsTrigger
+                  value="convention-registrations"
+                  className="justify-start gap-2.5 w-full"
+                >
+                  <ClipboardList className="w-4 h-4 text-blue-500" />
+                  Inscriptions
+                </TabsTrigger>
               </>
             )}
             <p className="px-2 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground/70 select-none">
@@ -1426,85 +1684,142 @@ export default function Admin() {
             </TabsTrigger>
             {showFullAdmin && (
               <>
-            <TabsTrigger value="users" className="justify-start gap-2.5 w-full">
-              <Users className="w-4 h-4" />
-              {t('admin.tabs.users')}
-            </TabsTrigger>
+                <TabsTrigger
+                  value="users"
+                  className="justify-start gap-2.5 w-full"
+                >
+                  <Users className="w-4 h-4" />
+                  {t("admin.tabs.users")}
+                </TabsTrigger>
               </>
             )}
           </TabsList>
 
           {/* Content area — flex-1 on desktop */}
           <div className="flex-1 min-w-0">
-          <TabsContent value="articles">
-            <ArticlesTab />
-          </TabsContent>
-          <TabsContent value="accueil">
-            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
-              <HomeContentManager />
-            </Suspense>
-          </TabsContent>
-          {hasAdminAccess && (
-            <>
-          <TabsContent value="ai" className="space-y-6">
-            <AITabs />
-          </TabsContent>
-          <TabsContent value="communications" className="space-y-6">
-            <NotificationsTab />
-            <div className="border-t border-border pt-6">
-              <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
-                <NewsletterAdmin />
+            <TabsContent value="articles">
+              <ArticlesTab />
+            </TabsContent>
+            <TabsContent value="accueil">
+              <Suspense
+                fallback={
+                  <div className="p-12 text-center text-muted-foreground">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" />{" "}
+                    {t("admin.loading")}
+                  </div>
+                }
+              >
+                <HomeContentManager />
               </Suspense>
-            </div>
-          </TabsContent>
-            </>
-          )}
-          {showFullAdmin && (
-          <TabsContent value="users">
-            <UsersTab />
-          </TabsContent>
-          )}
-          <TabsContent value="pages">
-            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.main.loadingManager')}</div>}>
-              <div className="space-y-8">
-                <HomeHeroBackgroundSettings />
-                <CulteHeroBackgroundSettings />
-                <CulteBannerSettings />
-                <CulteVideoSettings />
-                <CulteMapSettings />
-                <PageContentManager pageId="home" pageName="Accueil" />
-                <PageContentManager
-                  pageId="culte-en-ligne"
-                  pageName="Culte en ligne"
-                />
-                <PageContentManager
-                  pageId="bibliotheque"
-                  pageName="Bibliothèque"
-                />
-              </div>
-            </Suspense>
-          </TabsContent>
-          <TabsContent value="publications" className="space-y-8">
-            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
-               <GalleryManager />
-               {showFullAdmin && <><div className="h-px bg-border my-8" /><VersesManager /></>}
-            </Suspense>
-          </TabsContent>
-          <TabsContent value="cms">
-            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
-              <CMSManager />
-            </Suspense>
-          </TabsContent>
-          <TabsContent value="story-cards">
-            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
-              <StoryCardAdmin />
-            </Suspense>
-          </TabsContent>
-          <TabsContent value="convention-registrations">
-            <Suspense fallback={<div className="p-12 text-center text-muted-foreground"><Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" /> {t('admin.loading')}</div>}>
-              <ConventionRegistrationsManager />
-            </Suspense>
-          </TabsContent>
+            </TabsContent>
+            {hasAdminAccess && (
+              <>
+                <TabsContent value="ai" className="space-y-6">
+                  <AITabs />
+                </TabsContent>
+                <TabsContent value="communications" className="space-y-6">
+                  <NotificationsTab />
+                  <div className="border-t border-border pt-6">
+                    <Suspense
+                      fallback={
+                        <div className="p-12 text-center text-muted-foreground">
+                          <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" />{" "}
+                          {t("admin.loading")}
+                        </div>
+                      }
+                    >
+                      <NewsletterAdmin />
+                    </Suspense>
+                  </div>
+                </TabsContent>
+              </>
+            )}
+            {showFullAdmin && (
+              <TabsContent value="users">
+                <UsersTab />
+              </TabsContent>
+            )}
+            <TabsContent value="pages">
+              <Suspense
+                fallback={
+                  <div className="p-12 text-center text-muted-foreground">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" />{" "}
+                    {t("admin.main.loadingManager")}
+                  </div>
+                }
+              >
+                <div className="space-y-8">
+                  <HomeHeroBackgroundSettings />
+                  <CulteHeroBackgroundSettings />
+                  <CulteBannerSettings />
+                  <CulteVideoSettings />
+                  <CulteMapSettings />
+                  <PageContentManager pageId="home" pageName="Accueil" />
+                  <PageContentManager
+                    pageId="culte-en-ligne"
+                    pageName="Culte en ligne"
+                  />
+                  <PageContentManager
+                    pageId="bibliotheque"
+                    pageName="Bibliothèque"
+                  />
+                </div>
+              </Suspense>
+            </TabsContent>
+            <TabsContent value="publications" className="space-y-8">
+              <Suspense
+                fallback={
+                  <div className="p-12 text-center text-muted-foreground">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" />{" "}
+                    {t("admin.loading")}
+                  </div>
+                }
+              >
+                <GalleryManager />
+                {showFullAdmin && (
+                  <>
+                    <div className="h-px bg-border my-8" />
+                    <VersesManager />
+                  </>
+                )}
+              </Suspense>
+            </TabsContent>
+            <TabsContent value="cms">
+              <Suspense
+                fallback={
+                  <div className="p-12 text-center text-muted-foreground">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" />{" "}
+                    {t("admin.loading")}
+                  </div>
+                }
+              >
+                <CMSManager />
+              </Suspense>
+            </TabsContent>
+            <TabsContent value="story-cards">
+              <Suspense
+                fallback={
+                  <div className="p-12 text-center text-muted-foreground">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" />{" "}
+                    {t("admin.loading")}
+                  </div>
+                }
+              >
+                <StoryCardAdmin />
+              </Suspense>
+            </TabsContent>
+            <TabsContent value="convention-registrations">
+              <Suspense
+                fallback={
+                  <div className="p-12 text-center text-muted-foreground">
+                    <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2 opacity-20" />{" "}
+                    {t("admin.loading")}
+                  </div>
+                }
+              >
+                <ConventionRegistrationsManager />
+              </Suspense>
+            </TabsContent>
           </div>
         </Tabs>
       </div>
@@ -1543,7 +1858,7 @@ function UsersTab() {
 
   const handleCreate = () => {
     if (!newUser.password) {
-      toast.error(t('admin.users.passwordRequired'));
+      toast.error(t("admin.users.passwordRequired"));
       return;
     }
     createUserMutation.mutate({
@@ -1554,7 +1869,13 @@ function UsersTab() {
       password: newUser.password,
     });
     setIsCreateOpen(false);
-    setNewUser({ openId: "", name: "", email: "", password: "", role: "editeur" });
+    setNewUser({
+      openId: "",
+      name: "",
+      email: "",
+      password: "",
+      role: "editeur",
+    });
   };
 
   const handleRoleChange = (userId: number, role: string) => {
@@ -1562,22 +1883,23 @@ function UsersTab() {
   };
 
   const handleDelete = (userId: number) => {
-    if (confirm(t('admin.usersTab.confirmDelete'))) {
+    if (confirm(t("admin.usersTab.confirmDelete"))) {
       deleteUserMutation.mutate({ userId });
     }
   };
 
   const roleLabels: Record<string, string> = {
-    admin: t('admin.roles.admin'),
-    editeur: t('admin.roles.editeur'),
-    bibliotheque: t('admin.roles.bibliotheque'),
-    user: t('admin.roles.user'),
+    admin: t("admin.roles.admin"),
+    editeur: t("admin.roles.editeur"),
+    bibliotheque: t("admin.roles.bibliotheque"),
+    user: t("admin.roles.user"),
   };
 
   const roleColors: Record<string, string> = {
     admin: "bg-red-100 text-red-800 dark:bg-red-500/10 dark:text-red-400",
     editeur: "bg-blue-100 text-blue-800 dark:bg-blue-500/10 dark:text-blue-400",
-    bibliotheque: "bg-green-100 text-green-800 dark:bg-green-500/10 dark:text-green-400",
+    bibliotheque:
+      "bg-green-100 text-green-800 dark:bg-green-500/10 dark:text-green-400",
     user: "bg-gray-100 text-gray-800 dark:bg-gray-500/10 dark:text-gray-300",
   };
 
@@ -1585,8 +1907,12 @@ function UsersTab() {
     return (
       <div className="p-8 text-center">
         <AlertCircle className="w-12 h-12 mx-auto text-destructive mb-4" />
-        <h2 className="text-xl font-semibold">{t('admin.usersTab.accessDenied')}</h2>
-        <p className="text-muted-foreground">{t('admin.usersTab.accessDeniedDesc')}</p>
+        <h2 className="text-xl font-semibold">
+          {t("admin.usersTab.accessDenied")}
+        </h2>
+        <p className="text-muted-foreground">
+          {t("admin.usersTab.accessDeniedDesc")}
+        </p>
       </div>
     );
   }
@@ -1595,12 +1921,14 @@ function UsersTab() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold">{t('admin.usersTab.title')}</h2>
-          <p className="text-muted-foreground">{t('admin.usersTab.description')}</p>
+          <h2 className="text-2xl font-bold">{t("admin.usersTab.title")}</h2>
+          <p className="text-muted-foreground">
+            {t("admin.usersTab.description")}
+          </p>
         </div>
         <Button onClick={() => setIsCreateOpen(true)}>
           <Plus className="w-4 h-4 mr-2" />
-          {t('admin.usersTab.addUser')}
+          {t("admin.usersTab.addUser")}
         </Button>
       </div>
 
@@ -1608,11 +1936,13 @@ function UsersTab() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>{t('admin.usersTab.columnName')}</TableHead>
-              <TableHead>{t('admin.usersTab.columnEmail')}</TableHead>
-              <TableHead>{t('admin.usersTab.columnRole')}</TableHead>
-              <TableHead>{t('admin.usersTab.columnLastLogin')}</TableHead>
-              <TableHead className="text-right">{t('admin.usersTab.columnActions')}</TableHead>
+              <TableHead>{t("admin.usersTab.columnName")}</TableHead>
+              <TableHead>{t("admin.usersTab.columnEmail")}</TableHead>
+              <TableHead>{t("admin.usersTab.columnRole")}</TableHead>
+              <TableHead>{t("admin.usersTab.columnLastLogin")}</TableHead>
+              <TableHead className="text-right">
+                {t("admin.usersTab.columnActions")}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -1624,36 +1954,53 @@ function UsersTab() {
               </TableRow>
             ) : users?.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                  {t('admin.users.notFound')}
+                <TableCell
+                  colSpan={5}
+                  className="text-center py-8 text-muted-foreground"
+                >
+                  {t("admin.users.notFound")}
                 </TableCell>
               </TableRow>
             ) : (
               users?.map((u: any) => (
                 <TableRow key={u.id}>
-                  <TableCell className="font-medium">{u.name || t('admin.usersTab.noName')}</TableCell>
-                  <TableCell className="text-muted-foreground">{u.email || "-"}</TableCell>
+                  <TableCell className="font-medium">
+                    {u.name || t("admin.usersTab.noName")}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">
+                    {u.email || "-"}
+                  </TableCell>
                   <TableCell>
                     <Select
                       value={u.role}
-                      onValueChange={(role) => handleRoleChange(u.id, role)}
+                      onValueChange={role => handleRoleChange(u.id, role)}
                       disabled={u.role === "admin"}
                     >
-                      <SelectTrigger className={`w-40 ${roleColors[u.role] || ""}`}>
+                      <SelectTrigger
+                        className={`w-40 ${roleColors[u.role] || ""}`}
+                      >
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="user">{t('admin.roles.user')}</SelectItem>
-                        <SelectItem value="editeur">{t('admin.roles.editeur')}</SelectItem>
-                        <SelectItem value="bibliotheque">{t('admin.roles.bibliotheque')}</SelectItem>
-                        <SelectItem value="admin">{t('admin.roles.admin')}</SelectItem>
+                        <SelectItem value="user">
+                          {t("admin.roles.user")}
+                        </SelectItem>
+                        <SelectItem value="editeur">
+                          {t("admin.roles.editeur")}
+                        </SelectItem>
+                        <SelectItem value="bibliotheque">
+                          {t("admin.roles.bibliotheque")}
+                        </SelectItem>
+                        <SelectItem value="admin">
+                          {t("admin.roles.admin")}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {u.lastSignedIn
                       ? new Date(u.lastSignedIn).toLocaleDateString("fr-FR")
-                      : t('admin.usersTab.never')}
+                      : t("admin.usersTab.never")}
                   </TableCell>
                   <TableCell className="text-right">
                     <Button
@@ -1677,60 +2024,72 @@ function UsersTab() {
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{t('admin.users.createTitle')}</DialogTitle>
-              <DialogDescription>{t('admin.users.createDesc')}</DialogDescription>
+            <DialogTitle>{t("admin.users.createTitle")}</DialogTitle>
+            <DialogDescription>{t("admin.users.createDesc")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>{t('admin.usersTab.nameLabel')}</Label>
+              <Label>{t("admin.usersTab.nameLabel")}</Label>
               <Input
                 value={newUser.name}
-                onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
-                placeholder={t('admin.usersTab.namePlaceholder')}
+                onChange={e => setNewUser({ ...newUser, name: e.target.value })}
+                placeholder={t("admin.usersTab.namePlaceholder")}
               />
             </div>
             <div className="space-y-2">
-              <Label>{t('admin.usersTab.emailLabel')}</Label>
+              <Label>{t("admin.usersTab.emailLabel")}</Label>
               <Input
                 type="email"
                 value={newUser.email}
-                onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                onChange={e =>
+                  setNewUser({ ...newUser, email: e.target.value })
+                }
                 placeholder="email@exemple.com"
               />
             </div>
             <div className="space-y-2">
-              <Label>{t('admin.usersTab.passwordLabel')}</Label>
+              <Label>{t("admin.usersTab.passwordLabel")}</Label>
               <Input
                 type="password"
                 value={newUser.password}
-                onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                placeholder={t('admin.usersTab.passwordPlaceholder')}
+                onChange={e =>
+                  setNewUser({ ...newUser, password: e.target.value })
+                }
+                placeholder={t("admin.usersTab.passwordPlaceholder")}
               />
             </div>
             <div className="space-y-2">
-              <Label>{t('admin.usersTab.roleLabel')}</Label>
+              <Label>{t("admin.usersTab.roleLabel")}</Label>
               <Select
                 value={newUser.role}
-                onValueChange={(role) => setNewUser({ ...newUser, role: role as any })}
+                onValueChange={role =>
+                  setNewUser({ ...newUser, role: role as any })
+                }
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="editeur">{t('admin.roles.editeur')}</SelectItem>
-                  <SelectItem value="bibliotheque">{t('admin.roles.bibliotheque')}</SelectItem>
-                  <SelectItem value="user">{t('admin.roles.user')}</SelectItem>
-                  <SelectItem value="admin">{t('admin.roles.admin')}</SelectItem>
+                  <SelectItem value="editeur">
+                    {t("admin.roles.editeur")}
+                  </SelectItem>
+                  <SelectItem value="bibliotheque">
+                    {t("admin.roles.bibliotheque")}
+                  </SelectItem>
+                  <SelectItem value="user">{t("admin.roles.user")}</SelectItem>
+                  <SelectItem value="admin">
+                    {t("admin.roles.admin")}
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-                {t('admin.dialogs.confirmDelete.cancel')}
-              </Button>
+              {t("admin.dialogs.confirmDelete.cancel")}
+            </Button>
             <Button onClick={handleCreate} disabled={!newUser.name}>
-              {t('admin.usersTab.create')}
+              {t("admin.usersTab.create")}
             </Button>
           </DialogFooter>
         </DialogContent>

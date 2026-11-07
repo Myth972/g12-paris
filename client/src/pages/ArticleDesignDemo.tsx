@@ -45,10 +45,7 @@ function getCategoryColor(category: string): string {
     événement: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
     annonce: "bg-teal-500/10 text-teal-600 dark:text-teal-400",
   };
-  return (
-    colors[category.toLowerCase()] ||
-    "bg-primary/10 text-primary"
-  );
+  return colors[category.toLowerCase()] || "bg-primary/10 text-primary";
 }
 
 function PlaceholderCover({ label }: { label: string }) {
@@ -154,7 +151,7 @@ function DemoToc() {
         Sommaire
       </p>
       <ul className="space-y-2.5 text-sm">
-        {DEMO_SECTIONS.map((section) => (
+        {DEMO_SECTIONS.map(section => (
           <li key={section.id}>
             <a
               href={`#${section.id}`}
@@ -372,9 +369,11 @@ export default function ArticleDesignDemo() {
 
       {/* ---------- Proposition 2 : cartes épurées (TiltCard conservé) ---------- */}
       <section className="container max-w-5xl mx-auto mt-16 px-4">
-        <ProposalLabel>Proposition 2 · Cartes épurées (TiltCard conservé)</ProposalLabel>
+        <ProposalLabel>
+          Proposition 2 · Cartes épurées (TiltCard conservé)
+        </ProposalLabel>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {RELATED_ARTICLES.map((article) => (
+          {RELATED_ARTICLES.map(article => (
             <DemoArticleCard key={article.id} article={article} />
           ))}
         </div>
@@ -382,7 +381,9 @@ export default function ArticleDesignDemo() {
 
       {/* ---------- Propositions 3 & 4 : typographie premium + sommaire ---------- */}
       <section className="container max-w-5xl mx-auto mt-16 px-4">
-        <ProposalLabel>Propositions 3 &amp; 4 · Typographie premium + Sommaire</ProposalLabel>
+        <ProposalLabel>
+          Propositions 3 &amp; 4 · Typographie premium + Sommaire
+        </ProposalLabel>
         <div className="grid grid-cols-1 gap-8 items-start lg:grid-cols-[220px_minmax(0,1fr)]">
           <DemoToc />
 
@@ -417,8 +418,8 @@ export default function ArticleDesignDemo() {
             </blockquote>
             <p>
               Cette promesse nous invite à confier nos besoins avec une
-              assurance tranquille, sachant que celui qui écoute est aussi
-              celui qui pourvoit.
+              assurance tranquille, sachant que celui qui écoute est aussi celui
+              qui pourvoit.
             </p>
 
             <h2 id="demo-obstacles">Surmonter les obstacles</h2>
@@ -453,7 +454,9 @@ export default function ArticleDesignDemo() {
 
       {/* ---------- Proposition 5 : articles similaires + fin épurée ---------- */}
       <section className="container max-w-5xl mx-auto mt-20 px-4">
-        <ProposalLabel>Proposition 5 · Articles similaires &amp; fin d'article</ProposalLabel>
+        <ProposalLabel>
+          Proposition 5 · Articles similaires &amp; fin d'article
+        </ProposalLabel>
         <div className="border-t border-border/60 pt-10">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-lg font-serif font-bold text-foreground">
@@ -465,7 +468,7 @@ export default function ArticleDesignDemo() {
             </span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-            {RELATED_ARTICLES.map((article) => (
+            {RELATED_ARTICLES.map(article => (
               <DemoArticleCard key={article.id} article={article} />
             ))}
           </div>

@@ -40,7 +40,9 @@ export default function ConventionCountdown({
 }: ConventionCountdownProps) {
   const motionEnabled = useMotionEnabled();
   const start = new Date(startISO).getTime();
-  const end = endISO ? new Date(endISO).getTime() : start + 3 * 24 * 3600 * 1000;
+  const end = endISO
+    ? new Date(endISO).getTime()
+    : start + 3 * 24 * 3600 * 1000;
 
   const [now, setNow] = useState(() => Date.now());
 
@@ -92,11 +94,18 @@ export default function ConventionCountdown({
   if (compact) {
     return (
       <div
-        className={className ?? "inline-flex items-center justify-center gap-1 rounded-full border border-border/60 bg-background/80 px-3 py-1.5 shadow-sm"}
+        className={
+          className ??
+          "inline-flex items-center justify-center gap-1 rounded-full border border-border/60 bg-background/80 px-3 py-1.5 shadow-sm"
+        }
         role="timer"
       >
         {cells.map((cell, i) => (
-          <span key={cell.label} className="tabular-nums leading-none" aria-hidden={i > 0 ? "true" : undefined}>
+          <span
+            key={cell.label}
+            className="tabular-nums leading-none"
+            aria-hidden={i > 0 ? "true" : undefined}
+          >
             <span className="text-base font-bold font-serif text-foreground">
               {String(cell.value).padStart(2, "0")}
             </span>
@@ -119,8 +128,12 @@ export default function ConventionCountdown({
       <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary mb-3">
         {label}
       </p>
-      <div className="flex items-stretch justify-center gap-2 sm:gap-3" role="timer" aria-live="off">
-        {cells.map((cell) => (
+      <div
+        className="flex items-stretch justify-center gap-2 sm:gap-3"
+        role="timer"
+        aria-live="off"
+      >
+        {cells.map(cell => (
           <div
             key={cell.label}
             className="flex flex-col items-center min-w-[60px] sm:min-w-[80px] px-2 py-3 rounded-2xl bg-white dark:bg-card border border-border/60 shadow-sm"
