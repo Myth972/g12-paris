@@ -17,11 +17,15 @@ import { motion } from "framer-motion";
 import { Newspaper, ChevronRight, Church, BookOpen, Mic2, Calendar, Users, FileText, Image, Clock } from "lucide-react";
 import AnimatedCounter from "@/components/AnimatedCounter";
 import { useVisualEnabled } from "@/hooks/useVisualSetting";
+import { normalizeImageSource, buildOptimizedUrl } from "@/lib/imageOptimize";
 import { useSeo } from "@/lib/seo";
 import { organizationJsonLd, webSiteJsonLd } from "@/lib/structuredData";
 import { useState, useMemo, useEffect } from "react";
 
 const announcementIcons = [Church, Mic2, BookOpen];
+
+/** Largeur du fond hero recodé par /api/image (borne : 32–1600). */
+const HERO_BG_WIDTH = 1280;
 
 export default function Home() {
   const [page, setPage] = useState(0);
@@ -85,6 +89,31 @@ const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, categor
   );
   const heroOpacity = heroOpacityPercent / 100;
 
+  // Fond hero optimisé (goulot LCP mesuré : PNG brut de 1,15 Mo chargé via
+  // background-image). Source recodable (uploads / blob) → /api/image en
+  // WebP 1280px (~90 Ko) ; sinon (Unsplash, SVG…) → URL d'origine.
+  const heroSrcNormalized = heroBgUrl ? normalizeImageSource(heroBgUrl) : null;
+  const heroBgUrlOptimized = heroSrcNormalized
+    ? buildOptimizedUrl(heroSrcNormalized, HERO_BG_WIDTH, "webp")
+    : heroBgUrl;
+
+  // Preload du fond hero dès que les settings résolvent : un background-image
+  // CSS part en priorité basse dans le scheduler Chrome (mesuré : corps servi
+  // en 5+ s sous 4G malgré 90 Ko) ; le preload as=image le passe en priorité
+  // haute, la peinture du div suit quasi immédiatement (même URL → cache hit).
+  useEffect(() => {
+    if (!heroBgUrlOptimized) return;
+    const link = document.createElement("link");
+    link.rel = "preload";
+    link.as = "image";
+    link.href = heroBgUrlOptimized;
+    link.setAttribute("fetchpriority", "high");
+    document.head.appendChild(link);
+    return () => {
+      link.remove();
+    };
+  }, [heroBgUrlOptimized]);
+
   const homeStructuredData = useMemo(
     () => [webSiteJsonLd(), organizationJsonLd()],
     []
@@ -119,13 +148,16 @@ const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, categor
       />
 
       {/* Hero section */}
-      <Reveal variant="fadeDown" duration={0.7}>
+      {/* Pas de Reveal fadeDown ici : un fade de 700 ms retarde le paint du
+          hero (H1 + fond) et donc le LCP ; variante "none" = wrapper neutre. */}
+      <Reveal variant="none">
       <section className="relative bg-gradient-to-b from-primary/[0.03] to-transparent py-12 md:py-[180px] min-h-[420px] md:min-h-[520px] overflow-hidden flex items-center">
         {heroBgUrl && (
           <div
             className="absolute inset-0 bg-center bg-cover"
             style={{
-              backgroundImage: `url(${heroBgUrl})`,
+              backgroundImage:
+                heroBgUrlOptimized ? `url(${heroBgUrlOptimized})` : undefined,
               opacity: heroOpacity,
               backgroundAttachment: "scroll",
               backgroundPosition: `center calc(50% + ${heroOffset + 40}px)`,
