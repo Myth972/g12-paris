@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import ReadingProgressBar from "@/components/ReadingProgressBar";
 import ScrollToTopButton from "@/components/ScrollToTopButton";
 import StoryCardGenerator from "@/components/StoryCardGenerator";
+import OptimizedImage from "@/components/OptimizedImage";
 import ShareButtons from "@/components/ShareButtons";
 import Lightbox, { type LightboxItem } from "@/components/Lightbox";
 import {
@@ -50,14 +51,14 @@ function estimateReadingTime(title: string, content: string): string {
 
 function getCategoryColor(category: string): string {
   const colors: Record<string, string> = {
-    "actualité": "bg-blue-500/10 text-blue-600 dark:text-blue-400",
-    "culte": "bg-purple-500/10 text-purple-600 dark:text-purple-400",
-    "enseignement": "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
-    "témoignage": "bg-amber-500/10 text-amber-600 dark:text-amber-400",
-    "musique": "bg-rose-500/10 text-rose-600 dark:text-rose-400",
-    "prière": "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
-    "événement": "bg-orange-500/10 text-orange-600 dark:text-orange-400",
-    "annonce": "bg-teal-500/10 text-teal-600 dark:text-teal-400",
+    actualité: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+    culte: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
+    enseignement: "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400",
+    témoignage: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+    musique: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
+    prière: "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400",
+    événement: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+    annonce: "bg-teal-500/10 text-teal-600 dark:text-teal-400",
   };
   return colors[category.toLowerCase()] || "bg-primary/10 text-primary";
 }
@@ -75,7 +76,7 @@ function ArticleToc({ sections }: { sections: TocSection[] }) {
         Sommaire
       </p>
       <ul className="space-y-2.5 text-sm">
-        {sections.map((section) => (
+        {sections.map(section => (
           <li key={section.id}>
             <a
               href={`#${section.id}`}
@@ -116,19 +117,19 @@ export default function ArticleDetail() {
     { enabled: !!article }
   );
 
-  const relatedArticles = (relatedData?.items ?? []).filter(
-    (a: any) => a.slug !== params.slug
-  ).slice(0, 3);
+  const relatedArticles = (relatedData?.items ?? [])
+    .filter((a: any) => a.slug !== params.slug)
+    .slice(0, 3);
 
   const [aiSuggestions, setAiSuggestions] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   const suggestMutation = trpc.ai.suggestImprovements.useMutation({
-    onSuccess: (data) => {
+    onSuccess: data => {
       setAiSuggestions(data.suggestions || []);
       setShowSuggestions(true);
     },
-    onError: (err) => toast.error(err.message),
+    onError: err => toast.error(err.message),
   });
 
   const sections = article ? extractHeadings(article.content) : [];
@@ -139,7 +140,9 @@ export default function ArticleDetail() {
   /* ---------- Lightbox sur les images du corps de l'article ---------- */
   const proseRef = useRef<HTMLDivElement>(null);
   const [contentImages, setContentImages] = useState<LightboxItem[]>([]);
-  const [contentImageIndex, setContentImageIndex] = useState<number | null>(null);
+  const [contentImageIndex, setContentImageIndex] = useState<number | null>(
+    null
+  );
 
   // Collecte les <img> du corps une fois le contenu rendu : chaque image de
   // l'article devient un media de la lightbox (navigation ← / → entre elles).
@@ -168,7 +171,9 @@ export default function ArticleDetail() {
     if (!img || !proseRef.current) return;
     // Une image-lien (dans un <a>) garde son comportement de lien.
     if (img.closest("a")) return;
-    const idx = Array.from(proseRef.current.querySelectorAll("img")).indexOf(img);
+    const idx = Array.from(proseRef.current.querySelectorAll("img")).indexOf(
+      img
+    );
     if (idx >= 0) setContentImageIndex(idx);
   };
 
@@ -207,8 +212,12 @@ export default function ArticleDetail() {
     image: article?.coverImageUrl || undefined,
     url: article ? `/article/${article.slug}` : undefined,
     type: "article",
-    publishedTime: article?.createdAt ? new Date(article.createdAt).toISOString() : undefined,
-    modifiedTime: article?.updatedAt ? new Date(article.updatedAt).toISOString() : undefined,
+    publishedTime: article?.createdAt
+      ? new Date(article.createdAt).toISOString()
+      : undefined,
+    modifiedTime: article?.updatedAt
+      ? new Date(article.updatedAt).toISOString()
+      : undefined,
     author: (article as any)?.authorName || undefined,
     jsonLd: articleStructuredData,
   });
@@ -319,9 +328,11 @@ export default function ArticleDetail() {
             {/* Partage rapide WhatsApp / Facebook (OG image de l'article en aperçu) */}
             <ShareButtons
               message={article.title}
-              url={typeof window !== "undefined" ? window.location.href : undefined}
+              url={
+                typeof window !== "undefined" ? window.location.href : undefined
+              }
               className="ml-1"
- />
+            />
             <StoryCardGenerator
               title={article.title}
               excerpt={article.excerpt}
@@ -345,15 +356,17 @@ export default function ArticleDetail() {
         <div className="container max-w-5xl mx-auto mt-8 mb-10 px-4">
           <figure>
             <div className="rounded-2xl overflow-hidden shadow-sm select-none">
-              <img
+              <OptimizedImage
                 src={article.coverImageUrl}
                 alt={article.title}
+                sizes="(max-width: 1023px) 100vw, 1024px"
                 className="w-full max-h-[560px] object-cover"
-                onContextMenu={(e) => e.preventDefault()}
+                onContextMenu={e => e.preventDefault()}
                 draggable={false}
                 fetchPriority="high"
                 loading="eager"
                 decoding="async"
+                fadeIn={false}
               />
             </div>
           </figure>
@@ -371,9 +384,7 @@ export default function ArticleDetail() {
       <div className="container max-w-5xl mx-auto px-4">
         <div
           className={
-            hasToc
-              ? "grid lg:grid-cols-[220px_1fr] gap-8 items-start"
-              : ""
+            hasToc ? "grid lg:grid-cols-[220px_1fr] gap-8 items-start" : ""
           }
         >
           {hasToc && <ArticleToc sections={sections} />}
@@ -413,21 +424,34 @@ export default function ArticleDetail() {
                   <Lightbulb className="w-4 h-4 text-amber-500" />
                   Suggestions d'amélioration
                 </h3>
-                <Button variant="ghost" size="sm" onClick={() => setShowSuggestions(false)}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowSuggestions(false)}
+                >
                   Fermer
                 </Button>
               </div>
               <div className="space-y-2">
                 {aiSuggestions.map((s, i) => (
-                  <div key={i} className="flex items-start gap-3 p-2 rounded-lg bg-muted/30">
-                    <span className={`text-xs font-medium px-1.5 py-0.5 rounded ${
-                      s.priority === "haute" ? "bg-red-500/10 text-red-600 dark:text-red-400" :
-                      s.priority === "moyenne" ? "bg-amber-500/10 text-amber-600 dark:text-amber-400" :
-                      "bg-blue-500/10 text-blue-600 dark:text-blue-400"
-                    }`}>
+                  <div
+                    key={i}
+                    className="flex items-start gap-3 p-2 rounded-lg bg-muted/30"
+                  >
+                    <span
+                      className={`text-xs font-medium px-1.5 py-0.5 rounded ${
+                        s.priority === "haute"
+                          ? "bg-red-500/10 text-red-600 dark:text-red-400"
+                          : s.priority === "moyenne"
+                            ? "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+                            : "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                      }`}
+                    >
                       {s.type}
                     </span>
-                    <p className="text-sm text-muted-foreground flex-1">{s.description}</p>
+                    <p className="text-sm text-muted-foreground flex-1">
+                      {s.description}
+                    </p>
                   </div>
                 ))}
               </div>
@@ -435,10 +459,16 @@ export default function ArticleDetail() {
                 variant="ghost"
                 size="sm"
                 className="mt-3 text-xs"
-                onClick={() => suggestMutation.mutate({ articleId: article.id })}
+                onClick={() =>
+                  suggestMutation.mutate({ articleId: article.id })
+                }
                 disabled={suggestMutation.isPending}
               >
-                {suggestMutation.isPending ? <Loader2 className="w-3 h-3 animate-spin mr-1" /> : <Sparkles className="w-3 h-3 mr-1" />}
+                {suggestMutation.isPending ? (
+                  <Loader2 className="w-3 h-3 animate-spin mr-1" />
+                ) : (
+                  <Sparkles className="w-3 h-3 mr-1" />
+                )}
                 Régénérer
               </Button>
             </div>
@@ -480,7 +510,12 @@ export default function ArticleDetail() {
               Tous les articles
             </Link>
           </Button>
-          <Button variant="ghost" size="sm" onClick={handleShare} className="text-muted-foreground">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleShare}
+            className="text-muted-foreground"
+          >
             <Share2 className="w-4 h-4 mr-1" />
             Partager
           </Button>

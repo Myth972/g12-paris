@@ -16,7 +16,19 @@ import YouTubeEmbed from "@/components/YouTubeEmbed";
 
 import PageTitleEditor from "@/components/PageTitleEditor";
 import PageTextEditor from "@/components/PageTextEditor";
-import { ChevronRight, Quote, Heart, Sparkles, BookOpen, ImageIcon, Pencil, Save, X, Loader2, Upload } from "lucide-react";
+import {
+  ChevronRight,
+  Quote,
+  Heart,
+  Sparkles,
+  BookOpen,
+  ImageIcon,
+  Pencil,
+  Save,
+  X,
+  Loader2,
+  Upload,
+} from "lucide-react";
 import { useState, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
 import { useMotionEnabled } from "@/hooks/useMotionEnabled";
@@ -53,30 +65,42 @@ const containerVars = {
 
 const itemVars: any = {
   hidden: { y: 30, opacity: 0, scale: 0.95 },
-  visible: { y: 0, opacity: 1, scale: 1, transition: { type: "spring", stiffness: 100, damping: 15 } },
+  visible: {
+    y: 0,
+    opacity: 1,
+    scale: 1,
+    transition: { type: "spring", stiffness: 100, damping: 15 },
+  },
 };
-
-
 
 export default function GalleriesPage() {
   const motionEnabled = useMotionEnabled();
   const [page, setPage] = useState(0);
   const [activeCategory, setActiveCategory] = useState("");
   // Lightbox plein écran : liste navigable + index courant (null = fermée)
-  const [lightbox, setLightbox] = useState<{ items: any[]; index: number } | null>(null);
+  const [lightbox, setLightbox] = useState<{
+    items: any[];
+    index: number;
+  } | null>(null);
   const limit = 12;
 
   const offset = useMemo(() => page * limit, [page]);
-  const carouselPlugin = useMemo(() => Autoplay({ delay: 4000, stopOnInteraction: true }), []);
+  const carouselPlugin = useMemo(
+    () => Autoplay({ delay: 4000, stopOnInteraction: true }),
+    []
+  );
 
-  const { data, isLoading } = trpc.gallery.list.useQuery({
-    limit,
-    offset,
-    ...(activeCategory ? { category: activeCategory } : {}),
-  }, {
-    refetchOnMount: true,
-    refetchOnWindowFocus: false,
-  });
+  const { data, isLoading } = trpc.gallery.list.useQuery(
+    {
+      limit,
+      offset,
+      ...(activeCategory ? { category: activeCategory } : {}),
+    },
+    {
+      refetchOnMount: true,
+      refetchOnWindowFocus: false,
+    }
+  );
   const { data: featuredData } = trpc.gallery.featured.useQuery();
 
   useSeo({
@@ -90,10 +114,14 @@ export default function GalleriesPage() {
   const total = data?.total ?? 0;
   const featured = featuredData ?? [];
   const carouselItems = featured.filter((i: any) => i.verse).slice(0, 8);
-  const pictureOfDay = featured.find((i: any) => i.type === "image" && i.verse) ?? featured.find((i: any) => i.verse) ?? featured[0] ?? null;
+  const pictureOfDay =
+    featured.find((i: any) => i.type === "image" && i.verse) ??
+    featured.find((i: any) => i.verse) ??
+    featured[0] ??
+    null;
 
   const handleCategoryChange = useCallback((key: string) => {
-    setActiveCategory(prev => prev === key ? "" : key);
+    setActiveCategory(prev => (prev === key ? "" : key));
     setPage(0);
   }, []);
 
@@ -181,7 +209,19 @@ export default function GalleriesPage() {
       mediaKey: draftMediaKey || undefined,
       verseId,
     });
-  }, [pictureOfDay, draftTitle, draftCategory, draftVerseText, draftVerseRef, draftVerseSummary, draftMediaUrl, draftMediaKey, updateGalleryMutation, updateVerseMutation, createVerseMutation]);
+  }, [
+    pictureOfDay,
+    draftTitle,
+    draftCategory,
+    draftVerseText,
+    draftVerseRef,
+    draftVerseSummary,
+    draftMediaUrl,
+    draftMediaKey,
+    updateGalleryMutation,
+    updateVerseMutation,
+    createVerseMutation,
+  ]);
 
   const cancelEditing = useCallback(() => {
     setEditing(false);
@@ -253,14 +293,21 @@ export default function GalleriesPage() {
             )}
             <div className="flex flex-col md:flex-row">
               <div className="md:w-3/5 relative aspect-[16/10] md:aspect-auto md:min-h-[320px] overflow-hidden">
-                <img
+                <OptimizedImage
                   src={getImageUrl(pictureOfDay.mediaUrl)}
                   alt={pictureOfDay.title}
+                  sizes="(max-width: 767px) 100vw, 60vw"
                   className="w-full h-full absolute inset-0 object-cover group-hover:scale-105 transition-transform duration-700"
+                  loading="eager"
+                  fetchPriority="high"
+                  fadeIn={false}
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/30 via-black/10 to-transparent" />
                 <div className="absolute bottom-4 left-4">
-                  <Badge variant="secondary" className="bg-amber-500/90 text-white border-0 text-xs">
+                  <Badge
+                    variant="secondary"
+                    className="bg-amber-500/90 text-white border-0 text-xs"
+                  >
                     Image du Jour
                   </Badge>
                 </div>
@@ -269,31 +316,63 @@ export default function GalleriesPage() {
                 {editing ? (
                   <div className="w-full space-y-4">
                     <div className="space-y-2">
-                      <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Image</label>
+                      <label className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                        Image
+                      </label>
                       {draftMediaUrl && (
-                        <img src={getImageUrl(draftMediaUrl)} alt="Aperçu" className="w-full h-28 object-contain rounded-lg border border-border/50 bg-muted" />
+                        <img
+                          src={getImageUrl(draftMediaUrl)}
+                          alt="Aperçu"
+                          className="w-full h-28 object-contain rounded-lg border border-border/50 bg-muted"
+                        />
                       )}
                       <div className="flex items-center gap-2">
-                        <Input value={draftMediaUrl} onChange={e => setDraftMediaUrl(e.target.value)} placeholder="URL de l'image" className="flex-1 text-xs" />
-                        <Button variant="outline" size="icon" type="button" disabled={isUploading} className="relative shrink-0" aria-label="Uploader une image">
-                          {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
-                          <input type="file" accept="image/*" className="absolute inset-0 opacity-0 cursor-pointer" onChange={async e => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
-                            try {
-                              const result = await uploadFile({ file, folder: "gallery" });
-                              setDraftMediaUrl(result.url);
-                              setDraftMediaKey(result.key || "");
-                              toast.success("Image uploadée");
-                            } catch {
-                              toast.error("Erreur lors de l'upload");
-                            }
-                          }} />
+                        <Input
+                          value={draftMediaUrl}
+                          onChange={e => setDraftMediaUrl(e.target.value)}
+                          placeholder="URL de l'image"
+                          className="flex-1 text-xs"
+                        />
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          type="button"
+                          disabled={isUploading}
+                          className="relative shrink-0"
+                          aria-label="Uploader une image"
+                        >
+                          {isUploading ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Upload className="w-4 h-4" />
+                          )}
+                          <input
+                            type="file"
+                            accept="image/*"
+                            className="absolute inset-0 opacity-0 cursor-pointer"
+                            onChange={async e => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              try {
+                                const result = await uploadFile({
+                                  file,
+                                  folder: "gallery",
+                                });
+                                setDraftMediaUrl(result.url);
+                                setDraftMediaKey(result.key || "");
+                                toast.success("Image uploadée");
+                              } catch {
+                                toast.error("Erreur lors de l'upload");
+                              }
+                            }}
+                          />
                         </Button>
                       </div>
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Titre</label>
+                      <label className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                        Titre
+                      </label>
                       <Input
                         value={draftTitle}
                         onChange={e => setDraftTitle(e.target.value)}
@@ -301,7 +380,9 @@ export default function GalleriesPage() {
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Catégorie</label>
+                      <label className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                        Catégorie
+                      </label>
                       <select
                         value={draftCategory}
                         onChange={e => setDraftCategory(e.target.value)}
@@ -314,7 +395,9 @@ export default function GalleriesPage() {
                       </select>
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Référence du verset</label>
+                      <label className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                        Référence du verset
+                      </label>
                       <Input
                         value={draftVerseRef}
                         onChange={e => setDraftVerseRef(e.target.value)}
@@ -322,7 +405,9 @@ export default function GalleriesPage() {
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Texte du verset</label>
+                      <label className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                        Texte du verset
+                      </label>
                       <Textarea
                         value={draftVerseText}
                         onChange={e => setDraftVerseText(e.target.value)}
@@ -331,7 +416,9 @@ export default function GalleriesPage() {
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-[10px] uppercase tracking-wide text-muted-foreground">Résumé / Méditation</label>
+                      <label className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                        Résumé / Méditation
+                      </label>
                       <Textarea
                         value={draftVerseSummary}
                         onChange={e => setDraftVerseSummary(e.target.value)}
@@ -343,16 +430,24 @@ export default function GalleriesPage() {
                       <Button
                         size="sm"
                         onClick={handleSave}
-                        disabled={updateGalleryMutation.isPending || updateVerseMutation.isPending}
+                        disabled={
+                          updateGalleryMutation.isPending ||
+                          updateVerseMutation.isPending
+                        }
                       >
-                        {(updateGalleryMutation.isPending || updateVerseMutation.isPending) ? (
+                        {updateGalleryMutation.isPending ||
+                        updateVerseMutation.isPending ? (
                           <Loader2 className="w-3.5 h-3.5 mr-1 animate-spin" />
                         ) : (
                           <Save className="w-3.5 h-3.5 mr-1" />
                         )}
                         Enregistrer
                       </Button>
-                      <Button variant="outline" size="sm" onClick={cancelEditing}>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={cancelEditing}
+                      >
                         <X className="w-3.5 h-3.5 mr-1" />
                         Annuler
                       </Button>
@@ -407,10 +502,15 @@ export default function GalleriesPage() {
           >
             <CarouselContent>
               {carouselItems.map((item: any, idx: number) => (
-                <CarouselItem key={item.id} className="md:basis-1/3 lg:basis-1/4 pl-4">
+                <CarouselItem
+                  key={item.id}
+                  className="md:basis-1/3 lg:basis-1/4 pl-4"
+                >
                   <div
                     className="group rounded-xl overflow-hidden border border-border/50 bg-card cursor-pointer hover:border-amber-400/30 transition-all duration-300 hover:shadow-[0_0_20px_rgba(251,191,36,0.1)]"
-                    onClick={() => setLightbox({ items: carouselItems, index: idx })}
+                    onClick={() =>
+                      setLightbox({ items: carouselItems, index: idx })
+                    }
                   >
                     <div className="aspect-[4/3] overflow-hidden bg-muted">
                       {item.type === "image" ? (
@@ -423,18 +523,45 @@ export default function GalleriesPage() {
                       ) : (
                         <div className="relative w-full h-full">
                           {(() => {
-                            const thumb = item.coverImageUrl || (item.youtubeUrl ? getYouTubeThumbnail(item.youtubeUrl) : null);
-                            if (thumb) return (
-                              <img src={thumb} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" decoding="async" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
-                            );
-                            if (item.mediaUrl && !item.youtubeUrl) return (
-                              <video src={getImageUrl(item.mediaUrl)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
-                            );
+                            const thumb =
+                              item.coverImageUrl ||
+                              (item.youtubeUrl
+                                ? getYouTubeThumbnail(item.youtubeUrl)
+                                : null);
+                            if (thumb)
+                              return (
+                                <img
+                                  src={thumb}
+                                  alt={item.title}
+                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                                  loading="lazy"
+                                  decoding="async"
+                                  onError={e => {
+                                    (
+                                      e.target as HTMLImageElement
+                                    ).style.display = "none";
+                                  }}
+                                />
+                              );
+                            if (item.mediaUrl && !item.youtubeUrl)
+                              return (
+                                <video
+                                  src={getImageUrl(item.mediaUrl)}
+                                  className="w-full h-full object-cover"
+                                  preload="metadata"
+                                  muted
+                                  playsInline
+                                />
+                              );
                             return null;
                           })()}
                           <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors pointer-events-none">
                             <div className="w-10 h-10 rounded-full bg-card/90 flex items-center justify-center shadow-lg">
-                              <svg className="w-5 h-5 text-foreground ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                              <svg
+                                className="w-5 h-5 text-foreground ml-0.5"
+                                fill="currentColor"
+                                viewBox="0 0 24 24"
+                              >
                                 <path d="M8 5v14l11-7z" />
                               </svg>
                             </div>
@@ -443,7 +570,9 @@ export default function GalleriesPage() {
                       )}
                     </div>
                     <div className="p-3">
-                      <p className="text-sm font-medium line-clamp-1">{item.title}</p>
+                      <p className="text-sm font-medium line-clamp-1">
+                        {item.title}
+                      </p>
                       {item.verse && (
                         <p className="text-[10px] text-muted-foreground mt-1 italic line-clamp-1">
                           {item.verse.reference}
@@ -524,7 +653,9 @@ export default function GalleriesPage() {
               initial={motionEnabled ? "hidden" : "visible"}
               whileInView={motionEnabled ? "visible" : undefined}
               animate={motionEnabled ? undefined : "visible"}
-              viewport={motionEnabled ? { once: true, margin: "-100px" } : undefined}
+              viewport={
+                motionEnabled ? { once: true, margin: "-100px" } : undefined
+              }
             >
               {items.map((item: any, idx: number) => {
                 return (
@@ -532,42 +663,73 @@ export default function GalleriesPage() {
                     key={item.id}
                     variants={itemVars}
                     className="group bg-card rounded-xl overflow-hidden border border-border/50 hover:border-amber-400/30 transition-all duration-500 touch-manipulation cursor-pointer break-inside-avoid-column mb-5"
-                    whileHover={motionEnabled ? { y: -6, scale: 1.02, zIndex: 10 } : undefined}
+                    whileHover={
+                      motionEnabled
+                        ? { y: -6, scale: 1.02, zIndex: 10 }
+                        : undefined
+                    }
                     onClick={() => setLightbox({ items, index: idx })}
                   >
                     {/* Media — masonry : hauteur naturelle pour les images, 4/3 pour les vignettes vidéo */}
-                    <div className={`relative overflow-hidden bg-muted ${item.type !== "image" ? "aspect-[4/3]" : ""}`}>
+                    <div
+                      className={`relative overflow-hidden bg-muted ${item.type !== "image" ? "aspect-[4/3]" : ""}`}
+                    >
                       {item.type === "image" ? (
                         <OptimizedImage
                           src={item.mediaUrl}
                           alt={item.title}
                           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                           className="w-full h-auto object-cover group-hover:scale-110 transition-transform duration-700 select-none"
-                          onContextMenu={(e) => e.preventDefault()}
+                          onContextMenu={e => e.preventDefault()}
                           draggable={false}
                           onError={e => {
                             const img = e.target as HTMLImageElement;
-                            img.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect fill='%23e2e8f0' width='100' height='100'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='%2394a3b8' font-size='14'%3EImage%3C/text%3E%3C/svg%3E";
+                            img.src =
+                              "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect fill='%23e2e8f0' width='100' height='100'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='%2394a3b8' font-size='14'%3EImage%3C/text%3E%3C/svg%3E";
                           }}
                         />
                       ) : (
                         <div className="relative w-full h-full">
                           {(() => {
-                            const thumb = item.coverImageUrl || (item.youtubeUrl ? getYouTubeThumbnail(item.youtubeUrl) : null);
-                            if (thumb) return (
-                              <img src={thumb} alt={item.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 select-none" loading="lazy" decoding="async" onError={e => {
-                                const img = e.target as HTMLImageElement;
-                                img.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect fill='%23e2e8f0' width='100' height='100'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='%2394a3b8' font-size='14'%3EVideo%3C/text%3E%3C/svg%3E";
-                              }} />
-                            );
-                            if (item.mediaUrl && !item.youtubeUrl) return (
-                              <video src={getImageUrl(item.mediaUrl)} className="w-full h-full object-cover" preload="metadata" muted playsInline />
-                            );
+                            const thumb =
+                              item.coverImageUrl ||
+                              (item.youtubeUrl
+                                ? getYouTubeThumbnail(item.youtubeUrl)
+                                : null);
+                            if (thumb)
+                              return (
+                                <img
+                                  src={thumb}
+                                  alt={item.title}
+                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 select-none"
+                                  loading="lazy"
+                                  decoding="async"
+                                  onError={e => {
+                                    const img = e.target as HTMLImageElement;
+                                    img.src =
+                                      "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' viewBox='0 0 100 100'%3E%3Crect fill='%23e2e8f0' width='100' height='100'/%3E%3Ctext x='50' y='55' text-anchor='middle' fill='%2394a3b8' font-size='14'%3EVideo%3C/text%3E%3C/svg%3E";
+                                  }}
+                                />
+                              );
+                            if (item.mediaUrl && !item.youtubeUrl)
+                              return (
+                                <video
+                                  src={getImageUrl(item.mediaUrl)}
+                                  className="w-full h-full object-cover"
+                                  preload="metadata"
+                                  muted
+                                  playsInline
+                                />
+                              );
                             return null;
                           })()}
                           <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/30 transition-colors pointer-events-none">
                             <div className="w-12 h-12 rounded-full bg-card/90 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
-                              <svg className="w-6 h-6 text-foreground ml-0.5" fill="currentColor" viewBox="0 0 24 24">
+                              <svg
+                                className="w-6 h-6 text-foreground ml-0.5"
+                                fill="currentColor"
+                                viewBox="0 0 24 24"
+                              >
                                 <path d="M8 5v14l11-7z" />
                               </svg>
                             </div>
@@ -659,7 +821,9 @@ export default function GalleriesPage() {
               <ImageIcon className="w-8 h-8 text-muted-foreground" />
             </div>
             <h3 className="text-xl font-serif font-bold text-foreground mb-2">
-              {activeCategory ? "Aucun média dans cette catégorie" : "Aucun média pour le moment"}
+              {activeCategory
+                ? "Aucun média dans cette catégorie"
+                : "Aucun média pour le moment"}
             </h3>
             <p className="text-sm text-muted-foreground max-w-md mx-auto">
               {activeCategory
@@ -676,7 +840,7 @@ export default function GalleriesPage() {
           items={lightbox.items}
           index={lightbox.index}
           onClose={() => setLightbox(null)}
-          onIndexChange={(i) => setLightbox({ items: lightbox.items, index: i })}
+          onIndexChange={i => setLightbox({ items: lightbox.items, index: i })}
         />
       )}
     </div>

@@ -5,6 +5,7 @@ import { useBlobUpload } from "@/hooks/useBlobUpload";
 import { getImageUrl } from "@/lib/imageUrl";
 
 import YouTubeEmbed from "@/components/YouTubeEmbed";
+import OptimizedImage from "@/components/OptimizedImage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -54,9 +55,17 @@ export default function PublicationDuJour() {
   const isAdmin = user?.role === "admin";
   const utils = trpc.useUtils();
 
-  const { data: galleryData, isLoading: galleryLoading, error: galleryError, refetch: refetchGallery } =
-    trpc.gallery.featured.useQuery();
-  const { data: latestVerse, isLoading: verseLoading, error: verseError } = trpc.verses.latest.useQuery();
+  const {
+    data: galleryData,
+    isLoading: galleryLoading,
+    error: galleryError,
+    refetch: refetchGallery,
+  } = trpc.gallery.featured.useQuery();
+  const {
+    data: latestVerse,
+    isLoading: verseLoading,
+    error: verseError,
+  } = trpc.verses.latest.useQuery();
   const items = galleryData ?? [];
 
   useSeo({
@@ -78,7 +87,9 @@ export default function PublicationDuJour() {
 
   const { uploadFile, isUploading } = useBlobUpload();
 
-  const handleVerseImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleVerseImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const result = await uploadFile({ file, folder: "verses" });
@@ -96,8 +107,6 @@ export default function PublicationDuJour() {
     video: videoItems[idx],
     index: idx,
   }));
-
-
 
   const [editing, setEditing] = useState(false);
   const [draftRef, setDraftRef] = useState("");
@@ -117,7 +126,11 @@ export default function PublicationDuJour() {
         title: "Verset du Jour",
         verse:
           verse && !editing
-            ? { text: verse.text, reference: verse.reference, summary: verse.summary }
+            ? {
+                text: verse.text,
+                reference: verse.reference,
+                summary: verse.summary,
+              }
             : null,
       }
     : null;
@@ -141,7 +154,8 @@ export default function PublicationDuJour() {
     if (draftRef !== verse.reference) payload.reference = draftRef;
     if (draftText !== verse.text) payload.text = draftText;
     if (draftSummary !== verse.summary) payload.summary = draftSummary;
-    if (draftImageUrl !== (verse.imageUrl ?? "")) payload.imageUrl = draftImageUrl || null;
+    if (draftImageUrl !== (verse.imageUrl ?? ""))
+      payload.imageUrl = draftImageUrl || null;
     if (Object.keys(payload).length === 0) {
       setEditing(false);
       return;
@@ -194,7 +208,9 @@ export default function PublicationDuJour() {
             <div className="flex items-start gap-3">
               <AlertTriangle className="w-5 h-5 text-destructive shrink-0 mt-0.5" />
               <div className="flex-1">
-                <h3 className="font-bold text-destructive text-sm">Erreur de chargement</h3>
+                <h3 className="font-bold text-destructive text-sm">
+                  Erreur de chargement
+                </h3>
                 <p className="text-sm text-destructive/80 mt-1">
                   {galleryError
                     ? "Impossible de charger les publications du jour."
@@ -223,7 +239,10 @@ export default function PublicationDuJour() {
       >
         {/* Verset du Jour - Redesigned for Premium glassmorphism feel */}
         {verseError ? null : verseLoading ? (
-          <motion.section variants={sectionVars} className="container pb-16 relative z-50">
+          <motion.section
+            variants={sectionVars}
+            className="container pb-16 relative z-50"
+          >
             <div className="relative overflow-hidden bg-card/40 backdrop-blur-xl border border-border/60 rounded-3xl p-8 md:p-12 max-w-4xl mx-auto shadow-xl shadow-primary/5">
               <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
               <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-accent/20 rounded-full blur-3xl pointer-events-none" />
@@ -242,7 +261,10 @@ export default function PublicationDuJour() {
             </div>
           </motion.section>
         ) : verse ? (
-          <motion.section variants={sectionVars} className="container pb-16 relative z-50">
+          <motion.section
+            variants={sectionVars}
+            className="container pb-16 relative z-50"
+          >
             <div className="relative overflow-hidden bg-card/40 backdrop-blur-xl border border-border/60 rounded-3xl p-8 md:p-12 max-w-4xl mx-auto shadow-xl shadow-primary/5">
               {/* Decorative elements */}
               <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
@@ -269,11 +291,15 @@ export default function PublicationDuJour() {
                     className="w-full max-w-xl mb-8 rounded-2xl overflow-hidden border border-border/40 shadow-lg cursor-zoom-in [&_img]:transition-opacity [&_img:hover]:opacity-90"
                     onClick={() => setLightboxIndex(0)}
                   >
-                      <img
-                        src={getImageUrl(verseImage)}
-                        alt="Verset du Jour"
-                        className="w-full h-auto"
-                      />
+                    <OptimizedImage
+                      src={getImageUrl(verseImage)}
+                      alt="Verset du Jour"
+                      sizes="(max-width: 640px) 100vw, 576px"
+                      className="w-full h-auto"
+                      loading="eager"
+                      fetchPriority="high"
+                      fadeIn={false}
+                    />
                   </div>
                 )}
 
@@ -383,9 +409,9 @@ export default function PublicationDuJour() {
                         <h4 className="text-xs uppercase tracking-widest font-bold text-foreground/60 mb-4">
                           Résumé Biblique
                         </h4>
-                    <p className="text-sm md:text-base text-foreground/80 leading-relaxed whitespace-pre-line">
-                      {verse.summary}
-                    </p>
+                        <p className="text-sm md:text-base text-foreground/80 leading-relaxed whitespace-pre-line">
+                          {verse.summary}
+                        </p>
                       </div>
                     )}
                   </>
@@ -394,7 +420,6 @@ export default function PublicationDuJour() {
             </div>
           </motion.section>
         ) : null}
-
 
         {/* Publications du Jour (Image 1 + Video 1, etc.) */}
         <motion.section variants={sectionVars} className="container pb-24">
@@ -427,29 +452,41 @@ export default function PublicationDuJour() {
                 {pairedItems.map((pair, idx) => {
                   const isEven = idx % 2 === 0;
                   return (
-                  <motion.div
-                    key={`pair-${pair.index}`}
-                    className="relative w-full h-[450px] md:h-[600px] flex items-center"
-                  >
-                     {/* Image (Background Layer) */}
+                    <motion.div
+                      key={`pair-${pair.index}`}
+                      className="relative w-full h-[450px] md:h-[600px] flex items-center"
+                    >
+                      {/* Image (Background Layer) */}
                       {pair.image ? (
                         <motion.div
-                          animate={motionEnabled ? { y: [0, -25, 0], scale: [1, 1.03, 1] } : {}}
-                          whileHover={motionEnabled ? { scale: 1.08, rotate: 3, zIndex: 30 } : {}}
+                          animate={
+                            motionEnabled
+                              ? { y: [0, -25, 0], scale: [1, 1.03, 1] }
+                              : {}
+                          }
+                          whileHover={
+                            motionEnabled
+                              ? { scale: 1.08, rotate: 3, zIndex: 30 }
+                              : {}
+                          }
                           whileTap={motionEnabled ? { scale: 0.95 } : {}}
-                          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-                           onClick={() =>
-                              setLightboxIndex(
-                                (verseLbItem ? 1 : 0) + pair.index
-                              )
-                            }
-                          className={`absolute ${isEven ? 'left-0 md:left-4' : 'right-0 md:right-4'} top-0 md:top-10 w-[85%] md:w-[60%] h-[75%] md:h-[80%] z-0 rounded-2xl overflow-hidden shadow-2xl border-4 border-border/40 cursor-pointer group hover:shadow-primary/30 transition-shadow active:scale-[0.97]`}
+                          transition={{
+                            duration: 8,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                          }}
+                          onClick={() =>
+                            setLightboxIndex((verseLbItem ? 1 : 0) + pair.index)
+                          }
+                          className={`absolute ${isEven ? "left-0 md:left-4" : "right-0 md:right-4"} top-0 md:top-10 w-[85%] md:w-[60%] h-[75%] md:h-[80%] z-0 rounded-2xl overflow-hidden shadow-2xl border-4 border-border/40 cursor-pointer group hover:shadow-primary/30 transition-shadow active:scale-[0.97]`}
                         >
-                           <img
-                             src={getImageUrl(pair.image.mediaUrl)}
+                          <OptimizedImage
+                            src={getImageUrl(pair.image.mediaUrl)}
                             alt={pair.image.title}
+                            sizes="(max-width: 767px) 85vw, 60vw"
                             className="w-full h-full object-cover select-none group-hover:scale-110 transition-transform duration-700"
-                            onContextMenu={(e) => e.preventDefault()}
+                            fadeIn={false}
+                            onContextMenu={e => e.preventDefault()}
                             draggable={false}
                             loading="lazy"
                           />
@@ -459,20 +496,37 @@ export default function PublicationDuJour() {
                             </p>
                           </div>
                         </motion.div>
-                     ) : (
-                        <div className={`absolute ${isEven ? 'left-0' : 'right-0'} top-0 w-[85%] md:w-[60%] h-[75%] z-0 rounded-2xl border-4 border-border/40 bg-black/5 flex items-center justify-center text-muted-foreground`}>
-                         Aucune image
-                       </div>
-                     )}
+                      ) : (
+                        <div
+                          className={`absolute ${isEven ? "left-0" : "right-0"} top-0 w-[85%] md:w-[60%] h-[75%] z-0 rounded-2xl border-4 border-border/40 bg-black/5 flex items-center justify-center text-muted-foreground`}
+                        >
+                          Aucune image
+                        </div>
+                      )}
 
-                     {/* Video (Foreground Layer) */}
+                      {/* Video (Foreground Layer) */}
                       {pair.video ? (
                         <motion.div
-                          animate={motionEnabled ? { y: [0, 25, 0], scale: [1, 1.05, 1], rotate: [0, 2, 0] } : {}}
-                          whileHover={motionEnabled ? { scale: 1.1, zIndex: 40 } : {}}
+                          animate={
+                            motionEnabled
+                              ? {
+                                  y: [0, 25, 0],
+                                  scale: [1, 1.05, 1],
+                                  rotate: [0, 2, 0],
+                                }
+                              : {}
+                          }
+                          whileHover={
+                            motionEnabled ? { scale: 1.1, zIndex: 40 } : {}
+                          }
                           whileTap={motionEnabled ? { scale: 0.95 } : {}}
-                          transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
-                          className={`absolute ${isEven ? 'right-0 md:right-4' : 'left-0 md:left-4'} bottom-0 md:bottom-10 w-[90%] md:w-[55%] z-10 rounded-2xl overflow-hidden shadow-[0_25px_75px_rgba(0,0,0,0.4)] border-4 border-background bg-background cursor-pointer hover:shadow-primary/50 hover:border-primary/30 transition-all group active:scale-[0.97]`}
+                          transition={{
+                            duration: 7,
+                            repeat: Infinity,
+                            ease: "easeInOut",
+                            delay: 1.5,
+                          }}
+                          className={`absolute ${isEven ? "right-0 md:right-4" : "left-0 md:left-4"} bottom-0 md:bottom-10 w-[90%] md:w-[55%] z-10 rounded-2xl overflow-hidden shadow-[0_25px_75px_rgba(0,0,0,0.4)] border-4 border-background bg-background cursor-pointer hover:shadow-primary/50 hover:border-primary/30 transition-all group active:scale-[0.97]`}
                         >
                           <div className="bg-background">
                             <div className="px-4 py-2 flex items-center justify-between border-b border-border/10 bg-muted/30 group-hover:bg-primary/5 transition-colors">
@@ -496,13 +550,16 @@ export default function PublicationDuJour() {
                             </div>
                           </div>
                         </motion.div>
-                     ) : (
-                       <div className={`absolute ${isEven ? 'right-0' : 'left-0'} bottom-0 w-[90%] md:w-[55%] z-10 rounded-2xl border-4 border-background bg-muted flex items-center justify-center aspect-video text-muted-foreground shadow-xl`}>
-                         Aucune vidéo
-                       </div>
-                     )}
-                  </motion.div>
-                )})}
+                      ) : (
+                        <div
+                          className={`absolute ${isEven ? "right-0" : "left-0"} bottom-0 w-[90%] md:w-[55%] z-10 rounded-2xl border-4 border-background bg-muted flex items-center justify-center aspect-video text-muted-foreground shadow-xl`}
+                        >
+                          Aucune vidéo
+                        </div>
+                      )}
+                    </motion.div>
+                  );
+                })}
               </div>
             ) : (
               <div className="text-center py-16">
@@ -511,15 +568,11 @@ export default function PublicationDuJour() {
                   Aucune publication pour aujourd'hui
                 </h3>
                 <p className="text-sm text-muted-foreground mt-3 max-w-lg mx-auto">
-                  Aucune publication n'est actuellement marquée pour apparaître en une.
-                  Rendez-vous dans l'administration pour ajouter du contenu en vedette.
+                  Aucune publication n'est actuellement marquée pour apparaître
+                  en une. Rendez-vous dans l'administration pour ajouter du
+                  contenu en vedette.
                 </p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-6"
-                  asChild
-                >
+                <Button variant="outline" size="sm" className="mt-6" asChild>
                   <a href="/admin">
                     <Plus className="w-4 h-4 mr-2" />
                     Gérer la galerie
