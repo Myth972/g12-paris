@@ -3,8 +3,9 @@ import { test, expect } from "../setup/fixtures";
 import { loginAsAdmin } from "../setup/auth";
 
 /**
- * Garde-fou anti-débordement horizontal sur les pages hors accueil, dont les
- * mises en page à deux colonnes (panier) et la barre latérale admin.
+ * Garde-fou anti-débordement horizontal sur les pages hors accueil : grilles
+ * de cartes (galeries, bibliothèque), listes d'événements, page de contenu
+ * éditorial, panier et barre latérale admin.
  *
  * Un débordement se mesure sur le document : `scrollWidth - clientWidth`.
  * En cas d'échec, le message nomme les premiers éléments qui dépassent pour
@@ -14,6 +15,14 @@ const VIEWPORTS = [
   { label: "mobile", width: 375, height: 812 },
   { label: "tablette", width: 768, height: 1024 },
   { label: "desktop", width: 1280, height: 900 },
+];
+
+const PUBLIC_PAGES = [
+  { path: "/panier", label: "panier" },
+  { path: "/bibliotheque", label: "bibliothèque" },
+  { path: "/galeries", label: "galeries" },
+  { path: "/publication-du-jour", label: "publication du jour" },
+  { path: "/evenements", label: "événements" },
 ];
 
 interface OverflowReport {
@@ -62,20 +71,27 @@ async function expectNoHorizontalOverflow(page: Page, context: string) {
   ).toBe(0);
 }
 
-test.describe("Panier — pas de débordement horizontal", () => {
-  for (const viewport of VIEWPORTS) {
-    test(`tient dans la largeur en ${viewport.label}`, async ({ page }) => {
-      await page.setViewportSize({
-        width: viewport.width,
-        height: viewport.height,
-      });
-      await page.goto("/panier");
+test.describe("Pages publiques — pas de débordement horizontal", () => {
+  for (const publicPage of PUBLIC_PAGES) {
+    for (const viewport of VIEWPORTS) {
+      test(`${publicPage.label} tient dans la largeur en ${viewport.label}`, async ({
+        page,
+      }) => {
+        await page.setViewportSize({
+          width: viewport.width,
+          height: viewport.height,
+        });
+        await page.goto(publicPage.path);
 
-      await expect(page.locator("main").first()).toBeVisible({
-        timeout: 20000,
+        await expect(page.locator("main").first()).toBeVisible({
+          timeout: 20000,
+        });
+        await expectNoHorizontalOverflow(
+          page,
+          `${publicPage.path} en ${viewport.label}`
+        );
       });
-      await expectNoHorizontalOverflow(page, `/panier en ${viewport.label}`);
-    });
+    }
   }
 });
 
