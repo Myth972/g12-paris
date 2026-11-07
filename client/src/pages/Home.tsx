@@ -16,6 +16,7 @@ import PageTextEditor from "@/components/PageTextEditor";
 import { motion } from "framer-motion";
 import { Newspaper, ChevronRight, Church, BookOpen, Mic2, Calendar, Users, FileText, Image, Clock } from "lucide-react";
 import AnimatedCounter from "@/components/AnimatedCounter";
+import AnimatedSignature from "@/components/AnimatedSignature";
 import { useVisualEnabled } from "@/hooks/useVisualSetting";
 import { normalizeImageSource, buildOptimizedUrl } from "@/lib/imageOptimize";
 import { useSeo } from "@/lib/seo";
@@ -91,7 +92,7 @@ const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, categor
 
   // Fond hero optimisé (goulot LCP mesuré : PNG brut de 1,15 Mo chargé via
   // background-image). Source recodable (uploads / blob) → /api/image en
-  // WebP 1280px (~90 Ko) ; sinon (Unsplash, SVG…) → URL d'origine.
+  // WebP 1280px (~100 Ko) ; sinon (Unsplash, SVG…) → URL d'origine.
   const heroSrcNormalized = heroBgUrl ? normalizeImageSource(heroBgUrl) : null;
   const heroBgUrlOptimized = heroSrcNormalized
     ? buildOptimizedUrl(heroSrcNormalized, HERO_BG_WIDTH, "webp")
@@ -99,7 +100,7 @@ const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, categor
 
   // Preload du fond hero dès que les settings résolvent : un background-image
   // CSS part en priorité basse dans le scheduler Chrome (mesuré : corps servi
-  // en 5+ s sous 4G malgré 90 Ko) ; le preload as=image le passe en priorité
+  // en 5+ s sous 4G malgré 91 Ko) ; le preload as=image le passe en priorité
   // haute, la peinture du div suit quasi immédiatement (même URL → cache hit).
   useEffect(() => {
     if (!heroBgUrlOptimized) return;
@@ -385,6 +386,11 @@ const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, categor
         )}
       </section>
       </Reveal>
+
+      {/* Signature animée « LÉO » — tracé manuscrit au scroll, décoratif */}
+      <div className="container pb-12 flex justify-center">
+        <AnimatedSignature className="w-36 sm:w-48 text-primary/80" />
+      </div>
     </div>
   );
 }
