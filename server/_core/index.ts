@@ -94,9 +94,28 @@ async function startServer() {
   // Serve uploaded files
   app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
+  // Routes publiques identiques pour tous et servies avec un cache long.
+  // Y poser le cookie CSRF annulerait ce cache : un CDN (Vercel inclus)
+  // refuse de mettre en cache une réponse contenant Set-Cookie. Le jeton
+  // reste émis par les autres réponses et par GET /api/csrf.
+  const CACHEABLE_PUBLIC_PATHS = [
+    /^\/api\/image\b/,
+    /^\/api\/sitemap\.xml$/,
+    /^\/sitemap\.xml$/,
+    /^\/api\/robots\.txt$/,
+    /^\/robots\.txt$/,
+    /^\/uploads\//,
+    /^\/widget\//,
+  ];
+
   // Issue CSRF token cookie (double-submit pattern)
   app.use((req, res, next) => {
-    ensureCsrfCookie(req, res);
+    const isCacheablePublicGet =
+      req.method === "GET" &&
+      CACHEABLE_PUBLIC_PATHS.some(pattern => pattern.test(req.path));
+    if (!isCacheablePublicGet) {
+      ensureCsrfCookie(req, res);
+    }
     next();
   });
 
