@@ -96,9 +96,31 @@ console.log("[Vercel API] Env check:", {
   nodeEnv: process.env.NODE_ENV,
 });
 
-// Middleware to ensure CSRF cookie is present
+// Routes publiques identiques pour tous et servies avec un cache long. Y
+// poser le cookie CSRF annulerait ce cache : Vercel refuse de mettre en cache
+// une réponse contenant Set-Cookie. Le jeton reste émis par les autres
+// réponses et par GET /api/csrf (double-submit inchangé).
+// Liste alignée sur server/_core/index.ts : ce fichier est une implémentation
+// distincte, et c'est elle que Vercel exécute en production — toute évolution
+// du middleware CSRF doit être portée dans les deux fichiers.
+const CACHEABLE_PUBLIC_PATHS = [
+  /^\/api\/image\b/,
+  /^\/api\/sitemap\.xml$/,
+  /^\/sitemap\.xml$/,
+  /^\/api\/robots\.txt$/,
+  /^\/robots\.txt$/,
+  /^\/uploads\//,
+  /^\/widget\//,
+];
+
+// Middleware to ensure CSRF cookie is present (sauf GET publics cachables)
 app.use((req: any, res: any, next: any) => {
-  ensureCsrfCookie(req, res);
+  const isCacheablePublicGet =
+    req.method === "GET" &&
+    CACHEABLE_PUBLIC_PATHS.some((pattern: RegExp) => pattern.test(req.path));
+  if (!isCacheablePublicGet) {
+    ensureCsrfCookie(req, res);
+  }
   next();
 });
 
