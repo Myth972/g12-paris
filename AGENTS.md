@@ -150,7 +150,7 @@ Plateforme web pour publier des actualités, articles, médias et gérer du cont
 
 ```bash
 pnpm install              # Installer les dépendances
-pnpm run dev              # Développement (hot-reload, port 3001)
+pnpm run dev              # Développement (node --watch, port 3000)
 pnpm run build            # Build production (Vite + esbuild)
 pnpm start                # Démarrage production (port 3000)
 pnpm run check            # Vérification TypeScript (tsc --noEmit)
@@ -159,6 +159,43 @@ pnpm run test             # Tests unitaires (Vitest)
 pnpm run test:e2e         # Tests e2e (Playwright)
 pnpm run db:push          # Push schéma Drizzle vers DB
 ```
+
+### Serveur de développement
+
+`pnpm run dev` =
+`cross-env NODE_ENV=development node --watch --import tsx server/_core/index.ts`.
+
+- **Ne pas revenir à `tsx watch`** : il montait un processus enfant muet qui
+  restait bloqué plus d'une minute avant de mourir sur
+  `The service is no longer running: write EPIPE` (esbuild/Vite). Avec
+  `node --watch`, la première page est servie en moins de 10 s.
+- **`PORT` est normalisé** au démarrage : toute valeur hors de `1–65535` (par
+  exemple `PORT=0`, qui faisait écouter sur un port aléatoire) est ramenée à
+  `3000`. Le port réellement utilisé est lu via `server.address()`, jamais
+  supposé.
+- **Rechargement** : trois boucles distinctes, détaillées ci-dessous.
+
+#### Rechargement à chaud
+
+Comportements vérifiés sur ce projet :
+
+| Ce qui est modifié | Mécanisme | Effet observé | Preuve de non-rechargement |
+|---|---|---|---|
+| Un fichier serveur (`server/**`) | `node --watch` | **redémarrage complet** : PID neuf, module rechargé (marqueur visible en ~4 s) | le PID de `netstat -ano \| grep :3000` change |
+| Un composant client (`.tsx`, `.ts`) | Fast Refresh Vite | DOM mis à jour, état local préservé, **pas de rechargement** | une valeur posée sur `window` survit |
+| `client/src/index.css` (CSS pur ou `@apply` Tailwind) | HMR Vite | `<style>` remplacés en place, **pas de rechargement** | `[vite] hot updated: /src/index.css` en console, `document.styleSheets.length` stable |
+
+Pièges :
+
+- Poser une valeur sur `window` avant de modifier le fichier : si elle survit,
+  il n'y a pas eu de rechargement (sinon le contexte JS est recréé).
+- Après un redémarrage serveur, `[vite] server connection lost. Polling for
+  restart...` puis des `TRPCClientError: Failed to fetch` sont **normaux** :
+  Vite se reconnecte seul. Ce n'est pas une erreur de HMR.
+- Le PID changeant à chaque redémarrage, `register_preview` doit être rafraîchi
+  après toute modification serveur.
+- Modifier `vite.config.ts` ou une dépendance ne relève pas du HMR : Vite
+  redémarre son serveur.
 
 ## Testing
 
@@ -228,18 +265,54 @@ Variables critiques (voir `.en.example`) :
 ## Deployment
 
 - **Local** : `pnpm run dev` (Vite dev server) ou `pnpm start` (build production)
-- **Vercel** : `vercel.json` config, API serverless dans `api/index.ts`
+- **Vercel** : `vercel.json` config, API serverless dans `api/index.ts`. C'est **ce fichier** que Vercel exécute en production, pas `server/_core/index.ts` — voir la section « CSRF : deux implémentations à maintenir ensemble ».
 - **Backups** : `scripts/backup.ps1` via Windows Task Scheduler
 
 ## Important Notes
 
 - **Port auto-detection** : le serveur cherche automatiquement un port disponible (défaut 3000/3001)
-- **CSRF** : double-submit cookie pattern, token dans `csrf_token` cookie + header `x-csrf-token`
+- **CSRF** : double-submit cookie pattern, token dans `csrf_token` cookie + header `x-csrf-token`. Le middleware existe en **deux exemplaires** qui doivent évoluer ensemble : `server/_core/index.ts` (serveur local) et `api/index.ts` (seule implémentation exécutée par Vercel) — voir la section dédiée ci-dessous.
 - **Rate limiting** : général (120/min prod) + spécifique IA (20/min prod)
 - **Lazy loading** : toutes les pages sont lazy-loaded pour optimiser le bundle
 - **Theme** : thème clair/sombre géré via `next-themes` + `ThemeContext`
 - **i18n** : 3 langues supportées (français, anglais, espagnol)
 - **Patches** : wouter@3.7.1 est patché via `patches/wouter@3.7.1.patch`
+
+## CSRF : deux implémentations à maintenir ensemble
+
+Le middleware CSRF est dupliqué, et **les deux copies doivent être modifiées
+ensemble** :
+
+| Fichier | Rôle |
+|---|---|
+| `server/_core/index.ts` | Serveur Express local (`pnpm run dev`, `pnpm start`) |
+| `api/index.ts` | Fonction serverless **exécutée par Vercel en production** |
+
+Conséquence concrète : un correctif appliqué uniquement dans
+`server/_core/index.ts` fonctionne en local et reste **sans effet en
+production**. C'est arrivé avec le retrait du cookie sur `/api/image` : la prod
+continuait à répondre `Set-Cookie` avec `X-Vercel-Cache: MISS`, donc chaque
+visite re-téléchargeait l'image d'origine depuis Blob.
+
+Règles :
+
+- Toute évolution de `ensureCsrfCookie`, `csrfProtect`, du CORS, du
+  rate-limiting ou des routes média doit être portée dans les deux fichiers.
+- Les routes publiques cachables (`/api/image`, `/api/sitemap.xml`,
+  `/sitemap.xml`, `/api/robots.txt`, `/robots.txt`, `/uploads/`, `/widget/`)
+  ne posent pas le cookie en `GET` : un CDN refuse de mettre en cache une
+  réponse contenant `Set-Cookie`. Les autres réponses et `GET /api/csrf`
+  continuent de l'émettre, le double-submit reste donc intact.
+
+Vérification en production, en **GET** (`curl -I` envoie `HEAD`, qui n'est pas
+exempté et donnera un faux positif) :
+
+```bash
+curl -s -o /dev/null -D - "https://g12-paris.vercel.app/api/image?src=<url>&w=480&f=avif" | grep -iE "^(set-cookie|x-vercel-cache)"
+```
+
+Attendu : aucun `Set-Cookie`, et `X-Vercel-Cache` qui passe de `MISS` à `HIT`
+au second appel de la même URL.
 
 ## Consignes utilisateur (workflow)
 
