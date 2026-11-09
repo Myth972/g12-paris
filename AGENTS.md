@@ -16,17 +16,17 @@ Plateforme web pour publier des actualités, articles, médias et gérer du cont
 | State / Data Fetching | TanStack Query + tRPC | v5 / v11 |
 | Forms | React Hook Form + Zod | v7 / v4 |
 | Rich Text Editor | TipTap | v3 |
-| Animation | Framer Motion | v12 |
+| Animation | Framer Motion | v14 |
 | i18n | i18next | v26 |
 | Backend | Node.js + Express | — |
 | API | tRPC | v11 |
-| ORM | Drizzle ORM | 0.44 |
+| ORM | Drizzle ORM | 0.45 |
 | Database | Turso (LibSQL) / SQLite local | — |
 | Auth | JWT (jose) + sessions cookie | — |
 | Email | Resend | v6 |
 | Storage | AWS S3 + Vercel Blob | — |
-| Tests (unit) | Vitest | v2 |
-| Tests (e2e) | Playwright | v1.60 |
+| Tests (unit) | Vitest | v4 |
+| Tests (e2e) | Playwright | v1.64 |
 | Package Manager | pnpm | 10.x |
 | TypeScript | TypeScript | 5.9 (strict) |
 
@@ -36,10 +36,10 @@ Plateforme web pour publier des actualités, articles, médias et gérer du cont
 .
 ├── client/                        # Frontend React 19
 │   └── src/
-│       ├── pages/                 # Pages (29 fichiers) — lazy-loaded
-│       ├── components/            # Composants métier (31 fichiers)
+│       ├── pages/                 # Pages (38 fichiers) — lazy-loaded
+│       ├── components/            # Composants métier (55 fichiers)
 │       ├── components/ui/         # Composants UI shadcn/ui (53 fichiers)
-│       ├── hooks/                 # Hooks personnalisés (7 fichiers)
+│       ├── hooks/                 # Hooks personnalisés (9 fichiers)
 │       ├── contexts/              # React Contexts (ThemeContext)
 │       ├── lib/                   # Utilitaires (trpc client, utils, mojs)
 │       ├── locales/               # Fichiers i18n (fr, en, es)
@@ -64,7 +64,7 @@ Plateforme web pour publier des actualités, articles, médias et gérer du cont
 │   │   ├── systemRouter.ts        # Routes système (health)
 │   │   ├── vite.ts                # Dev middleware Vite
 │   │   └── types/                 # Types serveur
-│   ├── routers.ts                 # Routes tRPC (~2180 lignes, 82+ procédures)
+│   ├── routers.ts                 # Routes tRPC (~4038 lignes, 151 procédures)
 │   ├── db.ts                      # Fonctions d'accès DB
 │   ├── storage.ts                 # Upload S3/Vercel Blob
 │   └── themeRouter.ts             # Routes thème
@@ -74,7 +74,7 @@ Plateforme web pour publier des actualités, articles, médias et gérer du cont
 │   ├── aiProviders.ts             # Config providers IA
 │   └── _core/errors.ts            # Types d'erreurs
 ├── drizzle/                       # Schéma database + migrations SQL
-│   ├── schema.ts                  # Définition des tables (13 tables)
+│   ├── schema.ts                  # Définition des tables (19 tables)
 │   └── relations.ts               # Relations Drizzle
 ├── drizzle-migrations/            # Migrations SQL
 ├── api/                           # API Vercel (serverless)
@@ -134,7 +134,7 @@ Plateforme web pour publier des actualités, articles, médias et gérer du cont
 - **Schema** : `drizzle/schema.ts` — définition des tables avec types inférés
 - **Types** : `export type Table = typeof tableName.$inferSelect` et `InsertTable`
 - **Migrations** : `pnpm run db:push` pour push le schéma
-- **Tables** : 13 tables (users, articles, gallery_items, page_content, announcements, biblical_verses, categories, themes, subscribers, site_settings, notifications, notification_reads, user_theme)
+- **Tables** : 19 tables (users, articles, gallery_items, page_content, announcements, biblical_verses, categories, themes, subscribers, site_settings, notifications, notification_reads, user_theme, api_keys, api_providers, suggestions, convention_registrations, convention_code_attempts, agent_runs)
 - **Indexes** : définis via `index()` dans le schéma Drizzle
 
 ### Naming Conventions

@@ -9,6 +9,7 @@
     "start": "cross-env NODE_ENV=production node dist/index.js",
     "check": "tsc --noEmit && node scripts/check-optimize-deps.mjs",
     "check:deps": "node scripts/check-optimize-deps.mjs",
+    "check:docs": "node scripts/check-doc-drift.mjs",
     "format": "prettier --write .",
     "test": "vitest run",
     "test:e2e": "playwright test",

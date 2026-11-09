@@ -8,16 +8,17 @@ G12 Paris Infos Médias est une plateforme web fullstack (React 19 + Express + t
 
 | Mesure | Implémentation |
 |--------|---------------|
-| **CSRF** | Double-submit cookie pattern (`csrf_token` cookie + `x-csrf-token` header) |
+| **CSRF** | Double-submit cookie pattern (`csrf_token` cookie + `x-csrf-token` header). Le cookie n'est **pas** posé en GET sur les 7 routes publiques cachables (`/api/image`, sitemap, robots, `/uploads/`, `/widget/`) : un CDN refuse de mettre en cache une réponse contenant `Set-Cookie`. Il reste posé partout ailleurs et par `GET /api/csrf`, le double-submit est donc intact. |
 | **Rate limiting** | 120 req/min (prod), 300 req/min (dev) — général |
 | **Rate limiting IA** | 20 req/min (prod), 60 req/min (dev) — spécifique IA |
+| **Rate limiting convention** | 3 req/heure sur `conventionRegistrations.create` |
 | **Authentification** | JWT (jose) + sessions cookie |
 | **Protection XSS** | Assainissement des entrées IA (Streamdown) |
 | **Quota IA** | 50k tokens/heure par utilisateur |
 | **Timeout IA** | 30s sur tous les appels IA |
 | **Retry + Fallback** | groq → google → minimax → aimlapi |
 | **Validation** | Zod schemas sur toutes les entrées tRPC |
-| **CORS** | Configuré pour le domaine Vercel |
+| **CORS** | **Aucun middleware, volontairement.** Frontend et API sont servis par la même origine (le client tRPC utilise `url: "/api/trpc"`, un chemin relatif) : le navigateur n'émet aucune requête cross-origin, donc aucun en-tête `Access-Control-*` n'est nécessaire. En ajouter élargirait inutilement la surface d'attaque. À reconsidérer uniquement si une API publique ou un widget embarqué sur un domaine tiers est ajouté. |
 | **Upload** | Limité à 50MB, stockage S3/Vercel Blob |
 | **Logger IA** | Tokens, durée, succès/erreur tracés |
 

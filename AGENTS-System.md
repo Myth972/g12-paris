@@ -51,7 +51,7 @@ Application fullstack monolithique React 19 + Express, servie par un seul proces
 │                          ▼                              │
 │  ┌──────────┐  ┌──────────┐  ┌──────────────────────┐  │
 │  │ Drizzle  │  │ LLM API  │  │ Storage (S3/Blob)    │  │
-│  │ ORM      │  │ (4 prov) │  │                      │  │
+│  │ ORM      │  │ (6 prov) │  │                      │  │
 │  └────┬─────┘  └──────────┘  └──────────────────────┘  │
 │       ▼                                                 │
 │  ┌──────────────┐                                       │
@@ -61,6 +61,9 @@ Application fullstack monolithique React 19 + Express, servie par un seul proces
 ```
 
 ---
+
+> Liste non exhaustive : `appRouter` expose aussi `pageContent`, `suggestions`,
+> `conventionRegistrations`, `agents`, `theme` et `system`.
 
 ## Flux de Requête Complet
 
@@ -84,25 +87,41 @@ app.use(express.json({ limit: "50mb" }));
 // 2. Fichiers statiques (/uploads)
 app.use("/uploads", express.static("uploads"));
 
-// 3. CSRF cookie — crée le cookie si absent
+// 3. CSRF cookie — crée le cookie si absent, SAUF en GET sur les routes
+//    publiques cachables : un CDN refuse de cacher une réponse Set-Cookie
+const CACHEABLE_PUBLIC_PATHS = [
+  /^\/api\/image\b/, /^\/api\/sitemap\.xml$/, /^\/sitemap\.xml$/,
+  /^\/api\/robots\.txt$/, /^\/robots\.txt$/, /^\/uploads\//, /^\/widget\//,
+];
 app.use((req, res, next) => {
-  ensureCsrfCookie(req, res);  // cookie: csrf_token=<random hex 32>
+  const isCacheablePublicGet =
+    req.method === "GET" && CACHEABLE_PUBLIC_PATHS.some(p => p.test(req.path));
+  if (!isCacheablePublicGet) ensureCsrfCookie(req, res);
   next();
 });
 
-// 4. Rate limiter (général: 120/min prod, 300/dev)
-//    + Rate limiter IA (20/min prod, 60/dev)
+// 4. Rate limiter par famille de route
+//    général 120/min prod (300/dev), IA 20/min prod (60/dev),
+//    conventionRegistrations.create 3/heure
 app.use("/api/trpc", rateLimiter, csrfProtect, trpcMiddleware);
 ```
 
 ### 3. Protection CSRF (double-submit cookie)
 
 ```
-Vérification :
+Vérification (POST/PUT/PATCH/DELETE uniquement) :
 1. Lire csrf_token du cookie → cookieToken
 2. Lire x-csrf-token du header → headerToken
-3. Si cookieToken !== headerToken → 403 Forbidden
-4. Si méthode GET/HEAD → pas de vérification CSRF
+3. Si l'un manque ou diffère → 403 Forbidden
+4. GET/HEAD → jamais de vérification
+
+Le cookie n'est pas posé en GET sur les 7 chemins de CACHEABLE_PUBLIC_PATHS
+(/api/image, sitemap, robots, /uploads/, /widget/…) ; il reste posé partout
+ailleurs et par GET /api/csrf, donc le double-submit est intact.
+
+Le middleware existe en DEUX exemplaires qui doivent évoluer ensemble :
+server/_core/index.ts (serveur local) et api/index.ts (exécuté par Vercel).
+Voir AGENTS.md § « CSRF : deux implémentations à maintenir ensemble ».
 ```
 
 ### 4. Contexte tRPC
@@ -274,7 +293,7 @@ Drizzle ORM                 Drizzle ORM
 ### Schéma (drizzle/schema.ts)
 
 ```
-13 tables :
+19 tables :
 ├── users              → Authentification, rôles
 ├── articles           → Articles avec slug, catégorie, verset, prix
 ├── categories         → Catégories d'articles
@@ -287,7 +306,13 @@ Drizzle ORM                 Drizzle ORM
 ├── site_settings      → Configuration clé/valeur du site
 ├── notifications      → Notifications système
 ├── notification_reads → Suivi des notifications lues
-└── user_theme         → Préférence thème clair/sombre par utilisateur
+├── user_theme         → Préférence thème clair/sombre par utilisateur
+├── api_keys           → Clés API tierces stockées côté serveur
+├── api_providers      → Providers IA enregistrés dynamiquement
+├── suggestions        → Suggestions des visiteurs
+├── convention_registrations → Inscriptions convention + code d'accès
+├── convention_code_attempts → Tentatives de code (anti-bruteforce)
+└── agent_runs         → Exécutions des agents IA
 ```
 
 ### Types inférés (pattern Drizzle)
@@ -317,14 +342,17 @@ pnpm run db:push    # drizzle-kit push
 ### Providers supportés
 
 ```
-┌──────────┬────────────────────────┬──────────────┐
-│ Provider │ API URL                │ Modèle défaut│
-├──────────┼────────────────────────┼──────────────┤
-│ Groq     │ api.groq.com           │ llama-3.3-70b│
-│ Google   │ forge.manus.im         │ gemini-2.0   │
-│ MiniMax  │ api.minimaxi.chat      │ MiniMax-M1   │
-│ AIML     │ api.aimlapi.com        │ Mistral-7B   │
-└──────────┴────────────────────────┴──────────────┘
+┌───────────┬───────────────────────────────────┬──────────────────┐
+│ Provider  │ API URL                           │ Modèle défaut    │
+├───────────┼───────────────────────────────────┼──────────────────┤
+│ Groq      │ api.groq.com/openai/v1            │ GPT-OSS 120B     │
+│ Google    │ generativelanguage.googleapis.com │ Gemini 3.5 Flash │
+│ MiniMax   │ api.minimaxi.chat/v1              │ MiniMax-M2.1     │
+│ AIML      │ api.aimlapi.com/v1                │ (fallback)       │
+│ Ollama    │ OLLAMA_BASE_URL (local)           │ llama3.2         │
+│ Kling     │ KLING_API_KEY (direct)            │ Kling v1         │
+│ Replicate │ REPLICATE_API_TOKEN               │ Kling v2.6       │
+└───────────┴───────────────────────────────────┴──────────────────┘
 ```
 
 ### Flux IA (server/_core/llm.ts)
@@ -354,7 +382,7 @@ main.tsx
 ├── trpc.Provider (tRPC React)
 └── App
     ├── ErrorBoundary
-    ├── ThemeProvider (next-themes)
+    ├── ThemeProvider (ThemeContext → localStorage + user_theme)
     ├── TooltipProvider + Toaster (Sonner)
     └── Router (Wouter)
         ├── PublicLayout (SiteHeader + main + SiteFooter + AISearch)
@@ -398,10 +426,9 @@ const createMutation = trpc.articles.create.useMutation();
 ### TanStack Query (state management)
 
 ```typescript
-// Cache automatique :
-// - articles.list → cache 5min
-// - articles.bySlug → cache 10min
-// - siteSettings.getAll → cache 30s
+// Cache automatique (client/src/main.tsx) :
+// - gcTime : 30 jours — les données restent en mémoire entre navigations
+// - staleTime : non personnalisé (défaut 0 → refetch au montage)
 
 // Invalidations automatiques :
 // - Après create/update/delete → invalidation du cache concerné
@@ -444,14 +471,18 @@ export function cn(...inputs: ClassValue[]) {
 ### Développement (`pnpm run dev`)
 
 ```
-1. tsx watch server/_core/index.ts
-2. Express démarre sur port 3001
+1. node --watch --import tsx server/_core/index.ts (cross-env NODE_ENV=development)
+2. Express démarre sur le port 3000 (PORT hors 1-65535 ramené à 3000,
+   port suivant si occupé)
 3. Vite dev server créé en middleware (setupVite)
 4. Hot Module Replacement (HMR) actif
 5. index.html lu depuis client/index.html à chaque requête
 6. Frontend servi via Vite middleware (pas de build)
-7. Backend: transpilation TS à la volée via tsx
+7. Backend: transpilation TS à la volée via tsx (--import)
 ```
+
+Détail des trois boucles de rechargement (serveur / composant / CSS) et de
+leurs pièges : voir AGENTS.md § « Rechargement à chaud ».
 
 ### Production (`pnpm run build` → `pnpm start`)
 
@@ -469,7 +500,7 @@ export function cn(...inputs: ClassValue[]) {
 ```
 1. vercel.json redirige /api/* → api/index.ts
 2. api/index.ts importe appRouter + createContext
-3. Export handler = createExpressMiddleware(...)
+3. Export par défaut : `export default app`
 4. Frontend: build Vite → dist/public/
 5. Auto-deploy après push GitHub
 ```
@@ -484,7 +515,7 @@ export function cn(...inputs: ClassValue[]) {
 Plugins:
 ├── @vitejs/plugin-react    → JSX + Fast Refresh
 ├── @tailwindcss/vite       → Tailwind CSS v4
-├── @builder.io/vite-plugin-jsx-loc → JSX line numbers
+├── @builder.io/vite-plugin-jsx-loc → JSX line numbers (hors production)
 └── vite-plugin-manus-runtime → Debug tools
 
 Manual Chunks (optimisation bundle):
@@ -531,9 +562,10 @@ export const ENV = {
 ```
 Toutes les variables VITE_* sont exposées au client :
 - VITE_API_URL
-- VITE_OAUTH_PORTAL_URL
 - VITE_APP_ID
 ```
+
+`VITE_OAUTH_PORTAL_URL` a été retiré : il n'est plus référencé dans le code.
 
 ---
 
@@ -541,7 +573,7 @@ Toutes les variables VITE_* sont exposées au client :
 
 ```bash
 # Développement
-pnpm run dev              # Server + Vite HMR (port 3001)
+pnpm run dev              # Server + Vite HMR (port 3000)
 
 # Build & Production
 pnpm run build            # Vite build + esbuild server
@@ -569,14 +601,14 @@ pnpm run analyze          # Bundle analyzer (rollup-plugin-visualizer)
 | Fichier | Rôle |
 |---|---|
 | `server/_core/index.ts` | Entry point Express, middlewares, port |
-| `server/_core/trpc.ts` | Init tRPC, middlewares auth (5 procédures) |
+| `server/_core/trpc.ts` | Init tRPC, middlewares auth (6 procédures) |
 | `server/_core/context.ts` | Contexte tRPC (req, res, user) |
 | `server/_core/sdk.ts` | Auth JWT, session management |
 | `server/_core/llm.ts` | Client IA multi-provider + fallback |
 | `server/_core/env.ts` | Variables d'environnement serveur |
-| `server/routers.ts` | Routes tRPC (82+ procédures, ~2200 lignes) |
+| `server/routers.ts` | Routes tRPC (17 routeurs, ~150 procédures, ~4000 lignes) |
 | `server/db.ts` | Fonctions d'accès DB (Drizzle ORM) |
-| `drizzle/schema.ts` | Schéma BDD (13 tables) |
+| `drizzle/schema.ts` | Schéma BDD (19 tables) |
 | `shared/types.ts` | Types partagés client/serveur |
 | `shared/const.ts` | Constantes partagées |
 | `client/src/App.tsx` | Routeur React + layouts |

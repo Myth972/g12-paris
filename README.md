@@ -2,7 +2,7 @@
 
 Plateforme web pour publier des actualités, articles, médias et gérer du contenu d'église, avec support IA multi-provider.
 
-**Dernière mise à jour**: 2026-05-30  
+**Dernière mise à jour**: 2026-11-09  
 **Version**: 1.0.0  
 **Status**: ✅ Opérationnel
 
@@ -20,7 +20,7 @@ Plateforme web pour publier des actualités, articles, médias et gérer du cont
 - **Notifications** — Système de notifications avec suivi de lecture
 - **Authentification** — JWT (jose), sessions, rôles (admin/editeur/bibliotheque/user)
 - **Internationalisation** — i18next (français, anglais, espagnol)
-- **Thème clair/sombre** — next-themes, préférence utilisateur persistée
+- **Thème clair/sombre** — `ThemeContext` (localStorage) + préférence persistée en base (`user_theme`)
 
 ---
 
@@ -28,7 +28,7 @@ Plateforme web pour publier des actualités, articles, médias et gérer du cont
 
 ### Prérequis
 
-- Node.js 18+
+- Node.js 20.19+ ou 22.12+ (exigence de Vite 7)
 - pnpm (ou npm)
 - Variables d'environnement configurées (voir `.en.example`)
 
@@ -53,7 +53,7 @@ Double-cliquez `launch-server.bat` et choisissez :
 
 | Commande | Description |
 |---|---|
-| `pnpm run dev` | Démarrage en développement (hot-reload) |
+| `pnpm run dev` | Démarrage en développement (`node --watch`, port 3000) |
 | `pnpm run build` | Build production (Vite + esbuild) |
 | `pnpm start` | Démarrage production |
 | `pnpm run check` | Vérification TypeScript |
@@ -65,10 +65,13 @@ Double-cliquez `launch-server.bat` et choisissez :
 
 ### Accès
 
-- Frontend (dev) : http://localhost:3001/
-- API tRPC (dev) : http://localhost:3001/api/trpc
+- Frontend (dev) : http://localhost:3000/
+- API tRPC (dev) : http://localhost:3000/api/trpc
 - Frontend (prod) : http://localhost:3000/ (ou `PORT`)
 - API tRPC (prod) : http://localhost:3000/api/trpc
+
+Le port par défaut est 3000 en dev comme en prod ; s'il est occupé, le serveur
+bascule automatiquement sur le suivant (3001).
 
 ---
 
@@ -79,7 +82,7 @@ Système JWT avec sessions stockées en cookie (`app_session_id`).
 ### Connexion
 
 ```bash
-curl -X POST http://localhost:3001/api/trpc/auth.login \
+curl -X POST http://localhost:3000/api/trpc/auth.login \
   -H "Content-Type: application/json" \
   -d '{"password":"votre-mot-de-passe"}'
 ```
@@ -97,16 +100,23 @@ Via la page `/login` dans le navigateur.
 
 ## 🤖 IA
 
-4 providers supportés avec fallback automatique en cas d'échec :
+6 providers exposés dans le sélecteur (`shared/aiProviders.ts`) :
 
 | Provider | Modèle par défaut | Clé API |
 |---|---|---|
-| Groq | Llama 3.3 70B Versatile | `GROQ_API_KEY` |
-| Google Gemini | Gemini 2.0 Flash | `GOOGLE_API_KEY` |
-| MiniMax | MiniMax-M1 | `MINIMAX_API_KEY` |
-| AIML API | Mistral 7B | `AIMLAPI_KEY` |
+| Groq | GPT-OSS 120B | `GROQ_API_KEY` |
+| Google Gemini | Gemini 3.5 Flash | `GOOGLE_API_KEY` |
+| MiniMax | MiniMax-M2.1 | `MINIMAX_API_KEY` |
+| Ollama (local) | llama3.2 | `OLLAMA_BASE_URL`, `OLLAMA_MODEL` |
+| Kling AI | Kling v1 | `KLING_API_KEY` |
+| Replicate | Kling v2.6 | `REPLICATE_API_TOKEN` |
 
-Provider préféré configurable via `PREFERRED_AI_PROVIDER` (défaut: `groq`).
+Provider préféré configurable via `PREFERRED_AI_PROVIDER` (défaut : `groq`).
+
+Le fallback automatique de `server/_core/llm.ts` ne s'applique qu'aux providers
+à clé API (Groq → Google → MiniMax → AIML) ; Kling, Replicate et Ollama sont
+appelés explicitement. `AIMLAPI_KEY` reste utilisé par le fallback bien
+qu'AIML n'apparaisse plus dans le sélecteur.
 
 ### Endpoints IA
 
@@ -126,6 +136,8 @@ Provider préféré configurable via `PREFERRED_AI_PROVIDER` (défaut: `groq`).
 ---
 
 ## 📚 API (tRPC)
+
+`server/routers.ts` expose 17 routeurs ; liste des principales procédures.
 
 ### Articles
 
@@ -196,6 +208,27 @@ Provider préféré configurable via `PREFERRED_AI_PROVIDER` (défaut: `groq`).
 
 - `system.health` (public)
 
+### Thème
+
+- `theme.*` — préférence de thème par utilisateur (`user_theme`)
+
+### Suggestions
+
+- `suggestions.*` — suggestions des visiteurs, modération côté admin
+
+### Inscriptions Convention
+
+- `conventionRegistrations.*` — inscription et vérification du code d'accès
+  (rate limit dédié : 3 requêtes/heure sur `create`)
+
+### Agents IA
+
+- `agents.*` — déclenchement et suivi des exécutions d'agents (`agent_runs`)
+
+### Clés & providers IA
+
+- `ai.apiKeys.*` / `ai.apiProviders.*` — gestion des clés et providers (admin)
+
 ---
 
 ## 🗄️ Base de Données
@@ -221,6 +254,12 @@ Provider préféré configurable via `PREFERRED_AI_PROVIDER` (défaut: `groq`).
 | `subscribers` | Abonnés newsletter |
 | `site_settings` | Configuration dynamique du site |
 | `user_theme` | Préférence thème clair/sombre |
+| `api_keys` | Clés API tierces stockées côté serveur |
+| `api_providers` | Providers IA enregistrés dynamiquement |
+| `suggestions` | Suggestions envoyées par les visiteurs |
+| `convention_registrations` | Inscriptions à la convention (code d'accès) |
+| `convention_code_attempts` | Tentatives de code (anti-bruteforce) |
+| `agent_runs` | Exécutions des agents IA |
 
 ---
 
@@ -236,8 +275,7 @@ TURSO_AUTH_TOKEN=...
 # JWT
 JWT_SECRET=votre-secret-ici
 
-# OAuth / Authentification
-VITE_OAUTH_PORTAL_URL=https://...
+# Authentification
 VITE_APP_ID=...
 ADMIN_PASSWORD=...
 
@@ -278,7 +316,7 @@ pnpm run build    # Build de vérification
 **Port déjà utilisé** : le serveur tente automatiquement le port suivant.
 
 **Frontend ne charge pas** :
-- Vérifier le port 3001
+- Vérifier le port 3000 (celui affiché au démarrage)
 - Vider le cache navigateur
 - Hard refresh (Ctrl+F5)
 
@@ -300,13 +338,13 @@ pnpm run build    # Build de vérification
 │   ├── src/
 │   │   ├── pages/             # Pages (Login, Dashboard, Articles, etc.)
 │   │   ├── components/        # Composants UI
-│   │   ├── i18n/              # Internationalisation (fr/en/es)
+│   │   ├── i18n.ts + locales/ # Internationalisation (fr/en/es)
 │   │   └── hooks/             # Hooks personnalisés
 ├── server/                    # Backend Node.js (Express, tRPC)
 │   ├── _core/                 # Coeur (env, llm, session, trpc, db)
-│   └── routers.ts             # Routes tRPC (82 procédures)
+│   └── routers.ts             # Routes tRPC (~150 procédures)
 ├── shared/                    # Code partagé (types, providers IA, etc.)
-├── drizzle/                   # Schéma database (13 tables)
+├── drizzle/                   # Schéma database (19 tables)
 ├── api/                       # API Vercel
 ├── scripts/                   # Scripts utilitaires
 │   ├── backup.ps1             # Sauvegarde DB/uploads/config
@@ -330,8 +368,8 @@ pnpm run build    # Build de vérification
 | React 19 | Node.js | Turso LibSQL | Groq |
 | Vite 7 | Express | Drizzle ORM | Gemini |
 | Tailwind CSS v4 | tRPC v11 | SQLite (dev) | MiniMax |
-| Radix UI | jose (JWT) | | AIML API |
-| TanStack Query | Zod v4 | | Kling (vidéo) |
+| Radix UI | jose (JWT) | | AIML (fallback) |
+| TanStack Query | Zod v4 | | Kling, Replicate, Ollama |
 | Wouter | Resend | | |
 | TipTap | Sharp | | |
 | Framer Motion | Vercel Blob | | |
@@ -347,9 +385,9 @@ pnpm run build    # Build de vérification
 |---|---|---|
 | TypeScript | ✅ | 0 erreurs |
 | Frontend | ✅ | React 19, Vite, Tailwind v4 |
-| Backend | ✅ | Express, tRPC, 82 procédures |
+| Backend | ✅ | Express, tRPC, ~150 procédures |
 | Database | ✅ | Turso + SQLite local |
-| AI | ✅ | 4 providers avec fallback |
+| AI | ✅ | 6 providers, fallback sur les providers à clé API |
 | Auth | ✅ | JWT, sessions, 4 rôles |
 | Internationalisation | ✅ | fr/en/es |
 | Newsletter | ✅ | Resend + subscribers |
@@ -413,7 +451,8 @@ Les backups sont compressés en `.zip` dans le dossier `backups/`.
 
 ## 📄 Licence
 
-MIT
+Aucune licence explicite n'est fournie pour ce dépôt : il n'existe pas de
+fichier `LICENSE`. Ajouter le fichier correspondant avant toute réutilisation.
 
 ---
 
