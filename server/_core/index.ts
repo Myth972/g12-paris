@@ -286,7 +286,15 @@ RÈGLES STRICTES :
     serveStatic(app);
   }
 
-  const preferredPort = parseInt(process.env.PORT || "3000");
+  // Certains environnements définissent PORT=0 (« attribue-moi un port »).
+  // Le transmettre tel quel donnerait un port aléatoire annoncé nulle part :
+  // findAvailablePort(0) répond toujours « libre » et listen(0) laisse le
+  // système choisir. On normalise donc toute valeur hors 1-65535.
+  const rawPort = Number.parseInt(process.env.PORT ?? "", 10);
+  const preferredPort =
+    Number.isInteger(rawPort) && rawPort >= 1 && rawPort <= 65535
+      ? rawPort
+      : 3000;
   const port = await findAvailablePort(preferredPort);
 
   if (port !== preferredPort) {
@@ -294,7 +302,12 @@ RÈGLES STRICTES :
   }
 
   server.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}/`);
+    // Port réellement ouvert (`address()` fait foi, même si le système en a
+    // attribué un autre).
+    const address = server.address();
+    const actualPort =
+      address && typeof address === "object" ? address.port : port;
+    console.log(`Server running on http://localhost:${actualPort}/`);
   });
 }
 
