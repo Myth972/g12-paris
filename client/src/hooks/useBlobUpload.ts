@@ -70,6 +70,9 @@ export function useBlobUpload() {
           access: "public",
           token: tokenResult.token,
           contentType: file.type || undefined,
+          // Durée de cache : portée par le token serveur
+          // (uploads.generateUploadToken), car put() côté client ne
+          // connaît pas cacheControlMaxAge.
         });
 
         setIsUploading(false);

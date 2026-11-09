@@ -157,9 +157,10 @@ export default function CulteEnLignePage() {
       {settingsQuery.data?.culteBannerUrl && (
         <Reveal variant="scaleUp" delay={0.2}>
           <section className="container px-4 sm:px-0 -mt-8 sm:-mt-12 relative z-20 mb-8 sm:mb-12 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-            <img
+            <OptimizedImage
               src={settingsQuery.data.culteBannerUrl as string}
               alt="Bannière culte"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 700px, 900px"
               className="rounded-xl sm:rounded-2xl shadow-lg sm:shadow-2xl shadow-primary/20 transition-transform hover:scale-[1.02] duration-500 w-full max-w-md sm:max-w-[700px] lg:max-w-[900px] h-auto mx-auto"
             />
           </section>

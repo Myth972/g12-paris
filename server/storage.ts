@@ -5,6 +5,9 @@ import { put } from "@vercel/blob";
 
 const UPLOADS_DIR = path.join(process.cwd(), "uploads");
 
+/** Cache d'un an : les clés Blob sont horodatées et ne sont jamais écrasées. */
+export const BLOB_CACHE_MAX_AGE = 60 * 60 * 24 * 365;
+
 /**
  * Ensures the uploads directory exists (local only)
  */
@@ -34,6 +37,10 @@ export async function storagePut(
       access: "public",
       contentType,
       token: ENV.blobToken,
+      // Clés horodatées (jamais réécrites) : cache navigateur/CDN maximal.
+      // Le défaut du SDK est 30 jours, ce qui force un re-téléchargement
+      // périodique du même fichier et gonfle le « Blob Data Transfer ».
+      cacheControlMaxAge: BLOB_CACHE_MAX_AGE,
     });
     return { key: blob.pathname, url: blob.url };
   }

@@ -11,6 +11,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useSeo } from "@/lib/seo";
+import OptimizedImage from "@/components/OptimizedImage";
 
 export default function BibliothequePage() {
   const { user } = useAuth();
@@ -199,9 +200,10 @@ export default function BibliothequePage() {
               <motion.div key={book.id} variants={staggerItem}>
               <Link href={`/bibliotheque/livre/${book.id}`} className="group">
                 <div className="rounded-xl overflow-hidden mb-4 bg-muted aspect-[3/4] relative">
-                  <img 
-                    src={book.image} 
+                  <OptimizedImage
+                    src={book.image}
                     alt={book.title}
+                    sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 25vw"
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                   />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">

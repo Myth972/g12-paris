@@ -107,7 +107,11 @@ import {
   upsertUser,
   findUserByPassword,
 } from "./db.js";
-import { storagePut, getSignedUrl } from "./storage.js";
+import {
+  BLOB_CACHE_MAX_AGE,
+  storagePut,
+  getSignedUrl,
+} from "./storage.js";
 import { nanoid } from "nanoid";
 import { themeRouter } from "./themeRouter.js";
 import { withCache, clearCache } from "./_core/cache.js";
@@ -381,6 +385,9 @@ export const appRouter = router({
           token: ENV.blobToken,
           maximumSizeInBytes: 500 * 1024 * 1024,
           allowedContentTypes: ["image/*", "video/*", "audio/*", "application/pdf"],
+          // Fixe la durée de cache des uploads navigateur : put() côté client
+          // n'accepte pas cacheControlMaxAge, seul le token la porte.
+          cacheControlMaxAge: BLOB_CACHE_MAX_AGE,
         });
 
         return { token, pathname: cleaned };

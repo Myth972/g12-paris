@@ -49,8 +49,64 @@ const ALLOWED_REMOTE_HOST_SUFFIXES = [
   "amazonaws.com",
 ];
 
-/** Lit la source (fichier local ou URL de stockage) → Buffer, ou null. */
+/**
+ * Cache mémoire des sources brutes (LRU bornée).
+ *
+ * Une même image alimente jusqu'à 8 variantes (4 largeurs × AVIF/WebP).
+ * Sans ce cache, chaque variante re-télécharge l'original depuis Vercel Blob :
+ * une instance serverless chaude sert toutes les variantes d'une page, donc
+ * un seul téléchargement suffit. C'est le principal poste « Blob Data
+ * Transfer » lié aux images.
+ */
+const SOURCE_CACHE_MAX_BYTES = 48 * 1024 * 1024;
+const sourceCache = new Map<string, Buffer>();
+let sourceCacheBytes = 0;
+
+/** Lecture d'une entrée et réinsertion en fin de Map (marque « récent »). */
+function readCached(key: string): Buffer | undefined {
+  const hit = sourceCache.get(key);
+  if (!hit) return undefined;
+  sourceCache.delete(key);
+  sourceCache.set(key, hit);
+  return hit;
+}
+
+function writeCached(key: string, buffer: Buffer): void {
+  // Une source plus grosse que le plafond évincerait tout le reste : ignorée.
+  if (buffer.byteLength > SOURCE_CACHE_MAX_BYTES) return;
+
+  const previous = sourceCache.get(key);
+  if (previous) {
+    sourceCache.delete(key);
+    sourceCacheBytes -= previous.byteLength;
+  }
+
+  sourceCache.set(key, buffer);
+  sourceCacheBytes += buffer.byteLength;
+
+  // Éviction FIFO des plus anciennes (une entrée réutilisée repasse en fin).
+  while (sourceCacheBytes > SOURCE_CACHE_MAX_BYTES) {
+    const oldest = sourceCache.keys().next();
+    if (oldest.done) break;
+    const evicted = sourceCache.get(oldest.value);
+    sourceCache.delete(oldest.value);
+    sourceCacheBytes -= evicted?.byteLength ?? 0;
+  }
+}
+
+/** Lit la source, en passant par le cache mémoire. */
 async function loadSource(src: string): Promise<Buffer | null> {
+  const cached = readCached(src);
+  if (cached) return cached;
+
+  const buffer = await readSource(src);
+  if (!buffer) return null;
+  writeCached(src, buffer);
+  return buffer;
+}
+
+/** Lecture effective de la source (fichier local ou URL de stockage). */
+async function readSource(src: string): Promise<Buffer | null> {
   // 1) Fichier uploadé localement — lecture bornée au dossier uploads/
   if (src.startsWith(UPLOADS_PREFIX)) {
     try {
@@ -95,10 +151,12 @@ function parseParams(req: Request): {
   const src = typeof req.query.src === "string" ? req.query.src : "";
   if (!src) return null;
 
-  const widthRaw = typeof req.query.w === "string" ? parseInt(req.query.w, 10) : 0;
+  const widthRaw =
+    typeof req.query.w === "string" ? parseInt(req.query.w, 10) : 0;
   const width = Number.isFinite(widthRaw) && widthRaw > 0 ? widthRaw : 0;
 
-  const formatRaw = (typeof req.query.f === "string" ? req.query.f : "avif"
+  const formatRaw = (
+    typeof req.query.f === "string" ? req.query.f : "avif"
   ) as FormatKey;
   const format = formatRaw in FORMATS ? formatRaw : "avif";
 
@@ -132,7 +190,9 @@ export function registerImageOptimizer(app: Express): void {
 
     const source = await loadSource(src);
     if (!source) {
-      return res.status(404).json({ error: "Image introuvable ou non autorisée" });
+      return res
+        .status(404)
+        .json({ error: "Image introuvable ou non autorisée" });
     }
 
     try {
