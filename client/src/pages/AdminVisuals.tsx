@@ -18,6 +18,7 @@ import {
   Eye,
   LayoutDashboard,
   Music,
+  PenTool,
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
@@ -94,6 +95,13 @@ const features = [
     icon: Music,
     fields: ["enabled"] as const,
   },
+  {
+    key: "signature",
+    label: "Signature de bas de page",
+    desc: "Signature manuscrite animée sous les articles récents, texte libre",
+    icon: PenTool,
+    fields: ["enabled", "text"] as const,
+  },
 ];
 
 type FeatureKey = (typeof features)[number]["key"];
@@ -117,7 +125,10 @@ export default function AdminVisuals() {
       for (const f of features) {
         for (const field of f.fields) {
           const key = settingKey(f.key, field);
-          next[key] = (settingsQuery.data[key] as string) ?? "";
+          // Le texte de signature garde un défaut tant que rien n'est enregistré
+          next[key] =
+            (settingsQuery.data[key] as string) ??
+            (key === "visuals.signature.text" ? "G12 Paris" : "");
         }
       }
       setValues((prev) => (Object.keys(prev).length ? prev : next));
@@ -234,6 +245,24 @@ export default function AdminVisuals() {
               </div>
               {enabled && feature.fields.length > 1 && (
                 <div className="mt-4 pt-4 border-t border-border/60 grid grid-cols-2 sm:grid-cols-3 gap-4">
+                  {(feature.fields as readonly string[]).includes("text") && (
+                    <div className="col-span-2 sm:col-span-3">
+                      <label className="text-xs font-medium text-muted-foreground block mb-1">
+                        Texte affiché
+                      </label>
+                      <Input
+                        value={get(feature.key, "text")}
+                        onChange={(e) =>
+                          set(feature.key, "text", e.target.value)
+                        }
+                        placeholder="G12 Paris"
+                        maxLength={40}
+                      />
+                      <p className="text-[11px] text-muted-foreground mt-1">
+                        Laisser vide pour revenir à « G12 Paris ».
+                      </p>
+                    </div>
+                  )}
                   {(feature.fields as readonly string[]).includes("count") && (
                     <div>
                       <label className="text-xs font-medium text-muted-foreground block mb-1">

@@ -16,6 +16,8 @@ const defaults: Defaults = {
   "visuals.stats.enabled": "true",
   "visuals.bentoGrid.enabled": "true",
   "visuals.audioPlayer.enabled": "true",
+  "visuals.signature.enabled": "true",
+  "visuals.signature.text": "G12 Paris",
 };
 
 export function useVisualSetting(key: string): string {

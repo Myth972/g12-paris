@@ -17,7 +17,10 @@ import { motion } from "framer-motion";
 import { Newspaper, ChevronRight, Church, BookOpen, Mic2, Calendar, Users, FileText, Image, Clock } from "lucide-react";
 import AnimatedCounter from "@/components/AnimatedCounter";
 import AnimatedSignature from "@/components/AnimatedSignature";
-import { useVisualEnabled } from "@/hooks/useVisualSetting";
+import {
+  useVisualEnabled,
+  useVisualSetting,
+} from "@/hooks/useVisualSetting";
 import { normalizeImageSource, buildOptimizedUrl } from "@/lib/imageOptimize";
 import { useSeo } from "@/lib/seo";
 import { organizationJsonLd, webSiteJsonLd } from "@/lib/structuredData";
@@ -36,6 +39,8 @@ export default function Home() {
 
 const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, category: "actualité" });
   const settingsQuery = trpc.siteSettings.getAll.useQuery();
+  const signatureEnabled = useVisualEnabled("visuals.signature.enabled");
+  const signatureText = useVisualSetting("visuals.signature.text");
   const { data: homeContent } = trpc.pageContent.featuredHome.useQuery();
   const { data: announcementsData } = trpc.announcements.list.useQuery({ type: "announcement" });
   const { data: flashEventsData } = trpc.announcements.list.useQuery({ type: "flash-event" });
@@ -387,10 +392,15 @@ const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, categor
       </section>
       </Reveal>
 
-      {/* Signature animée « LÉO » — tracé manuscrit au scroll, décoratif */}
-      <div className="container pb-12 flex justify-center">
-        <AnimatedSignature className="w-36 sm:w-48 text-primary/80" />
-      </div>
+      {/* Signature animée — activable et personnalisable dans Admin → Visuels */}
+      {signatureEnabled && (
+        <div className="container pb-12 flex justify-center">
+          <AnimatedSignature
+            className="text-primary/80"
+            text={signatureText}
+          />
+        </div>
+      )}
     </div>
   );
 }

@@ -54,6 +54,7 @@ import {
   Youtube,
   Eye,
   Globe,
+  PenTool,
 } from "lucide-react";
 
 export default function HomeContentManager() {
@@ -930,6 +931,17 @@ function BentoGridSection() {
 
   const bentoEnabled = settingsQuery.data?.["visuals.bentoGrid.enabled"] !== "false";
   const audioEnabled = settingsQuery.data?.["visuals.audioPlayer.enabled"] !== "false";
+  const signatureEnabled = settingsQuery.data?.["visuals.signature.enabled"] !== "false";
+  const [signatureText, setSignatureText] = useState("");
+
+  // Le champ suit les réglages dès qu'ils arrivent (et après enregistrement).
+  useEffect(() => {
+    if (settingsQuery.data) {
+      setSignatureText(
+        settingsQuery.data["visuals.signature.text"] ?? "G12 Paris"
+      );
+    }
+  }, [settingsQuery.data]);
 
   // Formulaires par tuile
   const [flagshipForm, setFlagshipForm] = useState({
@@ -1042,6 +1054,20 @@ function BentoGridSection() {
     });
   };
 
+  const handleToggleSignature = (checked: boolean) => {
+    setSettingMutation.mutate({
+      key: "visuals.signature.enabled",
+      value: checked ? "true" : "false",
+    });
+  };
+
+  const handleSaveSignatureText = () => {
+    setSettingMutation.mutate({
+      key: "visuals.signature.text",
+      value: signatureText,
+    });
+  };
+
   const handleSaveFlagship = () => {
     setSettingMutation.mutate({ key: "bento.flagship.title", value: flagshipForm.title });
     setSettingMutation.mutate({ key: "bento.flagship.description", value: flagshipForm.description });
@@ -1134,7 +1160,7 @@ function BentoGridSection() {
         <div>
           <h2 className="text-lg font-serif font-bold text-foreground flex items-center gap-2">
             <LayoutDashboard className="w-5 h-5 text-primary" />
-            Mode Éditeur : Bento Grid & Lecteur Audio
+            Mode Éditeur : Bento Grid, Lecteur Audio & Signature
           </h2>
           <p className="text-xs text-muted-foreground mt-0.5">
             Personnalisez chacune des tuiles de la Bento Grid ou laissez le mode automatique opérer.
@@ -1166,6 +1192,33 @@ function BentoGridSection() {
               <Music className="w-3.5 h-3.5 text-primary" />
               Lecteur Audio
             </Label>
+          </div>
+
+          <div className="w-px h-4 bg-border" />
+
+          <div className="flex items-center gap-2">
+            <Switch
+              id="toggle-signature"
+              checked={signatureEnabled}
+              onCheckedChange={handleToggleSignature}
+            />
+            <Label htmlFor="toggle-signature" className="text-xs font-medium cursor-pointer flex items-center gap-1">
+              <PenTool className="w-3.5 h-3.5 text-primary" />
+              Signature
+            </Label>
+            <Input
+              value={signatureText}
+              onChange={e => setSignatureText(e.target.value)}
+              onBlur={handleSaveSignatureText}
+              onKeyDown={e => {
+                if (e.key === "Enter") e.currentTarget.blur();
+              }}
+              placeholder="G12 Paris"
+              maxLength={40}
+              aria-label="Texte de la signature"
+              disabled={!signatureEnabled}
+              className="h-7 w-32 sm:w-40 text-xs"
+            />
           </div>
         </div>
       </div>
