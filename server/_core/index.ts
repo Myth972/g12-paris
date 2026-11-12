@@ -3,12 +3,12 @@ import express from "express";
 import { createServer } from "http";
 import net from "net";
 import path from "path";
-import crypto from "crypto";
-import { parse as parseCookieHeader } from "cookie";
+
+
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { appRouter } from "../routers.js";
 import { createContext } from "./context.js";
-import { getCsrfCookieOptions } from "./cookies.js";
+import { csrfProtect, registerCsrf } from "./csrf.js";
 import { serveStatic, setupVite } from "./vite.js";
 import { initAgents } from "./agents.js";
 import { initScheduler, runWeeklyDigest } from "./scheduler.js";
@@ -65,65 +65,15 @@ async function startServer() {
     next();
   });
 
-  const CSRF_COOKIE_NAME = "csrf_token";
-  const CSRF_HEADER_NAME = "x-csrf-token";
-  const CSRF_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 7;
-
-  const readCsrfCookie = (req: express.Request) => {
-    const header = req.headers.cookie;
-    if (!header) return undefined;
-    const parsed = parseCookieHeader(header);
-    return parsed[CSRF_COOKIE_NAME];
-  };
-
-  const ensureCsrfCookie = (req: express.Request, res: express.Response) => {
-    let token = readCsrfCookie(req);
-    if (!token) {
-      token = crypto.randomBytes(32).toString("hex");
-      res.cookie(CSRF_COOKIE_NAME, token, {
-        ...getCsrfCookieOptions(req),
-        maxAge: CSRF_MAX_AGE_MS,
-      });
-    }
-    return token;
-  };
-
   // Servir le widget de démo
   app.use("/widget", express.static(path.join(process.cwd(), "components/ai-chat-widget")));
 
   // Serve uploaded files
   app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
-  // Routes publiques identiques pour tous et servies avec un cache long.
-  // Y poser le cookie CSRF annulerait ce cache : un CDN (Vercel inclus)
-  // refuse de mettre en cache une réponse contenant Set-Cookie. Le jeton
-  // reste émis par les autres réponses et par GET /api/csrf.
-  const CACHEABLE_PUBLIC_PATHS = [
-    /^\/api\/image\b/,
-    /^\/api\/sitemap\.xml$/,
-    /^\/sitemap\.xml$/,
-    /^\/api\/robots\.txt$/,
-    /^\/robots\.txt$/,
-    /^\/uploads\//,
-    /^\/widget\//,
-  ];
-
-  // Issue CSRF token cookie (double-submit pattern)
-  app.use((req, res, next) => {
-    const isCacheablePublicGet =
-      req.method === "GET" &&
-      CACHEABLE_PUBLIC_PATHS.some(pattern => pattern.test(req.path));
-    if (!isCacheablePublicGet) {
-      ensureCsrfCookie(req, res);
-    }
-    next();
-  });
-
-  // CSRF token endpoint for clients
-  app.get("/api/csrf", (req, res) => {
-    const token = ensureCsrfCookie(req, res);
-    res.status(200).json({ token });
-  });
+  // Cookie CSRF + endpoint /api/csrf : implémentation unique, partagée
+  // avec la fonction Vercel (voir server/_core/csrf.ts).
+  registerCsrf(app);
 
   // Sitemap XML (lu en base à chaque requête)
   app.get(["/api/sitemap.xml", "/sitemap.xml"], async (req, res) => {
@@ -168,18 +118,6 @@ async function startServer() {
       res.status(500).json({ error: "Digest failed" });
     }
   });
-
-  const csrfProtect: express.RequestHandler = (req, res, next) => {
-    if (!["POST", "PUT", "PATCH", "DELETE"].includes(req.method)) {
-      return next();
-    }
-    const cookieToken = readCsrfCookie(req);
-    const headerToken = req.headers[CSRF_HEADER_NAME] as string | undefined;
-    if (!cookieToken || !headerToken || headerToken !== cookieToken) {
-      return res.status(403).json({ error: "Invalid CSRF token" });
-    }
-    return next();
-  };
 
   // REST API pour le widget chat (format simple)
   app.post("/api/chat", aiRateLimiter, async (req, res) => {

@@ -60,6 +60,7 @@ Plateforme web pour publier des actualités, articles, médias et gérer du cont
 │   │   ├── newsletter.ts          # Envoi newsletter via Resend
 │   │   ├── cache.ts               # Cache serveur
 │   │   ├── cookies.ts             # Options cookies
+│   │   ├── csrf.ts                # Middleware CSRF partagé (double-submit)
 │   │   ├── sdk.ts                 # SDK auth
 │   │   ├── systemRouter.ts        # Routes système (health)
 │   │   ├── vite.ts                # Dev middleware Vite
@@ -265,54 +266,50 @@ Variables critiques (voir `.en.example`) :
 ## Deployment
 
 - **Local** : `pnpm run dev` (Vite dev server) ou `pnpm start` (build production)
-- **Vercel** : `vercel.json` config, API serverless dans `api/index.ts`. C'est **ce fichier** que Vercel exécute en production, pas `server/_core/index.ts` — voir la section « CSRF : deux implémentations à maintenir ensemble ».
+- **Vercel** : `vercel.json` config, API serverless dans `api/index.ts`. C'est **ce fichier** que Vercel exécute en production, pas `server/_core/index.ts` — voir la section « CSRF : une implémentation partagée ».
 - **Backups** : `scripts/backup.ps1` via Windows Task Scheduler
 
 ## Important Notes
 
 - **Port auto-detection** : le serveur cherche automatiquement un port disponible (défaut 3000/3001)
-- **CSRF** : double-submit cookie pattern, token dans `csrf_token` cookie + header `x-csrf-token`. Le middleware existe en **deux exemplaires** qui doivent évoluer ensemble : `server/_core/index.ts` (serveur local) et `api/index.ts` (seule implémentation exécutée par Vercel) — voir la section dédiée ci-dessous.
+- **CSRF** : double-submit cookie pattern, jeton dans le cookie `csrf_token` + l'en-tête `x-csrf-token`. **Une seule implémentation**, `server/_core/csrf.ts`, branchée par les deux entrypoints via `registerCsrf(app)` — voir la section dédiée ci-dessous.
 - **Rate limiting** : général (120/min prod) + spécifique IA (20/min prod)
 - **Lazy loading** : toutes les pages sont lazy-loaded pour optimiser le bundle
 - **Theme** : thème clair/sombre géré via `next-themes` + `ThemeContext`
 - **i18n** : 3 langues supportées (français, anglais, espagnol)
 - **Patches** : wouter@3.7.1 est patché via `patches/wouter@3.7.1.patch`
 
-## CSRF : deux implémentations à maintenir ensemble
+## CSRF : une implémentation partagée
 
-Le middleware CSRF est dupliqué, et **les deux copies doivent être modifiées
-ensemble** :
+Le middleware CSRF n'existe qu'en **un seul exemplaire**, dans
+`server/_core/csrf.ts`. Les deux entrypoints s'y branchent :
 
 | Fichier | Rôle |
 |---|---|
-| `server/_core/index.ts` | Serveur Express local (`pnpm run dev`, `pnpm start`) |
-| `api/index.ts` | Fonction serverless **exécutée par Vercel en production** |
+| `server/_core/csrf.ts` | **Implémentation unique** : constantes, lecture du cookie, émission, vérification, endpoint `GET /api/csrf` |
+| `server/_core/index.ts` | Serveur Express local (`pnpm run dev`, `pnpm start`) — appelle `registerCsrf(app)` |
+| `api/index.ts` | Fonction serverless **exécutée par Vercel en production** — appelle `registerCsrf(app)` |
 
-Conséquence concrète : un correctif appliqué uniquement dans
-`server/_core/index.ts` fonctionne en local et reste **sans effet en
-production**. C'est arrivé avec le retrait du cookie sur `/api/image` : la prod
-continuait à répondre `Set-Cookie` avec `X-Vercel-Cache: MISS`, donc chaque
-visite re-téléchargeait l'image d'origine depuis Blob.
+Un correctif appliqué dans `server/_core/csrf.ts` vaut donc **immédiatement**
+pour les deux environnements. C'était le point faible de la version
+précédente : le middleware était dupliqué, et un correctif appliqué d'un seul
+côté fonctionnait en local puis restait sans effet en production. C'est arrivé
+avec le retrait du cookie sur `/api/image` : la prod continuait à répondre
+`Set-Cookie` avec `X-Vercel-Cache: MISS`, donc chaque visite re-téléchargeait
+l'image d'origine depuis Blob.
 
 Règles :
 
-- Toute évolution de `ensureCsrfCookie`, `csrfProtect`, du CORS, du
-  rate-limiting ou des routes média doit être portée dans les deux fichiers.
+- Évolutions de `ensureCsrfCookie`, `csrfProtect`, `CACHEABLE_PUBLIC_PATHS`
+  ou de l'endpoint `/api/csrf` : **dans `server/_core/csrf.ts` uniquement**.
+- Ce qui reste propre à chaque entrypoint, et doit donc être vérifié des deux
+  côtés : montage des fichiers statiques, rate-limiting, routes métier
+  (`/api/cron`, sitemap, robots). Seul le CSRF est mutualisé.
 - Les routes publiques cachables (`/api/image`, `/api/sitemap.xml`,
   `/sitemap.xml`, `/api/robots.txt`, `/robots.txt`, `/uploads/`, `/widget/`)
   ne posent pas le cookie en `GET` : un CDN refuse de mettre en cache une
   réponse contenant `Set-Cookie`. Les autres réponses et `GET /api/csrf`
   continuent de l'émettre, le double-submit reste donc intact.
-
-Vérification en production, en **GET** (`curl -I` envoie `HEAD`, qui n'est pas
-exempté et donnera un faux positif) :
-
-```bash
-curl -s -o /dev/null -D - "https://g12-paris.vercel.app/api/image?src=<url>&w=480&f=avif" | grep -iE "^(set-cookie|x-vercel-cache)"
-```
-
-Attendu : aucun `Set-Cookie`, et `X-Vercel-Cache` qui passe de `MISS` à `HIT`
-au second appel de la même URL.
 
 ## Consignes utilisateur (workflow)
 

@@ -1,12 +1,12 @@
 import "dotenv/config";
 import express from "express";
 import path from "path";
-import crypto from "crypto";
-import { parse as parseCookieHeader } from "cookie";
+
+
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { appRouter } from "../server/routers.js";
 import { createContext } from "../server/_core/context.js";
-import { getCsrfCookieOptions } from "../server/_core/cookies.js";
+import { csrfProtect, registerCsrf } from "../server/_core/csrf.js";
 import { initAgents } from "../server/_core/agents.js";
 import { buildRobotsTxt, buildSitemapXml } from "../server/sitemap.js";
 import { registerImageOptimizer } from "../server/imageResizer.js";
@@ -23,11 +23,6 @@ const app = express();
 // Disable the "X-Powered-By" header (information disclosure)
 app.disable("x-powered-by");
 
-// Constants identical to server/_core/index.ts
-const CSRF_COOKIE_NAME = "csrf_token";
-const CSRF_HEADER_NAME = "x-csrf-token";
-const CSRF_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 7;
-
 // Configure body parser (Vercel has its own limits but we set them here for consistency)
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ limit: "50mb", extended: true }));
@@ -43,40 +38,6 @@ app.use((req: any, res: any, next: any) => {
 
 // Serve uploaded files (important for local dev and self-hosted)
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
-
-const readCsrfCookie = (req: any) => {
-  const header = req.headers?.cookie || req.headers?.get?.("cookie");
-  if (!header) return undefined;
-  const parsed = parseCookieHeader(header);
-  return parsed[CSRF_COOKIE_NAME];
-};
-
-const ensureCsrfCookie = (req: any, res: any) => {
-  let token = readCsrfCookie(req);
-  if (!token) {
-    token = crypto.randomBytes(32).toString("hex");
-    if (res.cookie) {
-      res.cookie(CSRF_COOKIE_NAME, token, {
-        ...getCsrfCookieOptions(req),
-        maxAge: CSRF_MAX_AGE_MS,
-      });
-    }
-  }
-  return token;
-};
-
-// Double-submit CSRF validation — same contract as server/_core/index.ts
-const csrfProtect: express.RequestHandler = (req, res, next) => {
-  if (!["POST", "PUT", "PATCH", "DELETE"].includes(req.method)) {
-    return next();
-  }
-  const cookieToken = readCsrfCookie(req);
-  const headerToken = req.headers[CSRF_HEADER_NAME] as string | undefined;
-  if (!cookieToken || !headerToken || headerToken !== cookieToken) {
-    return res.status(403).json({ error: "Invalid CSRF token" });
-  }
-  return next();
-};
 
 // NODE_ENV peut être mal réglé ("development" dans les variables projet) :
 // VERCEL_ENV, posé par la plateforme, est l'autorité fiable en prod.
@@ -96,44 +57,9 @@ console.log("[Vercel API] Env check:", {
   nodeEnv: process.env.NODE_ENV,
 });
 
-// Routes publiques identiques pour tous et servies avec un cache long. Y
-// poser le cookie CSRF annulerait ce cache : Vercel refuse de mettre en cache
-// une réponse contenant Set-Cookie. Le jeton reste émis par les autres
-// réponses et par GET /api/csrf (double-submit inchangé).
-// Liste alignée sur server/_core/index.ts : ce fichier est une implémentation
-// distincte, et c'est elle que Vercel exécute en production — toute évolution
-// du middleware CSRF doit être portée dans les deux fichiers.
-const CACHEABLE_PUBLIC_PATHS = [
-  /^\/api\/image\b/,
-  /^\/api\/sitemap\.xml$/,
-  /^\/sitemap\.xml$/,
-  /^\/api\/robots\.txt$/,
-  /^\/robots\.txt$/,
-  /^\/uploads\//,
-  /^\/widget\//,
-];
-
-// Middleware to ensure CSRF cookie is present (sauf GET publics cachables)
-app.use((req: any, res: any, next: any) => {
-  const isCacheablePublicGet =
-    req.method === "GET" &&
-    CACHEABLE_PUBLIC_PATHS.some((pattern: RegExp) => pattern.test(req.path));
-  if (!isCacheablePublicGet) {
-    ensureCsrfCookie(req, res);
-  }
-  next();
-});
-
-// CSRF token endpoint (CRITICAL for frontend)
-app.get("/api/csrf", (req: any, res: any) => {
-  try {
-    const token = ensureCsrfCookie(req, res);
-    res.status(200).json({ token });
-  } catch (error) {
-    console.error("[Vercel API] CSRF Error:", error);
-    res.status(500).json({ error: "Failed to generate CSRF token" });
-  }
-});
+// Cookie CSRF + endpoint /api/csrf : implémentation unique, partagée
+// avec le serveur local (voir server/_core/csrf.ts).
+registerCsrf(app);
 
 // Health check
 app.get("/api/health", (req: any, res: any) => {
@@ -201,7 +127,7 @@ app.get("/api/cron", (req: any, res: any) => {
   res.status(200).json(cronHelpPayload());
 });
 
-// tRPC API — rate limiting + protection CSRF (aligné sur server/_core/index.ts)
+// tRPC API — rate limiting + protection CSRF (module partagé server/_core/csrf.ts)
 app.use(
   "/api/trpc",
   (req, res, next) => {

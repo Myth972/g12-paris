@@ -119,9 +119,10 @@ Le cookie n'est pas posé en GET sur les 7 chemins de CACHEABLE_PUBLIC_PATHS
 (/api/image, sitemap, robots, /uploads/, /widget/…) ; il reste posé partout
 ailleurs et par GET /api/csrf, donc le double-submit est intact.
 
-Le middleware existe en DEUX exemplaires qui doivent évoluer ensemble :
-server/_core/index.ts (serveur local) et api/index.ts (exécuté par Vercel).
-Voir AGENTS.md § « CSRF : deux implémentations à maintenir ensemble ».
+Le middleware est UNIQUE : il vit dans server/_core/csrf.ts, et les deux
+entrypoints s'y branchent via registerCsrf(app) — un correctif vaut donc
+immédiatement en local ET en production.
+Voir AGENTS.md § « CSRF : une implémentation partagée ».
 ```
 
 ### 4. Contexte tRPC
