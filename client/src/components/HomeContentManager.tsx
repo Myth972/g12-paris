@@ -55,7 +55,18 @@ import {
   Eye,
   Globe,
   PenTool,
+  Newspaper,
 } from "lucide-react";
+
+/** Nombre d'articles de l'accueil : défaut et bornes (cf. Home.tsx). */
+const ARTICLES_DEFAULT = 7;
+const ARTICLES_MIN = 1;
+const ARTICLES_MAX = 12;
+
+/** Nombre d'articles par page de rubrique (cf. CategoryPage.tsx). */
+const CATEGORY_ARTICLES_DEFAULT = 12;
+const CATEGORY_ARTICLES_MIN = 1;
+const CATEGORY_ARTICLES_MAX = 24;
 
 export default function HomeContentManager() {
   return (
@@ -933,12 +944,24 @@ function BentoGridSection() {
   const audioEnabled = settingsQuery.data?.["visuals.audioPlayer.enabled"] !== "false";
   const signatureEnabled = settingsQuery.data?.["visuals.signature.enabled"] !== "false";
   const [signatureText, setSignatureText] = useState("");
+  const [articlesCount, setArticlesCount] = useState(String(ARTICLES_DEFAULT));
+  const [categoryArticlesCount, setCategoryArticlesCount] = useState(
+    String(CATEGORY_ARTICLES_DEFAULT)
+  );
 
-  // Le champ suit les réglages dès qu'ils arrivent (et après enregistrement).
+  // Les champs suivent les réglages dès qu'ils arrivent (et après
+  // enregistrement).
   useEffect(() => {
     if (settingsQuery.data) {
       setSignatureText(
         settingsQuery.data["visuals.signature.text"] ?? "G12 Paris"
+      );
+      setArticlesCount(
+        settingsQuery.data["home.articles.count"] ?? String(ARTICLES_DEFAULT)
+      );
+      setCategoryArticlesCount(
+        settingsQuery.data["category.articles.count"] ??
+          String(CATEGORY_ARTICLES_DEFAULT)
       );
     }
   }, [settingsQuery.data]);
@@ -1065,6 +1088,32 @@ function BentoGridSection() {
     setSettingMutation.mutate({
       key: "visuals.signature.text",
       value: signatureText,
+    });
+  };
+
+  // Nombre d'articles de l'accueil : entier borné à 1–12, défaut 7.
+  const handleSaveArticlesCount = () => {
+    const parsed = Number.parseInt(articlesCount, 10);
+    const safe = Number.isFinite(parsed)
+      ? Math.min(ARTICLES_MAX, Math.max(ARTICLES_MIN, parsed))
+      : ARTICLES_DEFAULT;
+    setArticlesCount(String(safe));
+    setSettingMutation.mutate({
+      key: "home.articles.count",
+      value: String(safe),
+    });
+  };
+
+  // Nombre d'articles par page de rubrique : entier borné à 1–24, défaut 12.
+  const handleSaveCategoryArticlesCount = () => {
+    const parsed = Number.parseInt(categoryArticlesCount, 10);
+    const safe = Number.isFinite(parsed)
+      ? Math.min(CATEGORY_ARTICLES_MAX, Math.max(CATEGORY_ARTICLES_MIN, parsed))
+      : CATEGORY_ARTICLES_DEFAULT;
+    setCategoryArticlesCount(String(safe));
+    setSettingMutation.mutate({
+      key: "category.articles.count",
+      value: String(safe),
     });
   };
 
@@ -1218,6 +1267,62 @@ function BentoGridSection() {
               aria-label="Texte de la signature"
               disabled={!signatureEnabled}
               className="h-7 w-32 sm:w-40 text-xs"
+            />
+          </div>
+
+          <div className="w-px h-4 bg-border" />
+
+          {/* Nombre d'articles affichés sur l'accueil (1 à la une + le reste) */}
+          <div className="flex items-center gap-2">
+            <Label
+              htmlFor="home-articles-count"
+              className="text-xs font-medium cursor-pointer flex items-center gap-1"
+            >
+              <Newspaper className="w-3.5 h-3.5 text-primary" />
+              Accueil
+            </Label>
+            <Input
+              id="home-articles-count"
+              type="number"
+              min={ARTICLES_MIN}
+              max={ARTICLES_MAX}
+              inputMode="numeric"
+              value={articlesCount}
+              onChange={e => setArticlesCount(e.target.value)}
+              onBlur={handleSaveArticlesCount}
+              onKeyDown={e => {
+                if (e.key === "Enter") e.currentTarget.blur();
+              }}
+              aria-label="Nombre d'articles affichés sur l'accueil"
+              className="h-7 w-14 text-xs"
+            />
+          </div>
+
+          <div className="w-px h-4 bg-border" />
+
+          {/* Nombre d'articles par page sur les rubriques */}
+          <div className="flex items-center gap-2">
+            <Label
+              htmlFor="category-articles-count"
+              className="text-xs font-medium cursor-pointer flex items-center gap-1"
+            >
+              <Newspaper className="w-3.5 h-3.5 text-primary" />
+              Rubriques
+            </Label>
+            <Input
+              id="category-articles-count"
+              type="number"
+              min={CATEGORY_ARTICLES_MIN}
+              max={CATEGORY_ARTICLES_MAX}
+              inputMode="numeric"
+              value={categoryArticlesCount}
+              onChange={e => setCategoryArticlesCount(e.target.value)}
+              onBlur={handleSaveCategoryArticlesCount}
+              onKeyDown={e => {
+                if (e.key === "Enter") e.currentTarget.blur();
+              }}
+              aria-label="Nombre d'articles par page de rubrique"
+              className="h-7 w-14 text-xs"
             />
           </div>
         </div>

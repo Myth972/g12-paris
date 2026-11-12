@@ -5,10 +5,11 @@ import { Reveal, staggerContainer, staggerItem } from "@/components/Reveal";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Newspaper, ChevronRight } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { useParams } from "wouter";
 import { useSeo } from "@/lib/seo";
+import { useVisualSetting } from "@/hooks/useVisualSetting";
 
 const CATEGORY_LABELS: Record<string, string> = {
   actualité: "Actualités",
@@ -16,6 +17,19 @@ const CATEGORY_LABELS: Record<string, string> = {
   "culte en ligne": "Culte en ligne",
   bibliothèque: "Bibliothèque",
 };
+
+/** Nombre d'articles par page : réglable via `category.articles.count`. */
+const CATEGORY_DEFAULT_COUNT = 12;
+/** Bornes du réglage (Mode Éditeur → Rubriques). */
+const CATEGORY_MIN_COUNT = 1;
+const CATEGORY_MAX_COUNT = 24;
+
+/** Réglage `category.articles.count` : entier borné, 12 si absent/illisible. */
+function clampCategoryCount(raw: string): number {
+  const parsed = Number.parseInt(raw, 10);
+  if (!Number.isFinite(parsed)) return CATEGORY_DEFAULT_COUNT;
+  return Math.min(CATEGORY_MAX_COUNT, Math.max(CATEGORY_MIN_COUNT, parsed));
+}
 
 export default function CategoryPage() {
   const params = useParams<{ category: string }>();
@@ -25,8 +39,16 @@ export default function CategoryPage() {
     category.charAt(0).toUpperCase() + category.slice(1);
 
   const [page, setPage] = useState(0);
-  const limit = 12;
-  const offset = useMemo(() => page * limit, [page]);
+  // Nombre d'articles par page réglable depuis le Mode Éditeur.
+  const articlesCountSetting = useVisualSetting("category.articles.count");
+  const limit = clampCategoryCount(articlesCountSetting);
+  const offset = useMemo(() => page * limit, [page, limit]);
+
+  // Changer la taille de page repart de la première : sinon l'offset calculé
+  // avec l'ancienne limite peut dépasser le dernier article.
+  useEffect(() => {
+    setPage(0);
+  }, [limit]);
 
   const { data, isLoading } = trpc.articles.list.useQuery({
     limit,

@@ -31,13 +31,28 @@ const announcementIcons = [Church, Mic2, BookOpen];
 /** Largeur du fond hero recodé par /api/image (borne : 32–1600). */
 const HERO_BG_WIDTH = 1280;
 
-export default function Home() {
-  const [page, setPage] = useState(0);
-  const [heroOffset, setHeroOffset] = useState(0);
-  const limit = 12;
-  const offset = useMemo(() => page * limit, [page]);
+/** Accueil : un article à la une, centré au-dessus de la grille (7 par défaut). */
+const HOME_DEFAULT_COUNT = 7;
+/** Bornes du réglage `home.articles.count` (Mode Éditeur → Articles). */
+const HOME_MIN_COUNT = 1;
+const HOME_MAX_COUNT = 12;
 
-const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, category: "actualité" });
+/** Réglage `home.articles.count` : entier borné, 7 si absent ou illisible. */
+function clampArticleCount(raw: string): number {
+  const parsed = Number.parseInt(raw, 10);
+  if (!Number.isFinite(parsed)) return HOME_DEFAULT_COUNT;
+  return Math.min(HOME_MAX_COUNT, Math.max(HOME_MIN_COUNT, parsed));
+}
+
+export default function Home() {
+  const [heroOffset, setHeroOffset] = useState(0);
+
+  // Nombre d'articles réglable depuis le Mode Éditeur (`home.articles.count`).
+  // Le reste du stock reste accessible via « Voir tout » et la page catégorie.
+  const articlesCountSetting = useVisualSetting("home.articles.count");
+  const limit = clampArticleCount(articlesCountSetting);
+
+const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset: 0, category: "actualité" });
   const settingsQuery = trpc.siteSettings.getAll.useQuery();
   const signatureEnabled = useVisualEnabled("visuals.signature.enabled");
   const signatureText = useVisualSetting("visuals.signature.text");
@@ -46,6 +61,9 @@ const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, categor
   const { data: flashEventsData } = trpc.announcements.list.useQuery({ type: "flash-event" });
 
   const articles = data?.items ?? [];
+  // Le plus récent occupe la une, les 6 suivants remplissent la grille.
+  const featuredArticle = articles[0];
+  const gridArticles = articles.slice(1, limit);
   const whatsappSlides: Slide[] = (homeContent ?? [])
     .filter((item: any) => item.mediaUrl)
     .slice(0, 5)
@@ -83,8 +101,6 @@ const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, categor
     variant: "default",
     textColor: item.textColor || undefined,
   }));
-  const total = data?.total ?? 0;
-  const hasMore = offset + limit < total;
   const heroBgUrl = settingsQuery.data?.homeHeroBgUrl as string | undefined;
   const heroOpacityRaw = settingsQuery.data?.homeHeroBgOpacity as
     | string
@@ -345,6 +361,18 @@ const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, categor
           </div>
         ) : (
           <>
+            {/* Article à la une : centré, au-dessus de la grille de 6 */}
+            <motion.div
+              className="mx-auto w-full max-w-2xl mb-6"
+              variants={staggerItem}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-80px" }}
+            >
+              <ArticleCard article={featuredArticle} featured />
+            </motion.div>
+
+            {/* Grille : 6 articles (3 × 2 sur grand écran) */}
             <motion.div
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
               variants={staggerContainer}
@@ -352,41 +380,12 @@ const { data, isLoading } = trpc.articles.list.useQuery({ limit, offset, categor
               whileInView="visible"
               viewport={{ once: true, margin: "-80px" }}
             >
-              {articles.map((article: any, index: number) => (
+              {gridArticles.map((article: any) => (
                 <motion.div key={article.id} variants={staggerItem}>
-                  <ArticleCard
-                    article={article}
-                    featured={index === 0 && page === 0}
-                  />
+                  <ArticleCard article={article} />
                 </motion.div>
               ))}
             </motion.div>
-
-            {/* Pagination */}
-            {total > limit && (
-              <div className="flex items-center justify-center gap-3 mt-10">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={page === 0}
-                  onClick={() => setPage(p => Math.max(0, p - 1))}
-                >
-                  Précédent
-                </Button>
-                <span className="text-sm text-muted-foreground px-3">
-                  Page {page + 1} sur {Math.ceil(total / limit)}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={!hasMore}
-                  onClick={() => setPage(p => p + 1)}
-                >
-                  Suivant
-                  <ChevronRight className="w-4 h-4 ml-1" />
-                </Button>
-              </div>
-            )}
           </>
         )}
       </section>

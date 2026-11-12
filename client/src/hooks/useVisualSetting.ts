@@ -18,6 +18,8 @@ const defaults: Defaults = {
   "visuals.audioPlayer.enabled": "true",
   "visuals.signature.enabled": "true",
   "visuals.signature.text": "G12 Paris",
+  "home.articles.count": "7",
+  "category.articles.count": "12",
 };
 
 export function useVisualSetting(key: string): string {
