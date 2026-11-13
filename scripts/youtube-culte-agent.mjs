@@ -309,6 +309,20 @@ async function createVideoContent(entry, existingIds, index) {
   }
 
   const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
+  // Décale les vidéos déjà en place pour insérer celle-ci à sa position, sans doublon
+  // d'ordre (deux lignes au même displayOrder rendraient l'affichage indéterminé).
+  if (!DRY_RUN) {
+    const siblings = await getPageContentItems();
+    for (const sibling of siblings) {
+      if (sibling.contentType !== "youtube_video") continue;
+      if (sibling.displayOrder < index) continue;
+      await db
+        .update(pageContent)
+        .set({ displayOrder: sibling.displayOrder + 1 })
+        .where(eq(pageContent.id, sibling.id));
+    }
+  }
   const { date: culteDate, source } = resolveCulteDate({
     title: entry.title,
     description: null,
@@ -515,10 +529,31 @@ async function main() {
   }
   console.log("");
 
+  // Fenêtre de conservation : une vidéo plus ancienne ne doit pas être réimportée après
+  // que le nettoyage l'a supprimée — le flux RSS la propose encore pendant des semaines.
+  const retentionLimit = new Date();
+  retentionLimit.setMonth(retentionLimit.getMonth() - MONTHS_TO_KEEP);
+
+  const importable = entries
+    .map((entry, index) => ({ entry, index }))
+    .filter(({ entry }) => {
+      const { date } = resolveCulteDate({
+        title: entry.title,
+        description: null,
+        publishedDate: entry.publishedDate,
+      });
+      return date && date >= retentionLimit;
+    });
+
+  const skipped = entries.length - importable.length;
+  if (skipped > 0) {
+    console.log(`⏭️ ${skipped} vidéo(s) du flux ignorée(s) : culte de plus de ${MONTHS_TO_KEEP} mois`);
+    console.log("");
+  }
+
   let newCount = 0;
-  for (let i = 0; i < entries.length && i < MAX_VIDEOS_PER_RUN; i++) {
-    const entry = entries[i];
-    const added = await createVideoContent(entry, existingIds, i);
+  for (const { entry, index } of importable.slice(0, MAX_VIDEOS_PER_RUN)) {
+    const added = await createVideoContent(entry, existingIds, index);
     if (added) {
       newCount++;
       existingIds.add(entry.videoId);

@@ -20,7 +20,7 @@ $xml = @"
         <Interval>PT1H</Interval>
         <StopAtDurationEnd>false</StopAtDurationEnd>
       </Repetition>
-      <StartBoundary>2026-05-17T08:00:00</StartBoundary>
+      <StartBoundary>2026-11-13T00:00:00</StartBoundary>
       <Enabled>true</Enabled>
     </TimeTrigger>
   </Triggers>
