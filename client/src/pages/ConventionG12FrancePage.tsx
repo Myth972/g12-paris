@@ -5,7 +5,12 @@ import PageContentDisplay from "@/components/PageContentDisplay";
 import { Reveal } from "@/components/Reveal";
 import ConventionCountdown from "@/components/ConventionCountdown";
 import ShareButtons from "@/components/ShareButtons";
-import { downloadConventionIcs, formatEventRange } from "@/lib/conventionCalendar";
+import {
+  downloadConventionIcs,
+  formatEventRange,
+  formatEventPeriod,
+} from "@/lib/conventionCalendar";
+import { HERO_DEFAULTS, HERO_KEYS } from "@/lib/conventionHero";
 import {
   BILINGUAL_DEFAULTS,
   BILINGUAL_KEYS,
@@ -30,6 +35,7 @@ import { useSeo } from "@/lib/seo";
 import { eventJsonLd } from "@/lib/structuredData";
 import OptimizedImage from "@/components/OptimizedImage";
 import ConventionBilingualEditor from "@/components/ConventionBilingualEditor";
+import ConventionHeroEditor from "@/components/ConventionHeroEditor";
 
 function renderWithLineBreaks(text: string) {
   const lines = text.split("\n");
@@ -239,18 +245,20 @@ export default function ConventionG12FrancePage() {
     (settingsQuery.data?.[`pageText.convention-g12.${key}`] as
       string | undefined) ?? fallback;
 
+  // Bloc d'accueil : clés et valeurs de repli dans @/lib/conventionHero,
+  // partagées avec l'éditeur admin. Les dates ne sont plus rédigées : la
+  // pastille compose son libellé éditable avec la période calculée depuis
+  // les réglages de l'événement.
   const heroTitle =
-    (settingsQuery.data?.["pageTitle.convention-g12.h1"] as
-      string | undefined) ?? "Bienvenue à la Convention G12 France";
+    (settingsQuery.data?.[HERO_KEYS.h1] as string | undefined) ??
+    HERO_DEFAULTS.h1;
   const heroH2 =
-    (settingsQuery.data?.["pageTitle.convention-g12.h2"] as
-      string | undefined) ?? "";
-  const heroText = pageText(
-    "hero",
-    "Rejoignez-nous pour cet événement exceptionnel de transformation, d'équipement et de vision. Vivez la puissance de la vision G12 en France."
-  );
-  const dateInfo = pageText("date_info", "Prochain événement");
-  const locationInfo = pageText("location_info", "En ligne & En présentiel");
+    (settingsQuery.data?.[HERO_KEYS.h2] as string | undefined) ??
+    HERO_DEFAULTS.h2;
+  const heroText = pageText("hero", HERO_DEFAULTS.text);
+  const dateInfo = pageText("date_info", HERO_DEFAULTS.dateLabel);
+  const locationInfo = pageText("location_info", HERO_DEFAULTS.locationLabel);
+  const eventPeriod = formatEventPeriod(eventStart, eventEnd);
 
   // Textes du bloc bilingue : valeurs par défaut et clés viennent d'une
   // source unique (@/lib/conventionBilingual) pour ne pas diverger de
@@ -409,6 +417,8 @@ export default function ConventionG12FrancePage() {
           />
 
           <div className="container relative z-10 px-4 sm:px-0">
+            {/* Éditeur admin : titre, sous-titre, paragraphe */}
+            <ConventionHeroEditor />
             <div className="mb-6">
               <Button
                 variant="ghost"
@@ -456,6 +466,7 @@ export default function ConventionG12FrancePage() {
                 <div className="flex items-center gap-2 text-sm text-muted-foreground bg-white dark:bg-card px-4 py-2 rounded-full shadow-sm border">
                   <Calendar className="w-4 h-4 convention-primary-text text-primary" />
                   {dateInfo}
+                  {eventPeriod ? " " + eventPeriod : ""}
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground bg-white dark:bg-card px-4 py-2 rounded-full shadow-sm border">
                   <MapPin className="w-4 h-4 convention-primary-text text-primary" />

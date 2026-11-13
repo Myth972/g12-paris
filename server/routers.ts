@@ -2434,6 +2434,74 @@ Réponds UNIQUEMENT en JSON :
         }
       }),
 
+    /**
+     * Reformulation d'un texte français (bloc d'accueil de la Convention).
+     * Même contrat que `translate` : quota, journalisation, repli de provider.
+     */
+    suggest: adminProcedure
+      .input(
+        zod.object({
+          text: z.string().min(1).max(4000),
+          brief: z.string().max(300).optional(),
+        })
+      )
+      .mutation(async ({ input, ctx }) => {
+        const userId = ctx.user?.id?.toString() || "anonymous";
+        checkUserQuota(userId, estimateTokens(input.text) + 200);
+
+        const db = getDb();
+        let provider: "google" | "groq" | "minimax" | "aimlapi" | undefined;
+        if (db) {
+          const rows = await db
+            .select()
+            .from(siteSettings)
+            .where(eq(siteSettings.key, "aiProvider"))
+            .limit(1);
+          provider = rows[0]?.value as any;
+        }
+
+        const goal = input.brief ? ` Objectif demandé : ${input.brief}.` : "";
+        const prompt = `Voici un texte français destiné à la page d'un événement chrétien.${goal} Propose une seule reformulation en français, sans inventer aucun fait (dates, lieux, chiffres, noms) et sans changer le sens. Renvoie UNIQUEMENT le texte proposé, sans guillemets ni commentaire :\n\n${input.text}`;
+
+        const startTime = Date.now();
+        try {
+          const response = await invokeLLMWithFallback({
+            messages: [
+              {
+                role: "system",
+                content:
+                  "Tu es un rédacteur français spécialisé dans les textes d'église. Tu renvoies uniquement la proposition demandée.",
+              },
+              { role: "user", content: prompt },
+            ],
+            provider,
+          });
+
+          const content = response.choices[0].message.content as string;
+          const result = content
+            .replace(/^```[a-z]*\s*/i, "")
+            .replace(/```$/i, "")
+            .trim();
+          logAiUsage({
+            timestamp: new Date(), userId, provider: provider || "groq",
+            model: response.model, endpoint: "ai.suggest",
+            inputTokens: estimateTokens(prompt), outputTokens: estimateTokens(content),
+            totalTokens: estimateTokens(prompt) + estimateTokens(content),
+            success: true, durationMs: Date.now() - startTime,
+          });
+          return result;
+        } catch (err: any) {
+          logAiUsage({
+            timestamp: new Date(), userId, provider: provider || "groq",
+            model: "unknown", endpoint: "ai.suggest",
+            inputTokens: estimateTokens(prompt), outputTokens: 0,
+            totalTokens: estimateTokens(prompt), success: false,
+            error: err.message, durationMs: Date.now() - startTime,
+          });
+          throw err;
+        }
+      }),
+
     search: publicProcedure
       .input(
         zod.object({

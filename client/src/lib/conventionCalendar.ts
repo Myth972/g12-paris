@@ -186,3 +186,91 @@ export function formatEventRange(
     ? day(startDay) + " " + startMonth + " — " + day(endDay) + " " + endMonth
     : startMonth + " " + startDay + " — " + endMonth + " " + endDay;
 }
+
+/**
+ * Formate la période de l'événement pour la pastille du bloc d'accueil :
+ *
+ *   « du 30 oct. au 1er nov. 2026 »
+ *   « du 30 au 31 oct. 2026 »   (même mois)
+ *   « le 15 nov. 2026 »         (un seul jour)
+ *
+ * Le libellé de la pastille (« Prochain événement ») reste un texte éditable :
+ * seules les dates sont calculées, pour ne plus avoir à les réécrire après un
+ * report de l'événement.
+ *
+ * @returns la période préfixée par sa préposition, ou "" si les dates sont invalides
+ */
+export function formatEventPeriod(startISO: string, endISO: string): string {
+  const start = new Date(startISO);
+  const end = new Date(endISO);
+  if (
+    Number.isNaN(start.getTime()) ||
+    Number.isNaN(end.getTime()) ||
+    end < start
+  ) {
+    return "";
+  }
+
+  const dayOf = (date: Date) => {
+    const value = new Intl.DateTimeFormat("fr-FR", { day: "numeric" }).format(
+      date
+    );
+    return value === "1" ? "1er" : value;
+  };
+  const monthOf = (date: Date) =>
+    new Intl.DateTimeFormat("fr-FR", { month: "short" }).format(date);
+  const yearOf = (date: Date) => String(date.getFullYear());
+
+  const sameDay =
+    start.getDate() === end.getDate() &&
+    start.getMonth() === end.getMonth() &&
+    start.getFullYear() === end.getFullYear();
+  const sameMonth =
+    start.getMonth() === end.getMonth() &&
+    start.getFullYear() === end.getFullYear();
+  const sameYear = start.getFullYear() === end.getFullYear();
+
+  if (sameDay) {
+    return "le " + dayOf(start) + " " + monthOf(start) + " " + yearOf(start);
+  }
+  if (sameMonth) {
+    return (
+      "du " +
+      dayOf(start) +
+      " au " +
+      dayOf(end) +
+      " " +
+      monthOf(start) +
+      " " +
+      yearOf(start)
+    );
+  }
+  if (sameYear) {
+    return (
+      "du " +
+      dayOf(start) +
+      " " +
+      monthOf(start) +
+      " au " +
+      dayOf(end) +
+      " " +
+      monthOf(end) +
+      " " +
+      yearOf(end)
+    );
+  }
+  return (
+    "du " +
+    dayOf(start) +
+    " " +
+    monthOf(start) +
+    " " +
+    yearOf(start) +
+    " au " +
+    dayOf(end) +
+    " " +
+    monthOf(end) +
+    " " +
+    yearOf(end)
+  );
+}
