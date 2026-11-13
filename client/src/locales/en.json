@@ -251,7 +251,10 @@
       "design": {
         "title": "Design & Visual Identity",
         "saving": "Saving...",
-        "saved": "Save changes",
+        "saveChanges": "Save changes",
+        "saveAll": "Save all",
+        "saveAllHint": "Saves every setting on this page",
+        "saveConvention": "Save convention",
         "toastSaved": "Design settings saved successfully.",
         "toastSaveError": "Error saving settings.",
         "toastImageUploaded": "Image uploaded successfully",

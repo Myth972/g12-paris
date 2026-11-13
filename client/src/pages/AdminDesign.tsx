@@ -265,7 +265,7 @@ export default function AdminDesign() {
       className="gap-2"
     >
       {setSetting.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-      {setSetting.isPending ? t('admin.design.saving') : (label || t('admin.design.saved'))}
+      {setSetting.isPending ? t('admin.design.saving') : (label || t('admin.design.saveChanges'))}
     </Button>
   );
 
@@ -375,9 +375,17 @@ export default function AdminDesign() {
               <h1 className="text-lg sm:text-2xl font-bold font-serif truncate">{t('admin.design.title')}</h1>
             </div>
           </div>
-          <Button onClick={() => handleSave()} disabled={setSetting.isPending} className="gap-2 shrink-0" size="sm">
+          {/* Action globale : enregistre tous les réglages (chaque section a aussi la sienne) */}
+          <Button
+            onClick={() => handleSave()}
+            disabled={setSetting.isPending}
+            className="gap-2 shrink-0"
+            size="sm"
+            title={t('admin.design.saveAllHint')}
+            aria-label={t('admin.design.saveAll')}
+          >
             {setSetting.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            <span className="hidden sm:inline">{setSetting.isPending ? t('admin.design.saving') : t('admin.design.saved')}</span>
+            <span className="hidden sm:inline">{setSetting.isPending ? t('admin.design.saving') : t('admin.design.saveAll')}</span>
           </Button>
         </div>
       </div>
@@ -1399,7 +1407,7 @@ export default function AdminDesign() {
           </div>
 
           <div className="flex justify-end mt-6 pt-4 border-t">
-            <SaveButton sectionKeys={["convention."]} label="Enregistrer la Convention" />
+            <SaveButton sectionKeys={["convention."]} label={t('admin.design.saveConvention')} />
           </div>
         </section>
 

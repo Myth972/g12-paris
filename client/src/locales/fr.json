@@ -251,7 +251,10 @@
       "design": {
         "title": "Design & Identité Visuelle",
         "saving": "Enregistrement...",
-        "saved": "Enregistrer les modifications",
+        "saveChanges": "Enregistrer les modifications",
+        "saveAll": "Tout enregistrer",
+        "saveAllHint": "Enregistre tous les réglages de la page",
+        "saveConvention": "Enregistrer la Convention",
         "toastSaved": "Paramètres de design enregistrés avec succès.",
         "toastSaveError": "Erreur lors de l'enregistrement des paramètres.",
         "toastImageUploaded": "Image téléchargée avec succès",
