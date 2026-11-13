@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useImperativeHandle, useRef, useState } from "react";
+import type { Ref } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Languages, Loader2, Save, Wand2 } from "lucide-react";
+import { Languages, Loader2, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   BILINGUAL_DEFAULTS,
@@ -12,6 +13,7 @@ import {
   type BilingualLang,
   type BilingualTexts,
 } from "@/lib/conventionBilingual";
+import type { TextBlockEditorHandle } from "@/lib/textBlockEditor";
 
 const PAGE_KEY = "convention-g12";
 
@@ -35,8 +37,15 @@ const FIELDS: { id: keyof BilingualTexts; label: string; multiline: boolean }[] 
  * anglaise » appelle `ai.translate` et remplit la colonne EN, qui reste
  * modifiable : rien n'est écrit deux fois, et la suggestion est relue avant
  * d'être enregistrée. Les dates, elles, viennent des réglages de l'événement.
+ *
+ * Aucun bouton d'enregistrement ici : la section Convention appelle `save()`
+ * via sa référence, en même temps que ses propres réglages.
  */
-export default function ConventionBilingualEditor() {
+export default function ConventionBilingualEditor({
+  ref,
+}: {
+  ref?: Ref<TextBlockEditorHandle>;
+}) {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
 
@@ -44,7 +53,6 @@ export default function ConventionBilingualEditor() {
   const [fr, setFr] = useState<BilingualTexts>(BILINGUAL_DEFAULTS.fr);
   const [en, setEn] = useState<BilingualTexts>(BILINGUAL_DEFAULTS.en);
   const [translating, setTranslating] = useState(false);
-  const [saving, setSaving] = useState(false);
   /** État de la suggestion automatique, affiché en une ligne discrète. */
   const [autoStatus, setAutoStatus] = useState<
     "idle" | "working" | "error"
@@ -135,8 +143,6 @@ export default function ConventionBilingualEditor() {
     return () => window.clearTimeout(timer);
   }, [fr, open, isAdmin]);
 
-  if (!isAdmin) return null;
-
   const update = (lang: BilingualLang, id: keyof BilingualTexts, value: string) => {
     if (lang === "fr") setFr(prev => ({ ...prev, [id]: value }));
     else setEn(prev => ({ ...prev, [id]: value }));
@@ -172,36 +178,29 @@ export default function ConventionBilingualEditor() {
     }
   };
 
-  /** Enregistre les deux langues en une fois. */
+  /** Écrit les deux langues. L'erreur remonte au bouton de la section. */
   const save = async () => {
-    setSaving(true);
-    try {
-      const payload: { key: string; value: string }[] = [];
-      for (const field of FIELDS) {
-        payload.push({
-          key: settingKey(BILINGUAL_KEYS.fr[field.id]),
-          value: fr[field.id],
-        });
-        payload.push({
-          key: settingKey(BILINGUAL_KEYS.en[field.id]),
-          value: en[field.id],
-        });
-      }
-      await Promise.all(payload.map(entry => setSetting.mutateAsync(entry)));
-      await utils.siteSettings.getAll.invalidate();
-      toast.success("Bloc bilingue enregistré (FR + EN).");
-    } catch (error) {
-      toast.error(
-        "Enregistrement impossible : " +
-          (error instanceof Error ? error.message : "erreur inconnue")
-      );
-    } finally {
-      setSaving(false);
+    const payload: { key: string; value: string }[] = [];
+    for (const field of FIELDS) {
+      payload.push({
+        key: settingKey(BILINGUAL_KEYS.fr[field.id]),
+        value: fr[field.id],
+      });
+      payload.push({
+        key: settingKey(BILINGUAL_KEYS.en[field.id]),
+        value: en[field.id],
+      });
     }
+    await Promise.all(payload.map(entry => setSetting.mutateAsync(entry)));
+    await utils.siteSettings.getAll.invalidate();
   };
 
+  useImperativeHandle(ref, () => ({ save }), [save]);
+
+  if (!isAdmin) return null;
+
   return (
-    <div className="mb-8 rounded-2xl border border-dashed border-primary/40 bg-background/60 p-4 text-left backdrop-blur-sm">
+    <div className="mb-4 rounded-2xl border border-dashed border-primary/40 bg-background/60 p-4 text-left">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="flex items-center gap-2 text-sm font-medium text-foreground">
           <Languages className="h-4 w-4 shrink-0 text-primary" />
@@ -282,7 +281,7 @@ export default function ConventionBilingualEditor() {
               size="sm"
               variant="outline"
               onClick={suggestEnglish}
-              disabled={translating || saving}
+              disabled={translating}
             >
               {translating ? (
                 <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
@@ -291,15 +290,11 @@ export default function ConventionBilingualEditor() {
               )}
               Retraduire maintenant
             </Button>
-                          <Button size="sm" onClick={save} disabled={saving || translating}>
-              {saving ? (
-                <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Save className="mr-1 h-3.5 w-3.5" />
-              )}
-              Enregistrer FR + EN
-            </Button>
           </div>
+
+          <p className="text-xs text-muted-foreground">
+            Les textes partent avec le bouton « Enregistrer la Convention ».
+          </p>
 
           {/* État de la suggestion automatique */}
           <p

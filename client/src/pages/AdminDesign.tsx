@@ -35,6 +35,10 @@ import { useBlobUpload } from "@/hooks/useBlobUpload";
 import { optimizeImageFile } from "@/lib/optimizeImage";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useTranslation } from "react-i18next";
+// Éditeurs de la page Convention, déplacés ici depuis la page publique
+import ConventionHeroEditor from "@/components/ConventionHeroEditor";
+import ConventionBilingualEditor from "@/components/ConventionBilingualEditor";
+import type { TextBlockEditorHandle } from "@/lib/textBlockEditor";
 
 export default function AdminDesign() {
   const { user } = useAuth();
@@ -116,6 +120,10 @@ export default function AdminDesign() {
 
   const { uploadFile } = useBlobUpload();
   const [uploading, setUploading] = useState<string | null>(null);
+  // Les éditeurs de textes sont enregistrés par le bouton de la section
+  const heroTextRef = useRef<TextBlockEditorHandle>(null);
+  const bilingualTextRef = useRef<TextBlockEditorHandle>(null);
+  const [savingTexts, setSavingTexts] = useState(false);
   const logoLightRef = useRef<HTMLInputElement>(null);
   const logoDarkRef = useRef<HTMLInputElement>(null);
   const bannerRef = useRef<HTMLInputElement>(null);
@@ -249,6 +257,16 @@ export default function AdminDesign() {
       ];
       const toSave = keys ? allSettings.filter(([k]) => keys.some(prefix => k.startsWith(prefix))) : allSettings;
       await Promise.all(toSave.map(([key, value]) => setSetting.mutateAsync({ key, value })));
+      // La section Convention emporte aussi les textes de la page
+      if (!keys || keys.includes("convention.")) {
+        setSavingTexts(true);
+        try {
+          await heroTextRef.current?.save();
+          await bilingualTextRef.current?.save();
+        } finally {
+          setSavingTexts(false);
+        }
+      }
       toast.success(t('admin.design.toastSaved'));
       await utils.siteSettings.getAll.invalidate();
     } catch (e) {
@@ -261,7 +279,7 @@ export default function AdminDesign() {
       variant={sectionKeys ? "outline" : "default"}
       size={sectionKeys ? "sm" : "default"}
       onClick={() => handleSave(sectionKeys)}
-      disabled={setSetting.isPending}
+      disabled={setSetting.isPending || savingTexts}
       className="gap-2"
     >
       {setSetting.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
@@ -378,7 +396,7 @@ export default function AdminDesign() {
           {/* Action globale : enregistre tous les réglages (chaque section a aussi la sienne) */}
           <Button
             onClick={() => handleSave()}
-            disabled={setSetting.isPending}
+            disabled={setSetting.isPending || savingTexts}
             className="gap-2 shrink-0"
             size="sm"
             title={t('admin.design.saveAllHint')}
@@ -1406,6 +1424,20 @@ export default function AdminDesign() {
             </div>
           </div>
 
+          {/* Textes de la page Convention : édités ici, et non plus sur la page publique */}
+          <div className="mt-8 border-t pt-6">
+            <h3 className="text-base font-bold font-serif flex items-center gap-2">
+              <Type className="w-4 h-4 text-primary" /> Textes de la page Convention
+            </h3>
+            <p className="text-xs text-muted-foreground mt-1 mb-4">
+              Bloc d'accueil et bloc bilingue. Ces éditeurs n'apparaissent
+              plus sur la page publique : leurs textes partent avec le bouton
+              « Enregistrer la Convention » ci-dessous, en même temps que les
+              réglages.
+            </p>
+            <ConventionHeroEditor ref={heroTextRef} />
+            <ConventionBilingualEditor ref={bilingualTextRef} />
+          </div>
           <div className="flex justify-end mt-6 pt-4 border-t">
             <SaveButton sectionKeys={["convention."]} label={t('admin.design.saveConvention')} />
           </div>

@@ -34,8 +34,6 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { useSeo } from "@/lib/seo";
 import { eventJsonLd } from "@/lib/structuredData";
 import OptimizedImage from "@/components/OptimizedImage";
-import ConventionBilingualEditor from "@/components/ConventionBilingualEditor";
-import ConventionHeroEditor from "@/components/ConventionHeroEditor";
 
 function renderWithLineBreaks(text: string) {
   const lines = text.split("\n");
@@ -417,8 +415,6 @@ export default function ConventionG12FrancePage() {
           />
 
           <div className="container relative z-10 px-4 sm:px-0">
-            {/* Éditeur admin : titre, sous-titre, paragraphe */}
-            <ConventionHeroEditor />
             <div className="mb-6">
               <Button
                 variant="ghost"
@@ -793,8 +789,6 @@ export default function ConventionG12FrancePage() {
             <Reveal variant="fadeUp" delay={0.12}>
               <section className="container convention-band py-12 px-4 sm:py-16">
                 <div className="max-w-4xl mx-auto text-center space-y-10">
-                  {/* Éditeur admin : français saisi, anglais suggéré */}
-                  <ConventionBilingualEditor />
                   {/* French */}
                   <div className="space-y-3">
                     <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight whitespace-pre-wrap">

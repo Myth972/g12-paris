@@ -1,27 +1,34 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useImperativeHandle, useRef, useState } from "react";
+import type { Ref } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, Save, Sparkles, Type } from "lucide-react";
+import { Loader2, Sparkles, Type } from "lucide-react";
 import { toast } from "sonner";
 import { HERO_DEFAULTS, HERO_KEYS } from "@/lib/conventionHero";
-
-const PAGE_KEY = "convention-g12";
+import type { TextBlockEditorHandle } from "@/lib/textBlockEditor";
 
 /**
  * Éditeur du bloc d'accueil de la page Convention (admin uniquement).
  *
  * Trois textes seulement : titre, sous-titre et paragraphe. Les dates, elles,
- * ne se saisissent pas — elles sont générées plus bas dans le hero depuis les
- * réglages de l'événement.
+ * ne se saisissent pas — elles sont générées dans le hero depuis les réglages
+ * de l'événement.
  *
  * « Proposer une reformulation » demande une variante à l'IA (`ai.suggest`) et
  * l'affiche à part : elle n'est appliquée que si l'admin le décide, une
  * reformulation automatique à chaque frappe se battrait avec la rédaction.
+ *
+ * Aucun bouton d'enregistrement ici : la section Convention appelle `save()`
+ * via sa référence, en même temps que ses propres réglages.
  */
-export default function ConventionHeroEditor() {
+export default function ConventionHeroEditor({
+  ref,
+}: {
+  ref?: Ref<TextBlockEditorHandle>;
+}) {
   const { user } = useAuth();
   const isAdmin = user?.role === "admin";
 
@@ -31,7 +38,6 @@ export default function ConventionHeroEditor() {
   const [text, setText] = useState<string>(HERO_DEFAULTS.text);
   const [suggestion, setSuggestion] = useState<string | null>(null);
   const [suggesting, setSuggesting] = useState(false);
-  const [saving, setSaving] = useState(false);
   const hydrated = useRef(false);
 
   const settingsQuery = trpc.siteSettings.getAll.useQuery(undefined, {
@@ -39,7 +45,6 @@ export default function ConventionHeroEditor() {
   });
   const setSetting = trpc.siteSettings.set.useMutation();
   const suggest = trpc.ai.suggest.useMutation();
-  const utils = trpc.useUtils();
 
   /** Pré-remplit depuis la base (une seule fois). */
   useEffect(() => {
@@ -50,8 +55,6 @@ export default function ConventionHeroEditor() {
     setText((data[HERO_KEYS.text] as string | undefined) ?? HERO_DEFAULTS.text);
     hydrated.current = true;
   }, [settingsQuery.data]);
-
-  if (!isAdmin) return null;
 
   const askSuggestion = async () => {
     if (!text.trim()) {
@@ -75,28 +78,21 @@ export default function ConventionHeroEditor() {
     }
   };
 
+  /** Écrit les trois textes. L'erreur remonte au bouton de la section. */
   const save = async () => {
-    setSaving(true);
-    try {
-      await Promise.all([
-        setSetting.mutateAsync({ key: HERO_KEYS.h1, value: h1 }),
-        setSetting.mutateAsync({ key: HERO_KEYS.h2, value: h2 }),
-        setSetting.mutateAsync({ key: HERO_KEYS.text, value: text }),
-      ]);
-      await utils.siteSettings.getAll.invalidate();
-      toast.success("Bloc d'accueil enregistré.");
-    } catch (error) {
-      toast.error(
-        "Enregistrement impossible : " +
-          (error instanceof Error ? error.message : "erreur inconnue")
-      );
-    } finally {
-      setSaving(false);
-    }
+    await Promise.all([
+      setSetting.mutateAsync({ key: HERO_KEYS.h1, value: h1 }),
+      setSetting.mutateAsync({ key: HERO_KEYS.h2, value: h2 }),
+      setSetting.mutateAsync({ key: HERO_KEYS.text, value: text }),
+    ]);
   };
 
+  useImperativeHandle(ref, () => ({ save }), [save]);
+
+  if (!isAdmin) return null;
+
   return (
-    <div className="mb-8 rounded-2xl border border-dashed border-primary/40 bg-background/60 p-4 text-left backdrop-blur-sm">
+    <div className="mb-4 rounded-2xl border border-dashed border-primary/40 bg-background/60 p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="flex items-center gap-2 text-sm font-medium text-foreground">
           <Type className="h-4 w-4 shrink-0 text-primary" />
@@ -177,29 +173,23 @@ export default function ConventionHeroEditor() {
             </div>
           )}
 
-          <div className="flex flex-wrap gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={askSuggestion}
-              disabled={suggesting || saving}
-            >
-              {suggesting ? (
-                <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Sparkles className="mr-1 h-3.5 w-3.5" />
-              )}
-              Proposer une reformulation
-            </Button>
-            <Button size="sm" onClick={save} disabled={saving || suggesting}>
-              {saving ? (
-                <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
-              ) : (
-                <Save className="mr-1 h-3.5 w-3.5" />
-              )}
-              Enregistrer
-            </Button>
-          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={askSuggestion}
+            disabled={suggesting}
+          >
+            {suggesting ? (
+              <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <Sparkles className="mr-1 h-3.5 w-3.5" />
+            )}
+            Proposer une reformulation
+          </Button>
+
+          <p className="text-xs text-muted-foreground">
+            Les textes partent avec le bouton « Enregistrer la Convention ».
+          </p>
         </div>
       )}
     </div>
