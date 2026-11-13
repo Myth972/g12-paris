@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import type { CSSProperties } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import PageContentDisplay from "@/components/PageContentDisplay";
 import { Reveal } from "@/components/Reveal";
@@ -115,10 +116,6 @@ export default function ConventionG12FrancePage() {
   const bgUrl =
     (settingsQuery.data?.["convention.bgUrl"] as string) ||
     "https://conventiong12france.com/wp-content/uploads/2025/10/LHERITAGE-2025-1536x861.png";
-  const bgUrlMiddle =
-    (settingsQuery.data?.["convention.bgUrlMiddle"] as string) || "";
-  const bgUrlBottom =
-    (settingsQuery.data?.["convention.bgUrlBottom"] as string) || "";
   const primaryColor = settingsQuery.data?.[
     "convention.primaryColor"
   ] as string;
@@ -202,23 +199,18 @@ export default function ConventionG12FrancePage() {
     (settingsQuery.data?.["convention.bgSize"] as string) || "cover";
   const bgPosition =
     (settingsQuery.data?.["convention.bgPosition"] as string) || "center";
-  const bgOpacityMiddle = clampOpacity(
-    readNumSetting("convention.bgOpacityMiddle", 100)
-  );
-  const bgSizeMiddle =
-    (settingsQuery.data?.["convention.bgSizeMiddle"] as string) || "cover";
-  const bgPositionMiddle =
-    (settingsQuery.data?.["convention.bgPositionMiddle"] as string) || "center";
-  const bgOpacityBottom = clampOpacity(
-    readNumSetting("convention.bgOpacityBottom", 100)
-  );
-  const bgSizeBottom =
-    (settingsQuery.data?.["convention.bgSizeBottom"] as string) || "cover";
-  const bgPositionBottom =
-    (settingsQuery.data?.["convention.bgPositionBottom"] as string) || "center";
   const overlayStyle =
     (settingsQuery.data?.["convention.overlayStyle"] as string) || "auto";
   const bgParallax = settingsQuery.data?.["convention.bgParallax"] === "true";
+
+  // Intensité du voile « auto » des photos de fond (Admin → Design).
+  // Posée en variable CSS : les trois voiles la lisent en même temps.
+  const veilOpacity = clampOpacity(
+    readNumSetting("convention.veilOpacity", 60)
+  );
+  const veilStyle = {
+    "--veil-opacity": String(veilOpacity / 100),
+  } as CSSProperties;
 
   const overlayClass = (hasBg: boolean) => {
     if (!hasBg) return "";
@@ -232,7 +224,7 @@ export default function ConventionG12FrancePage() {
       case "none":
         return "";
       default:
-        return "bg-white/80 dark:bg-black/80";
+        return "convention-veil";
     }
   };
 
@@ -384,7 +376,7 @@ export default function ConventionG12FrancePage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen convention-ambient" style={veilStyle}>
       {primaryColor && (
         <style
           dangerouslySetInnerHTML={{
@@ -414,9 +406,6 @@ export default function ConventionG12FrancePage() {
                 priority
               />
             </div>
-          )}
-          {!bgUrl && (
-            <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-background to-background pointer-events-none" />
           )}
           <div
             className={`absolute inset-0 ${overlayClass(!!bgUrl)} pointer-events-none`}
@@ -504,24 +493,6 @@ export default function ConventionG12FrancePage() {
       {(youtubeVideoId || vimeoVideoId || facebookVideoUrl || liveEnabled) && (
         <Reveal variant="fadeUp" delay={0.1}>
           <section className="container pb-8 px-4 sm:px-0 mt-8 relative">
-            {bgUrlMiddle && (
-              <div
-                className="absolute inset-0 overflow-hidden rounded-xl"
-                style={{ opacity: bgOpacityMiddle / 100 }}
-              >
-                <ConventionBg
-                  src={bgUrlMiddle}
-                  fit={bgSizeMiddle}
-                  position={bgPositionMiddle}
-                  parallax={bgParallax}
-                />
-              </div>
-            )}
-            {bgUrlMiddle && (
-              <div
-                className={`absolute inset-0 ${overlayClass(true)} pointer-events-none`}
-              />
-            )}
             <div className="max-w-4xl mx-auto relative z-10">
               {/* YouTube */}
               {youtubeVideoId && (
@@ -753,13 +724,13 @@ export default function ConventionG12FrancePage() {
       {/* Map / Localisation */}
       {mapEnabled && (
         <Reveal variant="fadeUp" delay={0.1}>
-          <section className="container py-10 px-4 sm:px-0">
+          <section className="container convention-band py-12 px-4 sm:py-16">
             <div className="max-w-4xl mx-auto">
               <div className="text-center mb-6">
                 <h2 className="text-2xl sm:text-3xl font-serif font-bold text-foreground mb-2">
                   Où se déroule la Convention
                 </h2>
-                <p className="text-sm sm:text-base text-muted-foreground flex items-center justify-center gap-1.5">
+                <p className="text-sm sm:text-base convention-muted flex items-center justify-center gap-1.5">
                   <MapPin className="w-4 h-4 text-primary" />
                   {venueName}
                   {venueAddress && (
@@ -767,7 +738,7 @@ export default function ConventionG12FrancePage() {
                   )}
                 </p>
               </div>
-              <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-xl border-4 border-white/10 dark:border-white/5 aspect-[16/9] min-h-[300px]">
+              <div className="relative w-full rounded-xl sm:rounded-2xl overflow-hidden shadow-xl border-4 border-white/10 dark:border-white/5 aspect-[16/9] min-h-[300px]">
                 <iframe
                   title={`Carte - ${venueName}`}
                   src={`https://www.google.com/maps?q=${encodeURIComponent(venueQuery)}&output=embed`}
@@ -805,32 +776,14 @@ export default function ConventionG12FrancePage() {
         </Reveal>
       )}
 
-      {/* Bottom Zone: Bilingual + Content */}
+      {/* Contenu : appel bilingue + contenu éditable (fond papier de la page) */}
       <div className="relative">
         {" "}
-        {bgUrlBottom && (
-          <div
-            className="absolute inset-0"
-            style={{ opacity: bgOpacityBottom / 100 }}
-          >
-            <ConventionBg
-              src={bgUrlBottom}
-              fit={bgSizeBottom}
-              position={bgPositionBottom}
-              parallax={bgParallax}
-            />
-          </div>
-        )}
-        {bgUrlBottom && (
-          <div
-            className={`absolute inset-0 ${overlayClass(true)} pointer-events-none`}
-          />
-        )}
         <div className="relative z-10">
           {/* Bilingual Call to Action */}
           {showBilingualCTA && (
             <Reveal variant="fadeUp" delay={0.12}>
-              <section className="container py-12 px-4 sm:px-0">
+              <section className="container convention-band py-12 px-4 sm:py-16">
                 <div className="max-w-4xl mx-auto text-center space-y-10">
                   {/* French */}
                   <div className="space-y-3">
@@ -847,13 +800,13 @@ export default function ConventionG12FrancePage() {
                       <p className="text-base sm:text-lg font-semibold text-foreground/90">
                         {frSubtitle}
                       </p>
-                      <p className="text-sm sm:text-base text-muted-foreground">
+                      <p className="text-sm sm:text-base convention-muted">
                         {frDates}
                       </p>
-                      <p className="text-sm sm:text-base text-muted-foreground">
+                      <p className="text-sm sm:text-base convention-muted">
                         {frLocation}
                       </p>
-                      <p className="text-xs sm:text-sm font-medium uppercase tracking-wider text-muted-foreground mt-2">
+                      <p className="text-xs sm:text-sm font-medium uppercase tracking-wider convention-muted mt-2">
                         {frCta}
                       </p>
                     </div>
@@ -876,13 +829,13 @@ export default function ConventionG12FrancePage() {
                       <p className="text-base sm:text-lg font-semibold text-foreground/90">
                         {enSubtitle}
                       </p>
-                      <p className="text-sm sm:text-base text-muted-foreground">
+                      <p className="text-sm sm:text-base convention-muted">
                         {enDates}
                       </p>
-                      <p className="text-sm sm:text-base text-muted-foreground">
+                      <p className="text-sm sm:text-base convention-muted">
                         {enLocation}
                       </p>
-                      <p className="text-xs sm:text-sm font-medium uppercase tracking-wider text-muted-foreground mt-2">
+                      <p className="text-xs sm:text-sm font-medium uppercase tracking-wider convention-muted mt-2">
                         {enCta}
                       </p>
                     </div>

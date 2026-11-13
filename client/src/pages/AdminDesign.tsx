@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import type { CSSProperties } from "react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Link, useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -91,8 +92,6 @@ export default function AdminDesign() {
   const [conventionPrimaryColor, setConventionPrimaryColor] = useState("#DC2626");
   const [conventionLogoUrl, setConventionLogoUrl] = useState("");
   const [conventionBgUrl, setConventionBgUrl] = useState("");
-  const [conventionBgUrlMiddle, setConventionBgUrlMiddle] = useState("");
-  const [conventionBgUrlBottom, setConventionBgUrlBottom] = useState("");
   const [conventionLiveEnabled, setConventionLiveEnabled] = useState(false);
   const [conventionYoutubeVideoId, setConventionYoutubeVideoId] = useState("");
   const [conventionFacebookVideoUrl, setConventionFacebookVideoUrl] = useState("");
@@ -111,13 +110,8 @@ export default function AdminDesign() {
   const [conventionBgOpacity, setConventionBgOpacity] = useState("100");
   const [conventionBgSize, setConventionBgSize] = useState("cover");
   const [conventionBgPosition, setConventionBgPosition] = useState("center");
-  const [conventionBgOpacityMiddle, setConventionBgOpacityMiddle] = useState("100");
-  const [conventionBgSizeMiddle, setConventionBgSizeMiddle] = useState("cover");
-  const [conventionBgPositionMiddle, setConventionBgPositionMiddle] = useState("center");
-  const [conventionBgOpacityBottom, setConventionBgOpacityBottom] = useState("100");
-  const [conventionBgSizeBottom, setConventionBgSizeBottom] = useState("cover");
-  const [conventionBgPositionBottom, setConventionBgPositionBottom] = useState("center");
   const [conventionOverlayStyle, setConventionOverlayStyle] = useState("auto");
+  const [conventionVeilOpacity, setConventionVeilOpacity] = useState("60");
   const [conventionBgParallax, setConventionBgParallax] = useState(false);
 
   const { uploadFile } = useBlobUpload();
@@ -127,11 +121,9 @@ export default function AdminDesign() {
   const bannerRef = useRef<HTMLInputElement>(null);
   const conventionLogoRef = useRef<HTMLInputElement>(null);
   const conventionBgRef = useRef<HTMLInputElement>(null);
-  const conventionBgMiddleRef = useRef<HTMLInputElement>(null);
-  const conventionBgBottomRef = useRef<HTMLInputElement>(null);
   const conventionPdfRef = useRef<HTMLInputElement>(null);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logoLight' | 'logoDark' | 'banner' | 'conventionLogo' | 'conventionBg' | 'conventionBgMiddle' | 'conventionBgBottom') => {
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logoLight' | 'logoDark' | 'banner' | 'conventionLogo' | 'conventionBg') => {
     const file = e.target.files?.[0];
     if (!file) return;
     
@@ -144,8 +136,6 @@ export default function AdminDesign() {
       if (type === 'banner') setDefaultBanner(result.url);
       if (type === 'conventionLogo') setConventionLogoUrl(result.url);
       if (type === 'conventionBg') setConventionBgUrl(result.url);
-      if (type === 'conventionBgMiddle') setConventionBgUrlMiddle(result.url);
-      if (type === 'conventionBgBottom') setConventionBgUrlBottom(result.url);
       toast.success(t('admin.design.toastImageUploaded'));
     } catch {
       toast.error(t('admin.design.toastImageError'));
@@ -191,8 +181,6 @@ export default function AdminDesign() {
       if (settingsQuery.data["convention.primaryColor"]) setConventionPrimaryColor(settingsQuery.data["convention.primaryColor"] as string);
       if (settingsQuery.data["convention.logoUrl"]) setConventionLogoUrl(settingsQuery.data["convention.logoUrl"] as string);
       if (settingsQuery.data["convention.bgUrl"]) setConventionBgUrl(settingsQuery.data["convention.bgUrl"] as string);
-      if (settingsQuery.data["convention.bgUrlMiddle"]) setConventionBgUrlMiddle(settingsQuery.data["convention.bgUrlMiddle"] as string);
-      if (settingsQuery.data["convention.bgUrlBottom"]) setConventionBgUrlBottom(settingsQuery.data["convention.bgUrlBottom"] as string);
       if (settingsQuery.data["convention.liveEnabled"] !== undefined) setConventionLiveEnabled(settingsQuery.data["convention.liveEnabled"] === "true");
       if (settingsQuery.data["convention.youtubeVideoId"]) setConventionYoutubeVideoId(settingsQuery.data["convention.youtubeVideoId"] as string);
       if (settingsQuery.data["convention.facebookVideoUrl"]) setConventionFacebookVideoUrl(settingsQuery.data["convention.facebookVideoUrl"] as string);
@@ -211,13 +199,8 @@ export default function AdminDesign() {
       if (settingsQuery.data["convention.bgOpacity"]) setConventionBgOpacity(settingsQuery.data["convention.bgOpacity"] as string);
       if (settingsQuery.data["convention.bgSize"]) setConventionBgSize(settingsQuery.data["convention.bgSize"] as string);
       if (settingsQuery.data["convention.bgPosition"]) setConventionBgPosition(settingsQuery.data["convention.bgPosition"] as string);
-      if (settingsQuery.data["convention.bgOpacityMiddle"]) setConventionBgOpacityMiddle(settingsQuery.data["convention.bgOpacityMiddle"] as string);
-      if (settingsQuery.data["convention.bgSizeMiddle"]) setConventionBgSizeMiddle(settingsQuery.data["convention.bgSizeMiddle"] as string);
-      if (settingsQuery.data["convention.bgPositionMiddle"]) setConventionBgPositionMiddle(settingsQuery.data["convention.bgPositionMiddle"] as string);
-      if (settingsQuery.data["convention.bgOpacityBottom"]) setConventionBgOpacityBottom(settingsQuery.data["convention.bgOpacityBottom"] as string);
-      if (settingsQuery.data["convention.bgSizeBottom"]) setConventionBgSizeBottom(settingsQuery.data["convention.bgSizeBottom"] as string);
-      if (settingsQuery.data["convention.bgPositionBottom"]) setConventionBgPositionBottom(settingsQuery.data["convention.bgPositionBottom"] as string);
       if (settingsQuery.data["convention.overlayStyle"]) setConventionOverlayStyle(settingsQuery.data["convention.overlayStyle"] as string);
+      if (settingsQuery.data["convention.veilOpacity"] !== undefined) setConventionVeilOpacity(String(settingsQuery.data["convention.veilOpacity"]));
       if (settingsQuery.data["convention.bgParallax"] !== undefined) setConventionBgParallax(settingsQuery.data["convention.bgParallax"] === "true");
     }
   }, [settingsQuery.data]);
@@ -242,8 +225,6 @@ export default function AdminDesign() {
         ["convention.primaryColor", conventionPrimaryColor],
         ["convention.logoUrl", conventionLogoUrl],
         ["convention.bgUrl", conventionBgUrl],
-        ["convention.bgUrlMiddle", conventionBgUrlMiddle],
-        ["convention.bgUrlBottom", conventionBgUrlBottom],
         ["convention.liveEnabled", String(conventionLiveEnabled)],
         ["convention.youtubeVideoId", conventionYoutubeVideoId],
         ["convention.facebookVideoUrl", conventionFacebookVideoUrl],
@@ -262,13 +243,8 @@ export default function AdminDesign() {
         ["convention.bgOpacity", conventionBgOpacity],
         ["convention.bgSize", conventionBgSize],
         ["convention.bgPosition", conventionBgPosition],
-        ["convention.bgOpacityMiddle", conventionBgOpacityMiddle],
-        ["convention.bgSizeMiddle", conventionBgSizeMiddle],
-        ["convention.bgPositionMiddle", conventionBgPositionMiddle],
-        ["convention.bgOpacityBottom", conventionBgOpacityBottom],
-        ["convention.bgSizeBottom", conventionBgSizeBottom],
-        ["convention.bgPositionBottom", conventionBgPositionBottom],
         ["convention.overlayStyle", conventionOverlayStyle],
+        ["convention.veilOpacity", conventionVeilOpacity],
         ["convention.bgParallax", String(conventionBgParallax)],
       ];
       const toSave = keys ? allSettings.filter(([k]) => keys.some(prefix => k.startsWith(prefix))) : allSettings;
@@ -992,95 +968,9 @@ export default function AdminDesign() {
               />
             </div>
 
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <label htmlFor="convention-bg-middle-url" className="text-sm font-medium">Image d'arrière-plan (Milieu de page)</label>
-                {conventionBgUrlMiddle && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setConventionBgUrlMiddle("")}
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10 h-7 px-2 text-xs"
-                    aria-label="Supprimer l'image du milieu"
-                  >
-                    <Trash2 className="w-3.5 h-3.5 mr-1" />
-                    Supprimer
-                  </Button>
-                )}
-              </div>
-              <div 
-                className="border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors cursor-pointer bg-muted/30 relative overflow-hidden"
-                onClick={() => conventionBgMiddleRef.current?.click()}
-                aria-label="Upload background milieu convention"
-              >
-                {conventionBgUrlMiddle ? (
-                  <img src={conventionBgUrlMiddle} alt="Background Milieu" className="absolute inset-0 w-full h-full object-cover opacity-50" />
-                ) : (
-                  <>
-                    {uploading === 'conventionBgMiddle' ? <Loader2 className="w-8 h-8 text-muted-foreground mb-2 animate-spin" /> : <ImageIcon className="w-8 h-8 text-muted-foreground mb-2" />}
-                    <span className="text-sm font-medium text-foreground">{uploading === 'conventionBgMiddle' ? t('admin.design.uploading') : t('admin.design.browseOrDrag')}</span>
-                  </>
-                )}
-              </div>
-              <input type="file" ref={conventionBgMiddleRef} className="hidden" accept="image/*" onChange={(e) => handleUpload(e, 'conventionBgMiddle')} id="convention-bg-middle-upload" name="conventionBgMiddleUpload" />
-              <Input id="convention-bg-middle-url" name="conventionBgMiddleUrl" placeholder={t('admin.design.orPasteUrl')} value={conventionBgUrlMiddle} onChange={(e) => setConventionBgUrlMiddle(e.target.value)} className="text-xs" />
-              <ConventionBgTuning
-                opacity={conventionBgOpacityMiddle}
-                setOpacity={setConventionBgOpacityMiddle}
-                size={conventionBgSizeMiddle}
-                setSize={setConventionBgSizeMiddle}
-                position={conventionBgPositionMiddle}
-                setPosition={setConventionBgPositionMiddle}
-              />
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <label htmlFor="convention-bg-bottom-url" className="text-sm font-medium">Image d'arrière-plan (Bas de page)</label>
-                {conventionBgUrlBottom && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setConventionBgUrlBottom("")}
-                    className="text-destructive hover:text-destructive hover:bg-destructive/10 h-7 px-2 text-xs"
-                    aria-label="Supprimer l'image du bas"
-                  >
-                    <Trash2 className="w-3.5 h-3.5 mr-1" />
-                    Supprimer
-                  </Button>
-                )}
-              </div>
-              <div 
-                className="border-2 border-dashed rounded-xl p-8 flex flex-col items-center justify-center text-center hover:bg-muted/50 transition-colors cursor-pointer bg-muted/30 relative overflow-hidden"
-                onClick={() => conventionBgBottomRef.current?.click()}
-                aria-label="Upload background bas convention"
-              >
-                {conventionBgUrlBottom ? (
-                  <img src={conventionBgUrlBottom} alt="Background Bas" className="absolute inset-0 w-full h-full object-cover opacity-50" />
-                ) : (
-                  <>
-                    {uploading === 'conventionBgBottom' ? <Loader2 className="w-8 h-8 text-muted-foreground mb-2 animate-spin" /> : <ImageIcon className="w-8 h-8 text-muted-foreground mb-2" />}
-                    <span className="text-sm font-medium text-foreground">{uploading === 'conventionBgBottom' ? t('admin.design.uploading') : t('admin.design.browseOrDrag')}</span>
-                  </>
-                )}
-              </div>
-              <input type="file" ref={conventionBgBottomRef} className="hidden" accept="image/*" onChange={(e) => handleUpload(e, 'conventionBgBottom')} id="convention-bg-bottom-upload" name="conventionBgBottomUpload" />
-              <Input id="convention-bg-bottom-url" name="conventionBgBottomUrl" placeholder={t('admin.design.orPasteUrl')} value={conventionBgUrlBottom} onChange={(e) => setConventionBgUrlBottom(e.target.value)} className="text-xs" />
-              <ConventionBgTuning
-                opacity={conventionBgOpacityBottom}
-                setOpacity={setConventionBgOpacityBottom}
-                size={conventionBgSizeBottom}
-                setSize={setConventionBgSizeBottom}
-                position={conventionBgPositionBottom}
-                setPosition={setConventionBgPositionBottom}
-              />
-            </div>
-
             <div className="space-y-3 border rounded-xl p-4 bg-muted/20">
               <div className="space-y-1.5">
-                <label className="text-xs text-muted-foreground">Voile (overlay) appliqué aux 3 fonds</label>
+                <label className="text-xs text-muted-foreground">Voile (overlay) de l'arrière-plan</label>
                 <Select value={conventionOverlayStyle} onValueChange={setConventionOverlayStyle}>
                   <SelectTrigger className="h-9 text-xs"><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -1092,6 +982,30 @@ export default function AdminDesign() {
                   </SelectContent>
                 </Select>
               </div>
+
+              {/* Intensité du voile « auto » : 0 % = image brute, 100 % = image masquée */}
+              {conventionOverlayStyle === "auto" && (
+                <div className="space-y-1.5">
+                  <label
+                    htmlFor="convention-veil-opacity"
+                    className="text-xs text-muted-foreground"
+                  >
+                    Intensité du voile « auto » : {conventionVeilOpacity} %
+                    (0 = image brute, 100 = image masquée)
+                  </label>
+                  <input
+                    id="convention-veil-opacity"
+                    name="conventionVeilOpacity"
+                    type="range"
+                    min={0}
+                    max={100}
+                    step={5}
+                    value={conventionVeilOpacity}
+                    onChange={(e) => setConventionVeilOpacity(e.target.value)}
+                    className="w-full accent-primary"
+                  />
+                </div>
+              )}
 
               <label htmlFor="convention-bg-parallax" className="flex items-center gap-x-2.5 cursor-pointer select-none leading-snug">
                 <input
@@ -1105,14 +1019,18 @@ export default function AdminDesign() {
               </label>
 
               <div className="pt-1">
-                <label className="text-xs text-muted-foreground">Aperçu des 3 arrière-plans (rendu réel avec le voile)</label>
+                <label className="text-xs text-muted-foreground">Aperçu de l'arrière-plan (rendu réel avec le voile)</label>
                 <div className="space-y-3 mt-2">
                   {[
-                    { label: "Haut", url: conventionBgUrl, opacity: conventionBgOpacity, size: conventionBgSize, position: conventionBgPosition },
-                    { label: "Milieu", url: conventionBgUrlMiddle, opacity: conventionBgOpacityMiddle, size: conventionBgSizeMiddle, position: conventionBgPositionMiddle },
-                    { label: "Bas", url: conventionBgUrlBottom, opacity: conventionBgOpacityBottom, size: conventionBgSizeBottom, position: conventionBgPositionBottom },
+                    { label: "Haut de page", url: conventionBgUrl, opacity: conventionBgOpacity, size: conventionBgSize, position: conventionBgPosition },
                   ].map(z => (
-                    <div key={z.label} className="relative h-36 rounded-lg overflow-hidden border bg-muted/40">
+                    <div
+                      key={z.label}
+                      className="relative h-36 rounded-lg overflow-hidden border bg-muted/40"
+                      style={{
+                        "--veil-opacity": String(Number(conventionVeilOpacity) / 100),
+                      } as CSSProperties}
+                    >
                       {z.url ? (
                         <>
                           <div
@@ -1503,7 +1421,8 @@ function conventionOverlayClass(hasBg: boolean, style: string): string {
     case "none":
       return "";
     default:
-      return "bg-white/80 dark:bg-black/80";
+      // Même classe que la page réelle : l'aperçu montre le vrai rendu.
+      return "convention-veil";
   }
 }
 

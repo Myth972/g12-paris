@@ -686,3 +686,96 @@
     background-attachment: scroll;
   }
 }
+
+/* ─── Page Convention G12 France : ambiance « papier & encre » ──────────────
+   Reprise de la charte du site officiel (conventiong12france.com) : fond
+   ivoire chaud, panneaux encre brun-noir, accents ambre. Ces classes sont
+   propres à la page convention : les tokens globaux du site ne changent pas. */
+
+/* Fond papier : ivoire chaud + halo ambré en haut + grain très léger.
+   Le grain est un bruit SVG en data: (aucun fichier à héberger). */
+.convention-ambient {
+  background-color: oklch(0.975 0.014 82);
+  background-image:
+    radial-gradient(
+      120% 80% at 50% 0%,
+      oklch(0.72 0.18 55 / 0.08),
+      transparent 60%
+    ),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)' opacity='0.05'/%3E%3C/svg%3E");
+  background-repeat: no-repeat, repeat;
+  background-size: auto, 160px 160px;
+}
+
+.dark .convention-ambient {
+  background-color: oklch(0.17 0.014 60);
+  background-image:
+    radial-gradient(
+      120% 80% at 50% 0%,
+      oklch(0.72 0.18 55 / 0.06),
+      transparent 60%
+    ),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23g)' opacity='0.05'/%3E%3C/svg%3E");
+  background-repeat: no-repeat, repeat;
+  background-size: auto, 160px 160px;
+}
+
+/* Panneau encre : aplat chaud sombre. Le box-shadow + clip-path étendent le
+   fond sur toute la largeur de l'écran sans changer le balisage (les sections
+   concernées gardent leur classe « container »). */
+.convention-band {
+  --band-accent: oklch(0.72 0.18 55);
+  background-color: oklch(0.19 0.035 30);
+  background-image: radial-gradient(
+    100% 120% at 50% 0%,
+    oklch(0.45 0.19 27 / 0.3),
+    transparent 70%
+  );
+  box-shadow: 0 0 0 100vmax oklch(0.19 0.035 30);
+  clip-path: inset(0 -100vmax);
+  color: oklch(0.93 0.02 82);
+}
+
+.dark .convention-band {
+  background-color: oklch(0.13 0.015 40);
+  box-shadow: 0 0 0 100vmax oklch(0.13 0.015 40);
+}
+
+/* Tout le texte du panneau prend la couleur encre clair… */
+.convention-band
+  :is(h1, h2, h3, h4, p, span, strong, li, div, blockquote) {
+  color: inherit;
+}
+
+/* …sauf les accents, qui passent en ambre (lisible sur l'encre, alors que
+   la couleur primaire du site y serait trop sombre). */
+.convention-band .text-primary,
+.convention-band .convention-primary-text {
+  color: var(--band-accent) !important;
+}
+
+/* Textes secondaires du panneau : beige légèrement atténué (la couleur
+   --muted-foreground du site, ardoise, serait illisible sur l'encre).
+   Deux classes = priorité au-dessus de la règle d'héritage du panneau. */
+.convention-band .convention-muted {
+  color: oklch(0.86 0.025 78);
+}
+
+.convention-band .bg-border {
+  background-color: oklch(0.72 0.18 55 / 0.45);
+}
+
+/* Voile des photos de fond de la page convention : papier ivoire translucide
+   plutôt que blanc pur, pour rester dans la même famille de teintes que le
+   fond. Le texte des sections garde ainsi un contraste confortable. */
+.convention-veil {
+  /* L'opacité vient du réglage `convention.veilOpacity` (Admin → Design),
+     posé en variable sur la racine de la page ; 60 % par défaut. */
+  background-color: oklch(0.975 0.014 82 / var(--veil-opacity, 0.6));
+  backdrop-filter: blur(3px) saturate(0.95);
+}
+
+.dark .convention-veil {
+  background-color: oklch(0.14 0.012 55 / var(--veil-opacity, 0.6));
+  backdrop-filter: blur(3px) saturate(0.95);
+}
