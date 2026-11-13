@@ -88,3 +88,101 @@ export function downloadConventionIcs(params: ConventionIcsParams, filename = "c
   a.click();
   URL.revokeObjectURL(url);
 }
+
+/**
+ * Formate la plage de dates d'un événement pour le bloc bilingue de la page
+ * Convention, dans la langue demandée :
+ *
+ *   FR « 30 & 31 OCTOBRE — 1ER NOVEMBRE »
+ *   EN « OCTOBER 30 & 31 — NOVEMBER 1 »
+ *
+ * Les dates ne sont donc saisies qu'une seule fois (Admin → Design) : les
+ * deux langues du bloc suivent automatiquement.
+ *
+ * @param startISO valeur datetime-local du réglage « début »
+ * @param endISO   valeur datetime-local du réglage « fin »
+ * @param lang     langue de rendu
+ * @returns la plage formatée, ou une chaîne vide si les dates sont invalides
+ */
+export function formatEventRange(
+  startISO: string,
+  endISO: string,
+  lang: "fr" | "en"
+): string {
+  const start = new Date(startISO);
+  const end = new Date(endISO);
+  if (
+    Number.isNaN(start.getTime()) ||
+    Number.isNaN(end.getTime()) ||
+    end < start
+  ) {
+    return "";
+  }
+
+  const locale = lang === "fr" ? "fr-FR" : "en-US";
+  const monthOf = (date: Date) =>
+    new Intl.DateTimeFormat(locale, { month: "long" })
+      .format(date)
+      .toUpperCase();
+  // En français, le premier du mois s'écrit « 1ER »
+  const day = (value: number) =>
+    lang === "fr" && value === 1 ? "1ER" : String(value);
+
+  const startDay = start.getDate();
+  const endDay = end.getDate();
+  const startMonth = monthOf(start);
+  const endMonth = monthOf(end);
+  const sameMonth =
+    start.getMonth() === end.getMonth() &&
+    start.getFullYear() === end.getFullYear();
+  // Nombre de jours calendaires couverts (30 oct → 1er nov = 3)
+  const dayCount =
+    Math.round(
+      (Date.UTC(end.getFullYear(), end.getMonth(), end.getDate()) -
+        Date.UTC(start.getFullYear(), start.getMonth(), start.getDate())) /
+        86_400_000
+    ) + 1;
+
+  // Jour unique : « 15 NOVEMBRE » / « NOVEMBER 15 »
+  if (sameMonth && startDay === endDay) {
+    return lang === "fr"
+      ? day(startDay) + " " + startMonth
+      : startMonth + " " + startDay;
+  }
+
+  // Même mois : « 12 & 13 DÉCEMBRE » / « DECEMBER 12 & 13 »
+  if (sameMonth) {
+    return lang === "fr"
+      ? day(startDay) + " & " + day(endDay) + " " + startMonth
+      : startMonth + " " + startDay + " & " + endDay;
+  }
+
+  // Trois jours à cheval sur deux mois :
+  // « 30 & 31 OCTOBRE — 1ER NOVEMBRE » / « OCTOBER 30 & 31 — NOVEMBER 1 »
+  if (dayCount === 3) {
+    return lang === "fr"
+      ? day(startDay) +
+          " & " +
+          day(startDay + 1) +
+          " " +
+          startMonth +
+          " — " +
+          day(endDay) +
+          " " +
+          endMonth
+      : startMonth +
+          " " +
+          startDay +
+          " & " +
+          (startDay + 1) +
+          " — " +
+          endMonth +
+          " " +
+          endDay;
+  }
+
+  // Cas général sur deux mois : « 30 OCTOBRE — 2 NOVEMBRE »
+  return lang === "fr"
+    ? day(startDay) + " " + startMonth + " — " + day(endDay) + " " + endMonth
+    : startMonth + " " + startDay + " — " + endMonth + " " + endDay;
+}

@@ -5,7 +5,12 @@ import PageContentDisplay from "@/components/PageContentDisplay";
 import { Reveal } from "@/components/Reveal";
 import ConventionCountdown from "@/components/ConventionCountdown";
 import ShareButtons from "@/components/ShareButtons";
-import { downloadConventionIcs } from "@/lib/conventionCalendar";
+import { downloadConventionIcs, formatEventRange } from "@/lib/conventionCalendar";
+import {
+  BILINGUAL_DEFAULTS,
+  BILINGUAL_KEYS,
+  BILINGUAL_LOCATION_DEFAULT,
+} from "@/lib/conventionBilingual";
 import { trpc } from "@/lib/trpc";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +29,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { useSeo } from "@/lib/seo";
 import { eventJsonLd } from "@/lib/structuredData";
 import OptimizedImage from "@/components/OptimizedImage";
+import ConventionBilingualEditor from "@/components/ConventionBilingualEditor";
 
 function renderWithLineBreaks(text: string) {
   const lines = text.split("\n");
@@ -246,48 +252,39 @@ export default function ConventionG12FrancePage() {
   const dateInfo = pageText("date_info", "Prochain événement");
   const locationInfo = pageText("location_info", "En ligne & En présentiel");
 
-  const frTitle = pageText(
-    "bilingual_fr_title",
-    "NOUS SOMMES DANS LES TEMPS\nET L'HEURE N'EST PLUS À L'ATTENTE"
-  );
-  const frBody = pageText(
-    "bilingual_fr_body",
-    "Un appel résonne à nouveau. Aller, faire des disciples et voir une génération entière se lever pour Jésus!"
-  );
+  // Textes du bloc bilingue : valeurs par défaut et clés viennent d'une
+  // source unique (@/lib/conventionBilingual) pour ne pas diverger de
+  // l'éditeur admin. Les dates sont formatées depuis les réglages de
+  // l'événement (Admin → Design), sauf surcharge manuelle en base.
+  const frKeys = BILINGUAL_KEYS.fr;
+  const enKeys = BILINGUAL_KEYS.en;
+  const frTitle = pageText(frKeys.title, BILINGUAL_DEFAULTS.fr.title);
+  const frBody = pageText(frKeys.body, BILINGUAL_DEFAULTS.fr.body);
   const frEventName = pageText(
-    "bilingual_fr_event_name",
-    "CONVENTION G12 FRANCE 2026"
+    frKeys.eventName,
+    BILINGUAL_DEFAULTS.fr.eventName
   );
-  const frSubtitle = pageText(
-    "bilingual_fr_subtitle",
-    "ALLEZ, FAITES DES DISCIPLES"
-  );
+  const frSubtitle = pageText(frKeys.subtitle, BILINGUAL_DEFAULTS.fr.subtitle);
   const frDates = pageText(
-    "bilingual_fr_dates",
-    "30 & 31 OCTOBRE — 1ER NOVEMBRE"
+    frKeys.dates,
+    formatEventRange(eventStart, eventEnd, "fr")
   );
-  const frLocation = pageText("bilingual_fr_location", "PARIS");
-  const frCta = pageText("bilingual_fr_cta", "Inscriptions bientôt ouvertes");
+  const frLocation = pageText(frKeys.location, BILINGUAL_LOCATION_DEFAULT);
+  const frCta = pageText(frKeys.cta, BILINGUAL_DEFAULTS.fr.cta);
 
-  const enTitle = pageText(
-    "bilingual_en_title",
-    "WE ARE LIVING IN THE TIMES\nAND THIS IS NO TIME TO WAIT"
-  );
-  const enBody = pageText(
-    "bilingual_en_body",
-    "The call is sounding once again. To go, make disciples, and see an entire generation rise for Jesus!"
-  );
+  const enTitle = pageText(enKeys.title, BILINGUAL_DEFAULTS.en.title);
+  const enBody = pageText(enKeys.body, BILINGUAL_DEFAULTS.en.body);
   const enEventName = pageText(
-    "bilingual_en_event_name",
-    "G12 FRANCE CONVENTION 2026"
+    enKeys.eventName,
+    BILINGUAL_DEFAULTS.en.eventName
   );
-  const enSubtitle = pageText("bilingual_en_subtitle", "GO AND MAKE DISCIPLES");
+  const enSubtitle = pageText(enKeys.subtitle, BILINGUAL_DEFAULTS.en.subtitle);
   const enDates = pageText(
-    "bilingual_en_dates",
-    "OCTOBER 30 & 31 — NOVEMBER 1"
+    enKeys.dates,
+    formatEventRange(eventStart, eventEnd, "en")
   );
-  const enLocation = pageText("bilingual_en_location", "PARIS");
-  const enCta = pageText("bilingual_en_cta", "Registration Opens Soon");
+  const enLocation = pageText(enKeys.location, BILINGUAL_LOCATION_DEFAULT);
+  const enCta = pageText(enKeys.cta, BILINGUAL_DEFAULTS.en.cta);
 
   useEffect(() => {
     if (settingsQuery.data && registrationEnabled) {
@@ -785,6 +782,8 @@ export default function ConventionG12FrancePage() {
             <Reveal variant="fadeUp" delay={0.12}>
               <section className="container convention-band py-12 px-4 sm:py-16">
                 <div className="max-w-4xl mx-auto text-center space-y-10">
+                  {/* Éditeur admin : français saisi, anglais suggéré */}
+                  <ConventionBilingualEditor />
                   {/* French */}
                   <div className="space-y-3">
                     <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold font-serif text-foreground leading-tight whitespace-pre-wrap">
