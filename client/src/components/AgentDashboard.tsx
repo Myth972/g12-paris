@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import {
   Play, RotateCcw, Activity, Youtube,
   AlertCircle, CheckCircle2, Clock, Loader2,
@@ -33,6 +34,53 @@ const AGENT_ICONS: Record<string, React.ElementType> = {
   activity: Activity,
 };
 
+// Réglage partagé avec l'agent : « true » conserve les cultes de plus de 3 mois.
+const KEEP_OLD_VIDEOS_KEY = "agent.youtubeCulte.keepOld";
+
+/**
+ * Conserver ou purger les cultes sortis de la fenêtre de 3 mois.
+ * Le réglage est en base, donc la tâche planifiée horaire le respecte aussi.
+ */
+function KeepOldVideosToggle() {
+  const utils = trpc.useUtils();
+  const settingsQuery = trpc.siteSettings.getAll.useQuery();
+  const setSetting = trpc.siteSettings.set.useMutation({
+    onSuccess: () => utils.siteSettings.getAll.invalidate(),
+    onError: err => toast.error(err.message),
+  });
+
+  const keepOld = settingsQuery.data?.[KEEP_OLD_VIDEOS_KEY] === "true";
+  const disabled = settingsQuery.isLoading || setSetting.isPending;
+
+  return (
+    <div className="rounded-lg border border-border/60 bg-muted/30 p-3 space-y-1.5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <label htmlFor="keep-old-videos" className="text-sm font-medium cursor-pointer">
+            Conserver les vidéos de plus de 3 mois
+          </label>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {keepOld
+              ? "Aucune suppression : les cultes anciens restent en ligne, même ceux que le flux YouTube ne liste plus."
+              : "À chaque exécution, les cultes dont la date dépasse 3 mois sont supprimés."}
+          </p>
+        </div>
+        <Switch
+          id="keep-old-videos"
+          checked={keepOld}
+          disabled={disabled}
+          onCheckedChange={checked =>
+            setSetting.mutate({ key: KEEP_OLD_VIDEOS_KEY, value: checked ? "true" : "false" })
+          }
+        />
+      </div>
+      <p className="text-[11px] text-muted-foreground">
+        Vaut aussi pour la tâche planifiée, qui relit ce réglage à chaque passage.
+      </p>
+    </div>
+  );
+}
+
 function formatDuration(ms: number): string {
   if (ms < 1000) return `${ms}ms`;
   if (ms < 60000) return `${(ms / 1000).toFixed(1)}s`;
@@ -42,9 +90,12 @@ function formatDuration(ms: number): string {
 function AgentCard({
   agent,
   onRun,
+  extra,
 }: {
   agent: AgentInfo;
   onRun: (id: string) => void;
+  /** Réglages propres à un agent, affichés au-dessus du bouton d'exécution. */
+  extra?: React.ReactNode;
 }) {
   const Icon = AGENT_ICONS[agent.icon] || Activity;
   const isRunning = agent.status === "running";
@@ -103,6 +154,8 @@ function AgentCard({
           {agent.lastError}
         </p>
       )}
+
+      {extra}
 
       <Button
         size="sm"
@@ -208,7 +261,12 @@ export default function AgentDashboard() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {agents.map((agent) => (
-              <AgentCard key={agent.id} agent={agent} onRun={handleRun} />
+              <AgentCard
+                key={agent.id}
+                agent={agent}
+                onRun={handleRun}
+                extra={agent.id === "youtube-culte" ? <KeepOldVideosToggle /> : undefined}
+              />
             ))}
           </div>
         )}

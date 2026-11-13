@@ -22,7 +22,7 @@ import { fileURLToPath } from "node:url";
 // et l'UPDATE s'applique alors à toute la table.
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/libsql";
-import { pageContent } from "../drizzle/schema.ts";
+import { pageContent, siteSettings } from "../drizzle/schema.ts";
 
 // Les identifiants viennent de l'environnement, jamais du fichier : ce dépôt est public.
 // En local, `.env` est chargé s'il existe, ce qui couvre le lancement manuel
@@ -57,6 +57,10 @@ const MONTHS_TO_KEEP = 3;
 
 // Nombre de vidéos récentes traitées par exécution
 const MAX_VIDEOS_PER_RUN = 10;
+
+// Réglage modifiable depuis Admin → Agents (AgentDashboard) : « true » conserve les
+// cultes de plus de 3 mois, « false » ou absent laisse le nettoyage les supprimer.
+const KEEP_OLD_SETTING_KEY = "agent.youtubeCulte.keepOld";
 
 const DRY_RUN = process.argv.includes("--dry-run");
 // Le nettoyage supprime définitivement des lignes : il se désactive si besoin.
@@ -439,6 +443,24 @@ async function syncExistingVideoDates() {
   return updated;
 }
 
+/** Lit le réglage enregistré depuis AgentDashboard. En cas de doute, on purge (comportement historique). */
+async function keepOldVideosRequested() {
+  try {
+    const rows = await db
+      .select()
+      .from(siteSettings)
+      .where(eq(siteSettings.key, KEEP_OLD_SETTING_KEY))
+      .limit(1);
+    return rows[0]?.value === "true";
+  } catch (error) {
+    console.error(
+      `⚠️ Réglage ${KEEP_OLD_SETTING_KEY} illisible, nettoyage appliqué :`,
+      error instanceof Error ? error.message : error,
+    );
+    return false;
+  }
+}
+
 /** Supprime les vidéos dont la date de culte dépasse la fenêtre de conservation. */
 async function cleanOldVideos() {
   console.log(`🧹 Nettoyage des vidéos de culte antérieures à ${MONTHS_TO_KEEP} mois...`);
@@ -489,9 +511,11 @@ async function main() {
   console.log("═══════════════════════════════════════════════════════");
   console.log("");
 
-  // 1. Supprimer les cultes trop anciens
+  // 1. Supprimer les cultes trop anciens, sauf si l'admin a demandé à les conserver
   if (SKIP_CLEAN) {
     console.log("⏭️ Nettoyage ignoré (--no-clean)");
+  } else if (await keepOldVideosRequested()) {
+    console.log(`⏭️ Nettoyage ignoré (réglage « ${KEEP_OLD_SETTING_KEY} »)`);
   } else {
     await cleanOldVideos();
   }
