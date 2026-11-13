@@ -33,14 +33,20 @@ interface PageContentItem {
   createdAt?: Date | null;
 }
 
-function parseVideoDates(description: string | null | undefined): { youtubeDate: string | null; addedDate: string | null } {
-  if (!description) return { youtubeDate: null, addedDate: null };
+/**
+ * Extrait les dates d'une vidéo de culte depuis sa description.
+ * Format actuel : « Culte du dimanche 27 septembre 2026 | Ajouté sur le site: 27 oct. 2026 ».
+ * L'ancien format « Publié sur YouTube: … » reste accepté pour les vidéos pas encore migrées.
+ */
+function parseVideoDates(description: string | null | undefined): { culteDate: string | null; addedDate: string | null } {
+  if (!description) return { culteDate: null, addedDate: null };
   
-  const youtubeMatch = description.match(/Publié sur YouTube: (.+?) \|/);
-  const addedMatch = description.match(/Ajouté sur le site: (.+?)$/);
+  // « Culte du dimanche … » (format agent) et « Publié sur YouTube: … » (ancien format).
+  const culteMatch = description.match(/(?:Culte du:?|Publié sur YouTube:)\s*(.+?)\s*\|/);
+  const addedMatch = description.match(/Ajouté sur le site:\s*(.+?)\s*$/);
   
   return {
-    youtubeDate: youtubeMatch ? youtubeMatch[1].trim() : null,
+    culteDate: culteMatch ? culteMatch[1].trim() : null,
     addedDate: addedMatch ? addedMatch[1].trim() : null,
   };
 }
@@ -123,17 +129,17 @@ function PageContentItemDisplay({
         </p>
         
         {/* Affichage des dates pour les vidéos YouTube */}
-        {isYouTubeVideo && (dates.youtubeDate || dates.addedDate) && (
+        {isYouTubeVideo && (dates.culteDate || dates.addedDate) && (
           <div className={`mt-1.5 flex flex-col sm:flex-row sm:items-center sm:justify-center gap-0.5 sm:gap-2 text-[10px] sm:text-xs transition-all ${isExpanded ? "" : "line-clamp-2 group-hover:line-clamp-none"}`}>
-            {dates.youtubeDate && (
+            {dates.culteDate && (
               <span className="flex items-center gap-1 text-muted-foreground/80">
-                <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-                <span className="hidden sm:inline">YouTube:</span> {dates.youtubeDate}
+                <span className="hidden sm:inline">Culte:</span> {dates.culteDate}
               </span>
             )}
-            {dates.youtubeDate && dates.addedDate && (
+            {dates.culteDate && dates.addedDate && (
               <span className="hidden sm:inline text-muted-foreground/40">|</span>
             )}
             {dates.addedDate && (
@@ -148,7 +154,7 @@ function PageContentItemDisplay({
         )}
         
         {/* Fallback: description simple si pas de format date */}
-        {!isYouTubeVideo && item.description && !item.description.includes("Publié sur YouTube:") && (
+        {!isYouTubeVideo && item.description && !item.description.includes("Culte du") && !item.description.includes("Publié sur YouTube:") && (
           <p className={`mt-0.5 text-[10px] sm:text-xs text-muted-foreground/80 transition-all ${isExpanded ? "" : "line-clamp-1 group-hover:line-clamp-none"}`}>
             {item.description}
           </p>

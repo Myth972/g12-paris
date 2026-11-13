@@ -1,5 +1,5 @@
 $taskName = "G12YouTubeAgent"
-$batPath = "C:\Users\Myth972\Documents\g12-paris-infos-medias-main\Production en cours\scripts\youtube-agent.bat"
+$batPath = "C:\Users\Myth972\Documents\g12-paris-infos-medias-main\scripts\youtube-agent.bat"
 
 # First try to delete existing task
 try {
