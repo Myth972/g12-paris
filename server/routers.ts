@@ -4089,10 +4089,10 @@ return { url };
       return listAgents();
     }),
     run: adminOnlyProcedure
-      .input(z.object({ id: z.string().min(1) }))
+      .input(z.object({ id: z.string().min(1), dryRun: z.boolean().optional() }))
       .mutation(async ({ input }) => {
         const { runAgent } = await import("./_core/agents.js");
-        return runAgent(input.id);
+        return runAgent(input.id, { dryRun: input.dryRun });
       }),
     logs: adminOnlyProcedure
       .input(z.object({ limit: z.number().optional().default(50) }))

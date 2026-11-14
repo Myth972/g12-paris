@@ -8,6 +8,8 @@ export interface AgentDefinition {
   name: string;
   description: string;
   icon: string;
+  /** true si l'agent sait tourner en simulation, sans écrire en base. */
+  supportsDryRun?: boolean;
 }
 
 export interface AgentStatus {
@@ -25,7 +27,12 @@ export interface AgentLogEntry {
   message: string;
 }
 
-type AgentRunner = () => Promise<string>;
+export interface AgentRunOptions {
+  /** Simulation : l'agent décrit ce qu'il ferait sans rien modifier. */
+  dryRun?: boolean;
+}
+
+type AgentRunner = (options: AgentRunOptions) => Promise<string>;
 
 // ─── Registry ─────────────────────────────────────────────────────
 
@@ -45,9 +52,16 @@ export function registerAgent(
   description: string,
   icon: string,
   runner: AgentRunner,
+  options: { supportsDryRun?: boolean } = {},
 ) {
   agents.set(id, {
-    def: { id, name, description, icon },
+    def: {
+      id,
+      name,
+      description,
+      icon,
+      supportsDryRun: options.supportsDryRun ?? false,
+    },
     status: { status: "idle", lastRun: null, lastDuration: null, lastError: null },
     runner,
   });
@@ -64,13 +78,22 @@ export function getAgentLogs(limit = 50): AgentLogEntry[] {
   return logs.slice(0, limit);
 }
 
-export async function runAgent(id: string): Promise<AgentLogEntry> {
+export async function runAgent(
+  id: string,
+  options: AgentRunOptions = {},
+): Promise<AgentLogEntry> {
   const entry = agents.get(id);
   if (!entry) {
     throw new TRPCError({ code: "NOT_FOUND", message: `Agent "${id}" not found` });
   }
   if (entry.status.status === "running") {
     throw new TRPCError({ code: "CONFLICT", message: `Agent "${id}" is already running` });
+  }
+  if (options.dryRun && !entry.def.supportsDryRun) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `Agent "${id}" n'a pas de mode simulation`,
+    });
   }
 
   const startedAt = Date.now();
@@ -81,7 +104,9 @@ export async function runAgent(id: string): Promise<AgentLogEntry> {
   let message: string;
 
   try {
-    message = await entry.runner();
+    message = await entry.runner(options);
+    // Le préfixe évite de confondre un essai avec une exécution réelle dans l'historique.
+    if (options.dryRun) message = `[simulation] ${message}`;
     success = true;
     entry.status.lastError = null;
   } catch (err) {
@@ -119,7 +144,7 @@ export function initAgents() {
     "YouTube Cultes",
     "Importe les dernières vidéos YouTube de la chaîne G12 Paris",
     "youtube",
-    async () => {
+    async options => {
       const { spawn } = await import("node:child_process");
       const { fileURLToPath } = await import("node:url");
       const path = await import("node:path");
@@ -129,8 +154,11 @@ export function initAgents() {
         "../../scripts/youtube-culte-agent.mjs",
       );
 
+      // Le script accepte --dry-run : il affiche le plan sans toucher à la base.
+      const args = options.dryRun ? [scriptPath, "--dry-run"] : [scriptPath];
+
       return new Promise<string>((resolve, reject) => {
-        const proc = spawn("node", [scriptPath], {
+        const proc = spawn("node", args, {
           stdio: ["pipe", "pipe", "pipe"],
           env: { ...process.env },
         });
@@ -152,6 +180,7 @@ export function initAgents() {
         proc.on("error", reject);
       });
     },
+    { supportsDryRun: true },
   );
 
   registerAgent(

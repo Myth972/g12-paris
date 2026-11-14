@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import {
-  Play, RotateCcw, Activity, Youtube,
+  Play, RotateCcw, Activity, Youtube, FlaskConical,
   AlertCircle, CheckCircle2, Clock, Loader2,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
@@ -19,6 +19,8 @@ type AgentInfo = {
   lastRun: number | null;
   lastDuration: number | null;
   lastError: string | null;
+  /** L'agent accepte un passage en simulation, sans écriture en base. */
+  supportsDryRun?: boolean;
 };
 
 type LogEntry = {
@@ -90,10 +92,13 @@ function formatDuration(ms: number): string {
 function AgentCard({
   agent,
   onRun,
+  onSimulate,
   extra,
 }: {
   agent: AgentInfo;
   onRun: (id: string) => void;
+  /** Lancement en simulation, seulement si l'agent le supporte. */
+  onSimulate: (id: string) => void;
   /** Réglages propres à un agent, affichés au-dessus du bouton d'exécution. */
   extra?: React.ReactNode;
 }) {
@@ -157,24 +162,39 @@ function AgentCard({
 
       {extra}
 
-      <Button
-        size="sm"
-        onClick={() => onRun(agent.id)}
-        disabled={isRunning}
-        className="w-full"
-      >
-        {isRunning ? (
-          <>
-            <Loader2 className="w-4 h-4 mr-1 animate-spin" />
-            Exécution...
-          </>
-        ) : (
-          <>
-            <Play className="w-4 h-4 mr-1" />
-            Exécuter
-          </>
+      <div className="flex gap-2">
+        <Button
+          size="sm"
+          onClick={() => onRun(agent.id)}
+          disabled={isRunning}
+          className="flex-1"
+        >
+          {isRunning ? (
+            <>
+              <Loader2 className="w-4 h-4 mr-1 animate-spin" />
+              Exécution...
+            </>
+          ) : (
+            <>
+              <Play className="w-4 h-4 mr-1" />
+              Exécuter
+            </>
+          )}
+        </Button>
+        {agent.supportsDryRun && (
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => onSimulate(agent.id)}
+            disabled={isRunning}
+            className="flex-1"
+            title="Décrit ce que l'agent ferait, sans rien modifier en base"
+          >
+            <FlaskConical className="w-4 h-4 mr-1" />
+            Simuler
+          </Button>
         )}
-      </Button>
+      </div>
     </div>
   );
 }
@@ -229,6 +249,13 @@ export default function AgentDashboard() {
     [runMutation],
   );
 
+  const handleSimulate = useCallback(
+    (id: string) => {
+      runMutation.mutate({ id, dryRun: true });
+    },
+    [runMutation],
+  );
+
   const agents = agentsQuery.data ?? [];
   const logs = logsQuery.data ?? [];
 
@@ -265,6 +292,7 @@ export default function AgentDashboard() {
                 key={agent.id}
                 agent={agent}
                 onRun={handleRun}
+                onSimulate={handleSimulate}
                 extra={agent.id === "youtube-culte" ? <KeepOldVideosToggle /> : undefined}
               />
             ))}
