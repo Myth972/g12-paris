@@ -12,17 +12,21 @@ $xml = @"
 <?xml version="1.0" encoding="UTF-16"?>
 <Task version="1.2" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task">
   <RegistrationInfo>
-    <Description>G12 YouTube Agent - Auto fetch cultes</Description>
+    <Description>G12 YouTube Agent - Auto fetch cultes (tous les samedis a 20h00)</Description>
   </RegistrationInfo>
   <Triggers>
-    <TimeTrigger>
-      <Repetition>
-        <Interval>PT1H</Interval>
-        <StopAtDurationEnd>false</StopAtDurationEnd>
-      </Repetition>
-      <StartBoundary>2026-11-13T00:00:00</StartBoundary>
+    <!-- Hebdomadaire, samedi 20h00. Remplace l'ancien TimeTrigger horaire (PT1H),
+         qui ne correspond plus a la configuration utilisee. -->
+    <CalendarTrigger>
+      <StartBoundary>2026-11-21T20:00:00</StartBoundary>
       <Enabled>true</Enabled>
-    </TimeTrigger>
+      <ScheduleByWeek>
+        <DaysOfWeek>
+          <Saturday />
+        </DaysOfWeek>
+        <WeeksInterval>1</WeeksInterval>
+      </ScheduleByWeek>
+    </CalendarTrigger>
   </Triggers>
   <Settings>
     <MultipleInstancesPolicy>IgnoreNew</MultipleInstancesPolicy>
